@@ -53,6 +53,7 @@
 #include "utils/log.h"
 #include "video/VideoDatabase.h"
 #include "video/VideoDbUrl.h"
+#include "video/VideoFileItemClassify.h"
 #include "video/VideoInfoScanner.h"
 #include "video/VideoLibraryQueue.h"
 #include "video/VideoManagerTypes.h"
@@ -76,6 +77,7 @@ using namespace VIDEO::GUILIB;
 using namespace ADDON;
 using namespace PVR;
 using namespace KODI::MESSAGING;
+using namespace KODI::VIDEO;
 
 #define CONTROL_BTNVIEWASICONS     2
 #define CONTROL_BTNSORTBY          3
@@ -306,7 +308,7 @@ bool CGUIWindowVideoBase::OnItemInfo(const CFileItem& fileItem)
                                                             ->m_moviesExcludeFromScanRegExps;
       for (const auto& i : items)
       {
-        if (i->IsVideo() && !i->IsPlayList() &&
+        if (IsVideo(*i) && !i->IsPlayList() &&
             !CUtil::ExcludeFileOrFolder(i->GetPath(), excludeFromScan))
         {
           item.SetPath(i->GetPath());
@@ -736,7 +738,7 @@ void CGUIWindowVideoBase::LoadVideoInfo(CFileItemList& items,
       }
 
       // set the watched overlay
-      if (pItem->IsVideo())
+      if (IsVideo(*pItem))
         pItem->SetOverlayImage(pItem->HasVideoInfoTag() &&
                                        pItem->GetVideoInfoTag()->GetPlayCount() > 0
                                    ? CGUIListItem::ICON_OVERLAY_WATCHED
