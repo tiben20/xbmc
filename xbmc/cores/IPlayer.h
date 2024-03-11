@@ -320,6 +320,7 @@ public:
     dest = {};
     view = {};
   }
+  virtual unsigned int GetOrientation() const { return 0; }
   virtual bool Supports(EINTERLACEMETHOD method) const { return false; }
   virtual EINTERLACEMETHOD GetDeinterlacingMethodDefault() const
   {
