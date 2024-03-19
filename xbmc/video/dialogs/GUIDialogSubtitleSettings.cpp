@@ -40,6 +40,14 @@
 #include "utils/Variant.h"
 #include "utils/log.h"
 #include "video/VideoDatabase.h"
+#if HAS_DS_PLAYER
+#include "guilib/GUIWindowManager.h"
+#include "dialogs/GUIDialogSelect.h"
+#include "dialogs/GUIDialogKaiToast.h"
+#include "GUIInfoManager.h"
+#include "input/keyboard/Key.h"
+#include "cores/DSPlayer/dsgraph.h"
+#endif
 
 #include <string>
 #include <vector>
@@ -50,6 +58,11 @@
 #define SETTING_SUBTITLE_BROWSER               "subtitles.browser"
 #define SETTING_SUBTITLE_SEARCH                "subtitles.search"
 #define SETTING_MAKE_DEFAULT                   "audio.makedefault"
+
+#if HAS_DS_PLAYER
+// separator
+#define EDITONS_SETTINGS		          "editions.settings"
+#endif
 
 CGUIDialogSubtitleSettings::CGUIDialogSubtitleSettings()
   : CGUIDialogSettingsManualBase(WINDOW_DIALOG_SUBTITLE_OSD_SETTINGS, "DialogSettings.xml")
@@ -68,7 +81,12 @@ void CGUIDialogSubtitleSettings::FrameMove()
     // these settings can change on the fly
     //! @todo m_settingsManager->SetBool(SETTING_SUBTITLE_ENABLE, g_application.GetAppPlayer().GetSubtitleVisible());
     //   \-> Unless subtitle visibility can change on the fly, while Dialog is up, this code should be removed.
-    GetSettingsManager()->SetNumber(SETTING_SUBTITLE_DELAY,
+#if HAS_DS_PLAYER
+    if (m_bIsDSPlayer)
+      GetSettingsManager()->SetNumber(SETTING_SUBTITLE_DELAY, static_cast<double>(-videoSettings.m_SubtitleDelay));
+    else
+#endif
+      GetSettingsManager()->SetNumber(SETTING_SUBTITLE_DELAY,
                                     static_cast<double>(videoSettings.m_SubtitleDelay));
     //! @todo (needs special handling): m_settingsManager->SetInt(SETTING_SUBTITLE_STREAM, g_application.GetAppPlayer().GetSubtitle());
   }
@@ -109,6 +127,10 @@ void CGUIDialogSubtitleSettings::OnSettingChanged(const std::shared_ptr<const CS
   else if (settingId == SETTING_SUBTITLE_DELAY)
   {
     float value = static_cast<float>(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
+#if HAS_DS_PLAYER
+    m_bIsDSPlayer ? value = -value : value = dValue;
+#endif
+    
     appPlayer->SetSubTitleDelay(value);
   }
   else if (settingId == SETTING_SUBTITLE_STREAM)
@@ -250,6 +272,9 @@ void CGUIDialogSubtitleSettings::SetupView()
 void CGUIDialogSubtitleSettings::InitializeSettings()
 {
   CGUIDialogSettingsManualBase::InitializeSettings();
+#if HAS_DS_PLAYER
+  m_bIsDSPlayer = (g_application.GetCurrentPlayer() == "DSPlayer");
+#endif
 
   const auto& components = CServiceBroker::GetAppComponents();
   const auto appPlayer = components.GetComponent<CApplicationPlayer>();
@@ -260,6 +285,15 @@ void CGUIDialogSubtitleSettings::InitializeSettings()
     CLog::Log(LOGERROR, "CGUIDialogSubtitleSettings: unable to setup settings");
     return;
   }
+  
+#if HAS_DS_PLAYER
+  CSettingGroup *groupEdition = AddGroup(category);
+  if (groupEdition == NULL)
+  {
+    CLog::Log(LOGERROR, "CGUIDialogAudioSubtitleSettings: unable to setup settings");
+    return;
+  }
+#endif
 
   // get all necessary setting groups
   const std::shared_ptr<CSettingGroup> groupAudio = AddGroup(category);
@@ -310,6 +344,13 @@ void CGUIDialogSubtitleSettings::InitializeSettings()
   // subtitle browser setting
   if (SupportsSubtitleFeature(IPC_SUBS_EXTERNAL))
     AddButton(groupSubtitles, SETTING_SUBTITLE_BROWSER, 13250, SettingLevel::Basic);
+
+#if HAS_DS_PLAYER
+  if (g_application.m_pPlayer->GetEditionsCount() > 1)
+  {
+    AddButton(groupEdition, EDITONS_SETTINGS, g_application.m_pPlayer->IsMatroskaEditions() ? 55023 : 55024, 0);
+  }
+#endif
 
   AddButton(groupSubtitles, SETTING_SUBTITLE_SEARCH, 24134, SettingLevel::Basic);
 
@@ -372,6 +413,12 @@ void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(
       strItem = StringUtils::Format("{} - {}", strLanguage, info.name);
 
     strItem += FormatFlags(info.flags);
+
+#if HAS_DS_PLAYER
+    if (g_application.GetCurrentPlayer() == "DSPlayer")
+      strItem = info.name;
+#endif
+
     strItem += StringUtils::Format(" ({}/{})", i + 1, subtitleStreamCount);
 
     list.emplace_back(strItem, i);
@@ -400,10 +447,26 @@ std::string CGUIDialogSubtitleSettings::SettingFormatterDelay(
 
   if (fabs(fValue) < 0.5f * fStep)
     return StringUtils::Format(g_localizeStrings.Get(22003), 0.0);
+
+#if HAS_DS_PLAYER
+  if (g_application.GetCurrentPlayer() == "DSPlayer")
+  {
+    if (fValue < 0)
+      return StringUtils::Format(g_localizeStrings.Get(22005).c_str(), fabs(fValue));
+
+    return StringUtils::Format(g_localizeStrings.Get(22004).c_str(), fValue);
+  }
+  else
+  {
+#endif
+
   if (fValue < 0)
     return StringUtils::Format(g_localizeStrings.Get(22004), fabs(fValue));
 
   return StringUtils::Format(g_localizeStrings.Get(22005), fValue);
+#if HAS_DS_PLAYER
+  }
+#endif
 }
 
 std::string CGUIDialogSubtitleSettings::FormatFlags(StreamFlags flags)

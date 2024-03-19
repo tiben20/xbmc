@@ -15,6 +15,9 @@
 #include "cores/IPlayer.h"
 #include "cores/VideoPlayer/Buffers/VideoBuffer.h"
 #include "utils/Geometry.h"
+extern "C" {
+#include <libavutil/pixfmt.h>
+}
 
 #include <utility>
 #include <vector>

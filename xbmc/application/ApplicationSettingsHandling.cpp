@@ -70,6 +70,13 @@ void CApplicationSettingsHandling::RegisterSettings()
                                        CSettings::SETTING_SOURCE_VIDEOS,
                                        CSettings::SETTING_SOURCE_MUSIC,
                                        CSettings::SETTING_SOURCE_PICTURES,
+#if HAS_DS_PLAYER
+                                       CSettings::SETTING_DSPLAYER_DEFINEDSAREA,
+                                       CSettings::SETTING_DSPLAYER_DSAREALEFT,
+                                       CSettings::SETTING_DSPLAYER_DSAREARIGHT,
+                                       CSettings::SETTING_DSPLAYER_DSAREATOP,
+                                       CSettings::SETTING_DSPLAYER_DSAREABOTTOM,
+#endif
                                        CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN});
 
   auto& components = CServiceBroker::GetAppComponents();

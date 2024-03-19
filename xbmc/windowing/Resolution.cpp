@@ -21,6 +21,12 @@
 #include <cstdlib>
 #include <limits>
 
+#if HAS_DS_PLAYER
+#include "Application/Application.h"
+#include "settings\Settings.h"
+#include "utils/RegExp.h"
+#endif
+
 namespace
 {
 
@@ -71,6 +77,15 @@ float RESOLUTION_INFO::DisplayRatio() const
 RESOLUTION CResolutionUtils::ChooseBestResolution(float fps, int width, int height, bool is3D)
 {
   RESOLUTION res = CServiceBroker::GetWinSystem()->GetGfxContext().GetVideoResolution();
+#if HAS_DS_PLAYER
+  int iValue = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_CHANGEREFRESHWITH);
+  if (iValue != ADJUST_REFRESHRATE_WITH_BOTH)
+  {
+    if ((g_application.GetCurrentPlayer() == "DSPlayer" && iValue == ADJUST_REFRESHRATE_WITH_VIDEOPLAYER)
+      || (g_application.GetCurrentPlayer() == "VideoPlayer" && iValue == ADJUST_REFRESHRATE_WITH_DSPLAYER))
+      return res;
+  }
+#endif
   float weight = 0.0f;
 
   if (!FindResolutionFromOverride(fps, width, is3D, res, weight, false)) //find a refreshrate from overrides
@@ -328,6 +343,15 @@ bool CResolutionUtils::FindResolutionFromOverride(float fps, int width, bool is3
   for (int i = 0; i < (int)CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoAdjustRefreshOverrides.size(); i++)
   {
     RefreshOverride& override = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoAdjustRefreshOverrides[i];
+
+#if HAS_DS_PLAYER
+    // ignore override for files with a specific file extensions
+    CRegExp regExp;
+    std::string ext = g_application.CurrentFileItem().GetURL().GetFileType();
+    if ((!override.ignore.empty() && regExp.RegComp(override.ignore.c_str()))
+      && regExp.RegFind(ext, 0) == 0)
+      continue;
+#endif
 
     if (override.fallback != fallback)
       continue;

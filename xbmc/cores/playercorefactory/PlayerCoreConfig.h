@@ -11,6 +11,10 @@
 #include <memory>
 #include <string>
 
+#if HAS_DS_PLAYER
+#include "DSPlayer.h"
+#endif
+
 class IPlayer;
 class IPlayerCallback;
 class TiXmlElement;

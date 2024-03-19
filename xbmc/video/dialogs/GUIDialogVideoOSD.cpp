@@ -42,6 +42,13 @@ void CGUIDialogVideoOSD::FrameMove()
                            || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_SUBTITLE_OSD_SETTINGS)
                            || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_VIDEO_OSD_SETTINGS)
                            || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_CMS_OSD_SETTINGS)
+#if HAS_DS_PLAYER
+                           || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_MADVR)
+                           || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_LAVVIDEO)
+                           || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_LAVAUDIO)
+                           || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_LAVSPLITTER)
+                           || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_SANEAR)
+#endif
                            || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_VIDEO_BOOKMARKS)
                            || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_PVR_OSD_CHANNELS)
                            || CServiceBroker::GetGUI()->GetWindowManager().IsWindowActive(WINDOW_DIALOG_PVR_CHANNEL_GUIDE)

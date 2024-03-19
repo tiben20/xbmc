@@ -29,6 +29,12 @@ public:
     VIDEO,
     AUDIO,
     SUBTITLE
+#if HAS_DS_PLAYER
+    ,
+    EDITION = 18,
+    BD_TITLE,
+    PROGRAMM
+#endif
   };
 
   explicit CStreamDetail(StreamType type) : m_eType(type), m_pParent(NULL) {}
@@ -59,6 +65,10 @@ public:
   std::string m_strStereoMode;
   std::string m_strLanguage;
   std::string m_strHdrType;
+#if HAS_DS_PLAYER
+  unsigned long m_iFourcc;
+  float m_fps;
+#endif
 };
 
 class CStreamDetailAudio final : public CStreamDetail
@@ -89,6 +99,17 @@ public:
   std::string m_strLanguage;
 };
 
+#if HAS_DS_PLAYER
+class CStreamDetailEditon : public CStreamDetail
+{
+public:
+  CStreamDetailEditon();
+  virtual void Archive(CArchive& ar);
+  virtual void Serialize(CVariant& value);
+  std::string m_strName;
+};
+#endif
+
 class CStreamDetails final : public IArchivable, public ISerializable
 {
 public:
@@ -118,6 +139,10 @@ public:
   void SetVideoDuration(int idx, const int duration);
   std::string GetStereoMode(int idx = 0) const;
   std::string GetVideoLanguage(int idx = 0) const;
+#if HAS_DS_PLAYER
+  std::string GetVideoFourcc(int idx = 0) const;
+  float GetVideoFPS(int idx = 0) const;
+#endif
 
   std::string GetAudioCodec(int idx = 0) const;
   std::string GetAudioLanguage(int idx = 0) const;

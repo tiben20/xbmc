@@ -476,6 +476,58 @@ public:
   static constexpr auto SETTING_FILECACHE_READFACTOR = "filecache.readfactor"; // as integer (x100)
   static constexpr auto SETTING_FILECACHE_CHUNKSIZE = "filecache.chunksize"; // in Bytes
 
+#if HAS_DS_PLAYER
+  static constexpr auto SETTING_DSPLAYER_RULES = "dsplayer.rules";
+  static constexpr auto SETTING_DSPLAYER_FILTERS = "dsplayer.filters";
+  static constexpr auto SETTING_DSPLAYER_PLAYCORE = "dsplayer.playercore";
+  static constexpr auto SETTING_DSPLAYER_LAVSPLITTER = "dsplayer.lavsplitter";
+  static constexpr auto SETTING_DSPLAYER_LAVVIDEO = "dsplayer.lavvideo";
+  static constexpr auto SETTING_DSPLAYER_LAVAUDIO = "dsplayer.lavaudio";
+  static constexpr auto SETTING_DSPLAYER_XYSUBFILTER = "dsplayer.xysubfilter";
+  static constexpr auto SETTING_DSPLAYER_XYVSFILTER = "dsplayer.xyvsfilter";
+  static constexpr auto SETTING_DSPLAYER_DEFAULTVIDEOPLAYER = "dsplayer.defaultvideoplayer";
+  static constexpr auto SETTING_DSPLAYER_AUTOFILTERSETTINGS = "dsplayer.autofiltersettings";
+  static constexpr auto SETTING_DSPLAYER_CHANGEREFRESHWITH = "videoplayer.changerefreshwith";
+  static constexpr auto SETTING_DSPLAYER_LASTTVSHOWSELECT = "videolibrary.lasttvshowsselect";
+  static constexpr auto SETTING_DSPLAYER_MANAGEMADVRWITHKODI = "dsplayer.madvrsettingswithkodi";
+  static constexpr auto SETTING_DSPLAYER_DELAYMADVRPLAYBACK = "dsplayer.delaymadvrplayback";
+  static constexpr auto SETTING_DSPLAYER_EXCLUSIVEMODE = "dsplayer.exclusivemode";
+//todo evr
+//  static constexpr auto SETTING_DSPLAYER_EXCLUSIVEMODE_EVR = "dsplayer.exclusivemodeevr";
+  static constexpr auto SETTING_DSPLAYER_EXITMADVRFULLSCREEN = "dsplayer.exitmadvrfullscreen";
+  static constexpr auto SETTING_DSPLAYER_D3DPRESNTATION = "dsplayer.d3dpresentation";
+  static constexpr auto SETTING_DSPLAYER_NUMPRESENTWINDOWED = "dsplayer.numpresentwindowed";
+  static constexpr auto SETTING_DSPLAYER_NUMPRESENTEXCLUSIVE = "dsplayer.numpresentexclusive";
+  static constexpr auto SETTING_DSPLAYER_MINTITLELENGTH = "dsplayer.mintitlelength";
+  static constexpr auto SETTING_DSPLAYER_SHOWBDTITLECHOICE = "dsplayer.showbdtitlechoice";
+  static constexpr auto SETTING_DSPLAYER_BDAUTOLOADINDEX = "dsplayer.bdautoloadindex";
+  static constexpr auto SETTING_DSPLAYER_SHOWSPLITTERDETAIL = "dsplayer.showsplitterdetail";
+  static constexpr auto SETTING_DSPLAYER_VIDEOSUBSEX = "dsplayer.videosubsexpandedselector";
+  static constexpr auto SETTING_DSPLAYER_VIDEOAUDIOEX = "dsplayer.videoaudioexpandedselector";
+  static constexpr auto SETTING_DSPLAYER_VIDEORENDERER = "dsplayer.videorenderer";
+  static constexpr auto SETTING_DSPLAYER_AUDIORENDERER = "dsplayer.audiorenderer";
+  static constexpr auto SETTING_DSPLAYER_SANEARDEVICES = "dsplayer.saneardevices";
+  static constexpr auto SETTING_DSPLAYER_SANEAREXCLUSIVE = "dsplayer.sanearexclusive";
+  static constexpr auto SETTING_DSPLAYER_SANEARALLOWBITSTREAM = "dsplayer.sanearallowbitstream";
+  static constexpr auto SETTING_DSPLAYER_SANEARSTEREOCROSSFEED = "dsplayer.sanearstereocrossfeed";
+  static constexpr auto SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER = "dsplayer.sanearignoresystemchannelmixer";
+  static constexpr auto SETTING_DSPLAYER_SANEARCMOY = "dsplayer.sanearcmoy";
+  static constexpr auto SETTING_DSPLAYER_SANEARJMEIER = "dsplayer.sanearjmeier";
+  static constexpr auto SETTING_DSPLAYER_SANEARCUTOFF = "dsplayer.sanearcutoff";
+  static constexpr auto SETTING_DSPLAYER_SANEARLEVEL = "dsplayer.sanearlevel";
+  static constexpr auto SETTING_DSPLAYER_FILTERSMANAGEMENT = "dsplayer.filtersmanagement";
+  static constexpr auto SETTING_DSPLAYER_PREFAUDIOCODEC = "dsplayer.prefaudiocodec";
+  static constexpr auto SETTING_DSPLAYER_EXSUBTITLELANGUAGE = "dsplayer.exsubtitlelanguage";
+  static constexpr auto SETTING_DSPLAYER_OSDINTOACTIVEAREA = "dsplayer.osdintoactivearea";
+  static constexpr auto SETTING_DSPLAYER_DEFINEDSAREA = "dsplayer.definedsarea";
+  static constexpr auto SETTING_DSPLAYER_DSAREALEFT = "dsplayer.dsarealeft";
+  static constexpr auto SETTING_DSPLAYER_DSAREARIGHT = "dsplayer.dsarearight";
+  static constexpr auto SETTING_DSPLAYER_DSAREATOP = "dsplayer.dsareatop";
+  static constexpr auto SETTING_DSPLAYER_DSAREABOTTOM = "dsplayer.dsareabottom";
+  static constexpr auto SETTING_DSPLAYER_COPYACTIVERECT = "dsplayer.copyactiverect";
+  static constexpr auto SETTING_DSPLAYER_DSAREARESET = "dsplayer.dsareareset";
+#endif
+
   // values for SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS
   static const int VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_MOVIES = 0;
   static const int VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_TVSHOWEPISODES = 1;

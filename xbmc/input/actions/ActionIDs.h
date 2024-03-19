@@ -212,7 +212,16 @@ constexpr const int REMOTE_9 = 67;
 //! Show player process info (video decoder, pixel format, pvr signal strength
 //! and the like
 constexpr const int ACTION_PLAYER_PROCESS_INFO = 69;
-
+#if HAS_DS_PLAYER
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_ATSTART = 900;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_1      = 901;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_2      = 902;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_3      = 903;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_SD     = 904;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_720    = 905;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_1080   = 906;
+constexpr const int ACTION_DSPLAYER_USERSETTINGS_2160   = 907;
+#endif
 constexpr const int ACTION_PLAYER_PROGRAM_SELECT = 70;
 
 constexpr const int ACTION_PLAYER_RESOLUTION_SELECT = 71;

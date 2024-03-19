@@ -240,6 +240,45 @@ bool CGUIWindowVideoNav::OnMessage(CGUIMessage& message)
   return CGUIWindowVideoBase::OnMessage(message);
 }
 
+#if HAS_DS_PLAYER
+void CGUIWindowVideoNav::OnInitWindow()
+{
+  CGUIWindowVideoBase::OnInitWindow();
+
+  // Check if we should select the last played/watched tvshow
+  int iIndex = GetSettingSelecTvShow();
+  if (iIndex > -1)
+    m_viewControl.SetSelectedItem(iIndex);
+}
+
+int CGUIWindowVideoNav::GetSettingSelecTvShow()
+{
+  int iValue = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_LASTTVSHOWSELECT);
+  
+  if (m_vecItems->IsVideoDb() && iValue > -1)
+  {
+    bool bIsItemSelected = (m_viewControl.GetSelectedItem() > 0);
+    NODE_TYPE nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
+
+    if (nodeType == NODE_TYPE_TITLE_TVSHOWS && !bIsItemSelected)
+    {
+       CDSPlayerDatabase dspdb;
+       if (!dspdb.Open())
+         return -1;
+       int idShow = dspdb.GetLastTvShowId(iValue);
+       dspdb.Close();
+
+       for (int i = 0; i < m_vecItems->Size(); ++i)
+       {
+         if (idShow == m_vecItems->Get(i)->GetVideoInfoTag()->m_iDbId)
+           return i;
+       }
+    }
+  }
+  return -1;
+}
+#endif
+
 SelectFirstUnwatchedItem CGUIWindowVideoNav::GetSettingSelectFirstUnwatchedItem()
 {
   if (m_vecItems->IsVideoDb())
@@ -964,7 +1003,29 @@ bool CGUIWindowVideoNav::OnAddMediaSource()
 bool CGUIWindowVideoNav::OnClick(int iItem, const std::string &player)
 {
   CFileItemPtr item = m_vecItems->Get(iItem);
-  if (StringUtils::StartsWithNoCase(item->GetPath(), "newtag://"))
+  if (!item->m_bIsFolder && item->IsVideoDb() && !item->Exists())
+  {
+    CLog::Log(LOGDEBUG, "{} called on '{}' but file doesn't exist", __FUNCTION__, item->GetPath());
+
+    const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
+
+    if (profileManager->GetCurrentProfile().canWriteDatabases() || g_passwordManager.bMasterUser)
+    {
+      if (!CGUIDialogVideoInfo::DeleteVideoItemFromDatabase(item, true))
+        return true;
+
+      // update list
+      Refresh(true);
+      m_viewControl.SetSelectedItem(iItem);
+      return true;
+    }
+    else
+    {
+      HELPERS::ShowOKDialogText(CVariant{257}, CVariant{662});
+      return true;
+    }
+  }
+  else if (StringUtils::StartsWithNoCase(item->GetPath(), "newtag://"))
   {
     // dont allow update while scanning
     if (CVideoLibraryQueue::GetInstance().IsScanningLibrary())

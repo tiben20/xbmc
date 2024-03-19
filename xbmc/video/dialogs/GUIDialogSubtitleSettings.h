@@ -25,6 +25,11 @@ public:
   ~CGUIDialogSubtitleSettings() override;
   bool OnMessage(CGUIMessage& message) override;
 
+#if HAS_DS_PLAYER
+  static void ShowAudioSelector();
+  static void ShowSubsSelector();
+#endif
+
   // specialization of CGUIWindow
   void FrameMove() override;
 
@@ -51,6 +56,9 @@ private:
 
   int m_subtitleStream;
   bool m_subtitleVisible;
+#if HAS_DS_PLAYER
+  bool m_bIsDSPlayer;
+#endif
   std::shared_ptr<CSettingInt> m_subtitleStreamSetting;
 
   std::vector<int> m_subtitleCapabilities;

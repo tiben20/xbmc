@@ -139,7 +139,9 @@ public:
                                                 std::vector<IntegerSettingOption>& list,
                                                 int& current,
                                                 void* data);
-
+#if HAS_DS_PLAYER
+  static RESOLUTION GetResolutionFromString(const std::string &strResolution);
+#endif
 
 protected:
   CDisplaySettings();
@@ -148,8 +150,9 @@ protected:
   ~CDisplaySettings() override;
 
   DisplayMode GetCurrentDisplayMode() const;
-
+#ifndef HAS_DS_PLAYER
   static RESOLUTION GetResolutionFromString(const std::string &strResolution);
+#endif
   static std::string GetStringFromResolution(RESOLUTION resolution, float refreshrate = 0.0f);
   static RESOLUTION GetResolutionForScreen();
 

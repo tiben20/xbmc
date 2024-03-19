@@ -26,6 +26,10 @@
 #include <memory>
 #include <mutex>
 
+#if HAS_DS_PLAYER
+#include "Application/Application.h"
+#endif
+
 using namespace AE;
 using namespace ActiveAE;
 

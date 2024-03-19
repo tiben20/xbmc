@@ -9,6 +9,10 @@
 #pragma once
 
 #include "cores/VideoSettings.h"
+#if HAS_DS_PLAYER
+#include "cores/DSplayer/Filters/MadvrSettings.h"
+#include "cores/DSplayer/Filters/LavSettings.h"
+#endif
 #include "settings/GameSettings.h"
 #include "settings/ISubSettings.h"
 #include "settings/LibExportSettings.h"
@@ -41,6 +45,10 @@ public:
   bool Load(const TiXmlNode *settings) override;
   bool Save(TiXmlNode *settings) const override;
 
+#if HAS_DS_PLAYER
+  virtual void OnSettingChanged(const CSetting *setting) override;
+#endif
+
   void OnSettingAction(const std::shared_ptr<const CSetting>& setting) override;
   void OnSettingChanged(const std::shared_ptr<const CSetting>& setting) override;
 
@@ -51,6 +59,17 @@ public:
   CGameSettings& GetDefaultGameSettings() { return m_defaultGameSettings; }
   const CGameSettings& GetCurrentGameSettings() const { return m_currentGameSettings; }
   CGameSettings& GetCurrentGameSettings() { return m_currentGameSettings; }
+
+#if HAS_DS_PLAYER
+  const CVideoSettings& GetAtStartVideoSettings() const { return m_atstartVideoSettings; }
+  CVideoSettings& GetAtStartVideoSettings() { return m_atstartVideoSettings; }
+
+  const CMadvrSettings& GetCurrentMadvrSettings() const { return m_currentMadvrSettings; }
+  CMadvrSettings& GetCurrentMadvrSettings() { return m_currentMadvrSettings; }
+
+  const CLavSettings& GetCurrentLavSettings() const { return m_currentLavSettings; }
+  CLavSettings& GetCurrentLavSettings() { return m_currentLavSettings; }
+#endif
 
   /*! \brief Retrieve the watched mode for the given content type
    \param content Current content type
@@ -101,6 +120,12 @@ private:
 
   CGameSettings m_defaultGameSettings;
   CGameSettings m_currentGameSettings;
+
+#if HAS_DS_PLAYER
+  CVideoSettings m_atstartVideoSettings;
+  CMadvrSettings m_currentMadvrSettings;
+  CLavSettings m_currentLavSettings;
+#endif
 
   typedef std::map<std::string, WatchedMode> WatchedModes;
   WatchedModes m_watchedModes;

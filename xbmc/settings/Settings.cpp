@@ -58,6 +58,11 @@
 #include "utils/log.h"
 #include "view/ViewStateSettings.h"
 
+#if HAS_DS_PLAYER  
+#include "FGLoader.h"
+#include "cores/DSPlayer/Dialogs/GUIDialogDSManager.h"
+#endif
+
 #define SETTINGS_XML_FOLDER "special://xbmc/system/settings/"
 
 using namespace KODI;
@@ -399,6 +404,12 @@ void CSettings::InitializeOptionFillers()
   GetSettingsManager()->RegisterSettingOptionsFiller("audiocdactions", MEDIA_DETECT::CAutorun::SettingOptionAudioCdActionsFiller);
 #endif
   GetSettingsManager()->RegisterSettingOptionsFiller("charsets", CCharsetConverter::SettingOptionsCharsetsFiller);
+#if HAS_DS_PLAYER  
+  m_settingsManager->RegisterSettingOptionsFiller("dsvideorenderer", CFGLoader::SettingOptionsDSVideoRendererFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("dsaudiorenderer", CFGLoader::SettingOptionsDSAudioRendererFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("saneardevices", CFGLoader::SettingOptionsSanearDevicesFiller);
+  m_settingsManager->RegisterSettingOptionsFiller("dsextrafilter", CGUIDialogDSManager::AllFiltersConfigOptionFiller);
+#endif
   GetSettingsManager()->RegisterSettingOptionsFiller("fonts", GUIFontManager::SettingOptionsFontsFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller(
       "subtitlesfonts", SUBTITLES::CSubtitlesSettings::SettingOptionsSubtitleFontsFiller);
@@ -455,6 +466,12 @@ void CSettings::UninitializeOptionFillers()
   GetSettingsManager()->UnregisterSettingOptionsFiller("audiocdactions");
   GetSettingsManager()->UnregisterSettingOptionsFiller("audiocdencoders");
   GetSettingsManager()->UnregisterSettingOptionsFiller("charsets");
+#if HAS_DS_PLAYER 
+  m_settingsManager->UnregisterSettingOptionsFiller("dsvideorenderer");
+  m_settingsManager->UnregisterSettingOptionsFiller("dsaudiorenderer");
+  m_settingsManager->UnregisterSettingOptionsFiller("saneardevices");
+  m_settingsManager->UnregisterSettingOptionsFiller("dsextrafilter");
+#endif
   GetSettingsManager()->UnregisterSettingOptionsFiller("fontheights");
   GetSettingsManager()->UnregisterSettingOptionsFiller("fonts");
   GetSettingsManager()->UnregisterSettingOptionsFiller("subtitlesfonts");
@@ -588,6 +605,26 @@ void CSettings::InitializeISettingCallbacks()
   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_IMPORT);
   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_EXPORT);
   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS);
+#if HAS_DS_PLAYER
+  settingSet.insert(CSettings::SETTING_DSPLAYER_RULES);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_FILTERS);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_PLAYCORE);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_LAVSPLITTER);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_LAVVIDEO);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_LAVAUDIO);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_XYSUBFILTER);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_XYVSFILTER);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_DSAREARESET);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARDEVICES);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARSTEREOCROSSFEED);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARCMOY);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARJMEIER);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARCUTOFF);
+  settingSet.insert(CSettings::SETTING_DSPLAYER_SANEARLEVEL);
+#endif
   GetSettingsManager()->RegisterCallback(&CMediaSettings::GetInstance(), settingSet);
 
   settingSet.clear();

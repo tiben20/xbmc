@@ -6,7 +6,7 @@
  *  See LICENSES/README.md for more information.
  */
 
-#include "Application.h"
+#include "Application/Application.h"
 
 #include "Autorun.h"
 #include "CompileInfo.h"

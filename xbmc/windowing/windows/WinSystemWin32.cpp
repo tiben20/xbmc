@@ -32,6 +32,11 @@
 #include "windowing/GraphicContext.h"
 #include "windowing/windows/Win32DPMSSupport.h"
 
+#if HAS_DS_PLAYER
+#include "Application/Application.h"
+#include "windowing/GraphicContext.h"
+#endif
+
 #include "platform/win32/CharsetConverter.h"
 #include "platform/win32/input/IRServerSuite.h"
 
@@ -909,6 +914,11 @@ bool CWinSystemWin32::ChangeResolution(const RESOLUTION_INFO& res, bool forceCha
   DEVMODEW sDevMode = {};
   sDevMode.dmSize = sizeof(sDevMode);
 
+#if HAS_DS_PLAYER
+  if (g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
+    return true;
+#endif
+
   // If we can't read the current resolution or any detail of the resolution is different than res
   if (!EnumDisplaySettingsW(outputW.c_str(), ENUM_CURRENT_SETTINGS, &sDevMode) ||
       sDevMode.dmPelsWidth != res.iWidth || sDevMode.dmPelsHeight != res.iHeight ||
@@ -930,7 +940,14 @@ bool CWinSystemWin32::ChangeResolution(const RESOLUTION_INFO& res, bool forceCha
     bool bResChanged = false;
 
     // Windows 8 refresh rate workaround for 24.0, 48.0 and 60.0 Hz
+#if HAS_DS_PLAYER
+    if (CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin8) 
+      && !CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10_1709) 
+      && (res.fRefreshRate == 24.0 || res.fRefreshRate == 48.0 || res.fRefreshRate == 60.0))
+
+#else
     if (res.fRefreshRate == 24.0 || res.fRefreshRate == 48.0 || res.fRefreshRate == 60.0)
+#endif
     {
       CLog::LogF(LOGDEBUG, "Using Windows 8+ workaround for refresh rate {} Hz",
                  static_cast<int>(res.fRefreshRate));

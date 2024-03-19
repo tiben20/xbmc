@@ -20,6 +20,9 @@
 #include "utils/CPUInfo.h"
 #include "utils/StringUtils.h"
 #include "utils/SystemInfo.h"
+#if HAS_DS_PLAYER
+#include "DSFilterVersion.h"
+#endif
 
 #define CONTROL_TB_POLICY   30
 #define CONTROL_BT_STORAGE  94
@@ -164,7 +167,26 @@ void CGUIWindowSystemInfo::FrameMove()
     }
 
     SetControlLabel(i++, "{} {}", 22010, SYSTEM_GPU_TEMPERATURE);
-
+#if HAS_DS_PLAYER
+    i++;  // empty line
+    SetControlLabel(i++, "%s: %s", 55102, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::MADSHI_VIDEO_RENDERER));   
+    SetControlLabel(i++, "%s: %s", 55131, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_SANEAR));
+    if (CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVSPLITTER) == CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVVIDEO)
+      && CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVSPLITTER) == CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVAUDIO))
+    {
+      SetControlLabel(i++, "%s: %s", 55132, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVSPLITTER));
+    }
+    else
+    {
+      SetControlLabel(i++, "%s: %s", 55097, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVSPLITTER));
+      SetControlLabel(i++, "%s: %s", 55098, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVVIDEO));
+      SetControlLabel(i++, "%s: %s", 55099, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVAUDIO));
+    }
+    if (CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")
+      SetControlLabel(i++, "%s: %s", 55100, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_XYSUBFILTER));
+    else
+      SetControlLabel(i++, "%s: %s", 55101, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_XYVSFILTER));
+#endif
     const std::string hdrTypes = CServiceBroker::GetGUI()->GetInfoManager().GetLabel(
         SYSTEM_SUPPORTED_HDR_TYPES, INFO::DEFAULT_CONTEXT);
     SET_CONTROL_LABEL(
@@ -258,3 +280,13 @@ void CGUIWindowSystemInfo::SetControlLabel(int id, const char *format, int label
       CServiceBroker::GetGUI()->GetInfoManager().GetLabel(info, INFO::DEFAULT_CONTEXT));
   SET_CONTROL_LABEL(id, tmpStr);
 }
+
+#if HAS_DS_PLAYER
+void CGUIWindowSystemInfo::SetControlLabel(int id, const char *format, int label, const std::string &info)
+{
+  std::string tmpStr = StringUtils::Format(format, g_localizeStrings.Get(label).c_str(),
+    info.c_str());
+  SET_CONTROL_LABEL(id, tmpStr);
+}
+
+#endif

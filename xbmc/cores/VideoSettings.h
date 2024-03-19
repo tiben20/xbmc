@@ -14,6 +14,10 @@
 
 #include <fmt/format.h>
 
+#if HAS_DS_PLAYER
+#include "IDSPlayer.h"
+#endif
+
 // VideoSettings.h: interface for the CVideoSettings class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -98,6 +102,18 @@ enum ESCALINGMETHOD
   VS_SCALINGMETHOD_SPLINE36,
   VS_SCALINGMETHOD_MAX // do not use and keep as last enum value.
 };
+
+#if HAS_DS_PLAYER
+enum EDSSCALINGMETHOD
+{
+  DS_SCALINGMETHOD_NEAREST_NEIGHBOR = 0,
+  DS_SCALINGMETHOD_BILINEAR,
+  DS_SCALINGMETHOD_BILINEAR_2,
+  DS_SCALINGMETHOD_BILINEAR_2_60,
+  DS_SCALINGMETHOD_BILINEAR_2_75,
+  DS_SCALINGMETHOD_BILINEAR_2_100
+};
+#endif
 
 template<>
 struct fmt::formatter<ESCALINGMETHOD> : fmt::formatter<std::string_view>
@@ -199,8 +215,13 @@ public:
 
   bool operator!=(const CVideoSettings &right) const;
 
+#if HAS_DS_PLAYER
+  void SetDSPlayerScalingMethod(EDSSCALINGMETHOD method);
+  EDSSCALINGMETHOD GetDSPlayerScalingMethod();
+  std::string m_SubtitleExtTrackName;
+#endif
   EINTERLACEMETHOD m_InterlaceMethod;
-  ESCALINGMETHOD m_ScalingMethod;
+  int m_ScalingMethod;
   int m_ViewMode; // current view mode
   float m_CustomZoomAmount; // custom setting zoom amount
   float m_CustomPixelRatio; // custom setting pixel ratio

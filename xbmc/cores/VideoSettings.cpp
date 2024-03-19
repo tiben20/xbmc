@@ -14,6 +14,9 @@
 
 CVideoSettings::CVideoSettings()
 {
+#if HAS_DS_PLAYER
+  m_SubtitleExtTrackName = "";
+#endif
   m_InterlaceMethod = VS_INTERLACEMETHOD_AUTO;
   m_ScalingMethod = VS_SCALINGMETHOD_LINEAR;
   m_ViewMode = ViewModeNormal;
@@ -44,6 +47,22 @@ CVideoSettings::CVideoSettings()
   m_Orientation = 0;
   m_CenterMixLevel = 0;
 }
+
+#if HAS_DS_PLAYER
+void CVideoSettings::SetDSPlayerScalingMethod(EDSSCALINGMETHOD method)
+{
+  m_ScalingMethod &= 0xFFFF0000; // Clear dsplayer scaling method
+  m_ScalingMethod += method & 0xFFFF;
+  //m_ScalingMethod += (method << 16) & 0xFFFF0000; <----- why this
+}
+
+EDSSCALINGMETHOD CVideoSettings::GetDSPlayerScalingMethod()
+{
+  if (m_ScalingMethod > DS_SCALINGMETHOD_BILINEAR_2_100)
+    m_ScalingMethod = DS_SCALINGMETHOD_BILINEAR_2_100;
+  return (EDSSCALINGMETHOD) (m_ScalingMethod & 0xFFFF);
+}
+#endif
 
 bool CVideoSettings::operator!=(const CVideoSettings &right) const
 {

@@ -59,6 +59,16 @@ static const std::map<ActionName, ActionID> ActionMappings = {
     {"playerdebugvideo", ACTION_PLAYER_DEBUG_VIDEO},
     {"codecinfo", ACTION_PLAYER_PROCESS_INFO},
     {"playerprocessinfo", ACTION_PLAYER_PROCESS_INFO},
+#if HAS_DS_PLAYER
+    { "loaddsplayersettings1"       , ACTION_DSPLAYER_USERSETTINGS_1 },
+    { "loaddsplayersettings2"       , ACTION_DSPLAYER_USERSETTINGS_2 },
+    { "loaddsplayersettings3"       , ACTION_DSPLAYER_USERSETTINGS_3 },  
+    { "loaddsplayersettingssd"       , ACTION_DSPLAYER_USERSETTINGS_SD },
+    { "loaddsplayersettings720"      , ACTION_DSPLAYER_USERSETTINGS_720 },
+    { "loaddsplayersettings1080"     , ACTION_DSPLAYER_USERSETTINGS_1080 },
+    { "loaddsplayersettings2160"     , ACTION_DSPLAYER_USERSETTINGS_2160 },
+    { "loaddsplayersettingsatstart" , ACTION_DSPLAYER_USERSETTINGS_ATSTART },
+#endif
     {"playerprogramselect", ACTION_PLAYER_PROGRAM_SELECT},
     {"playerresolutionselect", ACTION_PLAYER_RESOLUTION_SELECT},
     {"nextpicture", ACTION_NEXT_PICTURE},

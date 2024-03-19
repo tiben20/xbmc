@@ -12,6 +12,10 @@
 #include "ServiceBroker.h"
 #include "guilib/GUIComponent.h"
 
+#if HAS_DS_PLAYER
+#include "GraphFilters.h"
+#endif
+
 using namespace KODI::GUILIB::GUIINFO;
 
 CGUIInfoBool::CGUIInfoBool(bool value)

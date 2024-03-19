@@ -85,6 +85,11 @@ void CGUIFontTTFDX::LastEnd()
   if (m_vertex.empty() && transIsEmpty)
     return;
 
+#if HAS_DS_PLAYER
+  // Render count to detect when the GUI it's active or deactive (useful for madVR latency mode)
+  g_application.m_pPlayer->IncRenderCount();
+#endif
+
   CreateStaticIndexBuffer();
 
   unsigned int offset = 0;

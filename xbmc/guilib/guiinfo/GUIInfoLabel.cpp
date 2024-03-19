@@ -167,6 +167,18 @@ bool CGUIInfoLabel::IsConstant() const
   return m_infoLabel.empty() || (m_infoLabel.size() == 1 && m_infoLabel[0].m_info == 0);
 }
 
+#if HAS_DS_PLAYER
+std::string replaceLabel(const std::string &strInput, const std::string &strFind, const std::string &strReplace)
+{
+  std::string strLabel = g_localizeStrings.Get(atoi(strInput.c_str()));
+  StringUtils::ToLower(strLabel);
+  if (strLabel.find(strFind) != std::string::npos)
+    return strReplace;
+
+  return strInput;
+}
+#endif
+
 bool CGUIInfoLabel::ReplaceSpecialKeywordReferences(const std::string &strInput, const std::string &strKeyword, const StringReplacerFunc &func, std::string &strOutput)
 {
   // replace all $strKeyword[value] with resolved strings
@@ -184,7 +196,21 @@ bool CGUIInfoLabel::ReplaceSpecialKeywordReferences(const std::string &strInput,
       if (index == 0)  // first occurrence?
         strOutput.clear();
       strOutput.append(strInput, index, startPos - index); // append part from the left side
+#if HAS_DS_PLAYER
+      if (CGraphFilters::Get()->IsDialogProcessInfo())
+      {
+        std::string strLabel = strInput.substr(valuePos, endPos - valuePos);
+        strLabel = replaceLabel(strLabel, "pixel", "55095"); //replace with ds renderers
+        strLabel = replaceLabel(strLabel, "deint", "55002"); //replace with ds filters
+        strOutput += func(strLabel);
+      }
+      else
+      {
+        strOutput += func(strInput.substr(valuePos, endPos - valuePos));
+      }
+#else
       strOutput += func(strInput.substr(valuePos, endPos - valuePos));  // resolve and append value part
+#endif
       index = endPos + 1;
     }
     else

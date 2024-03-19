@@ -84,6 +84,10 @@ struct RefreshOverride
   float refreshmin;
   float refreshmax;
 
+#if HAS_DS_PLAYER
+  std::string ignore;
+#endif
+
   bool  fallback;
 };
 
@@ -94,6 +98,10 @@ struct RefreshVideoLatency
   float refreshmax;
 
   float delay;
+  
+#if HAS_DS_PLAYER
+  float auxDelay;
+#endif
 };
 
 typedef std::vector<TVShowRegexp> SETTINGS_TVSHOWLIST;
@@ -163,6 +171,10 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::vector<RefreshOverride> m_videoAdjustRefreshOverrides;
     std::vector<RefreshVideoLatency> m_videoRefreshLatency;
     float m_videoDefaultLatency;
+#if HAS_DS_PLAYER
+    float m_videoDefaultAuxLatency;
+    std::string m_videoDefaultAuxDeviceName;
+#endif
     int  m_videoCaptureUseOcclusionQuery;
     bool m_DXVACheckCompatibility;
     bool m_DXVACheckCompatibilityPresent;
@@ -326,6 +338,15 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     DatabaseSettings m_databaseTV;    // advanced tv database setup
     DatabaseSettings m_databaseEpg;   /*!< advanced EPG database setup */
 
+#if HAS_DS_PLAYER
+    DatabaseSettings m_databaseDSPlayer; // advanced DSPlayer database setup
+    bool m_bDSPlayerFastChannelSwitching; // Live TV fast channel switching (don't stop timeshift), only for MediaPortal TV-Server and ArgusTV PVR backends
+    bool m_bDSPlayerUseUNCPathsForLiveTV; // Use UNC paths for Live TV, only for MediaPortal TV-Server and ArgusTV PVR backends
+    bool m_bIgnoreSystemAppcommand;
+    bool m_bDisableMadvrLowLatency;
+    bool m_bNotWaitKodiRendering; // default false, madVR for each processed frame will wait up to 100ms that kodi completes the rendering of the GUI, this could be useful in case of GUI flickering.
+#endif
+
     bool m_useLocaleCollation;
 
     bool m_guiVisualizeDirtyRegions;
@@ -367,6 +388,11 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::string m_userAgent;
     uint32_t m_nfsTimeout;
     int m_nfsRetries;
+
+#if HAS_DS_PLAYER
+    float GetDisplayAuxDelay(float refreshrate);
+    std::string GetAuxDeviceName();
+#endif
 
   private:
     void Initialize();

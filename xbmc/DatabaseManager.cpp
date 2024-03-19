@@ -20,6 +20,10 @@
 #include "video/VideoDatabase.h"
 #include "view/ViewDatabase.h"
 
+#if HAS_DS_PLAYER
+#include "DSPlayerDatabase.h"
+#endif
+
 #include <mutex>
 
 using namespace PVR;
@@ -56,7 +60,9 @@ void CDatabaseManager::Initialize()
   { CVideoDatabase db; UpdateDatabase(db, &advancedSettings->m_databaseVideo); }
   { CPVRDatabase db; UpdateDatabase(db, &advancedSettings->m_databaseTV); }
   { CPVREpgDatabase db; UpdateDatabase(db, &advancedSettings->m_databaseEpg); }
-
+#if HAS_DS_PLAYER
+  { CDSPlayerDatabase db; UpdateDatabase(db, &g_advancedSettings.m_databaseDSPlayer); }
+#endif
   CLog::Log(LOGDEBUG, "{}, updating databases... DONE", __FUNCTION__);
 
   m_bIsUpgrading = false;

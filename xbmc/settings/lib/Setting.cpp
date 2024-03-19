@@ -979,6 +979,19 @@ bool CSettingInt::FromString(const std::string &value)
   if (!fromString(value, iValue))
     return false;
 
+#if HAS_DS_PLAYER
+  if (strValue == "true")
+  {
+    value = 1;
+    return true;
+  }
+  if (strValue == "false")
+  {
+    value = 0;
+    return true;
+  }
+#endif
+
   return SetValue(iValue);
 }
 

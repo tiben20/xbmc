@@ -11,6 +11,10 @@
 #include <string>
 #include <vector>
 
+#if HAS_DS_PLAYER
+#include "DSPlayerDatabase.h"
+#endif
+
 class CBookmark
 {
 public:
@@ -40,6 +44,9 @@ public:
   std::string player;
   long seasonNumber;
   long episodeNumber;
+#if HAS_DS_PLAYER
+  CEdition edition;
+#endif
 
   enum EType
   {

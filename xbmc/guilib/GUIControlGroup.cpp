@@ -14,6 +14,10 @@
 #include <cassert>
 #include <utility>
 
+#if HAS_DS_PLAYER
+#include "Application/Application.h"
+#endif
+
 using namespace KODI;
 
 CGUIControlGroup::CGUIControlGroup()

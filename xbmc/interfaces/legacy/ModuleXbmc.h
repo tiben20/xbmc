@@ -70,8 +70,8 @@ namespace XBMCAddon
     ///
     ///
     /// ------------------------------------------------------------------------
-    /// @python_v17 Default level changed from `LOGNOTICE` to `LOGDEBUG`
-    /// @python_v19 Removed `LOGNOTICE` (use `LOGINFO`) and `LOGSEVERE` (use `LOGFATAL`)
+    /// @python_v17 Default level changed from `LOGINFO` to `LOGDEBUG`
+    /// @python_v19 Removed `LOGINFO` (use `LOGINFO`) and `LOGSEVERE` (use `LOGFATAL`)
     ///
     /// **Example:**
     /// ~~~~~~~~~~~~~{.py}

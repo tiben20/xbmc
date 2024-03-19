@@ -9,6 +9,9 @@
 #pragma once
 
 #include "IPlayerCallback.h"
+#if HAS_DS_PLAYER
+#include "IDSPlayer.h"
+#endif
 #include "Interface/StreamInfo.h"
 #include "MenuType.h"
 #include "VideoSettings.h"
@@ -67,6 +70,18 @@ enum IPlayerSubtitleCapabilities
   IPC_SUBS_OFFSET
 };
 
+#if HAS_DS_PLAYER
+enum EDSSCALINGMETHOD
+{
+  DS_SCALINGMETHOD_NEAREST_NEIGHBOR = 0,
+  DS_SCALINGMETHOD_BILINEAR,
+  DS_SCALINGMETHOD_BILINEAR_2,
+  DS_SCALINGMETHOD_BILINEAR_2_60,
+  DS_SCALINGMETHOD_BILINEAR_2_75,
+  DS_SCALINGMETHOD_BILINEAR_2_100
+};
+#endif
+
 enum ERENDERFEATURE
 {
   RENDERFEATURE_GAMMA,
@@ -84,7 +99,11 @@ enum ERENDERFEATURE
   RENDERFEATURE_TONEMAP
 };
 
+#if HAS_DS_PLAYER
+class IPlayer : public IDSRendererAllocatorCallback, public IDSRendererPaintCallback, public IMadvrSettingCallback, public IDSPlayer
+#else
 class IPlayer
+#endif
 {
 public:
   explicit IPlayer(IPlayerCallback& callback) : m_callback(callback) {}

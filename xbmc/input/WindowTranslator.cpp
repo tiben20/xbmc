@@ -149,6 +149,16 @@ const CWindowTranslator::WindowMapByName CWindowTranslator::WindowMappingByName 
     {"fullscreengame", WINDOW_FULLSCREEN_GAME},
     {"visualisation", WINDOW_VISUALISATION},
     {"slideshow", WINDOW_SLIDESHOW},
+#if HAS_DS_PLAYER
+    { "dsrulesettings"           , WINDOW_DIALOG_DSRULES },
+    { "dsfiltersettings"         , WINDOW_DIALOG_DSFILTERS },
+    { "dsplayercoresettings"     , WINDOW_DIALOG_DSPLAYERCORE },
+    { "dsplayerlavvideo"         , WINDOW_DIALOG_LAVVIDEO },
+    { "dsplayerlavaudio"         , WINDOW_DIALOG_LAVAUDIO },
+    { "dsplayerlavsplitter"      , WINDOW_DIALOG_LAVSPLITTER },
+    { "dsplayersanear"           , WINDOW_DIALOG_SANEAR },
+    { "dsplayerprocessinfo"      , WINDOW_DIALOG_DSPLAYER_PROCESS_INFO },
+#endif
     {"weather", WINDOW_WEATHER},
     {"screensaver", WINDOW_SCREENSAVER},
     {"videoosd", WINDOW_DIALOG_VIDEO_OSD},

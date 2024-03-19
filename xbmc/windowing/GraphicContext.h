@@ -206,6 +206,9 @@ protected:
   std::stack<float> m_stereoFactors;
   std::stack<CRect> m_viewStack;
   CRect m_scissors;
+#if HAS_DS_PLAYER
+  CRect m_oldDsActiveArea;
+#endif
 
   class UITransform
   {

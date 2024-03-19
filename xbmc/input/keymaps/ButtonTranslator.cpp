@@ -121,13 +121,26 @@ bool CButtonTranslator::Load()
               DIRS_TO_CHECK[1], DIRS_TO_CHECK[2]);
     return false;
   }
-
+#if HAS_DS_PLAYER
+  if (!m_translatorMap[WINDOW_DIALOG_PLAYER_PROCESS_INFO].empty())
+    m_translatorMap[WINDOW_DIALOG_DSPLAYER_PROCESS_INFO] = m_translatorMap[WINDOW_DIALOG_PLAYER_PROCESS_INFO];
+#endif
   // Done!
   return true;
 }
 
 bool CButtonTranslator::LoadKeymap(const std::string& keymapPath)
 {
+#if HAS_DS_PLAYER
+  if (g_advancedSettings.m_bIgnoreSystemAppcommand
+    && keymapPath.find("system") != keymapPath.npos
+    && (keymapPath.find("appcommand") != keymapPath.npos
+      || keymapPath.find("gamepad") != keymapPath.npos
+      || keymapPath.find("joystick") != keymapPath.npos)
+    )
+    return false;
+#endif
+
   CXBMCTinyXML2 xmlDoc;
 
   CLog::Log(LOGINFO, "Loading {}", keymapPath);

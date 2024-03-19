@@ -43,6 +43,10 @@
 #include <utility>
 #include <vector>
 
+#if HAS_DS_PLAYER
+#include "settings/AdvancedSettings.h"
+#endif
+
 using namespace std::chrono_literals;
 
 #define MAX_INVALIDATION_FREQUENCY 2000ms // limit to one invalidation per X milliseconds

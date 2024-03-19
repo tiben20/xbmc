@@ -29,6 +29,10 @@
 #include <utility>
 #include <vector>
 
+#if HAS_DS_PLAYER
+#include "settings/MediaSettings.h"
+#endif
+
 #ifdef HAS_PYTHON
 #include "interfaces/python/XBPython.h"
 #endif

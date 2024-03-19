@@ -34,6 +34,14 @@
 #include <mutex>
 #include <string>
 
+#if HAS_DS_PLAYER
+#include "cores/DSPlayer/Dialogs/GUIDialogDSRules.h"
+#include "cores/DSPlayer/Dialogs/GUIDialogDSFilters.h"
+#include "cores/DSPlayer/Dialogs/GUIDialogDSPlayercoreFactory.h"
+#include "GraphFilters.h"
+#include "Filters/Sanear/Interfaces.h"
+#endif
+
 using namespace KODI;
 using namespace KODI::MESSAGING;
 
@@ -300,6 +308,27 @@ bool CMediaSettings::Save(TiXmlNode *settings) const
   return true;
 }
 
+#if HAS_DS_PLAYER
+void CMediaSettings::OnSettingChanged(const CSetting *setting)
+{
+  if (setting == NULL)
+    return;
+
+  const std::string &settingId = setting->GetId();
+
+  if (settingId == CSettings::SETTING_DSPLAYER_SANEARDEVICES
+    || settingId == CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE
+    || settingId == CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM
+    || settingId == CSettings::SETTING_DSPLAYER_SANEARSTEREOCROSSFEED
+    || settingId == CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER
+    || settingId == CSettings::SETTING_DSPLAYER_SANEARCUTOFF
+    || settingId == CSettings::SETTING_DSPLAYER_SANEARLEVEL
+    )
+    CGraphFilters::Get()->SetSanearSettings();
+
+}
+#endif
+
 void CMediaSettings::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
@@ -349,6 +378,39 @@ void CMediaSettings::OnSettingAction(const std::shared_ptr<const CSetting>& sett
   }
   else if (settingId == CSettings::SETTING_VIDEOLIBRARY_EXPORT)
     CBuiltins::GetInstance().Execute("exportlibrary(video)");
+#if HAS_DS_PLAYER
+  else if (settingId == CSettings::SETTING_DSPLAYER_RULES)
+    CGUIDialogDSRules::ShowDSRulesList();
+  else if (settingId == CSettings::SETTING_DSPLAYER_FILTERS)
+    CGUIDialogDSFilters::ShowDSFiltersList();
+  else if (settingId == CSettings::SETTING_DSPLAYER_PLAYCORE)
+    CGUIDialogDSPlayercoreFactory::ShowDSPlayercoreFactory();
+  else if (settingId == CSettings::SETTING_DSPLAYER_LAVSPLITTER)
+    CGraphFilters::Get()->ShowInternalPPage(CGraphFilters::INTERNAL_LAVSPLITTER, false);
+  else if (settingId == CSettings::SETTING_DSPLAYER_LAVVIDEO)
+    CGraphFilters::Get()->ShowInternalPPage(CGraphFilters::INTERNAL_LAVVIDEO, false);
+  else if (settingId == CSettings::SETTING_DSPLAYER_LAVAUDIO)
+    CGraphFilters::Get()->ShowInternalPPage(CGraphFilters::INTERNAL_LAVAUDIO, false);
+  else if (settingId == CSettings::SETTING_DSPLAYER_XYSUBFILTER || settingId == CSettings::SETTING_DSPLAYER_XYVSFILTER)
+    CGraphFilters::Get()->ShowInternalPPage(CGraphFilters::INTERNAL_XYSUBFILTER, true);
+  else if (settingId == CSettings::SETTING_DSPLAYER_DSAREARESET)
+  {
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT, 0);
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT, 0);
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREATOP, 0);
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM, 0);
+  }
+  else if (settingId == CSettings::SETTING_DSPLAYER_SANEARCMOY)
+  {
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_CMOY);
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_CMOY);
+  }
+  else if (settingId == CSettings::SETTING_DSPLAYER_SANEARJMEIER)
+  {
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_JMEIER);
+    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_JMEIER);
+  }
+#endif
   else if (settingId == CSettings::SETTING_VIDEOLIBRARY_IMPORT)
   {
     std::string path;

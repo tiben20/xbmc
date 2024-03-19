@@ -59,6 +59,10 @@ protected:
   VECSOURCES m_shares;
 
 private:
+#if HAS_DS_PLAYER
+  virtual void OnInitWindow() override;
+  int GetSettingSelecTvShow();
+#endif
   virtual SelectFirstUnwatchedItem GetSettingSelectFirstUnwatchedItem();
   virtual IncludeAllSeasonsAndSpecials GetSettingIncludeAllSeasonsAndSpecials();
   virtual int GetFirstUnwatchedItemIndex(bool includeAllSeasons, bool includeSpecials);

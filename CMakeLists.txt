@@ -154,6 +154,8 @@ set(INCLUDES ${CMAKE_SOURCE_DIR}
              ${CMAKE_SOURCE_DIR}/xbmc
              ${CMAKE_SOURCE_DIR}/xbmc/${PLATFORM_DIR}
              ${CMAKE_SOURCE_DIR}/xbmc/cores/VideoPlayer
+             ${CORE_SOURCE_DIR}/xbmc/cores/DSPlayer
+             ${CORE_SOURCE_DIR}/xbmc/cores/DSPlayer/BaseClasses
              ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}
              ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include)
 
@@ -356,6 +358,8 @@ mark_as_advanced(test_sources)
 # copy files to build tree
 copy_files_from_filelist_to_buildtree(${CMAKE_SOURCE_DIR}/cmake/installdata/common/*.txt
                                       ${CMAKE_SOURCE_DIR}/cmake/installdata/${CORE_SYSTEM_NAME}/*.txt)
+
+copy_files_from_filelist_to_buildtree(${PROJECT_SOURCE_DIR}/installdata/windows/dsplayer.txt NO_INSTALL)
 
 list(APPEND SKINS "${CMAKE_SOURCE_DIR}/addons/skin.estuary\;${CMAKE_SOURCE_DIR}")
 

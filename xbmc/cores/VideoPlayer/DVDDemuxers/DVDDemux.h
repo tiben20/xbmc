@@ -140,6 +140,10 @@ public:
   int iBitsPerPixel = 0;
   int iBitRate = 0;
   int bitDepth = 0;
+  
+#if HAS_DS_PLAYER
+  int iCodecTag = 0;
+#endif
 
   AVColorSpace colorSpace = AVCOL_SPC_UNSPECIFIED;
   AVColorRange colorRange = AVCOL_RANGE_UNSPECIFIED;
@@ -152,6 +156,8 @@ public:
   std::string stereo_mode; // expected stereo mode
   StreamHdrType hdr_type = StreamHdrType::HDR_TYPE_NONE; // type of HDR for this stream (hdr10, etc)
   AVDOVIDecoderConfigurationRecord dovi{};
+  
+
 };
 
 class CDemuxStreamAudio : public CDemuxStream

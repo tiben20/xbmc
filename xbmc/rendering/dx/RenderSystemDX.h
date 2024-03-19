@@ -64,7 +64,11 @@ public:
   void RequestDecodingTime();
   void ReleaseDecodingTime();
   void SetAlphaBlendEnable(bool enable);
-
+#if HAS_DS_PLAYER
+  void                    SetWindowedForMadvr();
+  void                    GetParamsForDSPlayer(bool &useWindowedDX, unsigned int &nBackBufferWidth, unsigned int &nBackBufferHeight, bool &bVSync, float &refreshRate, bool &interlaced);
+  bool                    m_UseWindowedDX_DSPlayer;
+#endif
   // empty overrides
   bool IsExtSupported(const char* extension) const override { return false; }
   bool ResetRenderSystem(int width, int height) override { return true; }

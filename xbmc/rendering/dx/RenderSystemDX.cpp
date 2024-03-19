@@ -30,6 +30,9 @@
 #include "guilib/GUIWindowManager.h"
 #include "utils/MathUtils.h"
 #include "utils/log.h"
+#if HAS_DS_PLAYER
+#include "DSPlayer.h"
+#endif
 
 #include <DirectXPackedVector.h>
 
@@ -702,3 +705,38 @@ bool CRenderSystemDX::SupportsNPOT(bool dxt) const
   // taking in account first condition we setup caps NPOT for FE > 9.x only
   return m_deviceResources->GetDeviceFeatureLevel() > D3D_FEATURE_LEVEL_9_3 ? true : false;
 }
+
+#if HAS_DS_PLAYER
+void CRenderSystemDX::SetWindowedForMadvr()
+{
+  if (!m_bRenderCreated)
+    return;
+
+  HRESULT hr;
+  BOOL bFullScreen;
+  m_pSwapChain->GetFullscreenState(&bFullScreen, NULL);
+
+  if (!!bFullScreen)
+  {
+    CLog::Log(LOGDEBUG, "%s - Switching swap chain to windowed mode.", __FUNCTION__);
+    hr = m_pSwapChain->SetFullscreenState(false, NULL);
+    m_bResizeRequred = S_OK == hr;
+
+    if (S_OK != hr)
+      CLog::Log(LOGERROR, "%s - Failed switch full screen state: %s.", __FUNCTION__, GetErrorDescription(hr).c_str());
+    // wait until switching screen state is done
+    DXWait(m_pD3DDev, m_pImdContext);
+    return;
+  }
+}
+
+void CRenderSystemDX::GetParamsForDSPlayer(bool &useWindowedDX, unsigned int &nBackBufferWidth, unsigned int &nBackBufferHeight, bool &bVSync, float &refreshRate, bool &interlaced)
+{
+  useWindowedDX = m_UseWindowedDX_DSPlayer;
+  nBackBufferWidth = m_nBackBufferWidth;
+  nBackBufferHeight = m_nBackBufferHeight;
+  bVSync = m_bVSync;
+  refreshRate = m_refreshRate;
+  interlaced = m_interlaced;
+}
+#endif

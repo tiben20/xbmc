@@ -1164,6 +1164,18 @@ extern "C"
     return 0;
   }
 
+#if HAS_DS_PLAYER
+  FILE* dll_wfopen(const wchar_t* wfilename, const wchar_t* wmode)
+  {
+	  std::string filename;
+	  std::string mode;
+
+	  g_charsetConverter.wToUTF8(wfilename, filename);
+	  g_charsetConverter.wToUTF8(wmode, mode);
+	  return dll_fopen(filename.c_str(), mode.c_str());
+  }
+#endif
+
   int dll_putc(int c, FILE *stream)
   {
     if (g_emuFileWrapper.StreamIsEmulatedFile(stream) || IS_STD_STREAM(stream))

@@ -12,6 +12,9 @@
 #include "GUIShaderDX.h"
 #include "TextureDX.h"
 #include "rendering/dx/RenderContext.h"
+#if HAS_DS_PLAYER
+#include "Application/Application.h"
+#endif
 
 #include <DirectXMath.h>
 
@@ -42,6 +45,12 @@ CGUITextureD3D* CGUITextureD3D::Clone() const
 void CGUITextureD3D::Begin(UTILS::COLOR::Color color)
 {
   CTexture* texture = m_texture.m_textures[m_currentFrame].get();
+
+#if HAS_DS_PLAYER
+  // Render count to detect when GUI it's active or deactive (useful for madVR latency mode)
+  g_application.m_pPlayer->IncRenderCount();
+#endif
+
   texture->LoadToGPU();
 
   if (m_diffuse.size())

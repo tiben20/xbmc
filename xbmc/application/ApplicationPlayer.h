@@ -168,6 +168,51 @@ public:
   void SetVolume(float volume);
   void SetSpeed(float speed);
   bool SupportsTempo() const;
+  
+#if HAS_DS_PLAYER
+  // IDSRendererAllocatorCallback
+  CRect GetActiveVideoRect();
+  bool IsEnteringExclusive();
+  void EnableExclusive(bool bEnable);
+  void SetPixelShader() const;
+  void SetResolution() const;
+  void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect);
+  bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret);
+  void Reset(bool bForceWindowed);
+  void DisplayChange(bool bExternalChange);
+
+  // IDSRendererPaintCallback
+  void BeginRender();
+  void RenderToTexture(DS_RENDER_LAYER layer);
+  void EndRender();
+  void IncRenderCount();
+
+  // IMadvrSettingCallback
+  void LoadSettings(int iSectionId);
+  void RestoreSettings();
+  void GetProfileActiveName(const std::string &path, std::string *profile);
+  void OnSettingChanged(int iSectionId, CSettingsManager* settingsManager, const CSetting *setting);
+  void AddDependencies(const std::string &xml, CSettingsManager *settingsManager, CSetting *setting);
+  void ListSettings(const std::string &path);
+
+  // IDSPlayer
+  bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags);
+  bool UsingDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF);
+  bool ReadyDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF);
+  void Register(IDSRendererAllocatorCallback* pAllocatorCallback);
+  void Register(IDSRendererPaintCallback* pPaintCallback);
+  void Register(IMadvrSettingCallback* pSettingCallback);
+  void Unregister(IDSRendererAllocatorCallback* pAllocatorCallback);
+  void Unregister(IDSRendererPaintCallback* pPaintCallback);
+  void Unregister(IMadvrSettingCallback* pSettingCallback);
+
+  int  GetEditionsCount();
+  int  GetEdition();
+  void GetEditionInfo(int iEdition, std::string &strEditionName, REFERENCE_TIME *prt);
+  void SetEdition(int iEdition);
+  bool IsMatroskaEditions();
+  void ShowEditionDlg(bool playStart);
+#endif
 
   CVideoSettings GetVideoSettings() const;
   void SetVideoSettings(CVideoSettings& settings);

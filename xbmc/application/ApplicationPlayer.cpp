@@ -772,6 +772,336 @@ void CApplicationPlayer::GetSubtitleCapabilities(std::vector<int>& subCaps) cons
     player->GetSubtitleCapabilities(subCaps);
 }
 
+#if HAS_DS_PLAYER
+// IDSRendererAllocatorCallback
+CRect CApplicationPlayer::GetActiveVideoRect()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->GetActiveVideoRect();
+  }
+  else
+    return CRect(0, 0, 0, 0);
+}
+
+bool CApplicationPlayer::IsEnteringExclusive()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->IsEnteringExclusive();
+  }
+  else
+    return false;
+}
+
+void CApplicationPlayer::EnableExclusive(bool bEnable)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->EnableExclusive(bEnable);
+  }
+}
+
+void CApplicationPlayer::SetPixelShader() const
+{
+  const std::shared_ptr<const IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->SetPixelShader();
+  }
+}
+
+void CApplicationPlayer::SetResolution() const
+{
+  const std::shared_ptr<const IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->SetResolution();
+  }
+}
+
+void CApplicationPlayer::SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->SetPosition(sourceRect, videoRect, viewRect);
+  }
+}
+
+bool CApplicationPlayer::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret);
+  }
+  else
+    return false;
+}
+
+void CApplicationPlayer::Reset(bool bForceWindowed)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Reset(bForceWindowed);
+  }
+}
+
+void CApplicationPlayer::DisplayChange(bool bExternalChange)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->DisplayChange(bExternalChange);
+  }
+}
+
+// IDSRendererPaintCallback
+void CApplicationPlayer::BeginRender()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->BeginRender();
+  }
+}
+
+void CApplicationPlayer::RenderToTexture(DS_RENDER_LAYER layer)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->RenderToTexture(layer);
+  }
+}
+
+void CApplicationPlayer::EndRender()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->EndRender();
+  }
+}
+
+void CApplicationPlayer::IncRenderCount()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->IncRenderCount();
+  }
+}
+
+// IMadvrSettingCallback
+void CApplicationPlayer::LoadSettings(int iSectionId)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->LoadSettings(iSectionId);
+  }
+}
+
+void CApplicationPlayer::RestoreSettings()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->RestoreSettings();
+  }
+}
+
+void CApplicationPlayer::GetProfileActiveName(const std::string &path, std::string *profile)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->GetProfileActiveName(path, profile);
+  }
+}
+
+void CApplicationPlayer::OnSettingChanged(int iSectionId, CSettingsManager* settingsManager, const CSetting *setting)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->OnSettingChanged(iSectionId, settingsManager, setting);
+  }
+}
+
+void CApplicationPlayer::AddDependencies(const std::string &xml, CSettingsManager *settingsManager, CSetting *setting)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->AddDependencies(xml, settingsManager, setting);
+  }
+}
+
+void CApplicationPlayer::ListSettings(const std::string &path)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->ListSettings(path);
+  }
+}
+
+// IDSPlayer
+bool CApplicationPlayer::Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->Configure(width, height, d_width, d_height, fps, flags);
+  }
+  else
+    return false;
+}
+
+bool CApplicationPlayer::UsingDS(DIRECTSHOW_RENDERER renderer)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->UsingDS(renderer);
+  }
+  else
+    return false;
+}
+
+bool CApplicationPlayer::ReadyDS(DIRECTSHOW_RENDERER renderer)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->ReadyDS(renderer);
+  }
+  else
+    return false;
+}
+
+void CApplicationPlayer::Register(IDSRendererAllocatorCallback* pAllocatorCallback)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Register(pAllocatorCallback);
+  }
+}
+
+void CApplicationPlayer::Register(IDSRendererPaintCallback* pPaintCallback)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Register(pPaintCallback);
+  }
+}
+
+void CApplicationPlayer::Register(IMadvrSettingCallback* pSettingCallback)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Register(pSettingCallback);
+  }
+}
+
+void CApplicationPlayer::Unregister(IDSRendererAllocatorCallback* pAllocatorCallback)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Unregister(pAllocatorCallback);
+  }
+}
+
+void CApplicationPlayer::Unregister(IDSRendererPaintCallback* pPaintCallback)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Unregister(pPaintCallback);
+  }
+}
+
+void CApplicationPlayer::Unregister(IMadvrSettingCallback* pSettingCallback)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->Unregister(pSettingCallback);
+  }
+}
+
+int CApplicationPlayer::GetEditionsCount()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->GetEditionsCount();
+  }
+  else
+    return 0;
+}
+
+int CApplicationPlayer::GetEdition()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->GetEdition();
+  }
+  else
+    return -1;
+}
+
+void CApplicationPlayer::GetEditionInfo(int iEdition, std::string &strEditionName, REFERENCE_TIME *prt)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->GetEditionInfo(iEdition, strEditionName, prt);
+  }
+}
+
+void CApplicationPlayer::SetEdition(int iEdition)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    player->SetEdition(iEdition);
+  }
+}
+
+bool CApplicationPlayer::IsMatroskaEditions()
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->IsMatroskaEditions();
+  }
+  else
+    return false;
+}
+
+void CApplicationPlayer::ShowEditionDlg(bool playStart)
+{
+  std::shared_ptr<IPlayer> player = GetInternal();
+  if (player)
+  {
+    return player->ShowEditionDlg(playStart);
+  }
+}
+#endif
+
 int  CApplicationPlayer::SeekChapter(int iChapter)
 {
   std::shared_ptr<IPlayer> player = GetInternal();

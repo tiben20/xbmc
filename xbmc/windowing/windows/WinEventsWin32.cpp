@@ -498,6 +498,16 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         DX::Windowing()->ShowOSMouse(true);
       break;
     case WM_MOUSEMOVE:
+#if HAS_DS_PLAYER
+      if (g_application.GetCurrentPlayer() == "DSPlayer")
+      {
+        if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
+        {
+          CDSPlayer::PostMessage(new CDSMsgInt(CDSMsg::PLAYER_DVD_MOUSE_MOVE, lParam), false);
+          return(0);
+        }
+      }
+#endif
       newEvent.type = XBMC_MOUSEMOTION;
       newEvent.motion.x = GET_X_LPARAM(lParam);
       newEvent.motion.y = GET_Y_LPARAM(lParam);
@@ -505,6 +515,16 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         appPort->OnEvent(newEvent);
       return(0);
     case WM_LBUTTONDOWN:
+#if HAS_DS_PLAYER
+      if (g_application.GetCurrentPlayer() == "DSPlayer")
+      {
+        if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
+        {
+          CDSPlayer::PostMessage(new CDSMsgInt(CDSMsg::PLAYER_DVD_MOUSE_CLICK, lParam), false);
+          return(0);
+        }
+      }
+#endif
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
       newEvent.type = XBMC_MOUSEBUTTONDOWN;
@@ -567,6 +587,36 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       return(0);
     }
     case WM_DISPLAYCHANGE:
+#if HAS_DS_PLAYER
+    {
+      CLog::Log(LOGDEBUG, __FUNCTION__": display change event");
+      if (g_application.GetRenderGUI() && GET_X_LPARAM(lParam) > 0 && GET_Y_LPARAM(lParam) > 0)
+      {
+        if (g_application.m_pPlayer->GetCurrentPlayer() == "DSPlayer")
+        {
+          g_application.m_pPlayer->DisplayChange(!g_Windowing.IsAlteringWindow());
+        }
+        else if (!g_Windowing.IsAlteringWindow())
+        {
+          g_Windowing.UpdateResolutions();
+          if (g_advancedSettings.m_fullScreen)
+          {
+            newEvent.type = XBMC_VIDEOMOVE;
+            newEvent.move.x = 0;
+            newEvent.move.y = 0;
+          }
+          else
+          {
+            newEvent.type = XBMC_VIDEORESIZE;
+            newEvent.resize.w = GET_X_LPARAM(lParam);
+            newEvent.resize.h = GET_Y_LPARAM(lParam);
+          }
+          m_pEventFunc(newEvent);
+        }
+      }
+      return(0);
+    }
+#else
     {
       CLog::LogFC(LOGDEBUG, LOGWINDOWING, "display change event");
       if (DX::Windowing()->IsTogglingHDR() || DX::Windowing()->IsAlteringWindow())
@@ -580,6 +630,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       }
       return(0);
     }
+#endif
     case WM_ENTERSIZEMOVE:
       {
         DX::Windowing()->SetSizeMoveMode(true);
@@ -628,6 +679,9 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       }
     return(0);
     case WM_SIZE:
+#if HAS_DS_PLAYER
+      PostMessage(CDSPlayer::GetDShWnd(), uMsg, wParam, lParam);
+#endif
       if (wParam == SIZE_MINIMIZED)
       {
         if (!DX::Windowing()->IsMinimized())
@@ -877,7 +931,12 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
     default:
       break;
   }
+#if HAS_DS_PLAYER
+  LRESULT ret = 0;
+  return (g_application.m_pPlayer->ParentWindowProc(hWnd, uMsg, &wParam, &lParam, &ret)) ? ret : DefWindowProc(hWnd, uMsg, wParam, lParam);
+#else
   return(DefWindowProc(hWnd, uMsg, wParam, lParam));
+#endif
 }
 
 void CWinEventsWin32::RegisterDeviceInterfaceToHwnd(GUID InterfaceClassGuid, HWND hWnd, HDEVNOTIFY *hDeviceNotify)

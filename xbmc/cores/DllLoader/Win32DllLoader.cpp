@@ -65,6 +65,9 @@ Export win32_exports[] =
   { "fgets",                      -1UL, (void*)dll_fgets          },
   { "fopen",                      -1UL, (void*)dll_fopen          },
   { "fopen_s",                    -1UL, (void*)dll_fopen_s        },
+#if HAS_DS_PLAYER
+  //{ "_wfopen",                    -1, (void*)dll_wfopen,                    (void*)track_wfopen},
+#endif
   { "putc",                       -1UL, (void*)dll_putc           },
   { "fputc",                      -1UL, (void*)dll_fputc          },
   { "fputs",                      -1UL, (void*)dll_fputs          },

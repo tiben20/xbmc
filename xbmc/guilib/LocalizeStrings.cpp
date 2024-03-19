@@ -17,6 +17,10 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/log.h"
+#if HAS_DS_PLAYER
+#include "settings/MediaSettings.h"
+#include "cores/DSPlayer/Filters/MadvrSettings.h"
+#endif
 
 #include <mutex>
 #include <shared_mutex>
@@ -82,7 +86,12 @@ static bool LoadPO(const std::string &filename, std::map<uint32_t, LocStr>& stri
       //! We can store the pluralforms for each language, in the langinfo.xml files.
     }
   }
-
+#if HAS_DS_PLAYER
+  if (filename.find("resource.language.en_gb") != filename.npos)
+  {
+    LoadPO(CMediaSettings::GetInstance().GetCurrentMadvrSettings().m_FileStringPo, strings, encoding, offset, bSourceLanguage);
+  }
+#endif
   CLog::Log(LOGDEBUG, "LocalizeStrings: loaded {} strings from file {}", counter, filename);
   return true;
 }

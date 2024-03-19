@@ -13,6 +13,9 @@
 #include "utils/Archive.h"
 #include "utils/LangCodeExpander.h"
 #include "utils/Variant.h"
+#if HAS_DS_PLAYER
+#include "StringUtils.h"
+#endif
 
 #include <math.h>
 
@@ -174,6 +177,28 @@ bool CStreamDetailSubtitle::IsWorseThan(const CStreamDetail &that) const
   return m_strLanguage.empty() ||
     g_LangCodeExpander.CompareISO639Codes(static_cast<const CStreamDetailSubtitle &>(that).m_strLanguage, g_langInfo.GetSubtitleLanguage());
 }
+
+#if HAS_DS_PLAYER
+CStreamDetailEditon::CStreamDetailEditon():CStreamDetail(CStreamDetail::EDITION)
+{
+}
+void CStreamDetailEditon::Archive(CArchive& ar)
+{
+  CStreamDetail::Archive(ar);
+  if (ar.IsStoring())
+  {
+    ar << m_strName;
+  }
+  else
+  {
+    ar >> m_strName;
+  }
+}
+void CStreamDetailEditon::Serialize(CVariant& value)
+{
+  value["name"] = m_strName;
+}
+#endif
 
 CStreamDetailSubtitle& CStreamDetailSubtitle::operator=(const CStreamDetailSubtitle &that)
 {
@@ -375,6 +400,31 @@ std::string CStreamDetails::GetVideoCodec(int idx) const
   else
     return "";
 }
+
+#if HAS_DS_PLAYER
+std::string CStreamDetails::GetVideoFourcc(int idx) const
+{
+  CStreamDetailVideo *item = (CStreamDetailVideo *)GetNthStream(CStreamDetail::VIDEO, idx);
+  if (item)
+  {
+    std::string fourcc = "";
+    int iFourcc = item->m_iFourcc;
+    fourcc = StringUtils::Format("%c%c%c%c", iFourcc >> 24 & 0xff, iFourcc >> 16 & 0xff, iFourcc >> 8 & 0xff, iFourcc & 0xff);
+    return fourcc;
+  }
+  else
+    return "";
+}
+
+float CStreamDetails::GetVideoFPS(int idx) const
+{
+  const CStreamDetailVideo *item = static_cast<const CStreamDetailVideo*>(GetNthStream(CStreamDetail::VIDEO, idx));
+  if (item)
+    return item->m_fps;
+  else
+    return 0.0f;
+}
+#endif
 
 float CStreamDetails::GetVideoAspect(int idx) const
 {
