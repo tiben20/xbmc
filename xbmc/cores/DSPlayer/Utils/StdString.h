@@ -4,7 +4,7 @@
 #include <string>
 #include <vector> 
 #include <stdint.h>
-
+#include <memory>
 
 #if defined(_WIN32) && !defined(va_copy)
 #define va_copy(dst, src) ((dst) = (src))
@@ -1939,7 +1939,7 @@ inline int sscpy(CT1* pDst, const std::basic_string<CT2>& sSrc)
 
 #ifdef SS_NO_LOCALE
   template<typename CT>
-  struct SSToUpper : public std::unary_function<CT, CT>
+  struct SSToUpper// : public std::unary_function<CT, CT>
   {
     inline CT operator()(const CT& t) const
     {
@@ -1947,7 +1947,7 @@ inline int sscpy(CT1* pDst, const std::basic_string<CT2>& sSrc)
     }
   };
   template<typename CT>
-  struct SSToLower : public std::unary_function<CT, CT>
+  struct SSToLower// : public std::unary_function<CT, CT>
   {
     inline CT operator()(const CT& t) const
     {
@@ -4319,7 +4319,7 @@ private:
   #define StdStringLessNoCase    SSLNCA
   #define StdStringEqualsNoCase  SSENCA
 #endif
-
+#if 0
 struct StdStringLessNoCaseW
   : std::binary_function<CStdStringW, CStdStringW, bool>
 {
@@ -4348,7 +4348,7 @@ struct StdStringEqualsNoCaseA
   bool operator()(const CStdStringA& sLeft, const CStdStringA& sRight) const
   { return ssicmp(sLeft.c_str(), sRight.c_str()) == 0; }
 };
-
+#endif
 // If we had to define our own version of TRACE above, get rid of it now
 
 #ifdef TRACE_DEFINED_HERE

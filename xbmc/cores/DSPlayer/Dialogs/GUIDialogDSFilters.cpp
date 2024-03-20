@@ -76,8 +76,9 @@ void CGUIDialogDSFilters::OnDeinitWindow(int nextWindowID)
   ShowDSFiltersList();
 }
 
-void CGUIDialogDSFilters::Save()
+bool CGUIDialogDSFilters::Save()
 {
+  return false;
 }
 
 void CGUIDialogDSFilters::SetupView()
@@ -117,7 +118,7 @@ void CGUIDialogDSFilters::InitializeSettings()
     return;
   }
 
-  CSettingGroup *groupSave = AddGroup(category);
+  const std::shared_ptr<CSettingGroup> groupSave = AddGroup(category);
   if (groupSave == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSFilters: unable to setup settings");

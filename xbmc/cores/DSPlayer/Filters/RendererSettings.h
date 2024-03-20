@@ -31,6 +31,7 @@
 #endif
 
 #include "..\Subtitles\libsubs\ISubManager.h"
+#include <memory>
 
 class CPixelShaderList;
 
@@ -169,7 +170,7 @@ public:
   std::wstring   D3D9RenderDevice;
 
   CRendererSettings* pRendererSettings;
-  std::auto_ptr<CPixelShaderList> pixelShaderList;
+  std::unique_ptr<CPixelShaderList> pixelShaderList;
 
   //TODO
   bool  IsD3DFullscreen() {return false;};

@@ -79,7 +79,7 @@ interface __declspec(uuid("655D7613-C26C-4A25-BBBD-3C9C516122CC")) CNullTextRend
       HRESULT CheckMediaType(const CMediaType* pmt);
   };
   
-  std::auto_ptr<CTextInputPin> m_pInput;
+  std::unique_ptr<CTextInputPin> m_pInput;
 
 public:
   CNullTextRenderer(LPUNKNOWN pUnk, HRESULT* phr);
