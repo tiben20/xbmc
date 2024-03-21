@@ -97,7 +97,7 @@ namespace ssf
           {
           }
 
-          CStdStringW str;
+          std::wstring str;
           str.Format(L"%.3f", start);
           pDef->SetChildAsNumber(L"time.start", str, L"s");
           str.Format(L"%.3f", stop);

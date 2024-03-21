@@ -32,7 +32,7 @@ namespace ssf
 	class __declspec(uuid("E0593632-0AB7-47CA-8BE1-E9D2A6A4825E"))
 CRenderer : public ISubPicProviderImpl, public ISubStream
   {
-    CStdString m_fn, m_name;
+    std::string m_fn, m_name;
     std::auto_ptr<SubtitleFile> m_file;
     std::auto_ptr<Renderer> m_renderer;
 
@@ -40,8 +40,8 @@ CRenderer : public ISubPicProviderImpl, public ISubStream
     CRenderer(CCritSec* pLock);
     virtual ~CRenderer();
 
-    bool Open(CStdString fn, CStdString name = _T(""));
-    bool Open(InputStream& s, CStdString name);
+    bool Open(std::string fn, std::string name = _T(""));
+    bool Open(InputStream& s, std::string name);
 
     void Append(REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, LPCWSTR str);
 

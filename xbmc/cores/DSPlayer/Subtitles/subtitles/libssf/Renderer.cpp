@@ -87,7 +87,7 @@ namespace ssf
     StringMapW<SubRect>::iterator it2 = m_sra.begin();
     for(; it2 != m_sra.end(); ++it2)
     {
-      CStdStringW name = it2->first;
+      std::wstring name = it2->first;
       if(names.find(name) == names.end()) m_sra.erase(it2);
     }
   }
@@ -163,7 +163,7 @@ namespace ssf
       LOGFONT lf;
       memset(&lf, 0, sizeof(lf));
       lf.lfCharSet = DEFAULT_CHARSET;
-      _tcscpy_s(lf.lfFaceName, CStdString(t.style.font.face));
+      _tcscpy_s(lf.lfFaceName, std::string(t.style.font.face));
       lf.lfHeight = (LONG)(t.style.font.size * scale.cy + 0.5);
       lf.lfWeight = (LONG)(t.style.font.weight + 0.5);
       lf.lfItalic = !!t.style.font.italic;
@@ -749,10 +749,10 @@ namespace ssf
 
   FontWrapper* FontCache::Create(HDC hDC, const LOGFONT& lf)
   {
-    CStdStringW key;
+    std::wstring key;
 
     key.Format(L"%s,%d,%d,%d", 
-      CStdStringW(lf.lfFaceName), lf.lfHeight, lf.lfWeight, 
+      std::wstring(lf.lfFaceName), lf.lfHeight, lf.lfWeight, 
       ((lf.lfItalic&1)<<2) | ((lf.lfUnderline&1)<<1) | ((lf.lfStrikeOut&1)<<0));
 
     FontWrapper* pFW = NULL;
@@ -782,7 +782,7 @@ namespace ssf
 
   GlyphPath* GlyphPathCache::Create(HDC hDC, const FontWrapper* f, WCHAR c)
   {
-    CStdStringW key = CStdStringW((LPCWSTR)*f) + c;
+    std::wstring key = std::wstring((LPCWSTR)*f) + c;
 
     GlyphPath* path = NULL;
 

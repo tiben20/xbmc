@@ -29,7 +29,7 @@
 
 namespace ssf
 {
-  Node::Node(NodeFactory* pnf, CStdStringW name)
+  Node::Node(NodeFactory* pnf, std::wstring name)
     : m_pnf(pnf)
     , m_type("?")
     , m_name(name)
@@ -64,7 +64,7 @@ namespace ssf
     return m_type.empty() || m_type == L"?";
   }
 
-  bool Node::IsType(CStdStringW type)
+  bool Node::IsType(std::wstring type)
   {
     return m_type == type;
   }
@@ -98,7 +98,7 @@ namespace ssf
 
   // Reference
 
-  Reference::Reference(NodeFactory* pnf, CStdStringW name)
+  Reference::Reference(NodeFactory* pnf, std::wstring name)
     : Node(pnf, name)
   {
   }
@@ -133,7 +133,7 @@ namespace ssf
   {
     if(m_predefined) return;
 
-    CStdStringW tabs(' ', level*4);
+    std::wstring tabs(' ', level*4);
 
     // s.PutString(tabs + '\n' + tabs + L" {\n");
     s.PutString(L" {\n");
@@ -154,7 +154,7 @@ namespace ssf
 
   // Definition
 
-  Definition::Definition(NodeFactory* pnf, CStdStringW name)
+  Definition::Definition(NodeFactory* pnf, std::wstring name)
     : Node(pnf, name)
     , m_status(node)
     , m_autotype(false)
@@ -262,7 +262,7 @@ namespace ssf
     return s ? m_status == s : m_status != node;
   }
 
-  void Definition::SetAsValue(status_t s, CStdStringW v, CStdStringW u)
+  void Definition::SetAsValue(status_t s, std::wstring v, std::wstring u)
   {
     ASSERT(s != node);
 
@@ -275,7 +275,7 @@ namespace ssf
     m_unit = u;
   }
 
-  void Definition::SetAsNumber(CStdStringW v, CStdStringW u)
+  void Definition::SetAsNumber(std::wstring v, std::wstring u)
   {
     SetAsValue(number, v, u);
 
@@ -286,7 +286,7 @@ namespace ssf
   template<class T> 
   void Definition::GetAsNumber(Number<T>& n, StringMapW<T>* n2n)
   {
-    CStdStringW str = m_value;
+    std::wstring str = m_value;
     str.Replace(L" ", L"");
 
     n.value = 0;
@@ -318,7 +318,7 @@ namespace ssf
     }
     else
     {
-      CStdStringW num_string = m_value + m_unit;
+      std::wstring num_string = m_value + m_unit;
 
       if(m_num_string != num_string)
       {
@@ -351,7 +351,7 @@ namespace ssf
     }
   }
 
-  void Definition::GetAsString(CStdStringW& str)
+  void Definition::GetAsString(std::wstring& str)
   {
     if(m_status == node) throw Exception(_T("expected value type"));
 
@@ -388,7 +388,7 @@ namespace ssf
   {
     Definition& time = (*this)[L"time"];
 
-    CStdStringW id;
+    std::wstring id;
     if(time[L"id"].IsValue()) id = time[L"id"];
     else id.Format(L"%d", default_id);
 
@@ -419,7 +419,7 @@ namespace ssf
 
   Definition::operator LPCWSTR()
   {
-    CStdStringW str;
+    std::wstring str;
     GetAsString(str);
     return str;
   }
@@ -438,7 +438,7 @@ namespace ssf
     return b;
   }
 
-  Definition* Definition::SetChildAsValue(CStdStringW path, status_t s, CStdStringW v, CStdStringW u)
+  Definition* Definition::SetChildAsValue(std::wstring path, status_t s, std::wstring v, std::wstring u)
   {
     Definition* pDef = this;
 
@@ -446,7 +446,7 @@ namespace ssf
 
     for(size_t i = 0, j = split-1; i <= j; i++)
     {
-      CStdStringW type = split[i];
+      std::wstring type = split[i];
 
       if(pDef->m_nodes.empty() || !dynamic_cast<Reference*>(pDef->m_nodes.back()))
       {
@@ -485,7 +485,7 @@ namespace ssf
     return NULL;
   }
 
-  Definition* Definition::SetChildAsNumber(CStdStringW path, CStdStringW v, CStdStringW u)
+  Definition* Definition::SetChildAsNumber(std::wstring path, std::wstring v, std::wstring u)
   {
     Definition* pDef = SetChildAsValue(path, number, v, u);
 
@@ -499,9 +499,9 @@ namespace ssf
   {
     if(m_predefined) return;
 
-    CStdStringW tabs(' ', level*4);
+    std::wstring tabs(' ', level*4);
 
-    CStdStringW str = tabs;
+    std::wstring str = tabs;
     if(m_predefined) str += '?';
     if(m_priority == PLow) str += '*';
     else if(m_priority == PHigh) str += '!';
@@ -534,13 +534,13 @@ namespace ssf
     }
     else if(m_status == string)
     {
-      CStdStringW str = m_value;
+      std::wstring str = m_value;
       str.Replace(L"\"", L"\\\"");
       s.PutString(L" \"%s\";\n", str);
     }
     else if(m_status == number)
     {
-      CStdStringW str = m_value;
+      std::wstring str = m_value;
       if(!m_unit.empty()) str += m_unit;
       s.PutString(L" %s;\n", str);
     }

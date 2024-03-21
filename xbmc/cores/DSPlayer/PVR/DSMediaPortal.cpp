@@ -476,19 +476,19 @@ bool CDSMediaPortalCards::ParseLines(vector<string>& lines)
       card.DevicePath = fields[1];
       card.Name = fields[2];
       card.Priority = atoi(fields[3].c_str());
-      card.GrabEPG = (CStdString(fields[4]).MakeLower().compare("false") == 0) ? false : true;
+      card.GrabEPG = (std::string(fields[4]).MakeLower().compare("false") == 0) ? false : true;
       card.LastEpgGrab.SetFromDateString(fields[5]);
       card.RecordingFolder = fields[6];
       card.IdServer = atoi(fields[7].c_str());
-      card.Enabled = (CStdString(fields[8]).MakeLower().compare("false") == 0) ? false : true;
+      card.Enabled = (std::string(fields[8]).MakeLower().compare("false") == 0) ? false : true;
       card.CamType = atoi(fields[9].c_str());
       card.TimeshiftFolder = fields[10];
       card.RecordingFormat = atoi(fields[11].c_str());
       card.DecryptLimit = atoi(fields[12].c_str());
-      card.Preload = (CStdString(fields[13]).MakeLower().compare("false") == 0) ? false : true;
-      card.CAM = (CStdString(fields[14]).MakeLower().compare("false") == 0) ? false : true;
+      card.Preload = (std::string(fields[13]).MakeLower().compare("false") == 0) ? false : true;
+      card.CAM = (std::string(fields[14]).MakeLower().compare("false") == 0) ? false : true;
       card.NetProvider = atoi(fields[15].c_str());
-      card.StopGraph = (CStdString(fields[16]).MakeLower().compare("false") == 0) ? false : true;
+      card.StopGraph = (std::string(fields[16]).MakeLower().compare("false") == 0) ? false : true;
 
       if (fields.size() >= 19) // since TVServerXBMC build 115
       {

@@ -37,9 +37,9 @@ namespace ssf
     clear();
   }
 
-  CStdStringW NodeFactory::GenName()
+  std::wstring NodeFactory::GenName()
   {
-    CStdStringW name;
+    std::wstring name;
     name.Format(L"%I64d", m_counter++);
     return name;
   }
@@ -63,7 +63,7 @@ namespace ssf
 
   void NodeFactory::Rollback()
   {
-    std::list<CStdStringW>::reverse_iterator it = m_newnodes.rbegin();
+    std::list<std::wstring>::reverse_iterator it = m_newnodes.rbegin();
     for(; it != m_newnodes.rend(); ++it)
     {
       StringMapW<Node *>::iterator it2 = m_nodes.find(*it);
@@ -90,7 +90,7 @@ namespace ssf
 
   Reference* NodeFactory::CreateRef(Definition* pParentDef)
   {
-    CStdStringW name = GenName();
+    std::wstring name = GenName();
 
     Reference* pRef = DNew Reference(this, name);
 
@@ -106,7 +106,7 @@ namespace ssf
     return pRef;
   }
 
-  Definition* NodeFactory::CreateDef(Reference* pParentRef, CStdStringW type, CStdStringW name, NodePriority priority)
+  Definition* NodeFactory::CreateDef(Reference* pParentRef, std::wstring type, std::wstring name, NodePriority priority)
   {
     Definition* pDef = NULL;
 
@@ -122,12 +122,12 @@ namespace ssf
       {
         if(!pDef->m_predefined)
         {
-          throw Exception(_T("redefinition of '%s' is not allowed"), CStdString(name));
+          throw Exception(_T("redefinition of '%s' is not allowed"), std::string(name));
         }
 
         if(!pDef->IsTypeUnknown() && !pDef->IsType(type))
         {
-          throw Exception(_T("cannot redefine type of %s to %s"), CStdString(name), CStdString(type));
+          throw Exception(_T("cannot redefine type of %s to %s"), std::string(name), std::string(type));
         }
       }
     }
@@ -153,7 +153,7 @@ namespace ssf
     return pDef;
   }
 
-  Definition* NodeFactory::GetDefByName(CStdStringW name) const
+  Definition* NodeFactory::GetDefByName(std::wstring name) const
   {
     StringMapW<Node *>::const_iterator it = m_nodes.find(name);
     return dynamic_cast<Definition*>(it->second);
@@ -163,7 +163,7 @@ namespace ssf
   {
     defs.clear();
 
-    std::list<CStdStringW>::iterator it = m_newnodes.begin();
+    std::list<std::wstring>::iterator it = m_newnodes.begin();
     for(; it != m_newnodes.end(); ++it)
     {
       if(Definition* pDef = GetDefByName(*it))

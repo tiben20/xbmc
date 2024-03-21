@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#if 0
 
 #include <string>
 #include <vector> 
@@ -33,8 +33,8 @@
 //      - writing to/reading from COM IStream interfaces
 //      - Functional objects for use in STL algorithms
 //
-//    From this template, we intstantiate two classes:  CStdStringA and
-//    CStdStringW.  The name "CStdString" is just a #define of one of these,
+//    From this template, we intstantiate two classes:  std::string and
+//    std::wstring.  The name "std::string" is just a #define of one of these,
 //    based upone the UNICODE macro setting
 //
 //    This header also declares our own version of the MFC/ATL UNICODE-MBCS
@@ -113,14 +113,14 @@
 //
 //    2004-APR-22 - A big, big thank you to "MKingman" (whoever you are) for
 //          finally spotting a silly little error in StdCodeCvt that
-//          has been causing me (and users of CStdString) problems for
+//          has been causing me (and users of std::string) problems for
 //          years in some relatively rare conversions.  I had reversed
 //          two length arguments.
 //
 //    2003-NOV-24 - Thanks to a bunch of people for helping me clean up many
 //          compiler warnings (and yes, even a couple of actual compiler
 //          errors).  These include Henk Demper for figuring out how
-//          to make the Intellisense work on with CStdString on VC6,
+//          to make the Intellisense work on with std::string on VC6,
 //          something I was never able to do.  Greg Marr pointed out
 //          a compiler warning about an unreferenced symbol and a
 //          problem with my version of Load in MFC builds.  Bill
@@ -141,7 +141,7 @@
 //                  bug in one of the overloads of FmtArg.
 //
 //    2003-MAR-10 - Thanks to Ronny Schulz for (twice!) sending me some changes
-//                  to help CStdString build on SGI and for pointing out an
+//                  to help std::string build on SGI and for pointing out an
 //                  error in placement of my preprocessor macros for ssfmtmsg.
 //
 //    2002-NOV-26 - Thanks to Bagira for pointing out that my implementation of
@@ -162,12 +162,12 @@
 //                  reinterpret_cast<> (the ctor for unsigned char strings).
 //                  That's what happens when I don't unit-test properly!
 //                  Arnt also noticed that CString was silently correcting the
-//                  'nCount' argument to Left() and Right() where CStdString was
+//                  'nCount' argument to Left() and Right() where std::string was
 //                  not (and crashing if it was bad).  That is also now fixed!
 //
 //    2002-FEB-25 - Thanks to Tim Dowty for pointing out (and giving me the fix
 //          for) a conversion problem with non-ASCII MBCS characters.
-//          CStdString is now used in my favorite commercial MP3 player!
+//          std::string is now used in my favorite commercial MP3 player!
 //
 //    2001-DEC-06 - Thanks to Wang Haifeng for spotting a problem in one of the
 //          assignment operators (for _bstr_t) that would cause compiler
@@ -180,7 +180,7 @@
 //    2001-OCT-29 - Added a minor range checking fix for the Mid function to
 //          make it as forgiving as CString's version is.  Thanks to
 //          Igor Kholodov for noticing this.
-//          - Added a specialization of std::swap for CStdString.  Thanks
+//          - Added a specialization of std::swap for std::string.  Thanks
 //          to Mike Crusader for suggesting this!  It's commented out
 //          because you're not supposed to inject your own code into the
 //          'std' namespace.  But if you don't care about that, it's
@@ -201,9 +201,9 @@
 //          source string was empty.  Fixed thanks to Eric Nitzsche.
 //
 //    2001-FEB-23 - Scott Hathaway was a huge help in providing me with the
-//          ability to build CStdString on Sun Unix systems.  He
+//          ability to build std::string on Sun Unix systems.  He
 //          sent me detailed build reports about what works and what
-//          does not.  If CStdString compiles on your Unix box, you
+//          does not.  If std::string compiles on your Unix box, you
 //          can thank Scott for it.
 //
 //    2000-DEC-29 - Joldakowski noticed one overload of Insert failed to do a
@@ -232,7 +232,7 @@
 //    2000-MAR-07 - Thanks to Ullrich Poll�hne for catching a range bug in one
 //          of the overloads of assign.
 //
-//    2000-FEB-01 - You can now use CStdString on the Mac with CodeWarrior!
+//    2000-FEB-01 - You can now use std::string on the Mac with CodeWarrior!
 //          Thanks to Todd Heckel for helping out with this.
 //
 //    2000-JAN-23 - Thanks to Jim Cline for pointing out how I could make the
@@ -242,15 +242,15 @@
 //          - Got rid of the .CPP file -  you only need StdString.h now!
 //
 //    1999-DEC-22 - Thanks to Greg Pickles for helping me identify a problem
-//          with my implementation of CStdString::FormatV in which
+//          with my implementation of std::string::FormatV in which
 //          resulting string might not be properly NULL terminated.
 //
 //    1999-DEC-06 - Chris Conti pointed yet another basic_string<> assignment
-//          bug that MS has not fixed.  CStdString did nothing to fix
+//          bug that MS has not fixed.  std::string did nothing to fix
 //          it either but it does now!  The bug was: create a string
 //          longer than 31 characters, get a pointer to it (via c_str())
 //          and then assign that pointer to the original string object.
-//          The resulting string would be empty.  Not with CStdString!
+//          The resulting string would be empty.  Not with std::string!
 //
 //    1999-OCT-06 - BufferSet was erasing the string even when it was merely
 //          supposed to shrink it.  Fixed.  Thanks to Chris Conti.
@@ -279,16 +279,16 @@
 //          data() in order to ensure the changed string buffer is not
 //          reference-counted (in those implementations that refcount).
 //
-//    1999-JUL-01 - Added a true CString facade.  Now you can use CStdString as
+//    1999-JUL-01 - Added a true CString facade.  Now you can use std::string as
 //          a drop-in replacement for CString.  If you find this useful,
 //          you can thank Chris Sells for finally convincing me to give
 //          in and implement it.
 //          - Changed operators << and >> (for MFC CArchive) to serialize
 //          EXACTLY as CString's do.  So now you can send a CString out
-//          to a CArchive and later read it in as a CStdString.   I have
+//          to a CArchive and later read it in as a std::string.   I have
 //          no idea why you would want to do this but you can.
 //
-//    1999-JUN-21 - Changed the CStdString class into the CStdStr template.
+//    1999-JUN-21 - Changed the std::string class into the CStdStr template.
 //          - Fixed FormatV() to correctly decrement the loop counter.
 //          This was harmless bug but a bug nevertheless.  Thanks to
 //          Chris (of Melbsys) for pointing it out
@@ -298,7 +298,7 @@
 //          pages and to fit in better in MFC/ATL builds.  In other
 //          words, I copied Microsoft's conversion stuff again.
 //          - Added equivalents of CString::GetBuffer, GetBufferSetLength
-//          - new sscpy() replacement of CStdString::CopyString()
+//          - new sscpy() replacement of std::string::CopyString()
 //          - a Trim() function that combines TrimRight() and TrimLeft().
 //
 //    1999-MAR-13 - Corrected the "NotSpace" functional object to use _istpace()
@@ -343,7 +343,7 @@
 // Turn off unavoidable compiler warnings
 
 #if defined(_MSC_VER) && (_MSC_VER > 1100)
-  #pragma component(browser, off, references, "CStdString")
+  #pragma component(browser, off, references, "std::string")
   #pragma warning (disable : 4290) // C++ Exception Specification ignored
   #pragma warning (disable : 4127) // Conditional expression is constant
   #pragma warning (disable : 4097) // typedef name used as synonym for class name
@@ -398,7 +398,7 @@ inline HMODULE& SSResourceHandle()
 // ---------------------
 //      This macro provides limited compatability with a questionable CString
 //      "feature".  You can define it in order to avoid a common problem that
-//      people encounter when switching from CString to CStdString.
+//      people encounter when switching from CString to std::string.
 //
 //      To illustrate the problem -- With CString, you can do this:
 //
@@ -406,11 +406,11 @@ inline HMODULE& SSResourceHandle()
 //          CString sTmp;
 //          sTmp.Format("My name is %s", sName);                    // WORKS!
 //
-//      However if you were to try this with CStdString, your program would
+//      However if you were to try this with std::string, your program would
 //      crash.
 //
-//          CStdString sName("Joe");
-//          CStdString sTmp;
+//          std::string sName("Joe");
+//          std::string sTmp;
 //          sTmp.Format("My name is %s", sName);                    // CRASHES!
 //
 //      You must explicitly call c_str() or cast the object to the proper type
@@ -421,10 +421,10 @@ inline HMODULE& SSResourceHandle()
 //
 //      This is because it is illegal to pass anything but a POD type as a
 //      variadic argument to a variadic function (i.e. as one of the "..."
-//      arguments).  The type const char* is a POD type.  The type CStdString
+//      arguments).  The type const char* is a POD type.  The type std::string
 //      is not.  Of course, neither is the type CString, but CString lets you do
 //      it anyway due to the way they laid out the class in binary.  I have no
-//      control over this in CStdString since I derive from whatever
+//      control over this in std::string since I derive from whatever
 //      implementation of basic_string is available.
 //
 //      However if you have legacy code (which does this) that you want to take
@@ -432,7 +432,7 @@ inline HMODULE& SSResourceHandle()
 //      Format(), then you can define this flag and it will no longer crash.
 //
 //      Note however that this ONLY works for Format(), not sprintf, fprintf,
-//      etc.  If you pass a CStdString object to one of those functions, your
+//      etc.  If you pass a std::string object to one of those functions, your
 //      program will crash.  Not much I can do to get around this, short of
 //      writing substitutes for those functions as well.
 
@@ -442,7 +442,7 @@ inline HMODULE& SSResourceHandle()
 // MACRO: SS_NO_IMPLICIT_CAST
 // --------------------------
 //      Some people don't like the implicit cast to const char* (or rather to
-//      const CT*) that CStdString (and MFC's CString) provide.  That was the
+//      const CT*) that std::string (and MFC's CString) provide.  That was the
 //      whole reason I created this class in the first place, but hey, whatever
 //      bakes your cake.  Just #define this macro to get rid of the the implicit
 //      cast.
@@ -740,7 +740,7 @@ inline const Type& SSMAX(const Type& arg1, const Type& arg2)
 // need to make use of the use_facet<> template function here.   Unfortunately,
 // this need is complicated by the fact the MS' implementation of the Standard
 // C++ Library has a non-standard version of use_facet that takes more
-// arguments than the standard dictates.  Since I'm trying to write CStdString
+// arguments than the standard dictates.  Since I'm trying to write std::string
 // to work with any version of the Standard library, this presents a problem.
 //
 // The upshot of this is that I can't do 'use_facet' directly.  The MS' docs
@@ -1149,7 +1149,7 @@ inline T* StdCodeCvt(T* pDst, int nDst, const T* pSrc, int nSrc)
 
   return pDst;
 }
-inline PSTR StdCodeCvt(PSTR pDst, int nDst, PCUSTR pSrc, int nSrc)
+inline PSTR StdCodeCvt(PCZPSTR pDst, int nDst, PCUSTR pSrc, int nSrc)
 {
   return StdCodeCvt(pDst, nDst, (PCSTR)pSrc, nSrc);
 }
@@ -1982,7 +1982,7 @@ inline int sscpy(CT1* pDst, const std::basic_string<CT2>& sSrc)
 //  inline bool operator() (CT t) { return !std::isspace(t, loc); }
 //};
 template<typename CT>
-struct NotSpace : public std::unary_function<CT, bool>
+struct NotSpace
 {
   // DINKUMWARE BUG:
   // Note -- using std::isspace in a COM DLL gives us access violations
@@ -2601,11 +2601,11 @@ public:
 
   // -------------------------------------------------------------------------
   // FUNCTION:  CStdStr::Format
-  //    void _cdecl Formst(CStdStringA& PCSTR szFormat, ...)
+  //    void _cdecl Formst(std::string& PCSTR szFormat, ...)
   //    void _cdecl Format(PCSTR szFormat);
   //
   // DESCRIPTION:
-  //    This function does sprintf/wsprintf style formatting on CStdStringA
+  //    This function does sprintf/wsprintf style formatting on std::string
   //    objects.  It looks a lot like MFC's CString::Format.  Some people
   //    might even call this identical.  Fortunately, these people are now
   //    dead... heh heh.
@@ -2628,7 +2628,7 @@ public:
     //      of the Format() function
     // Answer:  One reason only - CString compatability.  In short, by making
     //      the Format() function a template this way, I can do strong typing
-    //      and allow people to pass CStdString arguments as fillers for
+    //      and allow people to pass std::string arguments as fillers for
     //      "%s" format specifiers without crashing their program!  The downside
     //      is that I need to overload on the number of arguments.   If you are
     //      passing more arguments than I have listed below in any of my
@@ -3583,7 +3583,7 @@ public:
   // CString's OemToAnsi and AnsiToOem functions are available only in
   // Unicode builds.  However since we're a template we also need a
   // runtime check of CT and a reinterpret_cast to account for the fact
-  // that CStdStringW gets instantiated even in non-Unicode builds.
+  // that std::wstring gets instantiated even in non-Unicode builds.
 
   void AnsiToOem()
   {
@@ -3777,7 +3777,7 @@ public:
   // -------------------------------------------------------------------------
   // FUNCTION: StreamSize
   // REMARKS:
-  //    Returns how many bytes it will take to StreamSave() this CStdString
+  //    Returns how many bytes it will take to StreamSave() this std::string
   //    object to an IStream.
   // -------------------------------------------------------------------------
   ULONG StreamSize() const
@@ -3790,7 +3790,7 @@ public:
   // -------------------------------------------------------------------------
   // FUNCTION: StreamSave
   // REMARKS:
-  //    Saves this CStdString object to a COM IStream.
+  //    Saves this std::string object to a COM IStream.
   // -------------------------------------------------------------------------
   HRESULT StreamSave(IStream* pStream) const
   {
@@ -3925,8 +3925,8 @@ public:
 // -----------------------------------------------------------------------------
 // MSVC USERS: HOW TO EXPORT CSTDSTRING FROM A DLL
 //
-// If you are using MS Visual C++ and you want to export CStdStringA and
-// CStdStringW from a DLL, then all you need to
+// If you are using MS Visual C++ and you want to export std::string and
+// std::wstring from a DLL, then all you need to
 //
 //    1.  make sure that all components link to the same DLL version
 //      of the CRT (not the static one).
@@ -3944,9 +3944,9 @@ public:
 //
 // A word of advice: Don't bother.
 //
-// Really, it is not necessary to export CStdString functions from a DLL.  I
+// Really, it is not necessary to export std::string functions from a DLL.  I
 // never do.  In my projects, I do generally link to the DLL version of the
-// Standard C++ Library, but I do NOT attempt to export CStdString functions.
+// Standard C++ Library, but I do NOT attempt to export std::string functions.
 // I simply include the header where it is needed and allow for the code
 // redundancy.
 //
@@ -3973,41 +3973,41 @@ public:
 
 //  Now typedef our class names based upon this humongous template
 
-typedef CStdStr<char>    CStdStringA;  // a better std::string
-typedef CStdStr<wchar_t>  CStdStringW;  // a better std::wstring
+typedef CStdStr<char>    std::string;  // a better std::string
+typedef CStdStr<wchar_t>  std::wstring;  // a better std::wstring
 typedef CStdStr<uint16_t>  CStdString16;  // a 16bit char string
 typedef CStdStr<uint32_t>  CStdString32;  // a 32bit char string
-typedef CStdStr<OLECHAR>  CStdStringO;  // almost always CStdStringW
+typedef CStdStr<OLECHAR>  CStdStringO;  // almost always std::wstring
 
 // -----------------------------------------------------------------------------
 // CStdStr addition functions defined as inline
 // -----------------------------------------------------------------------------
 
 
-inline CStdStringA operator+(const CStdStringA& s1, const CStdStringA& s2)
+inline std::string operator+(const std::string& s1, const std::string& s2)
 {
-  CStdStringA sRet(SSREF(s1));
+  std::string sRet(SSREF(s1));
   sRet.append(s2);
   return sRet;
 }
-inline CStdStringA operator+(const CStdStringA& s1, CStdStringA::value_type t)
+inline std::string operator+(const std::string& s1, std::string::value_type t)
 {
-  CStdStringA sRet(SSREF(s1));
+  std::string sRet(SSREF(s1));
   sRet.append(1, t);
   return sRet;
 }
-inline CStdStringA operator+(const CStdStringA& s1, PCSTR pA)
+inline std::string operator+(const std::string& s1, PCSTR pA)
 {
-  CStdStringA sRet(SSREF(s1));
+  std::string sRet(SSREF(s1));
   sRet.append(pA);
   return sRet;
 }
-inline CStdStringA operator+(PCSTR pA, const CStdStringA& sA)
+inline std::string operator+(PCSTR pA, const std::string& sA)
 {
-  CStdStringA sRet;
-  CStdStringA::size_type nObjSize = sA.size();
-  CStdStringA::size_type nLitSize =
-    static_cast<CStdStringA::size_type>(sslen(pA));
+  std::string sRet;
+  std::string::size_type nObjSize = sA.size();
+  std::string::size_type nLitSize =
+    static_cast<std::string::size_type>(sslen(pA));
 
   sRet.reserve(nLitSize + nObjSize);
   sRet.assign(pA);
@@ -4016,60 +4016,60 @@ inline CStdStringA operator+(PCSTR pA, const CStdStringA& sA)
 }
 
 
-inline CStdStringA operator+(const CStdStringA& s1, const CStdStringW& s2)
+inline std::string operator+(const std::string& s1, const std::wstring& s2)
 {
-  return s1 + CStdStringA(s2);
+  return s1 + std::string(s2);
 }
-inline CStdStringW operator+(const CStdStringW& s1, const CStdStringW& s2)
+inline std::wstring operator+(const std::wstring& s1, const std::wstring& s2)
 {
-  CStdStringW sRet(SSREF(s1));
+  std::wstring sRet(SSREF(s1));
   sRet.append(s2);
   return sRet;
 }
-inline CStdStringA operator+(const CStdStringA& s1, PCWSTR pW)
+inline std::string operator+(const std::string& s1, PCWSTR pW)
 {
-  return s1 + CStdStringA(pW);
+  return s1 + std::string(pW);
 }
 
 #ifdef UNICODE
-  inline CStdStringW operator+(PCWSTR pW, const CStdStringA& sA)
+  inline std::wstring operator+(PCWSTR pW, const std::string& sA)
   {
-    return CStdStringW(pW) + CStdStringW(SSREF(sA));
+    return std::wstring(pW) + std::wstring(SSREF(sA));
   }
-  inline CStdStringW operator+(PCSTR pA, const CStdStringW& sW)
+  inline std::wstring operator+(PCSTR pA, const std::wstring& sW)
   {
-    return CStdStringW(pA) + sW;
+    return std::wstring(pA) + sW;
   }
 #else
-  inline CStdStringA operator+(PCWSTR pW, const CStdStringA& sA)
+  inline std::string operator+(PCWSTR pW, const std::string& sA)
   {
-    return CStdStringA(pW) + sA;
+    return std::string(pW) + sA;
   }
-  inline CStdStringA operator+(PCSTR pA, const CStdStringW& sW)
+  inline std::string operator+(PCSTR pA, const std::wstring& sW)
   {
-    return pA + CStdStringA(sW);
+    return pA + std::string(sW);
   }
 #endif
 
 // ...Now the wide string versions.
-inline CStdStringW operator+(const CStdStringW& s1, CStdStringW::value_type t)
+inline std::wstring operator+(const std::wstring& s1, std::wstring::value_type t)
 {
-  CStdStringW sRet(SSREF(s1));
+  std::wstring sRet(SSREF(s1));
   sRet.append(1, t);
   return sRet;
 }
-inline CStdStringW operator+(const CStdStringW& s1, PCWSTR pW)
+inline std::wstring operator+(const std::wstring& s1, PCWSTR pW)
 {
-  CStdStringW sRet(SSREF(s1));
+  std::wstring sRet(SSREF(s1));
   sRet.append(pW);
   return sRet;
 }
-inline CStdStringW operator+(PCWSTR pW, const CStdStringW& sW)
+inline std::wstring operator+(PCWSTR pW, const std::wstring& sW)
 {
-  CStdStringW sRet;
-  CStdStringW::size_type nObjSize = sW.size();
-  CStdStringA::size_type nLitSize =
-    static_cast<CStdStringW::size_type>(sslen(pW));
+  std::wstring sRet;
+  std::wstring::size_type nObjSize = sW.size();
+  std::string::size_type nLitSize =
+    static_cast<std::wstring::size_type>(sslen(pW));
 
   sRet.reserve(nLitSize + nObjSize);
   sRet.assign(pW);
@@ -4077,13 +4077,13 @@ inline CStdStringW operator+(PCWSTR pW, const CStdStringW& sW)
   return sRet;
 }
 
-inline CStdStringW operator+(const CStdStringW& s1, const CStdStringA& s2)
+inline std::wstring operator+(const std::wstring& s1, const std::string& s2)
 {
-  return s1 + CStdStringW(s2);
+  return s1 + std::wstring(s2);
 }
-inline CStdStringW operator+(const CStdStringW& s1, PCSTR pA)
+inline std::wstring operator+(const std::wstring& s1, PCSTR pA)
 {
-  return s1 + CStdStringW(pA);
+  return s1 + std::wstring(pA);
 }
 
 
@@ -4092,22 +4092,22 @@ inline CStdStringW operator+(const CStdStringW& s1, PCSTR pA)
 #ifdef SS_SAFE_FORMAT
 
 template<>
-struct FmtArg<CStdStringA>
+struct FmtArg<std::string>
 {
-    explicit FmtArg(const CStdStringA& arg) : a_(arg) {}
+    explicit FmtArg(const std::string& arg) : a_(arg) {}
     PCSTR operator()() const { return a_.c_str(); }
-    const CStdStringA& a_;
+    const std::string& a_;
 private:
-    FmtArg<CStdStringA>& operator=(const FmtArg<CStdStringA>&) { return *this; }
+    FmtArg<std::string>& operator=(const FmtArg<std::string>&) { return *this; }
 };
 template<>
-struct FmtArg<CStdStringW>
+struct FmtArg<std::wstring>
 {
-    explicit FmtArg(const CStdStringW& arg) : a_(arg) {}
+    explicit FmtArg(const std::wstring& arg) : a_(arg) {}
     PCWSTR operator()() const { return a_.c_str(); }
-    const CStdStringW& a_;
+    const std::wstring& a_;
 private:
-    FmtArg<CStdStringW>& operator=(const FmtArg<CStdStringW>&) { return *this; }
+    FmtArg<std::wstring>& operator=(const FmtArg<std::wstring>&) { return *this; }
 };
 
 template<>
@@ -4139,25 +4139,25 @@ private:
 // we use the exact same format.
 
 #ifdef _MFC_VER
-  inline CArchive& AFXAPI operator<<(CArchive& ar, const CStdStringA& strA)
+  inline CArchive& AFXAPI operator<<(CArchive& ar, const std::string& strA)
   {
     CString strTemp  = strA;
     return ar << strTemp;
   }
-  inline CArchive& AFXAPI operator<<(CArchive& ar, const CStdStringW& strW)
+  inline CArchive& AFXAPI operator<<(CArchive& ar, const std::wstring& strW)
   {
     CString strTemp  = strW;
     return ar << strTemp;
   }
 
-  inline CArchive& AFXAPI operator>>(CArchive& ar, CStdStringA& strA)
+  inline CArchive& AFXAPI operator>>(CArchive& ar, std::string& strA)
   {
     CString strTemp;
     ar >> strTemp;
     strA = strTemp;
     return ar;
   }
-  inline CArchive& AFXAPI operator>>(CArchive& ar, CStdStringW& strW)
+  inline CArchive& AFXAPI operator>>(CArchive& ar, std::wstring& strW)
   {
     CString strTemp;
     ar >> strTemp;
@@ -4170,55 +4170,55 @@ private:
 
 // -----------------------------------------------------------------------------
 // GLOBAL FUNCTION:  WUFormat
-//    CStdStringA WUFormat(UINT nId, ...);
-//    CStdStringA WUFormat(PCSTR szFormat, ...);
+//    std::string WUFormat(UINT nId, ...);
+//    std::string WUFormat(PCSTR szFormat, ...);
 //
 // REMARKS:
-//    This function allows the caller for format and return a CStdStringA
+//    This function allows the caller for format and return a std::string
 //    object with a single line of code.
 // -----------------------------------------------------------------------------
 #ifdef SS_ANSI
 #else
-  inline CStdStringA WUFormatA(UINT nId, ...)
+  inline std::string WUFormatA(UINT nId, ...)
   {
     va_list argList;
     va_start(argList, nId);
 
-    CStdStringA strFmt;
-    CStdStringA strOut;
+    std::string strFmt;
+    std::string strOut;
     if ( strFmt.Load(nId) )
       strOut.FormatV(strFmt, argList);
 
     va_end(argList);
     return strOut;
   }
-  inline CStdStringA WUFormatA(PCSTR szFormat, ...)
+  inline std::string WUFormatA(PCSTR szFormat, ...)
   {
     va_list argList;
     va_start(argList, szFormat);
-    CStdStringA strOut;
+    std::string strOut;
     strOut.FormatV(szFormat, argList);
     va_end(argList);
     return strOut;
   }
-  inline CStdStringW WUFormatW(UINT nId, ...)
+  inline std::wstring WUFormatW(UINT nId, ...)
   {
     va_list argList;
     va_start(argList, nId);
 
-    CStdStringW strFmt;
-    CStdStringW strOut;
+    std::wstring strFmt;
+    std::wstring strOut;
     if ( strFmt.Load(nId) )
       strOut.FormatV(strFmt, argList);
 
     va_end(argList);
     return strOut;
   }
-  inline CStdStringW WUFormatW(PCWSTR szwFormat, ...)
+  inline std::wstring WUFormatW(PCWSTR szwFormat, ...)
   {
     va_list argList;
     va_start(argList, szwFormat);
-    CStdStringW strOut;
+    std::wstring strOut;
     strOut.FormatV(szwFormat, argList);
     va_end(argList);
     return strOut;
@@ -4230,25 +4230,25 @@ private:
 #if defined(SS_WIN32) && !defined (SS_ANSI)
   // -------------------------------------------------------------------------
   // FUNCTION: WUSysMessage
-  //   CStdStringA WUSysMessageA(DWORD dwError, DWORD dwLangId=SS_DEFLANGID);
-  //   CStdStringW WUSysMessageW(DWORD dwError, DWORD dwLangId=SS_DEFLANGID);
+  //   std::string WUSysMessageA(DWORD dwError, DWORD dwLangId=SS_DEFLANGID);
+  //   std::wstring WUSysMessageW(DWORD dwError, DWORD dwLangId=SS_DEFLANGID);
   //
   // DESCRIPTION:
   //   This function simplifies the process of obtaining a string equivalent
   //   of a system error code returned from GetLastError().  You simply
   //   supply the value returned by GetLastError() to this function and the
-  //   corresponding system string is returned in the form of a CStdStringA.
+  //   corresponding system string is returned in the form of a std::string.
   //
   // PARAMETERS:
   //   dwError - a DWORD value representing the error code to be translated
   //   dwLangId - the language id to use.  defaults to english.
   //
   // RETURN VALUE:
-  //   a CStdStringA equivalent of the error code.  Currently, this function
+  //   a std::string equivalent of the error code.  Currently, this function
   //   only returns either English of the system default language strings.
   // -------------------------------------------------------------------------
   #define SS_DEFLANGID MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT)
-  inline CStdStringA WUSysMessageA(DWORD dwError, DWORD dwLangId=SS_DEFLANGID)
+  inline std::string WUSysMessageA(DWORD dwError, DWORD dwLangId=SS_DEFLANGID)
   {
     CHAR szBuf[512];
 
@@ -4258,7 +4258,7 @@ private:
     else
        return WUFormatA("Unknown error (0x%X)", dwError);
   }
-  inline CStdStringW WUSysMessageW(DWORD dwError, DWORD dwLangId=SS_DEFLANGID)
+  inline std::wstring WUSysMessageW(DWORD dwError, DWORD dwLangId=SS_DEFLANGID)
   {
     WCHAR szBuf[512];
 
@@ -4273,13 +4273,13 @@ private:
 // Define TCHAR based friendly names for some of these functions
 
 #ifdef UNICODE
-  //#define CStdString        CStdStringW
-  typedef CStdStringW        CStdString;
+  //#define std::string        std::wstring
+  typedef std::wstring        std::string;
   #define WUSysMessage      WUSysMessageW
   #define WUFormat        WUFormatW
 #else
-  //#define CStdString        CStdStringA
-  typedef CStdStringA        CStdString;
+  //#define std::string        std::string
+  typedef std::string        std::string;
   #define WUSysMessage      WUSysMessageA
   #define WUFormat        WUFormatA
 #endif
@@ -4304,7 +4304,7 @@ private:
 //    These structs are derived from the std::binary_function template.  They
 //    give us functional classes (which may be used in Standard C++ Library
 //    collections and algorithms) that perform case-insensitive comparisons of
-//    CStdString objects.  This is useful for maps in which the key may be the
+//    std::string objects.  This is useful for maps in which the key may be the
 //     proper string but in the wrong case.
 // -----------------------------------------------------------------------------
 #define StdStringLessNoCaseW    SSLNCW  // avoid VC compiler warning 4786
@@ -4321,31 +4321,31 @@ private:
 #endif
 #if 0
 struct StdStringLessNoCaseW
-  : std::binary_function<CStdStringW, CStdStringW, bool>
+  : std::binary_function<std::wstring, std::wstring, bool>
 {
   inline
-  bool operator()(const CStdStringW& sLeft, const CStdStringW& sRight) const
+  bool operator()(const std::wstring& sLeft, const std::wstring& sRight) const
   { return ssicmp(sLeft.c_str(), sRight.c_str()) < 0; }
 };
 struct StdStringEqualsNoCaseW
-  : std::binary_function<CStdStringW, CStdStringW, bool>
+  : std::binary_function<std::wstring, std::wstring, bool>
 {
   inline
-  bool operator()(const CStdStringW& sLeft, const CStdStringW& sRight) const
+  bool operator()(const std::wstring& sLeft, const std::wstring& sRight) const
   { return ssicmp(sLeft.c_str(), sRight.c_str()) == 0; }
 };
 struct StdStringLessNoCaseA
-  : std::binary_function<CStdStringA, CStdStringA, bool>
+  : std::binary_function<std::string, std::string, bool>
 {
   inline
-  bool operator()(const CStdStringA& sLeft, const CStdStringA& sRight) const
+  bool operator()(const std::string& sLeft, const std::string& sRight) const
   { return ssicmp(sLeft.c_str(), sRight.c_str()) < 0; }
 };
 struct StdStringEqualsNoCaseA
-  : std::binary_function<CStdStringA, CStdStringA, bool>
+  : std::binary_function<std::string, std::string, bool>
 {
   inline
-  bool operator()(const CStdStringA& sLeft, const CStdStringA& sRight) const
+  bool operator()(const std::string& sLeft, const std::string& sRight) const
   { return ssicmp(sLeft.c_str(), sRight.c_str()) == 0; }
 };
 #endif
@@ -4361,12 +4361,12 @@ struct StdStringEqualsNoCaseA
 
 //namespace std
 //{
-//  inline void swap(CStdStringA& s1, CStdStringA& s2) throw()
+//  inline void swap(std::string& s1, std::string& s2) throw()
 //  {
 //    s1.swap(s2);
 //  }
 //  template<>
-//  inline void swap(CStdStringW& s1, CStdStringW& s2) throw()
+//  inline void swap(std::wstring& s1, std::wstring& s2) throw()
 //  {
 //    s1.swap(s2);
 //  }
@@ -4379,6 +4379,7 @@ struct StdStringEqualsNoCaseA
 //  #pragma warn +inl   // Turn back on inline function warnings
 #endif
 
-typedef std::vector<CStdString> CStdStringArray;
+typedef std::vector<std::string> CStdStringArray;
 
 #endif  // #ifndef STDSTRING_H
+#endif

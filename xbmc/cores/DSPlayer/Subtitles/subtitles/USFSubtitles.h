@@ -24,18 +24,18 @@
 #include "STS.h"
 
 // metadata
-typedef struct {CStdStringW name, email, url;} author_t;
-typedef struct {CStdStringW code, text;} language_t;
-typedef struct {CStdStringW title, date, comment; author_t author; language_t language, languageext;} metadata_t;
+typedef struct {std::wstring name, email, url;} author_t;
+typedef struct {std::wstring code, text;} language_t;
+typedef struct {std::wstring title, date, comment; author_t author; language_t language, languageext;} metadata_t;
 // style
-typedef struct {CStdStringW alignment, relativeto, horizontal_margin, vertical_margin, rotate[3];} posattriblist_t;
-typedef struct {CStdStringW face, size, color[4], weight, italic, underline, alpha, outline, shadow, wrap;} fontstyle_t;
-typedef struct {CStdStringW name; fontstyle_t fontstyle; posattriblist_t pal;} style_t;
+typedef struct {std::wstring alignment, relativeto, horizontal_margin, vertical_margin, rotate[3];} posattriblist_t;
+typedef struct {std::wstring face, size, color[4], weight, italic, underline, alpha, outline, shadow, wrap;} fontstyle_t;
+typedef struct {std::wstring name; fontstyle_t fontstyle; posattriblist_t pal;} style_t;
 // effect
-typedef struct {CStdStringW position; fontstyle_t fontstyle; posattriblist_t pal;} keyframe_t;
-typedef struct {CStdStringW name; std::list<std::shared_ptr<keyframe_t>> keyframes;} effect_t;
+typedef struct {std::wstring position; fontstyle_t fontstyle; posattriblist_t pal;} keyframe_t;
+typedef struct {std::wstring name; std::list<std::shared_ptr<keyframe_t>> keyframes;} effect_t;
 // subtitle/text
-typedef struct {int start, stop; CStdStringW effect, style, str; posattriblist_t pal;} text_t;
+typedef struct {int start, stop; std::wstring effect, style, str; posattriblist_t pal;} text_t;
 
 #ifndef _INC_COMDEFSP
 _COM_SMARTPTR_TYPEDEF(IXMLDOMNode, IID_IXMLDOMNode);
@@ -51,7 +51,7 @@ class CUSFSubtitles
    void ParseEffect(IXMLDOMNodePtr pNode, effect_t* e);
     void ParseKeyframe(IXMLDOMNodePtr pNode, keyframe_t* k);
    void ParseSubtitle(IXMLDOMNodePtr pNode, int start, int stop);
-    void ParseText(IXMLDOMNodePtr pNode, CStdStringW& assstr);
+    void ParseText(IXMLDOMNodePtr pNode, std::wstring& assstr);
     void ParseShape(IXMLDOMNodePtr pNode);
 
 public:

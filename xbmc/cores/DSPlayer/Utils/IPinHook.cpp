@@ -303,7 +303,7 @@ static void LOGUDI(LPCTSTR prefix, const AMVAUncompDataInfo* p, int n)
     LOG(_T("%s[%d].dwUncompWidth = %d"), prefix, i, p[i].dwUncompWidth);
     LOG(_T("%s[%d].dwUncompHeight = %d"), prefix, i, p[i].dwUncompHeight);
 
-    CStdString prefix2;
+    std::string prefix2;
     prefix2.Format(_T("%s[%d]"), prefix, i);
     LOGPF(prefix2, &p[i].ddUncompPixelFormat, 1);
   }
@@ -312,7 +312,7 @@ static void LOGUDI(LPCTSTR prefix, const AMVAUncompDataInfo* p, int n)
 
 static void LogDXVA_PicParams_H264(DXVA_PicParams_H264* pPic)
 {
-  CStdString    strRes;
+  std::string    strRes;
   int      i;
 
   if (bFirst)
@@ -424,7 +424,7 @@ static void LogDXVA_PicParams_H264(DXVA_PicParams_H264* pPic)
 
 static void LogH264SliceShort(DXVA_Slice_H264_Short* pSlice, int nCount)
 {
-  CStdString    strRes;
+  std::string    strRes;
   static bool  bFirstSlice = true;
 
   if (bFirstSlice)
@@ -450,7 +450,7 @@ static void LogH264SliceShort(DXVA_Slice_H264_Short* pSlice, int nCount)
 static void LogH264SliceLong(DXVA_Slice_H264_Long* pSlice, int nCount)
 {
   static bool  bFirstSlice = true;
-  CStdString    strRes;
+  std::string    strRes;
 
   if (bFirstSlice)
   {
@@ -551,7 +551,7 @@ static void LogH264SliceLong(DXVA_Slice_H264_Long* pSlice, int nCount)
 
 static void LogDXVA_PictureParameters(DXVA_PictureParameters* pPic)
 {
-  CStdString    strRes;
+  std::string    strRes;
 
   if (bFirst)
     LOG_TOFILE(_T("picture.log"), _T("wDecodedPictureIndex,wDeblockedPictureIndex,wForwardRefPictureIndex,wBackwardRefPictureIndex,wPicWidthInMBminus1,wPicHeightInMBminus1,bMacroblockWidthMinus1,bMacroblockHeightMinus1,bBlockWidthMinus1,bBlockHeightMinus1,bBPPminus1,bPicStructure,bSecondField,bPicIntra,bPicBackwardPrediction,bBidirectionalAveragingMode,bMVprecisionAndChromaRelation,bChromaFormat,bPicScanFixed,bPicScanMethod,bPicReadbackRequests,bRcontrol,bPicSpatialResid8,bPicOverflowBlocks,bPicExtrapolation,bPicDeblocked,bPicDeblockConfined,bPic4MVallowed,bPicOBMC,bPicBinPB,bMV_RPS,bReservedBits,wBitstreamFcodes,wBitstreamPCEelements,bBitstreamConcealmentNeed,bBitstreamConcealmentMethod"));
@@ -1100,7 +1100,7 @@ public:
   {
     for (DWORD i = 0; i < pExecuteParams->NumCompBuffers; i++)
     {
-      CStdString    strBuffer;
+      std::string    strBuffer;
 
       LogDecodeBufferDesc(&pExecuteParams->pCompressedBuffers[i]);
       /*

@@ -23,5 +23,5 @@
 
 enum exttype {EXTSRT = 0, EXTSUB, EXTSMI, EXTPSB, EXTSSA, EXTASS, EXTIDX, EXTUSF, EXTXSS, EXTRT};
 extern TCHAR* exttypestr[];
-typedef struct {CStdString fn; /*exttype ext;*/} SubFile;
-extern void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<SubFile>& ret);
+typedef struct {std::string fn; /*exttype ext;*/} SubFile;
+extern void GetSubFileNames(std::string fn, std::vector<std::string>& paths, std::vector<SubFile>& ret);

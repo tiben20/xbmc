@@ -1088,7 +1088,7 @@ bool CVobSubImage::Polygonize(std::vector<BYTE>& pathTypes, std::vector<Com::Sma
   return !pathTypes.empty();
 }
 
-bool CVobSubImage::Polygonize(CStdStringW& assstr, bool fSmooth, int scale)
+bool CVobSubImage::Polygonize(std::wstring& assstr, bool fSmooth, int scale)
 {
   std::vector<BYTE> pathTypes;
   std::vector<Com::SmartPoint> pathPoints;
@@ -1105,7 +1105,7 @@ bool CVobSubImage::Polygonize(CStdStringW& assstr, bool fSmooth, int scale)
 
   for(int i = 0; i < nPoints; i++)
   {
-    CStdStringW s;
+    std::wstring s;
 
     switch(pathTypes[i])
     {

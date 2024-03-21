@@ -26,12 +26,12 @@ namespace ssf
   class FontWrapper
   {
     HFONT m_hFont;
-    CStdStringW m_key;
+    std::wstring m_key;
     TEXTMETRIC m_tm;
     std::map<DWORD, int> m_kerning;
 
   public:
-    FontWrapper(HDC hDC, HFONT hFont, const CStdStringW& key);
+    FontWrapper(HDC hDC, HFONT hFont, const std::wstring& key);
     virtual ~FontWrapper();
     operator HFONT() const {return m_hFont;}
     operator LPCWSTR() const {return m_key;}

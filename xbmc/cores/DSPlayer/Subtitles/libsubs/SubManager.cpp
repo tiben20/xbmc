@@ -262,7 +262,7 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
         continue;
       
       Com::SmartQIPtr<IBaseFilter> pTPTF = new CTextPassThruFilter(this);
-      CStdStringW name = L"Kodi Subtitles Pass Thru";
+      std::wstring name = L"Kodi Subtitles Pass Thru";
       if(FAILED(pGB->AddFilter(pTPTF, name)))
         continue;
 
@@ -301,7 +301,7 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
   return E_FAIL;
 }
 
-CStdString GetExtension(CStdString&  filename)
+std::string GetExtension(std::string&  filename)
 {
   const size_t i = filename.rfind('.');
   return filename.substr(i+1, filename.size());
@@ -312,7 +312,7 @@ HRESULT CSubManager::LoadExternalSubtitle( const wchar_t* subPath, ISubStream** 
   if (!pSubPic)
     return E_POINTER;
 
-  CStdStringW path(subPath);
+  std::wstring path(subPath);
   *pSubPic = NULL;
   try
   {
@@ -321,14 +321,14 @@ HRESULT CSubManager::LoadExternalSubtitle( const wchar_t* subPath, ISubStream** 
     if(!pSubStream)
     {
       std::auto_ptr<CVobSubFile> pVSF(new CVobSubFile(&m_csSubLock));
-      if(CStdString(GetExtension(path).MakeLower()) == _T("idx") && pVSF.get() && pVSF->Open(path) && pVSF->GetStreamCount() > 0)
+      if(std::string(GetExtension(path).MakeLower()) == _T("idx") && pVSF.get() && pVSF->Open(path) && pVSF->GetStreamCount() > 0)
         pSubStream = pVSF.release();
     }
 
     if (!pSubStream)
     {
       std::auto_ptr<CRenderedHdmvSubtitleFile> pPGS(new CRenderedHdmvSubtitleFile(&m_csSubLock, ST_HDMV));
-      if ((CStdString(GetExtension(path).MakeLower()) == _T("pgs") || CStdString(GetExtension(path).MakeLower()) == _T("sup"))
+      if ((std::string(GetExtension(path).MakeLower()) == _T("pgs") || std::string(GetExtension(path).MakeLower()) == _T("sup"))
         && pPGS.get() && pPGS->Open(path))
         pSubStream = pPGS.release();
     }
@@ -389,7 +389,7 @@ HRESULT CSubManager::GetStreamTitle(ISubStream* pSubStream, wchar_t **subTitle)
 {
   if (! pSubStream || !subTitle) return E_POINTER;
 
-  CStdStringW title = "";
+  std::wstring title = "";
   *subTitle = NULL;
 
   CLSID clsid; pSubStream->GetClassID(&clsid);

@@ -1,4 +1,4 @@
-/* 
+a/* 
  *  Copyright (C) 2003-2006 Gabest
  *  http://www.gabest.org
  *
@@ -78,9 +78,9 @@ T Explode(T str, std::list<T>& sl, SEP sep, size_t limit/* = 0/)
   return sl.front();
 }*/
 
-CStdStringW AnsiToUTF16(const CStdStringA strFrom)
+std::wstring AnsiToUTF16(const std::string strFrom)
 {
-  CStdStringW strTo;
+  std::wstring strTo;
   int nLen = MultiByteToWideChar(CP_ACP, 0, strFrom.c_str(), -1, NULL, NULL);
   wchar_t* strBuffer = strTo.GetBuffer(nLen + 1);
   strBuffer[0] = 0;
@@ -97,38 +97,38 @@ bool IsPinConnected(IPin* pPin)
   return ((SUCCEEDED(pPin->ConnectedTo(&pPinTo))) && pPinTo) ? true : false;
 }
 
-CStdStringW StringFromGUID(const GUID& guid)
+std::wstring StringFromGUID(const GUID& guid)
 {
   WCHAR null[128] = {0}, buff[128];
   StringFromGUID2(GUID_NULL, null, 127);
-  return CStdStringW(StringFromGUID2(guid, buff, 127) > 0 ? buff : null);
+  return std::wstring(StringFromGUID2(guid, buff, 127) > 0 ? buff : null);
 }
 
-HRESULT GUIDFromString(CStdStringW str, GUID& guid)
+HRESULT GUIDFromString(std::wstring str, GUID& guid)
 {
   guid = GUID_NULL;
   return CLSIDFromString(LPOLESTR(str.c_str()), &guid);
 }
 
-CStdStringW GetFilterPath(CLSID pClsid)
+std::wstring GetFilterPath(CLSID pClsid)
 {
-  CStdString strGuidD;
+  std::string strGuidD;
   strGuidD = StringFromGUID(pClsid);
   return GetFilterPath(strGuidD);
 }
 
-CStdStringA GetPinMainTypeString(IPin* pPin)
+std::string GetPinMainTypeString(IPin* pPin)
 {
   AM_MEDIA_TYPE pMediaType;
   pPin->ConnectionMediaType(&pMediaType);
   if (pMediaType.majortype == MEDIATYPE_Audio)
-    return CStdStringA("Audio pin");
+    return std::string("Audio pin");
   if (pMediaType.majortype == MEDIATYPE_Video)
-    return CStdStringA("Video pin");
+    return std::string("Video pin");
   if (pMediaType.majortype == MEDIATYPE_Text)
-    return CStdStringA("Text pin");
+    return std::string("Text pin");
 
-  return CStdStringA("");
+  return std::string("");
 }
 
 IBaseFilter* GetUpStreamFilter(IBaseFilter* pBF, IPin* pInputPin)
@@ -167,7 +167,7 @@ IBaseFilter* GetFilterFromPin(IPin* pPin)
   return(pBF);
 }
 
-IPin* InsertFilter(IPin* pPin, CStdStringW DisplayName, IGraphBuilder* pGB)
+IPin* InsertFilter(IPin* pPin, std::wstring DisplayName, IGraphBuilder* pGB)
 {
   do
   {
@@ -215,7 +215,7 @@ IPin* InsertFilter(IPin* pPin, CStdStringW DisplayName, IGraphBuilder* pGB)
     if(FAILED(pPB->Read(LPCOLESTR(L"FriendlyName"), &var, NULL)))
       break;
 
-    if(FAILED(pGB->AddFilter(pBF, CStdStringW(var.bstrVal))))
+    if(FAILED(pGB->AddFilter(pBF, std::wstring(var.bstrVal))))
       break;
 
     IPin* pFromTo = GetFirstPin(pBF, PINDIR_INPUT);
@@ -442,14 +442,14 @@ bool ExtractDim(const AM_MEDIA_TYPE* pmt, int& w, int& h, int& arx, int& ary)
 
 typedef struct
 {
-  CStdStringW path;
+  std::wstring path;
   HINSTANCE hInst;
   CLSID clsid;
 } ExternalObject;
 
 static std::vector<ExternalObject> s_extobjs;
 
-HRESULT LoadExternalObject(CStdStringW path, REFCLSID clsid, REFIID iid, void** ppv)
+HRESULT LoadExternalObject(std::wstring path, REFCLSID clsid, REFIID iid, void** ppv)
 {
   CheckPointer(ppv, E_POINTER);
 
@@ -504,7 +504,7 @@ HRESULT LoadExternalObject(CStdStringW path, REFCLSID clsid, REFIID iid, void** 
   return hr;
 }
 
-HRESULT LoadExternalFilter(CStdStringW path, REFCLSID clsid, IBaseFilter** ppBF)
+HRESULT LoadExternalFilter(std::wstring path, REFCLSID clsid, IBaseFilter** ppBF)
 {
   return LoadExternalObject(path, clsid, __uuidof(IBaseFilter), (void**)ppBF);
 }
@@ -538,7 +538,7 @@ void UnloadExternalObjects()
     s_extobjs.pop_back();
 }
 
-GUID GUIDFromString(CStdStringW str)
+GUID GUIDFromString(std::wstring str)
 {
   GUID guid = GUID_NULL;
   HRESULT hr = CLSIDFromString(LPOLESTR(str.c_str()), &guid);
@@ -546,15 +546,15 @@ GUID GUIDFromString(CStdStringW str)
   return guid;
 }
 
-CStdStringW GetMediaTypeName(const GUID& guid)
+std::wstring GetMediaTypeName(const GUID& guid)
 {
-  CStdStringW ret = guid == GUID_NULL 
+  std::wstring ret = guid == GUID_NULL 
     ? L"Any type" 
-    : CStdStringW(GuidNames[guid]);
+    : std::wstring(GuidNames[guid]);
 
   if(ret == L"FOURCC GUID")
   {
-    CStdStringW str;
+    std::wstring str;
     if(guid.Data1 >= 0x10000)
       str.Format(L"Video: %c%c%c%c", (guid.Data1>>0)&0xff, (guid.Data1>>8)&0xff, (guid.Data1>>16)&0xff, (guid.Data1>>24)&0xff);
     else
@@ -565,7 +565,7 @@ CStdStringW GetMediaTypeName(const GUID& guid)
   {
     WCHAR null[128] = {0}, buff[128];
     StringFromGUID2(GUID_NULL, null, 127);
-    ret = CStdStringW(StringFromGUID2(guid, buff, 127) ? buff : null);
+    ret = std::wstring(StringFromGUID2(guid, buff, 127) ? buff : null);
   }
 
   return ret;
@@ -584,19 +584,19 @@ CLSID GetCLSID(IPin* pPin)
 }
 
 
-CStdStringW GetFilterName(IBaseFilter* pBF)
+std::wstring GetFilterName(IBaseFilter* pBF)
 {
-  CStdStringW name;
+  std::wstring name;
   CFilterInfo fi;
   if(pBF && SUCCEEDED(pBF->QueryFilterInfo(&fi)))
     name = fi.achName;
   return(name);
 }
 
-CStdStringW GetFilterPath(CStdString pClsid)
+std::wstring GetFilterPath(std::string pClsid)
 {
 
-  CStdStringW subKey = _T("\\CLSID\\") + pClsid + _T("\\InprocServer32");
+  std::wstring subKey = _T("\\CLSID\\") + pClsid + _T("\\InprocServer32");
   HKEY hSubKey;
 
   DWORD res = RegOpenKeyExW(HKEY_CLASSES_ROOT, subKey.c_str(),
@@ -617,7 +617,7 @@ CStdStringW GetFilterPath(CStdString pClsid)
   
   RegCloseKey(hSubKey);
 
-  CStdStringW returnVal = tab;
+  std::wstring returnVal = tab;
   return returnVal;
 }
 
@@ -764,9 +764,9 @@ IPin* GetFirstPin(IBaseFilter* pBF, PIN_DIRECTION dir)
   return(NULL);
 }
 
-CStdStringW GetPinName(IPin* pPin)
+std::wstring GetPinName(IPin* pPin)
 {
-  CStdStringW name;
+  std::wstring name;
   CPinInfo pi;
   if(pPin && SUCCEEDED(pPin->QueryPinInfo(&pi))) 
     name = pi.achName;
@@ -794,9 +794,9 @@ void memsetd(void* dst, unsigned int c, int nbytes)
 }
 
 
-CStdStringW UTF8To16(LPCSTR utf8)
+std::wstring UTF8To16(LPCSTR utf8)
 {
-  CStdStringW str;
+  std::wstring str;
   int n = MultiByteToWideChar(CP_UTF8, 0, utf8, -1, NULL, 0)-1;
   if(n < 0) return str;
   str.ReleaseBuffer(MultiByteToWideChar(CP_UTF8, 0, utf8, -1, str.GetBuffer(n), n+1)-1);
@@ -904,27 +904,27 @@ const char* GetDXVAMode(const GUID* guidDecoder)
   return DXVA2Decoder[nPos].Description;
 }
 
-CStdStringA GetDshowError(HRESULT hr)
+std::string GetDshowError(HRESULT hr)
 {
   char szErr[MAX_ERROR_TEXT_LEN];
   DWORD res = AMGetErrorTextA(hr, szErr, MAX_ERROR_TEXT_LEN);
   if (res > 0)
-    return CStdString(szErr);
-  return CStdString("");
+    return std::string(szErr);
+  return std::string("");
 
 }
 
-CStdStringW AToW(CStdStringA str)
+std::wstring AToW(std::string str)
 {
-  CStdStringW ret;
+  std::wstring ret;
   for(size_t i = 0, j = str.GetLength(); i < j; i++)
     ret += (WCHAR)(BYTE)str[i];
   return(ret);
 }
 
-CStdStringA WToA(CStdStringW str)
+std::string WToA(std::wstring str)
 {
-  CStdStringA ret;
+  std::string ret;
   for(size_t i = 0, j = str.GetLength(); i < j; i++)
     ret += (CHAR)(WORD)str[i];
   return(ret);
@@ -1489,7 +1489,7 @@ std::string ProbeLangForLanguage(LPCSTR code)
   return std::string();
 }
 
-CStdStringA ISO6391ToLanguage(LPCSTR code)
+std::string ISO6391ToLanguage(LPCSTR code)
 {
   CHAR tmp[2+1];
   strncpy_s(tmp, code, 2);
@@ -1498,7 +1498,7 @@ CStdStringA ISO6391ToLanguage(LPCSTR code)
   for(int i = 0, j = countof(s_isolangs); i < j; i++)
     if(!strcmp(s_isolangs[i].iso6391, tmp))
     {
-      CStdStringA ret = CStdStringA(s_isolangs[i].name);
+      std::string ret = std::string(s_isolangs[i].name);
       int i = ret.Find(';');
       if(i > 0) ret = ret.Left(i);
       return ret;
@@ -1506,7 +1506,7 @@ CStdStringA ISO6391ToLanguage(LPCSTR code)
   return "";
 }
 
-CStdStringA ISO6392ToLanguage(LPCSTR code)
+std::string ISO6392ToLanguage(LPCSTR code)
 {
   CHAR tmp[3+1];
   strncpy_s(tmp, code, 3);
@@ -1516,7 +1516,7 @@ CStdStringA ISO6392ToLanguage(LPCSTR code)
   {
     if(!strcmp(s_isolangs[i].iso6392, tmp))
     {
-      CStdStringA ret = CStdStringA(s_isolangs[i].name);
+      std::string ret = std::string(s_isolangs[i].name);
       int i = ret.Find(';');
       if(i > 0) ret = ret.Left(i);
       return ret;

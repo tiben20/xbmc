@@ -31,7 +31,7 @@ enum SUBTITLE_TYPE
   ST_HDMV
 };
 
-CStdStringW ReftimeToString(const REFERENCE_TIME& rtVal);
+std::wstring ReftimeToString(const REFERENCE_TIME& rtVal);
 
 class CBaseSub
 {

@@ -67,7 +67,7 @@ void CVobSubFileRipper::Log(log_t type, LPCTSTR lpszFormat, ...)
   _vstprintf(buff, lpszFormat, args);
   va_end(args);
 
-  CStdString msg;
+  std::string msg;
   switch(type)
   {
   default:
@@ -110,9 +110,9 @@ void CVobSubFileRipper::Finished(bool fSucceeded)
   f.read(&((char*)&var)[1], 1); \
   f.read(&((char*)&var)[0], 1); \
 
-bool CVobSubFileRipper::LoadIfo(CStdString fn)
+bool CVobSubFileRipper::LoadIfo(std::string fn)
 {
-  CStdString str;
+  std::string str;
 
   if(GetFileAttributes(fn) == INVALID_FILE_ATTRIBUTES)
   {
@@ -368,17 +368,17 @@ bool CVobSubFileRipper::LoadIfo(CStdString fn)
   return(true);
 }
 
-bool CVobSubFileRipper::LoadVob(CStdString fn)
+bool CVobSubFileRipper::LoadVob(std::string fn)
 {
   Log(LOG_INFO, _T("Searching vobs..."));
 /*
-  CAtlList<CStdString> m_vobs;
+  CAtlList<std::string> m_vobs;
 
   fn = fn.Left(fn.ReverseFind('.')+1);
   fn.TrimRight(_T(".0123456789"));
   for(int i = 0; i < 100; i++)
   {
-    CStdString vob;
+    std::string vob;
     vob.Format(_T("%s%d.vob"), fn, i);
 
     CFileStatus status;
@@ -395,7 +395,7 @@ bool CVobSubFileRipper::LoadVob(CStdString fn)
       break;
     }
 
-    CStdString str = _T("Found ") + vob;
+    std::string str = _T("Found ") + vob;
 
     if(i == 0) 
     {
@@ -415,7 +415,7 @@ bool CVobSubFileRipper::LoadVob(CStdString fn)
     return(false);
   }
 */
-  std::vector<CStdString> vobs;
+  std::vector<std::string> vobs;
   if(!m_vob.Open(fn, vobs/*m_vobs*/))
   {
     Log(LOG_ERROR, _T("Cannot open vob sequence"));
@@ -428,7 +428,7 @@ bool CVobSubFileRipper::LoadVob(CStdString fn)
     return(false);
   }
 
-  std::vector<CStdString>::const_iterator it = vobs.begin();
+  std::vector<std::string>::const_iterator it = vobs.begin();
   for (; it != vobs.end(); ++it)
     Log(LOG_INFO, _T("Found ") + *it);
 
@@ -748,7 +748,7 @@ bool CVobSubFileRipper::Create()
           curchunk.vc = (vob<<16)|cell;
         }
 
-        CStdString str, str2;
+        std::string str, str2;
         str.Format(_T("v%02d c%02d lba%08d"), vob, cell, (int)(curpos/2048));
         UINT vcid = (vob<<16)|cell;
         std::map<DWORD, int>::iterator it = selvcmap.find(vcid);
@@ -768,7 +768,7 @@ bool CVobSubFileRipper::Create()
         __int64 tDiff = tOffset - tPrevOffset;
         if(tDiff > 0 && tDiff < (PTS/90+1000))
         {
-          CStdString str;
+          std::string str;
           str.Format(_T("False discontinuity detected, correcting time by %I64dms"), -tDiff);
           Log(LOG_INFO, str);
 
@@ -905,7 +905,7 @@ bool CVobSubFileRipper::LoadChunks(std::vector<vcchunk>& chunks)
 {
   std::ifstream f;
 
-  CStdString fn = m_infn;
+  std::string fn = m_infn;
   TrimExtension(fn);
   fn += _T(".chunks");
 
@@ -957,7 +957,7 @@ bool CVobSubFileRipper::SaveChunks(std::vector<vcchunk>& chunks)
 {
   std::fstream f;
 
-  CStdString fn = m_infn;
+  std::string fn = m_infn;
   TrimExtension(fn);
   fn += _T(".chunks");
 
@@ -998,7 +998,7 @@ STDMETHODIMP CVobSubFileRipper::SetCallBack(IVSFRipperCallback* pCallback)
   return S_OK;
 }
 
-STDMETHODIMP CVobSubFileRipper::LoadParamFile(CStdString fn)
+STDMETHODIMP CVobSubFileRipper::LoadParamFile(std::string fn)
 {
   CAutoLock cAutoLock(&m_csAccessLock);
 
@@ -1014,13 +1014,13 @@ STDMETHODIMP CVobSubFileRipper::LoadParamFile(CStdString fn)
   enum {P_INPUT, P_OUTPUT, P_PGC, P_ANGLE, P_LANGS, P_OPTIONS};
   int phase = P_INPUT;
 
-  //CStdStringW line;
-  CStdStringA foo;
-  CStdString line;
+  //std::wstring line;
+  std::string foo;
+  std::string line;
   while(f.eof())
   {
     getline(f, foo);
-    line = CStdStringW(foo);
+    line = std::wstring(foo);
     if(line.Trim().IsEmpty() || line[0] == '#') continue;
 
     if(phase == P_INPUT)
@@ -1117,7 +1117,7 @@ STDMETHODIMP CVobSubFileRipper::LoadParamFile(CStdString fn)
         {
           int n = line.Find(_T(" "));
 
-          CStdString lang = line.Left(n);
+          std::string lang = line.Left(n);
 
           line = line.Mid(n);
           line.TrimLeft();
@@ -1176,7 +1176,7 @@ STDMETHODIMP CVobSubFileRipper::LoadParamFile(CStdString fn)
   return phase == P_OPTIONS ? S_OK : E_FAIL;
 }
 
-STDMETHODIMP CVobSubFileRipper::SetInput(CStdString infn)
+STDMETHODIMP CVobSubFileRipper::SetInput(std::string infn)
 {
   CAutoLock cAutoLock(&m_csAccessLock);
 
@@ -1190,7 +1190,7 @@ STDMETHODIMP CVobSubFileRipper::SetInput(CStdString infn)
   return S_OK;
 }
 
-STDMETHODIMP CVobSubFileRipper::SetOutput(CStdString outfn)
+STDMETHODIMP CVobSubFileRipper::SetOutput(std::string outfn)
 {
   CAutoLock cAutoLock(&m_csAccessLock);
   m_outfn = outfn;

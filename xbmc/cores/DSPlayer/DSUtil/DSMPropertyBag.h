@@ -12,10 +12,10 @@ interface IDSMPropertyBag : public IPropertyBag2
   STDMETHOD(DelProperty) (LPCWSTR key) = 0;
 };
 
-class IDSMPropertyBagImpl : public std::map<CStdStringW, CStdStringW>, public IDSMPropertyBag, public IPropertyBag
+class IDSMPropertyBagImpl : public std::map<std::wstring, std::wstring>, public IDSMPropertyBag, public IPropertyBag
 {
-  BOOL Add(const CStdStringW& key, const CStdStringW& val) { insert( std::pair<CStdStringW, CStdStringW>(key, val) ); return TRUE; }
-  BOOL SetAt(const CStdStringW& key, const CStdStringW& val) { (*this)[key] = val; return TRUE;}
+  BOOL Add(const std::wstring& key, const std::wstring& val) { insert( std::pair<std::wstring, std::wstring>(key, val) ); return TRUE; }
+  BOOL SetAt(const std::wstring& key, const std::wstring& val) { (*this)[key] = val; return TRUE;}
 
 public:
   IDSMPropertyBagImpl();
@@ -60,7 +60,7 @@ class CDSMResource
 {
 public:
   DWORD_PTR tag;
-  CStdStringW name, desc, mime;
+  std::wstring name, desc, mime;
   std::vector<BYTE> data;
   CDSMResource();
   CDSMResource(const CDSMResource& r);
@@ -115,7 +115,7 @@ class CDSMChapter
 
 public:
   REFERENCE_TIME rt;
-  CStdStringW name;
+  std::wstring name;
   CDSMChapter();
   CDSMChapter(REFERENCE_TIME rt, LPCWSTR name);
   void operator = (const CDSMChapter& c);

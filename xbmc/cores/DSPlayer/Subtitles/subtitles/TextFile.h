@@ -33,7 +33,7 @@ public:
 private:
   enc m_encoding, m_defaultencoding;
   int m_offset;
-  CStdString m_strFileName;
+  std::string m_strFileName;
 
 public:
   CTextFile(enc e = ASCII);
@@ -47,7 +47,7 @@ public:
 
   // CFile
 
-  CStdString GetFilePath() const;
+  std::string GetFilePath() const;
 
   // CStdioFile
 
@@ -55,17 +55,17 @@ public:
   ULONGLONG GetLength();
   ULONGLONG Seek(LONGLONG lOff, UINT nFrom);
 
-  void WriteString(LPCSTR lpsz/*CStdStringA str*/);
-  void WriteString(LPCWSTR lpsz/*CStdStringW str*/);
-  BOOL ReadString(CStdStringA& str);
-  BOOL ReadString(CStdStringW& str);
+  void WriteString(LPCSTR lpsz/*std::string str*/);
+  void WriteString(LPCWSTR lpsz/*std::wstring str*/);
+  BOOL ReadString(std::string& str);
+  BOOL ReadString(std::wstring& str);
 
 };
 
 class CWebTextFile : public CTextFile/*, IDownloadQueueObserver*/
 {
   LONGLONG m_llMaxSize;
-  CStdString m_tempfn;
+  std::string m_tempfn;
   /*CEvent m_downloadEvent;
   TICKET m_dlTicket;
   bool m_dlSucceeded;*/
@@ -73,13 +73,13 @@ class CWebTextFile : public CTextFile/*, IDownloadQueueObserver*/
 public:
   CWebTextFile(LONGLONG llMaxSize = 1024*1024);
 
-  //void OnFileComplete(TICKET aTicket, CStdStringA& aFilePath, INT aByteRxCount, Result aResult);
+  //void OnFileComplete(TICKET aTicket, std::string& aFilePath, INT aByteRxCount, Result aResult);
   bool Open(LPCTSTR lpszFileName);
   bool Save(LPCTSTR lpszFileName, enc e /*= ASCII*/);
   void Close();
 };
 
-extern CStdString  AToT(CStdStringA str);
-extern CStdString  WToT(CStdStringW str);
-extern CStdStringA TToA(CStdString str);
-extern CStdStringW TToW(CStdString str);
+extern std::string  AToT(std::string str);
+extern std::string  WToT(std::wstring str);
+extern std::string TToA(std::string str);
+extern std::wstring TToW(std::string str);

@@ -30,7 +30,7 @@
 // CAsyncFileReader
 //
 
-CAsyncFileReader::CAsyncFileReader(CStdString fn, HRESULT& hr) 
+CAsyncFileReader::CAsyncFileReader(std::string fn, HRESULT& hr) 
 	: CUnknown(NAME("CAsyncFileReader"), NULL, &hr)
 	, m_len(-1)
 	, m_hBreakEvent(NULL)
@@ -87,7 +87,7 @@ STDMETHODIMP CAsyncFileReader::SyncRead(LONGLONG llPosition, LONG lLength, BYTE*
 			m_lOsError = e->m_lOsError;
 			e->Delete();
 			Sleep(1);
-			CStdString fn = m_strFileName;
+			std::string fn = m_strFileName;
 			try {Close();} catch(CFileException* e) {e->Delete();}
 			try {Open(fn, modeRead|shareDenyNone|typeBinary|osSequentialScan);} catch(CFileException* e) {e->Delete();}
 			m_strFileName = fn;
@@ -122,7 +122,7 @@ STDMETHODIMP_(LPCTSTR) CAsyncFileReader::GetFileName()
 // CAsyncUrlReader
 //
 
-CAsyncUrlReader::CAsyncUrlReader(CStdString url, HRESULT& hr) 
+CAsyncUrlReader::CAsyncUrlReader(std::string url, HRESULT& hr) 
 	: CAsyncFileReader(url, hr)
 {
 	if(SUCCEEDED(hr)) return;

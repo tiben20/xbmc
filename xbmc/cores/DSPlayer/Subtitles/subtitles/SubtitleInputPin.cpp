@@ -74,7 +74,7 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
   {
     if(!(m_pSubStream = DNew CRenderedTextSubtitle(m_pSubLock))) return E_FAIL;
     CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
-    pRTS->m_name = CStdString(GetPinName(pReceivePin)) + _T(" (embeded)");
+    pRTS->m_name = std::string(GetPinName(pReceivePin)) + _T(" (embeded)");
     pRTS->m_dstScreenSize = Com::SmartSize(384, 288);
     pRTS->CreateDefaultStyle(DEFAULT_CHARSET);
   }
@@ -82,7 +82,7 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
   {
     SUBTITLEINFO* psi = (SUBTITLEINFO*)m_mt.pbFormat;
     DWORD     dwOffset = 0;
-    CStdString   name;
+    std::string   name;
     LCID      lcid = 0;
 
     if (psi != NULL)
@@ -92,7 +92,7 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
       name = ISO6392ToLanguage(psi->IsoLang);
       lcid = ISO6392ToLcid(psi->IsoLang);
       if(name.IsEmpty()) name = _T("Unknown");
-      if(wcslen(psi->TrackName) > 0) name += _T(" (") + CStdString(psi->TrackName) + _T(")");
+      if(wcslen(psi->TrackName) > 0) name += _T(" (") + std::string(psi->TrackName) + _T(")");
     }
 
     if(m_mt.subtype == MEDIASUBTYPE_UTF8 
@@ -262,7 +262,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
 
         if(tag == __GAB1_LANGUAGE__)
         {
-          pRTS->m_name = CStdString(ptr);
+          pRTS->m_name = std::string(ptr);
         }
         else if(tag == __GAB1_ENTRY__)
         {
@@ -307,7 +307,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     }
     else if(pData != 0 && len > 1 && *pData != 0)
     {
-      CStdStringA str((char*)pData, len);
+      std::string str((char*)pData, len);
 
       str.Replace("\r\n", "\n");
       str.Trim();
@@ -327,7 +327,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     {
       CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
 
-      CStdStringW str = UTF8To16(CStdStringA((LPCSTR)pData, len)).Trim();
+      std::wstring str = UTF8To16(std::string((LPCSTR)pData, len)).Trim();
       if(!str.IsEmpty())
       {
         pRTS->Add(str, true, (int)(tStart / 10000), (int)(tStop / 10000));
@@ -338,14 +338,14 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     {
       CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
 
-      CStdStringW str = UTF8To16(CStdStringA((LPCSTR)pData, len)).Trim();
+      std::wstring str = UTF8To16(std::string((LPCSTR)pData, len)).Trim();
       if(!str.IsEmpty())
       {
         STSEntry stse;
 
         int fields = m_mt.subtype == MEDIASUBTYPE_ASS2 ? 10 : 9;
 
-        std::list<CStdStringW> sl;
+        std::list<std::wstring> sl;
         Explode(str, sl, ',', fields);
         if(sl.size() == fields)
         {
@@ -373,7 +373,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     {
       ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream;
 
-      CStdStringW str = UTF8To16(CStdStringA((LPCSTR)pData, len)).Trim();
+      std::wstring str = UTF8To16(std::string((LPCSTR)pData, len)).Trim();
       if(!str.IsEmpty())
       {
         pSSF->Append(tStart, tStop, str);

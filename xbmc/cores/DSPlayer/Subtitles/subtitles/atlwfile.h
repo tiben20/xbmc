@@ -51,7 +51,7 @@ class CFileT
 {
 protected:
   BOOL m_bCloseOnDelete;
-  CStdString m_strFileName;
+  std::string m_strFileName;
 public:
    HANDLE m_hFile;
    enum OpenFlags {
@@ -451,7 +451,7 @@ public:
     {
       return;
     }
-    CStdStringA foo(lpsz);
+    std::string foo(lpsz);
     if (fputs(foo.c_str(), m_pStream) == _TEOF)
       return;
   }
@@ -465,7 +465,7 @@ public:
       return NULL;
     }
 
-    CStdStringA foo;
+    std::string foo;
     char* lpszResult = fgets(foo.GetBuffer(nMax), nMax, m_pStream);
     if (lpszResult == NULL && !feof(m_pStream))
     {
@@ -475,11 +475,11 @@ public:
     memcpy((void*) lpsz, (void*) foo.GetBuffer(), foo.length());
     return lpsz;
   }
-  virtual BOOL ReadString(CStdString& rString)
+  virtual BOOL ReadString(std::string& rString)
   {
     rString = _T("");    // empty string without deallocating
     const int nMaxSize = 128;
-    CStdStringA aString = CStdStringA(rString);
+    std::string aString = std::string(rString);
     char* lpsz = aString.GetBuffer(nMaxSize);
     char* lpszResult;
     int nLen = 0;

@@ -35,8 +35,8 @@ namespace ssf
     void Parse(InputStream& s, LPCWSTR predef = NULL);
 
     void ParseDefs(InputStream& s, Reference* pParentRef);
-    void ParseTypes(InputStream& s, std::list<CStdStringW>& types);
-    void ParseName(InputStream& s, CStdStringW& name);
+    void ParseTypes(InputStream& s, std::list<std::wstring>& types);
+    void ParseName(InputStream& s, std::wstring& name);
     void ParseQuotedString(InputStream& s, Definition* pDef);
     void ParseNumber(InputStream& s, Definition* pDef);
     void ParseBlock(InputStream& s, Definition* pDef);

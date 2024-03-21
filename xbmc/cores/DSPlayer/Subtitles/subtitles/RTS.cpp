@@ -80,7 +80,7 @@ CMyFont::~CMyFont()
 
 // CWord
 
-CWord::CWord(STSStyle& style, CStdStringW str, int ktype, int kstart, int kend) 
+CWord::CWord(STSStyle& style, std::wstring str, int ktype, int kstart, int kend) 
   : m_style(style), m_str(str)
   , m_width(0), m_ascent(0), m_descent(0)
   , m_ktype(ktype), m_kstart(kstart), m_kend(kend)
@@ -182,7 +182,7 @@ bool CWord::CreateOpaqueBox()
   int w = (int)(m_style.outlineWidthX + 0.5);
   int h = (int)(m_style.outlineWidthY + 0.5);
 
-  CStdStringW str;
+  std::wstring str;
   str.Format(L"m %d %d l %d %d %d %d %d %d", 
     -w, -h, 
     m_width+w, -h, 
@@ -583,7 +583,7 @@ void CWord::Transform_SSE2( Com::SmartPoint &org )
 
 // CText
 
-CText::CText(STSStyle& style, CStdStringW str, int ktype, int kstart, int kend)
+CText::CText(STSStyle& style, std::wstring str, int ktype, int kstart, int kend)
   : CWord(style, str, ktype, kstart, kend)
 {
   if(m_str == L" ")
@@ -700,7 +700,7 @@ bool CText::CreatePath()
 
 // CPolygon
 
-CPolygon::CPolygon(STSStyle& style, CStdStringW str, int ktype, int kstart, int kend, double scalex, double scaley, int baseline) 
+CPolygon::CPolygon(STSStyle& style, std::wstring str, int ktype, int kstart, int kend, double scalex, double scaley, int baseline) 
   : CWord(style, str, ktype, kstart, kend)
   , m_scalex(scalex), m_scaley(scaley), m_baseline(baseline)
 {
@@ -725,7 +725,7 @@ bool CPolygon::Append(CWord* w)
   return(false);
 }
 
-bool CPolygon::GetLONG(CStdStringW& str, LONG& ret)
+bool CPolygon::GetLONG(std::wstring& str, LONG& ret)
 {
   LPWSTR s = (LPWSTR)(LPCWSTR)str, e = s;
   ret = wcstol(str, &e, 10);
@@ -733,7 +733,7 @@ bool CPolygon::GetLONG(CStdStringW& str, LONG& ret)
   return(e > s);
 }
 
-bool CPolygon::GetPOINT(CStdStringW& str, POINT& ret)
+bool CPolygon::GetPOINT(std::wstring& str, POINT& ret)
 {
   return(GetLONG(str, ret.x) && GetLONG(str, ret.y));
 }
@@ -745,7 +745,7 @@ bool CPolygon::ParseStr()
   Com::SmartPoint p;
   int i, j, lastsplinestart = -1, firstmoveto = -1, lastmoveto = -1;
 
-  CStdStringW str = m_str;
+  std::wstring str = m_str;
   str.SpanIncluding(L"mnlbspc 0123456789");
   str.Replace(L"m", L"*m");
   str.Replace(L"n", L"*n");
@@ -756,8 +756,8 @@ bool CPolygon::ParseStr()
   str.Replace(L"c", L"*c");
 
   int k = 0;
-  std::vector<CStdStringW> tokens; str.Tokenize(L"*", tokens);
-  CStdStringW s;
+  std::vector<std::wstring> tokens; str.Tokenize(L"*", tokens);
+  std::wstring s;
   while (k < tokens.size())
   {
     s = tokens[k++];
@@ -900,7 +900,7 @@ bool CPolygon::CreatePath()
 
 // CClipper
 
-CClipper::CClipper(CStdStringW str, Com::SmartSize size, double scalex, double scaley, bool inverse) 
+CClipper::CClipper(std::wstring str, Com::SmartSize size, double scalex, double scaley, bool inverse) 
   : CPolygon(STSStyle(), str, 0, 0, 0, scalex, scaley, 0)
 {
   m_size.cx = m_size.cy = 0;
@@ -1454,7 +1454,7 @@ void CSubtitle::CreateClippers(Com::SmartSize size)
 
     if(!m_pClipper) 
     {
-      CStdStringW str;
+      std::wstring str;
       str.Format(L"m %d %d l %d %d %d %d %d %d", 0, 0, w, 0, w, h, 0, h);
       m_pClipper = DNew CClipper(str, size, 1, 1, false);
       if(!m_pClipper) return;
@@ -1488,7 +1488,7 @@ void CSubtitle::CreateClippers(Com::SmartSize size)
 
     if(!m_pClipper) 
     {
-      CStdStringW str;
+      std::wstring str;
       str.Format(L"m %d %d l %d %d %d %d %d %d", 0, 0, w, 0, w, h, 0, h);
       m_pClipper = DNew CClipper(str, size, 1, 1, false);
       if(!m_pClipper) return;
@@ -1760,7 +1760,7 @@ void CRenderedTextSubtitle::Deinit()
   m_vidrect.SetRectEmpty();
 }
 
-void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, CStdString str)
+void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, std::string str)
 {
   str.Trim();
   if(!sub || str.IsEmpty()) return;
@@ -1768,7 +1768,7 @@ void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, CStdString str)
   const TCHAR* s = _tcschr(str, ';');
   if(!s) {s = (LPTSTR)(LPCTSTR)str; s += str.GetLength()-1;}
   s++;
-  CStdString effect = str.Left(s - str);
+  std::string effect = str.Left(s - str);
 
   if(!effect.CompareNoCase(_T("Banner;")))
   {
@@ -1809,7 +1809,7 @@ void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, CStdString str)
   }
 }
 
-void CRenderedTextSubtitle::ParseString(CSubtitle* sub, CStdStringW str, STSStyle& style)
+void CRenderedTextSubtitle::ParseString(CSubtitle* sub, std::wstring str, STSStyle& style)
 {
   if(!sub) return;
 
@@ -1837,7 +1837,7 @@ void CRenderedTextSubtitle::ParseString(CSubtitle* sub, CStdStringW str, STSStyl
 
     if(c == L'\n')
     {
-      if(CWord* w = DNew CText(style, CStdStringW(), m_ktype, m_kstart, m_kend))
+      if(CWord* w = DNew CText(style, std::wstring(), m_ktype, m_kstart, m_kend))
       {
         sub->m_words.push_back(w); 
         m_kstart = m_kend;
@@ -1846,7 +1846,7 @@ void CRenderedTextSubtitle::ParseString(CSubtitle* sub, CStdStringW str, STSStyl
     else if(c == L' ' || c == L'\x00A0')
     {
       wchar_t pszCh[2] = { c , 0 };
-      if(CWord* w = DNew CText(style, CStdStringW((wchar_t*) &pszCh), m_ktype, m_kstart, m_kend))
+      if(CWord* w = DNew CText(style, std::wstring((wchar_t*) &pszCh), m_ktype, m_kstart, m_kend))
       {
         sub->m_words.push_back(w); 
         m_kstart = m_kend;
@@ -1859,7 +1859,7 @@ void CRenderedTextSubtitle::ParseString(CSubtitle* sub, CStdStringW str, STSStyl
   return;
 }
 
-void CRenderedTextSubtitle::ParsePolygon(CSubtitle* sub, CStdStringW str, STSStyle& style)
+void CRenderedTextSubtitle::ParsePolygon(CSubtitle* sub, std::wstring str, STSStyle& style)
 {
   if(!sub || !str.GetLength() || !m_nPolygon) return;
 
@@ -1870,7 +1870,7 @@ void CRenderedTextSubtitle::ParsePolygon(CSubtitle* sub, CStdStringW str, STSSty
   }
 }
 
-bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyle& style, STSStyle& org, bool fAnimate)
+bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, std::wstring str, STSStyle& style, STSStyle& org, bool fAnimate)
 {
   if(!sub) return(false);
 
@@ -1880,7 +1880,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
   {
     size_t pos = str.find_first_of(L"(\\", j + 1);
 
-    CStdStringW cmd;
+    std::wstring cmd;
     
     if (pos == std::string::npos)
     {
@@ -1900,13 +1900,13 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
 
     j = pos;
 
-    std::vector<CStdStringW> params;
+    std::vector<std::wstring> params;
 
     if(j != std::string::npos && str[j] == L'(')
     {
       pos = str.find_first_of(L')', j + 1);
       
-      CStdStringW param;
+      std::wstring param;
       if (pos == std::string::npos)
         param = str.substr(j + 1);
       else
@@ -1920,7 +1920,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
 
         if(i >= 0 && (j < 0 || i < j))
         {
-          CStdStringW s = param.Left(i).Trim();
+          std::wstring s = param.Left(i).Trim();
           if(!s.IsEmpty()) params.push_back(s);
           param = i+1 < param.GetLength() ? param.Mid(i+1) : L"";
         }
@@ -2020,7 +2020,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
 
     // TODO: call ParseStyleModifier(cmd, params, ..) and move the rest there
 
-    CStdStringW p = params.size() > 0 ? params[0] : L"";
+    std::wstring p = params.size() > 0 ? params[0] : L"";
 
     if(cmd == L"1c" || cmd == L"2c" || cmd == L"3c" || cmd == L"4c")
     {
@@ -2196,7 +2196,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
     else if(cmd == L"fn")
     {
       style.fontName = (!p.IsEmpty() && p != L"0")
-        ? CStdString(p).Trim()
+        ? std::string(p).Trim()
         : org.fontName;
     }
     else if(cmd == L"frx")
@@ -2368,7 +2368,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
     else if(cmd == L"r")
     {
       STSStyle* val;
-      CSTSStyleMap::iterator it = m_styles.find(CStdString(p));
+      CSTSStyleMap::iterator it = m_styles.find(std::string(p));
       style = (!p.IsEmpty() && it != m_styles.end() && it->second) ? *(it->second) : org;
     }
     else if(cmd == L"shad")
@@ -2471,7 +2471,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyl
   return(true); // there are ppl keeping coments inside {}, lets make them happy now
 }
 
-bool CRenderedTextSubtitle::ParseHtmlTag(CSubtitle* sub, CStdStringW str, STSStyle& style, STSStyle& org)
+bool CRenderedTextSubtitle::ParseHtmlTag(CSubtitle* sub, std::wstring str, STSStyle& style, STSStyle& org)
 {
   if(str.Find(L"!--") == 0)
     return(true);
@@ -2482,10 +2482,10 @@ bool CRenderedTextSubtitle::ParseHtmlTag(CSubtitle* sub, CStdStringW str, STSSty
   int i = str.Find(' ');
   if(i < 0) i = str.GetLength();
 
-  CStdStringW tag = str.Left(i).MakeLower();
+  std::wstring tag = str.Left(i).MakeLower();
   str = str.Mid(i).Trim();
 
-  std::vector<CStdStringW> attribs, params;
+  std::vector<std::wstring> attribs, params;
   while((i = str.Find('=')) > 0)
   {
     attribs.push_back(str.Left(i).Trim().MakeLower());
@@ -2555,7 +2555,7 @@ bool CRenderedTextSubtitle::ParseHtmlTag(CSubtitle* sub, CStdStringW str, STSSty
 
         if(nColor >= 0 && nColor < 4)
         {
-          CStdString key = WToT(params[i]).TrimLeft('#');
+          std::string key = WToT(params[i]).TrimLeft('#');
           DWORD val;
           CHtmlColorMap::const_iterator it = g_colors.find(key);
           if(it != g_colors.end())
@@ -2617,7 +2617,7 @@ CSubtitle* CRenderedTextSubtitle::GetSubtitle(int entry)
   sub = DNew CSubtitle();
   if(!sub) return(NULL);
 
-  CStdStringW str = GetStrW(entry, true);
+  std::wstring str = GetStrW(entry, true);
 
   STSStyle stss, orgstss;
   if(m_doOverrideStyle && m_pStyleOverride != NULL)
@@ -3393,13 +3393,13 @@ STDMETHODIMP CRenderedTextSubtitle::GetStreamInfo(int iStream, WCHAR** ppName, L
     if(!(*ppName = (WCHAR*)CoTaskMemAlloc((m_name.GetLength()+1)*sizeof(WCHAR))))
       return E_OUTOFMEMORY;
 
-    wcscpy(*ppName, CStdStringW(m_name));
+    wcscpy(*ppName, std::wstring(m_name));
 
     if(pLCID)
     {
-      *pLCID = ISO6391ToLcid (CStdStringA(*ppName).c_str());
+      *pLCID = ISO6391ToLcid (std::string(*ppName).c_str());
       if (*pLCID == 0)
-        *pLCID = ISO6392ToLcid (CStdStringA(*ppName).c_str());
+        *pLCID = ISO6392ToLcid (std::string(*ppName).c_str());
     }
   }
 

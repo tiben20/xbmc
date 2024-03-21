@@ -25,17 +25,17 @@
 
 namespace ssf
 {
-  Split::Split(LPCWSTR sep, CStdStringW str, size_t limit, SplitType type)
+  Split::Split(LPCWSTR sep, std::wstring str, size_t limit, SplitType type)
   {
     DoSplit(sep, str, limit, type);
   }
 
-  Split::Split(WCHAR sep, CStdStringW str, size_t limit, SplitType type)
+  Split::Split(WCHAR sep, std::wstring str, size_t limit, SplitType type)
   {
-    DoSplit(CStdStringW(&sep), str, limit, type);
+    DoSplit(std::wstring(&sep), str, limit, type);
   }
 
-  void Split::DoSplit(LPCWSTR sep, CStdStringW str, size_t limit, SplitType type)
+  void Split::DoSplit(LPCWSTR sep, std::wstring str, size_t limit, SplitType type)
   {
     clear();
 
@@ -48,7 +48,7 @@ namespace ssf
         j = str.Find(sep, i);
         if(j < 0) j = len;
 
-        CStdStringW s = i < j ? str.Mid(i, j - i) : L"";
+        std::wstring s = i < j ? str.Mid(i, j - i) : L"";
 
         switch(type)
         {

@@ -1,8 +1,8 @@
 #pragma once
 
-//extern CStdString ExplodeMin(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit = 0);
-//extern CStdString Explode(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit = 0);
-//extern CStdString Implode(std::list<CStdString>& sl, TCHAR sep);
+//extern std::string ExplodeMin(std::string str, std::list<std::string>& sl, TCHAR sep, int limit = 0);
+//extern std::string Explode(std::string str, std::list<std::string>& sl, TCHAR sep, int limit = 0);
+//extern std::string Implode(std::list<std::string>& sl, TCHAR sep);
 
 template<class T, typename SEP>
 T Explode(T str, std::list<T>& sl, SEP sep, int limit = 0)
@@ -56,12 +56,12 @@ T Implode(std::list<T>& sl, SEP sep)
   return(ret);
 }
 */
-extern CStdString ExtractTag(CStdString tag, std::map<CStdString, CStdString>& attribs, bool& fClosing);
-extern CStdStringA ConvertMBCS(CStdStringA str, DWORD SrcCharSet, DWORD DstCharSet);
-extern CStdStringA UrlEncode(CStdStringA str, bool fRaw = false);
-extern CStdStringA UrlDecode(CStdStringA str, bool fRaw = false);
+extern std::string ExtractTag(std::string tag, std::map<std::string, std::string>& attribs, bool& fClosing);
+extern std::string ConvertMBCS(std::string str, DWORD SrcCharSet, DWORD DstCharSet);
+extern std::string UrlEncode(std::string str, bool fRaw = false);
+extern std::string UrlDecode(std::string str, bool fRaw = false);
 extern DWORD CharSetToCodePage(DWORD dwCharSet);
-extern std::list<CStdString>& MakeLower(std::list<CStdString>& sl);
-extern std::list<CStdString>& MakeUpper(std::list<CStdString>& sl);
-extern std::list<CStdString>& RemoveStrings(std::list<CStdString>& sl, int minlen, int maxlen);
+extern std::list<std::string>& MakeLower(std::list<std::string>& sl);
+extern std::list<std::string>& MakeUpper(std::list<std::string>& sl);
+extern std::list<std::string>& RemoveStrings(std::list<std::string>& sl, int minlen, int maxlen);
 

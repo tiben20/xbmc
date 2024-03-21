@@ -84,7 +84,7 @@ private:
 
 public:
   bool Polygonize(std::vector<BYTE>& pathTypes, std::vector<Com::SmartPoint>& pathPoints, bool fSmooth, int scale);
-  bool Polygonize(CStdStringW& assstr, bool fSmooth = true, int scale = 3);
+  bool Polygonize(std::wstring& assstr, bool fSmooth = true, int scale = 3);
 
     void Scale2x();
 };

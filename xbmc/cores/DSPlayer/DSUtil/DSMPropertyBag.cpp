@@ -20,10 +20,10 @@ STDMETHODIMP IDSMPropertyBagImpl::Read(LPCOLESTR pszPropName, VARIANT* pVar, IEr
 {
   CheckPointer(pVar, E_POINTER);
   if(pVar->vt != VT_EMPTY) return E_INVALIDARG;
-  std::map<CStdStringW, CStdStringW>::iterator it = find(pszPropName);
+  std::map<std::wstring, std::wstring>::iterator it = find(pszPropName);
   if (it == end())
     return E_FAIL;
-  CStdStringW value = it->second;
+  std::wstring value = it->second;
   memcpy(pVar, value, sizeof(VARIANT));
   return S_OK;
 }
@@ -42,7 +42,7 @@ STDMETHODIMP IDSMPropertyBagImpl::Read(ULONG cProperties, PROPBAG2* pPropBag, IE
   CheckPointer(phrError, E_POINTER);
   for(ULONG i = 0; i < cProperties; phrError[i] = S_OK, i++)
   {
-    std::map<CStdStringW, CStdStringW>::iterator it = find(pPropBag[i].pstrName);
+    std::map<std::wstring, std::wstring>::iterator it = find(pPropBag[i].pstrName);
     memcpy(pvarValue, it->second, sizeof(VARIANT));
   }
   return S_OK;
@@ -70,8 +70,8 @@ STDMETHODIMP IDSMPropertyBagImpl::GetPropertyInfo(ULONG iProperty, ULONG cProper
   CheckPointer(pcProperties, E_POINTER);
   for(ULONG i = 0; i < cProperties; i++, iProperty++, (*pcProperties)++) 
   {
-    std::map<CStdStringW, CStdStringW>::iterator it = begin(); std::advance(it, iProperty);
-    CStdStringW key = it->first;
+    std::map<std::wstring, std::wstring>::iterator it = begin(); std::advance(it, iProperty);
+    std::wstring key = it->first;
     pPropBag[i].pstrName = (BSTR)CoTaskMemAlloc((key.GetLength()+1)*sizeof(WCHAR));
     if(!pPropBag[i].pstrName) return E_FAIL;
         wcscpy_s(pPropBag[i].pstrName, key.GetLength()+1, key);
@@ -120,7 +120,7 @@ HRESULT IDSMPropertyBagImpl::DelAllProperties()
 
 HRESULT IDSMPropertyBagImpl::DelProperty(LPCWSTR key)
 {
-  std::map<CStdStringW, CStdStringW>::iterator it = find(key);
+  std::map<std::wstring, std::wstring>::iterator it = find(key);
   if (it == end())
     return S_FALSE;
 

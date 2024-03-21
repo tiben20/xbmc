@@ -23,7 +23,7 @@
 
 namespace ssf
 {
-  template <class T = CStdString, class S = CStdString> 
+  template <class T = std::string, class S = std::string> 
   class StringMap : public std::map<S, T>
   {
   public:
@@ -38,9 +38,9 @@ namespace ssf
     }
   };
 
-  template <class T = CStdStringA, class S = CStdStringA> 
+  template <class T = std::string, class S = std::string> 
   class StringMapA : public StringMap<T, S> {};
 
-  template <class T = CStdStringW, class S = CStdStringW> 
+  template <class T = std::wstring, class S = std::wstring> 
   class StringMapW : public StringMap<T, S> {};
 }

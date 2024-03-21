@@ -91,14 +91,14 @@ namespace ssf
 
   class WCharInputStream : public InputStream
   {
-    CStdStringW m_str;
+    std::wstring m_str;
     int m_pos;
 
   protected:
     int NextByte();
 
   public:
-    WCharInputStream(CStdStringW str);
+    WCharInputStream(std::wstring str);
   };
 
   class OutputStream : public Stream
@@ -118,7 +118,7 @@ namespace ssf
 
   class WCharOutputStream : public OutputStream
   {
-    CStdStringW m_str;
+    std::wstring m_str;
 
   protected:
     void NextByte(int b);
@@ -126,12 +126,12 @@ namespace ssf
   public:
     WCharOutputStream();
 
-    const CStdStringW& GetString() {return m_str;}
+    const std::wstring& GetString() {return m_str;}
   };
 
   class DebugOutputStream : public OutputStream
   {
-    CStdStringW m_str;
+    std::wstring m_str;
 
   protected:
     void NextByte(int b);

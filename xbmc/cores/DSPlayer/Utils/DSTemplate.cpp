@@ -33,9 +33,9 @@
 
 namespace Com
 {
-  CStdString get_next_token(CStdString &str, CStdString separator)
+  std::string get_next_token(std::string &str, std::string separator)
   {
-    CStdString ret;
+    std::string ret;
     int pos = str.Find(separator);
     if (pos < 0) {
       ret = str;
@@ -74,7 +74,7 @@ namespace Com
   {
   }
 
-  URI::URI(CStdString url)
+  URI::URI(std::string url)
   {
     Parse(url);
   }
@@ -93,42 +93,44 @@ namespace Com
     return *this;
   }
 
-  URI &URI::operator =(CStdString url)
+  URI &URI::operator =(std::string url)
   {
     Parse(url);
     return *this;
   }
 
-  int URI::Parse(CStdString url)
+  int URI::Parse(std::string url)
   {
     // protocol://host:port/request_url
-    protocol = _T("http");
-    host = _T("");
-    request_url = _T("");
+    protocol = "http";
+    host = "";
+    request_url = "";
 
     int pos;
-    pos = url.Find(_T("://"));
+
+    pos = url.find("://");
     if (pos > 0) {
-      protocol = url.Left(pos);
-      url.Delete(0, pos + 3);
+      protocol = StringUtils::Left(url,pos);
+      url.erase(0, pos + 3);
     }
     port = 80;		// map protocol->port
 
-    pos = url.Find(_T("/"));
+    pos = url.find("/");
     if (pos < 0) {
-      request_url = _T("/");
+      request_url = "/";
       host = url;
     }
     else {
-      host = url.Left(pos);
-      url.Delete(0, pos);
+      host = StringUtils::Left(url, pos);
+      url.erase(0, pos);
       request_url = url;
     }
 
-    pos = host.Find(_T(":"));
+    pos = host.find(":");
     if (pos > 0) {
-      CStdString temp_host = host;
-      host = temp_host.Left(pos);
+      std::string temp_host = host;
+      host = StringUtils::Left(temp_host, pos);
+      
       temp_host.Delete(0, pos + 1);
 
       temp_host.Trim();
@@ -301,9 +303,9 @@ namespace Com
     return *this;
   }
 
-  void DoReplace(CStdString &str, CStdString old_str, CStdString new_str)
+  void DoReplace(std::string &str, std::string old_str, std::string new_str)
   {
-    CStdString	temp = str;
+    std::string	temp = str;
     temp.MakeUpper();
     int p = temp.Find(old_str);
     if (p >= 0) {
@@ -316,8 +318,8 @@ namespace Com
   {
     LPOLESTR	str;
     StringFromCLSID(clsid, &str);
-    CStdString		str_clsid(str);
-    CStdString		key_name;
+    std::string		str_clsid(str);
+    std::string		key_name;
     if (str)
       CoTaskMemFree(str);
 
@@ -332,7 +334,7 @@ namespace Com
       std::string tmpstrPath = key.getValue("");
 
       file = tmpstrPath;
-      CStdString		progfiles, sysdir, windir;
+      std::string		progfiles, sysdir, windir;
       LPSTR temp = NULL;
       SHGetSpecialFolderPath(NULL, temp, CSIDL_PROGRAM_FILES, FALSE);
       progfiles = temp;
@@ -479,7 +481,7 @@ namespace Com
     return 0;
   }
 
-  int FilterTemplate::LoadFromMoniker(CStdString displayname)
+  int FilterTemplate::LoadFromMoniker(std::string displayname)
   {
     /*
         First create the moniker and then extract all the information just like when
@@ -505,7 +507,7 @@ namespace Com
       VariantInit(&var);
       hr = propbag->Read(L"FriendlyName", &var, 0);
       if (SUCCEEDED(hr)) {
-        name = CStdString(var.bstrVal);
+        name = std::string(var.bstrVal);
       }
       VariantClear(&var);
 
@@ -546,7 +548,7 @@ namespace Com
   {
   }
 
-  FilterCategory::FilterCategory(CStdString nm, GUID cat_clsid, bool dmo) :
+  FilterCategory::FilterCategory(std::string nm, GUID cat_clsid, bool dmo) :
     name(nm),
     clsid(cat_clsid),
     is_dmo(dmo)
@@ -611,7 +613,7 @@ namespace Com
           VariantInit(&var);
           hr = propbag->Read(L"FriendlyName", &var, 0);
           if (SUCCEEDED(hr)) {
-            category.name = CStdString(var.bstrVal);
+            category.name = std::string(var.bstrVal);
           }
           VariantClear(&var);
 
@@ -667,8 +669,8 @@ namespace Com
 
   int _FilterCompare(FilterTemplate &f1, FilterTemplate &f2)
   {
-    CStdString s1 = f1.name; s1.MakeUpper();
-    CStdString s2 = f2.name; s2.MakeUpper();
+    std::string s1 = f1.name; s1.MakeUpper();
+    std::string s2 = f2.name; s2.MakeUpper();
 
     return s1.Compare(s2);
   }
@@ -724,7 +726,7 @@ namespace Com
     }
   }
 
-  int FilterTemplates::Find(CStdString name, FilterTemplate *filter)
+  int FilterTemplates::Find(std::string name, FilterTemplate *filter)
   {
     if (!filter) return -1;
     for (int i = 0; i < filters.size(); i++) {
@@ -748,7 +750,7 @@ namespace Com
     return -1;
   }
 
-  HRESULT FilterTemplates::CreateInstance(CStdString name, IBaseFilter **filter)
+  HRESULT FilterTemplates::CreateInstance(std::string name, IBaseFilter **filter)
   {
     FilterTemplate	ft;
     if (Find(name, &ft) >= 0) {
@@ -833,43 +835,43 @@ namespace Com
         FilterTemplate		filter;
 
         // let's fill any information
-        filter.name = CStdString(name);
+        filter.name = std::string(name);
         filter.clsid = dmo_clsid;
         filter.category = clsid;
         filter.type = FilterTemplate::FT_DMO;
         filter.moniker = NULL;
 
         LPOLESTR		str;
-        CStdString			display_name;
+        std::string			display_name;
 
         display_name = _T("@device:dmo:");
         StringFromCLSID(dmo_clsid, &str);
-        if (str) { display_name += CStdString(str);	CoTaskMemFree(str);	str = NULL; }
+        if (str) { display_name += std::string(str);	CoTaskMemFree(str);	str = NULL; }
         StringFromCLSID(clsid, &str);
-        if (str) { display_name += CStdString(str);	CoTaskMemFree(str);	str = NULL; }
+        if (str) { display_name += std::string(str);	CoTaskMemFree(str);	str = NULL; }
         filter.moniker_name = display_name;
         filter.version = 2;
         filter.FindFilename();
 
         // find out merit
         StringFromCLSID(dmo_clsid, &str);
-        CStdString		str_clsid(str);
-        CStdString		key_name;
+        std::string		str_clsid(str);
+        std::string		key_name;
         if (str) CoTaskMemFree(str);
 
 #if 0
         key_name.Format(_T("CLSID\\%s"), str_clsid);
         RegKey key(HKEY_CLASSES_ROOT, key_name, false);
-        std::map<CStdString, CStdString> keyMaps = key.getValues();
+        std::map<std::string, std::string> keyMaps = key.getValues();
         if (keyMaps.empty())
         {
           filter.merit = 0x00600000 + 0x800;
         }
         else
         {
-          CStdString strdmo = "Merit";
-          CStdString result;
-          result = keyMaps.find(CStdString("Merit"))->second;
+          std::string strdmo = "Merit";
+          std::string result;
+          result = keyMaps.find(std::string("Merit"))->second;
 
           if (result.length() == 0)
           {
@@ -1016,7 +1018,7 @@ namespace Com
         VariantInit(&var);
         hr = propbag->Read(L"FriendlyName", &var, 0);
         if (SUCCEEDED(hr)) {
-          filter.name = CStdString(var.bstrVal);
+          filter.name = std::string(var.bstrVal);
         }
         VariantClear(&var);
 
@@ -1049,7 +1051,7 @@ namespace Com
             LPOLESTR	moniker_name;
             hr = moniker->GetDisplayName(NULL, NULL, &moniker_name);
             if (SUCCEEDED(hr)) {
-              filter.moniker_name = CStdString(moniker_name);
+              filter.moniker_name = std::string(moniker_name);
 
               IMalloc *alloc = NULL;
               hr = CoGetMalloc(1, &alloc);
@@ -1218,7 +1220,7 @@ namespace Com
       // pin info
       pin->QueryPinInfo(&info);
 
-      npin.name = CStdString(info.achName);
+      npin.name = std::string(info.achName);
       npin.filter = info.pFilter; info.pFilter->AddRef();
       npin.pin = pin;	pin->AddRef();
       npin.dir = dir;
@@ -1379,7 +1381,7 @@ namespace Com
     OLECHAR szCLSID[CHARS_IN_GUID];
     StringFromGUID2(clsid, szCLSID, CHARS_IN_GUID);
 
-    CStdString	keyname;
+    std::string	keyname;
     keyname.Format(_T("CLSID\\%s"), szCLSID);
 
     // delete subkey

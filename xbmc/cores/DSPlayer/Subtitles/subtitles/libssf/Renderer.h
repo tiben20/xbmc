@@ -31,7 +31,7 @@ namespace ssf
   {
   protected:
     StringMapW<T> m_key2obj;
-    std::list<CStdStringW> m_objs;
+    std::list<std::wstring> m_objs;
     size_t m_limit;
 
   public:
@@ -46,7 +46,7 @@ namespace ssf
       m_objs.clear();
     }
 
-    void Add(const CStdStringW& key, T& obj, bool fFlush = true)
+    void Add(const std::wstring& key, T& obj, bool fFlush = true)
     {
       StringMapW<T>::iterator it = m_key2obj.find(key);
       if(it != m_key2obj.end()) delete it->second;
@@ -61,20 +61,20 @@ namespace ssf
     {
       while(m_objs.size() > m_limit)
       {
-        CStdStringW key = m_objs.front(); m_objs.pop_front();
+        std::wstring key = m_objs.front(); m_objs.pop_front();
         //ASSERT(m_key2obj.Lookup(key));
         delete m_key2obj[key];
         m_key2obj.erase( m_key2obj.find(key) );
       }
     }
 
-    bool Lookup(const CStdStringW& key, T& val)
+    bool Lookup(const std::wstring& key, T& val)
     {
       StringMap<T>::iterator it = m_key2obj.find(key);
       return (it != m_key2obj.end()) && it->second;
     }
 
-    void Invalidate(const CStdStringW& key)
+    void Invalidate(const std::wstring& key)
     {
       StringMap<T>::iterator it = m_key2obj.find(key);
       if(it != m_key2obj.end())

@@ -22,7 +22,7 @@
 #include "stdafx.h"
 #include "ccdecoder.h"
 
-CCDecoder::CCDecoder(CStdString fn, CStdString rawfn) : m_fn(fn), m_rawfn(rawfn)
+CCDecoder::CCDecoder(std::string fn, std::string rawfn) : m_fn(fn), m_rawfn(rawfn)
 {
   m_sts.CreateDefaultStyle(ANSI_CHARSET);
 
@@ -70,7 +70,7 @@ void CCDecoder::PutChar(WCHAR c)
 
 void CCDecoder::SaveDisp(__int64 time)
 {
-  CStdStringW str;
+  std::wstring str;
 
   for(int row = 0; row < 16; row++)
   {
@@ -80,7 +80,7 @@ void CCDecoder::SaveDisp(__int64 time)
     {
       if(m_disp[row][col]) 
       {
-        CStdStringW str2(&m_disp[row][col]);
+        std::wstring str2(&m_disp[row][col]);
         if(fNonEmptyRow) str += ' ';
         str += str2;
         col += str2.GetLength();

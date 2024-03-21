@@ -28,7 +28,7 @@
 
 #define VOBSUBIDXVER 7
 
-extern CStdString FindLangFromId(WORD id);
+extern std::string FindLangFromId(WORD id);
 
 class CVobSubSettings
 {
@@ -69,11 +69,11 @@ public:
 class CVobSubFile : public CVobSubSettings, public ISubStream, public ISubPicProviderImpl
 {
 protected:
-  CStdString m_title;
+  std::string m_title;
 
-  void TrimExtension(CStdString& fn);
-  bool ReadIdx(CStdString fn, int& ver), ReadSub(CStdString fn), ReadRar(CStdString fn), ReadIfo(CStdString fn);
-  bool WriteIdx(CStdString fn), WriteSub(CStdString fn);
+  void TrimExtension(std::string& fn);
+  bool ReadIdx(std::string fn, int& ver), ReadSub(std::string fn), ReadRar(std::string fn), ReadIfo(std::string fn);
+  bool WriteIdx(std::string fn), WriteSub(std::string fn);
 
   std::stringstream m_sub;
 
@@ -82,10 +82,10 @@ protected:
   bool GetFrameByTimeStamp(__int64 time);
   int GetFrameIdxByTimeStamp(__int64 time);
 
-  bool SaveVobSub(CStdString fn);
-  bool SaveWinSubMux(CStdString fn);
-  bool SaveScenarist(CStdString fn);
-  bool SaveMaestro(CStdString fn);
+  bool SaveVobSub(std::string fn);
+  bool SaveWinSubMux(std::string fn);
+  bool SaveScenarist(std::string fn);
+  bool SaveMaestro(std::string fn);
 
 public:
   typedef struct
@@ -101,7 +101,7 @@ public:
   typedef struct
   {
     int id;
-    CStdString name, alt;
+    std::string name, alt;
     std::vector<SubPos> subpos;
   } SubLang;
 
@@ -116,12 +116,12 @@ public:
 
   typedef enum {None,VobSub,WinSubMux,Scenarist,Maestro} SubFormat;
 
-  bool Open(CStdString fn);
-  bool Save(CStdString fn, SubFormat sf = VobSub);
+  bool Open(std::string fn);
+  bool Save(std::string fn, SubFormat sf = VobSub);
   void Close();
 
-  CStdString GetTitle() {return(m_title);}
-  CStdString GetLanguage() {
+  std::string GetTitle() {return(m_title);}
+  std::string GetLanguage() {
     int i = 0;
     if(m_iLang >= 0 && m_iLang < 32)
       i = m_iLang;
@@ -154,7 +154,7 @@ public:
 [uuid("D7FBFB45-2D13-494F-9B3D-FFC9557D5C45")]
 class CVobSubStream : public CVobSubSettings, public ISubStream, public ISubPicProviderImpl
 {
-  CStdString m_name;
+  std::string m_name;
 
   CCritSec m_csSubPics;
   struct SubPic {REFERENCE_TIME tStart, tStop; std::vector<BYTE> pData;};
@@ -164,7 +164,7 @@ public:
   CVobSubStream(CCritSec* pLock);
   virtual ~CVobSubStream();
 
-  void Open(CStdString name, BYTE* pData, int len);
+  void Open(std::string name, BYTE* pData, int len);
 
   void Add(REFERENCE_TIME tStart, REFERENCE_TIME tStop, BYTE* pData, int len);
   void RemoveAll();

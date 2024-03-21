@@ -28,7 +28,7 @@
 #define DeclareNameAndValue(pNode, name, val) \
     _bstr_t foo; \
     pNode->get_nodeName((BSTR *)&foo); \
-    CStdString name(foo); ::SysFreeString(foo); name.ToLower(); \
+    std::string name(foo); ::SysFreeString(foo); name.ToLower(); \
     _variant_t val; \
     pNode->get_nodeValue(&val); \
 
@@ -49,19 +49,19 @@
 
 #define EndEnumChildren }}
 
-static CStdStringW GetText(IXMLDOMNodePtr pNode)
+static std::wstring GetText(IXMLDOMNodePtr pNode)
 {
   BSTR bstr;
   pNode->get_text(&bstr);
 
-  return(CStdStringW(bstr));
+  return(std::wstring(bstr));
 }
 
-static CStdStringW GetXML(IXMLDOMNodePtr pNode)
+static std::wstring GetXML(IXMLDOMNodePtr pNode)
 {
   BSTR bstr;
   pNode->get_xml(&bstr);
-  CStdStringW str(bstr);
+  std::wstring str(bstr);
   str.Remove('\r');
   str.Replace('\n', ' ');
   for(int i = 0; (i = str.Find(L" ", i)) >= 0; )
@@ -72,15 +72,15 @@ static CStdStringW GetXML(IXMLDOMNodePtr pNode)
   return(str);
 }
 
-static CStdStringW GetAttrib(CStdStringW attrib, IXMLDOMNodePtr pNode)
+static std::wstring GetAttrib(std::wstring attrib, IXMLDOMNodePtr pNode)
 {
-  CStdStringW ret;
+  std::wstring ret;
 
   BeginEnumAttribs(pNode, pChild, name, val)
   {
     DeclareNameAndValue(pChild, name, val);
 
-    if(CStdStringW(name) == attrib && val.vt == VT_BSTR) // TODO: prepare for other types
+    if(std::wstring(name) == attrib && val.vt == VT_BSTR) // TODO: prepare for other types
     {
       ret = val.bstrVal;
       break;
@@ -91,14 +91,14 @@ static CStdStringW GetAttrib(CStdStringW attrib, IXMLDOMNodePtr pNode)
   return(ret);
 }
 
-static int TimeToInt(CStdStringW str)
+static int TimeToInt(std::wstring str)
 {
-  std::list<CStdStringW> sl;
+  std::list<std::wstring> sl;
   size_t i = 0;
-  std::vector<CStdStringW> tokens; str.Tokenize(L":.,", tokens);
+  std::vector<std::wstring> tokens; str.Tokenize(L":.,", tokens);
   if (!tokens.empty())
   {
-    for(CStdStringW token = tokens[i]; i < tokens.size(); token = tokens[++i])
+    for(std::wstring token = tokens[i]; i < tokens.size(); token = tokens[++i])
       sl.push_front(token);
   }
 
@@ -108,7 +108,7 @@ static int TimeToInt(CStdStringW str)
   int time = 0;
   
   int mul[4] = {1,1000,60*1000,60*60*1000};
-  std::list<CStdStringW>::iterator it = sl.begin();
+  std::list<std::wstring>::iterator it = sl.begin();
   for(; it != sl.end(); ++it)
   {
     const WCHAR* s = *it;
@@ -121,14 +121,14 @@ static int TimeToInt(CStdStringW str)
   return(time);
 }
 
-static DWORD StringToDWORD(CStdStringW str)
+static DWORD StringToDWORD(std::wstring str)
 {
   if(str.IsEmpty()) return(0);
   if(str[0] == '#') return((DWORD)wcstol(str, NULL, 16));
   else return((DWORD)wcstol(str, NULL, 10));  
 }
 
-static DWORD ColorToDWORD(CStdStringW str)
+static DWORD ColorToDWORD(std::wstring str)
 {
   if(str.IsEmpty()) return(0);
 
@@ -140,7 +140,7 @@ static DWORD ColorToDWORD(CStdStringW str)
   }
   else
   {
-    std::map<CStdString, DWORD>::const_iterator it = g_colors.find(CStdString(str));
+    std::map<std::string, DWORD>::const_iterator it = g_colors.find(std::string(str));
     if (it == g_colors.end())
       ret = 0;
     else
@@ -152,7 +152,7 @@ static DWORD ColorToDWORD(CStdStringW str)
   return(ret);
 }
 
-static int TranslateAlignment(CStdStringW alignment)
+static int TranslateAlignment(std::wstring alignment)
 {
   return
     !alignment.CompareNoCase(L"BottomLeft") ? 1 :
@@ -167,7 +167,7 @@ static int TranslateAlignment(CStdStringW alignment)
     2;
 }
 
-static int TranslateMargin(CStdStringW margin, int wndsize)
+static int TranslateMargin(std::wstring margin, int wndsize)
 {
   int ret = 0;
 
@@ -340,7 +340,7 @@ bool CUSFSubtitles::ConvertToSTS(CSimpleTextSubtitle& sts)
 
     if(!t->pal.alignment.IsEmpty())
     {
-      CStdStringW s;
+      std::wstring s;
       s.Format(L"{\\an%d}", TranslateAlignment(t->pal.alignment));
       t->str = s + t->str;
     }
@@ -358,7 +358,7 @@ bool CUSFSubtitles::ConvertToSTS(CSimpleTextSubtitle& sts)
     {
       if(int angle = wcstol(t->pal.rotate[i], NULL, 10))
       {
-        CStdStringW str;
+        std::wstring str;
         str.Format(rtags[i], angle);
         t->str = str + t->str;
       }
@@ -379,7 +379,7 @@ bool CUSFSubtitles::ConvertToSTS(CSimpleTextSubtitle& sts)
 
           if(WrapStyle != sts.m_defaultWrapStyle)
           {
-            CStdStringW str;
+            std::wstring str;
                         str.Format(L"{\\q%d}", WrapStyle);
             t->str = str + t->str;
           }
@@ -484,9 +484,9 @@ bool CUSFSubtitles::ParseUSFSubtitles(IXMLDOMNodePtr pNode)
 
           if(name == L"subtitle")
           {
-            CStdStringW sstart = GetAttrib(L"start", pGrandChild);
-            CStdStringW sstop = GetAttrib(L"stop", pGrandChild);
-            CStdStringW sduration = GetAttrib(L"duration", pGrandChild);
+            std::wstring sstart = GetAttrib(L"start", pGrandChild);
+            std::wstring sstop = GetAttrib(L"stop", pGrandChild);
+            std::wstring sduration = GetAttrib(L"duration", pGrandChild);
             if(sstart.IsEmpty() || (sstop.IsEmpty() && sduration.IsEmpty()))
               continue;
 
@@ -706,11 +706,11 @@ void CUSFSubtitles::ParseSubtitle(IXMLDOMNodePtr pNode, int start, int stop)
   EndEnumChildren
 }
 
-void CUSFSubtitles::ParseText(IXMLDOMNodePtr pNode, CStdStringW& str)
+void CUSFSubtitles::ParseText(IXMLDOMNodePtr pNode, std::wstring& str)
 {
   DeclareNameAndValue(pNode, name, val);
 
-  CStdStringW prefix, postfix;
+  std::wstring prefix, postfix;
 
   if(name == L"b")
   {
@@ -741,7 +741,7 @@ void CUSFSubtitles::ParseText(IXMLDOMNodePtr pNode, CStdStringW& str)
     {
       if(!fs.color[i].IsEmpty())
       {
-        CStdStringW s;
+        std::wstring s;
         s.Format(L"{\\%dc&H%06x&}", i+1, ColorToDWORD(fs.color[i]));
         prefix += s;
         s.Format(L"{\\%dc}", i+1);
@@ -752,7 +752,7 @@ void CUSFSubtitles::ParseText(IXMLDOMNodePtr pNode, CStdStringW& str)
   else if(name == L"k")
   {
     int t = wcstol(GetAttrib(L"t", pNode), NULL, 10);
-    CStdStringW s;
+    std::wstring s;
     s.Format(L"{\\kf%d}", t / 10);
     str += s;
     return;
@@ -770,7 +770,7 @@ void CUSFSubtitles::ParseText(IXMLDOMNodePtr pNode, CStdStringW& str)
 
   BeginEnumChildren(pNode, pChild)
   {
-    CStdStringW s;
+    std::wstring s;
     ParseText(pChild, s);
     str += s;
   }

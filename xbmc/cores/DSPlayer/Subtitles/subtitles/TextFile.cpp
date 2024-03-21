@@ -121,7 +121,7 @@ bool CTextFile::IsUnicode()
 
 // CFile
 
-CStdString CTextFile::GetFilePath() const
+std::string CTextFile::GetFilePath() const
 {
   // to avoid a CException coming from CTime
   return m_strFileName; // __super::GetFilePath();
@@ -159,9 +159,9 @@ ULONGLONG CTextFile::Seek(LONGLONG lOff, UINT nFrom)
   return(pos);
 }
 
-void CTextFile::WriteString(LPCSTR lpsz/*CStdStringA str*/)
+void CTextFile::WriteString(LPCSTR lpsz/*std::string str*/)
 {
-  CStdStringA str(lpsz);
+  std::string str(lpsz);
 
   if(m_encoding == ASCII)
   {
@@ -186,9 +186,9 @@ void CTextFile::WriteString(LPCSTR lpsz/*CStdStringA str*/)
   }
 }
 
-void CTextFile::WriteString(LPCWSTR lpsz/*CStdStringW str*/)
+void CTextFile::WriteString(LPCWSTR lpsz/*std::wstring str*/)
 {
-  CStdStringW str(lpsz);
+  std::wstring str(lpsz);
 
   if(m_encoding == ASCII)
   {
@@ -197,7 +197,7 @@ void CTextFile::WriteString(LPCWSTR lpsz/*CStdStringW str*/)
   else if(m_encoding == ANSI)
   {
     str.Replace(L"\n", L"\r\n");
-    CStdStringA stra = CStdStringA(CStdString(str)); // TODO: codepage
+    std::string stra = std::string(std::string(str)); // TODO: codepage
     Write((LPCSTR)stra, stra.GetLength());
   }
   else if(m_encoding == UTF8)
@@ -245,7 +245,7 @@ void CTextFile::WriteString(LPCWSTR lpsz/*CStdStringW str*/)
   }
 }
 
-BOOL CTextFile::ReadString(CStdStringA& str)
+BOOL CTextFile::ReadString(std::string& str)
 {
   bool fEOF = true;
 
@@ -253,7 +253,7 @@ BOOL CTextFile::ReadString(CStdStringA& str)
 
   if(m_encoding == ASCII)
   {
-    CStdString s;
+    std::string s;
     fEOF = !__super::ReadString(s);
     str = TToA(s);
   }
@@ -323,7 +323,7 @@ BOOL CTextFile::ReadString(CStdStringA& str)
   return(!fEOF);
 }
 
-BOOL CTextFile::ReadString(CStdStringW& str)
+BOOL CTextFile::ReadString(std::wstring& str)
 {
   bool fEOF = true;
 
@@ -331,13 +331,13 @@ BOOL CTextFile::ReadString(CStdStringW& str)
 
   if(m_encoding == ASCII)
   {
-    CStdString s;
+    std::string s;
     fEOF = !__super::ReadString(s);
     str = TToW(s);
   }
   else if(m_encoding == ANSI)
   {
-    CStdStringA stra;
+    std::string stra;
     char c;
     while(Read(&c, sizeof(c)) == sizeof(c))
     {
@@ -346,7 +346,7 @@ BOOL CTextFile::ReadString(CStdStringW& str)
       if(c == '\n') break;
       stra += c;
     }
-    str = CStdStringW(CStdString(stra)); // TODO: codepage
+    str = std::wstring(std::string(stra)); // TODO: codepage
   }
   else if(m_encoding == UTF8)
   {
@@ -416,7 +416,7 @@ CWebTextFile::CWebTextFile(LONGLONG llMaxSize)
 
 bool CWebTextFile::Open(LPCTSTR lpszFileName)
 {
-  CStdString fn(lpszFileName);
+  std::string fn(lpszFileName);
 
   if(fn.Find(_T("http://")) != 0)
     return __super::Open(lpszFileName);
@@ -427,8 +427,8 @@ bool CWebTextFile::Open(LPCTSTR lpszFileName)
   /* URL; Download the File
   m_downloadEvent.Reset();
 
-  CStdStringA url(lpszFileName);
-  CStdString dlTo = "special://temps/" + url.Mid(url.ReverseFind('/') + 1);
+  std::string url(lpszFileName);
+  std::string dlTo = "special://temps/" + url.Mid(url.ReverseFind('/') + 1);
   m_dlTicket = g_DownloadManager.RequestFile(url, dlTo, this);
 
   // Wait for the download to be complete
@@ -457,7 +457,7 @@ void CWebTextFile::Close()
 }
 
 /*
-void CWebTextFile::OnFileComplete( TICKET aTicket, CStdStringA& aFilePath, INT aByteRxCount, Result aResult )
+void CWebTextFile::OnFileComplete( TICKET aTicket, std::string& aFilePath, INT aByteRxCount, Result aResult )
 {
   if (aTicket.dwItemId == m_dlTicket.dwItemId && aTicket.wQueueId == m_dlTicket.wQueueId)
   {
@@ -468,25 +468,25 @@ void CWebTextFile::OnFileComplete( TICKET aTicket, CStdStringA& aFilePath, INT a
 */
 ///////////////////////////////////////////////////////////////
 
-CStdString AToT(CStdStringA str)
+std::string AToT(std::string str)
 {
-  CStdString ret;
+  std::string ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (TCHAR)(BYTE)str[i];
   return(ret);
 }
 
-CStdString WToT(CStdStringW str)
+std::string WToT(std::wstring str)
 {
-  CStdString ret;
+  std::string ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (TCHAR)(WORD)str[i];
   return(ret);
 }
 
-CStdStringA TToA(CStdString str)
+std::string TToA(std::string str)
 {
-  CStdStringA ret;
+  std::string ret;
 #ifdef UNICODE
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (CHAR)(BYTE)str[i];
@@ -496,9 +496,9 @@ CStdStringA TToA(CStdString str)
   return(ret);
 }
 
-CStdStringW TToW(CStdString str)
+std::wstring TToW(std::string str)
 {
-  CStdStringW ret;
+  std::wstring ret;
 #ifdef UNICODE
   ret = str;
 #else

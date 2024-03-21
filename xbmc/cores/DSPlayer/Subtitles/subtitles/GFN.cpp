@@ -57,7 +57,7 @@ static int SubFileCompare(SubFile elem1, SubFile elem2)
   return(elem1.fn.CompareNoCase(elem2.fn));
 }
 
-void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<SubFile>& ret)
+void GetSubFileNames(std::string fn, std::vector<std::string>& paths, std::vector<SubFile>& ret)
 {
   ret.clear();
 
@@ -78,9 +78,9 @@ void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<
   l = fn.ReverseFind('/') + 1;
   if(l2 < l) l2 = l;
 
-  CStdString orgpath = fn.Left(l);
-  CStdString title = fn.Mid(l, l2-l);
-  CStdString filename = title + _T(".nooneexpectsthespanishinquisition");
+  std::string orgpath = fn.Left(l);
+  std::string title = fn.Mid(l, l2-l);
+  std::string filename = title + _T(".nooneexpectsthespanishinquisition");
 
   if(!fWeb)
   {
@@ -92,7 +92,7 @@ void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<
 
     for(size_t k = 0; k < paths.size(); k++)
     {
-      CStdString path = paths[k];
+      std::string path = paths[k];
       path.Replace('\\', '/');
 
       l = path.GetLength();
@@ -103,7 +103,7 @@ void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<
       path.Replace(_T("/./"), _T("/"));
       path.Replace('/', '\\');
 
-      // CAtlList<CStdString> sl;
+      // CAtlList<std::string> sl;
 
       bool fEmpty = true;
 
@@ -133,7 +133,7 @@ void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<
           {
             do
             {
-              CStdString fn = path + wfd.cFileName;
+              std::string fn = path + wfd.cFileName;
 
               hFile2 = INVALID_HANDLE_VALUE;
 
@@ -162,7 +162,7 @@ void GetSubFileNames(CStdString fn, std::vector<CStdString>& paths, std::vector<
     CWebTextFile wtf; // :)
     if(wtf.Open(orgpath + title + WEBSUBEXT))
     {
-      CStdString fn;
+      std::string fn;
       while(wtf.ReadString(fn) && fn.Find(_T("://")) >= 0)
       {
         SubFile f;

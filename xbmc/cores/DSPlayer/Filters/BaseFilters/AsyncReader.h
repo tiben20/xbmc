@@ -39,7 +39,7 @@ protected:
 	LONG m_lOsError; // CFileException::m_lOsError
 
 public:
-	CAsyncFileReader(CStdString fn, HRESULT& hr);
+	CAsyncFileReader(std::string fn, HRESULT& hr);
   CAsyncFileReader(std::vector<CHdmvClipInfo::PlaylistItem>& Items, HRESULT& hr);
 
 	DECLARE_IUNKNOWN;
@@ -65,14 +65,14 @@ public:
 
 class CAsyncUrlReader : public CAsyncFileReader, protected CAMThread
 {
-	CStdString m_url, m_fn;
+	std::string m_url, m_fn;
 
 protected:
 	enum {CMD_EXIT, CMD_INIT};
     DWORD ThreadProc();
 
 public:
-	CAsyncUrlReader(CStdString url, HRESULT& hr);
+	CAsyncUrlReader(std::string url, HRESULT& hr);
 	virtual ~CAsyncUrlReader();
 
 	// IAsyncReader

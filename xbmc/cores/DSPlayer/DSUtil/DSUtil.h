@@ -28,7 +28,7 @@
 #include "H264Nalu.h"
 #include "vd.h"
 #include "text.h"
-#include "utils\StdString.h"
+#include "utils/StringUtils.h"
 
 #define SAFE_DELETE(p)        { delete (p); p = nullptr;  }
 
@@ -60,10 +60,10 @@ typedef struct
 
 extern void setThreadName(DWORD dwThreadID, LPCSTR szThreadName);
 extern bool IsPinConnected(IPin* pPin);
-extern CStdStringW GetFilterPath(CStdString pClsid);
-extern CStdStringW GetFilterPath(CLSID pClsid);
-extern CStdStringW GetFilterName(IBaseFilter* pBF);
-extern CStdStringA GetPinMainTypeString(IPin* pPin);
+extern std::wstring GetFilterPath(std::string pClsid);
+extern std::wstring GetFilterPath(CLSID pClsid);
+extern std::wstring GetFilterName(IBaseFilter* pBF);
+extern std::string GetPinMainTypeString(IPin* pPin);
 extern int  CountPins(IBaseFilter* pBF, int& nIn, int& nOut, int& nInC, int& nOutC);
 extern bool IsSplitter(IBaseFilter* pBF, bool fCountConnectedOnly = false);
 extern bool IsStreamEnd(IBaseFilter* pBF);
@@ -71,12 +71,12 @@ extern bool IsVideoRenderer(IBaseFilter* pBF);
 extern bool IsAudioWaveRenderer(IBaseFilter* pBF);
 extern HRESULT RemoveUnconnectedFilters(IFilterGraph2 *pGraph);
 extern IPin* GetFirstPin(IBaseFilter* pBF, PIN_DIRECTION dir = PINDIR_INPUT);
-extern CStdStringW GetPinName(IPin* pPin);
+extern std::wstring GetPinName(IPin* pPin);
 extern void memsetd(void* dst, unsigned int c, int nbytes);
 extern void memsetw(void* dst, unsigned short c, size_t nbytes);
-extern CStdStringW UTF8To16(LPCSTR utf8);
-extern CStdStringA ISO6392ToLanguage(LPCSTR code);
-extern CStdStringA ISO6391ToLanguage(LPCSTR code);
+extern std::wstring UTF8To16(LPCSTR utf8);
+extern std::string ISO6392ToLanguage(LPCSTR code);
+extern std::string ISO6391ToLanguage(LPCSTR code);
 extern LCID    ProbeLangForLCID(LPCSTR code);
 extern std::string ProbeLangForLanguage(LPCSTR code);
 extern LCID    ISO6391ToLcid(LPCSTR code);
@@ -85,11 +85,11 @@ extern COLORREF YCrCbToRGB_Rec601(BYTE Y, BYTE Cr, BYTE Cb);
 extern COLORREF YCrCbToRGB_Rec709(BYTE Y, BYTE Cr, BYTE Cb);
 extern DWORD  YCrCbToRGB_Rec601(BYTE A, BYTE Y, BYTE Cr, BYTE Cb);
 extern DWORD  YCrCbToRGB_Rec709(BYTE A, BYTE Y, BYTE Cr, BYTE Cb);
-extern CStdStringW StringFromGUID(const GUID& guid);
+extern std::wstring StringFromGUID(const GUID& guid);
 extern IBaseFilter* GetUpStreamFilter(IBaseFilter* pBF, IPin* pInputPin = NULL);
 extern IPin* GetUpStreamPin(IBaseFilter* pBF, IPin* pInputPin = NULL);
 extern IBaseFilter* GetFilterFromPin(IPin* pPin);
-extern IPin* InsertFilter(IPin* pPin, CStdStringW DisplayName, IGraphBuilder* pGB);
+extern IPin* InsertFilter(IPin* pPin, std::wstring DisplayName, IGraphBuilder* pGB);
 extern CLSID GetCLSID(IBaseFilter* pBF);
 extern CLSID GetCLSID(IPin* pPin);
 extern DVD_HMSF_TIMECODE RT2HMSF(REFERENCE_TIME rt, double fps = 0);
@@ -98,21 +98,21 @@ extern bool ExtractBIH(const AM_MEDIA_TYPE* pmt, BITMAPINFOHEADER* bih);
 extern bool ExtractBIH(IMediaSample* pMS, BITMAPINFOHEADER* bih);
 extern bool ExtractAvgTimePerFrame(const AM_MEDIA_TYPE* pmt, REFERENCE_TIME& rtAvgTimePerFrame);
 extern bool ExtractDim(const AM_MEDIA_TYPE* pmt, int& w, int& h, int& arx, int& ary);
-extern HRESULT LoadExternalObject(CStdStringW path, REFCLSID clsid, REFIID iid, void** ppv);
-extern HRESULT LoadExternalFilter(CStdStringW path, REFCLSID clsid, IBaseFilter** ppBF);
+extern HRESULT LoadExternalObject(std::wstring path, REFCLSID clsid, REFIID iid, void** ppv);
+extern HRESULT LoadExternalFilter(std::wstring path, REFCLSID clsid, IBaseFilter** ppBF);
 extern HRESULT LoadExternalPropertyPage(IPersist* pP, REFCLSID clsid, IPropertyPage** ppPP);
 extern void UnloadExternalObjects();
-extern CStdStringW GetMediaTypeName(const GUID& guid);
-extern GUID GUIDFromString(CStdStringW str);
-extern HRESULT GUIDFromString(CStdStringW str, GUID& guid);
+extern std::wstring GetMediaTypeName(const GUID& guid);
+extern GUID GUIDFromString(std::wstring str);
+extern HRESULT GUIDFromString(std::wstring str, GUID& guid);
 extern int MakeAACInitData(BYTE* pData, int profile, int freq, int channels);
 extern const char* GetDXVAMode(const GUID* guidDecoder);
-extern CStdStringA GetDshowError(HRESULT hr);
+extern std::string GetDshowError(HRESULT hr);
 
 // Conversion
-extern CStdStringW  AnsiToUTF16(const CStdStringA strFrom);
-extern CStdStringW  AToW(CStdStringA str);
-extern CStdStringA  WToA(CStdStringW str);
+extern std::wstring  AnsiToUTF16(const std::string strFrom);
+extern std::wstring  AToW(std::string str);
+extern std::string  WToA(std::wstring str);
 
 class CPinInfo : public PIN_INFO
 {

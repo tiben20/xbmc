@@ -56,7 +56,7 @@ public:
 class CVobFile : public CDVDSession
 {
   // all files
-  typedef struct {CStdString fn; int size;} file_t;
+  typedef struct {std::string fn; int size;} file_t;
   std::vector<file_t> m_files;
   int m_iFile;
   int m_pos, m_size, m_offset;
@@ -75,8 +75,8 @@ public:
   bool HasDiscKey(BYTE* key);
   bool HasTitleKey(BYTE* key);
 
-  bool Open(CStdString fn, std::vector<CStdString>& files /* out */); // vts ifo
-  bool Open(std::vector<CStdString>& files, int offset = -1); // vts vobs, video vob offset in lba
+  bool Open(std::string fn, std::vector<std::string>& files /* out */); // vts ifo
+  bool Open(std::vector<std::string>& files, int offset = -1); // vts vobs, video vob offset in lba
   void Close();
 
   int GetLength();

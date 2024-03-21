@@ -29,11 +29,11 @@ namespace ssf
   {
     Reference* m_root;
     StringMapW<Node*> m_nodes;
-    std::list<CStdStringW> m_newnodes;
+    std::list<std::wstring> m_newnodes;
     bool m_predefined;
 
     unsigned __int64 m_counter;
-    CStdStringW GenName();
+    std::wstring GenName();
 
   public:
     NodeFactory();
@@ -49,8 +49,8 @@ namespace ssf
     Reference* CreateRootRef();
     Reference* GetRootRef() const;
     Reference* CreateRef(Definition* pParentDef);
-    Definition* CreateDef(Reference* pParentRef = NULL, CStdStringW type = L"", CStdStringW name = L"", NodePriority priority = PNormal);
-    Definition* GetDefByName(CStdStringW name) const;
+    Definition* CreateDef(Reference* pParentRef = NULL, std::wstring type = L"", std::wstring name = L"", NodePriority priority = PNormal);
+    Definition* GetDefByName(std::wstring name) const;
     void GetNewDefs(std::list<Definition*>& defs);
 
     void Dump(OutputStream& s) const;
