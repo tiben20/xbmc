@@ -55,6 +55,8 @@
 #define END_PERFORMANCE_COUNTER(fn) int64_t end = CurrentHostCounter(); \
   CLog::Log(LOGINFO, "%s %s. Elapsed time: %.2fms", __FUNCTION__, fn, 1000.f * (end - start) / CurrentHostFrequency()); }
 
+typedef DWORD ThreadIdentifier;
+
 enum DSPLAYER_STATE
 {
   DSPLAYER_LOADING,

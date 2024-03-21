@@ -252,7 +252,7 @@ interface IMadVRSubclassReplacement : public IUnknown
 #define ExclusiveModeWasJustLeft        4
 typedef void (__stdcall *EXCLUSIVEMODECALLBACK)(LPVOID context, int event);
 
-[uuid("51CA9252-ACC5-4EC5-A02E-0F9F8C42B536")]
+[__declspec(uuid("51CA9252-ACC5-4EC5-A02E-0F9F8C42B536"))]
 interface IMadVRExclusiveModeCallback : public IUnknown
 {
   STDMETHOD(  Register)(EXCLUSIVEMODECALLBACK exclusiveModeCallback, LPVOID context) = 0;
@@ -268,7 +268,7 @@ interface IMadVRExclusiveModeCallback : public IUnknown
 #define ShaderStage_PreScale 0
 #define ShaderStage_PostScale 1
 
-[uuid("B6A6D5D4-9637-4C7D-AAAE-BC0B36F5E433")]
+[__declspec(uuid("B6A6D5D4-9637-4C7D-AAAE-BC0B36F5E433"))]
 interface IMadVRExternalPixelShaders : public IUnknown
 {
   STDMETHOD(ClearPixelShaders)(int stage) = 0;
@@ -281,7 +281,7 @@ interface IMadVRExternalPixelShaders : public IUnknown
 
 // this interface allows you to get all kinds of information from madVR
 
-[uuid("8FAB7F31-06EF-444C-A798-10314E185532")]
+[__declspec(uuid("8FAB7F31-06EF-444C-A798-10314E185532"))]
 interface IMadVRInfo : public IUnknown
 {
   // The memory for strings and binary data is allocated by the callee
@@ -329,7 +329,7 @@ interface IMadVRInfo : public IUnknown
 // This interface allows you to give commands to madVR. These commands only
 // affect the current madVR instance. They don't change permanent settings.
 
-[uuid("5E9599D1-C5DB-4A84-98A9-09BC5F8F1B79")]
+[__declspec(uuid("5E9599D1-C5DB-4A84-98A9-09BC5F8F1B79"))]
 interface IMadVRCommand : public IUnknown
 {
   // Command names and LPWSTR values are treated case insensitive.
@@ -385,7 +385,7 @@ interface IMadVRCommand : public IUnknown
 // If you don't specify a path, you automatically access the currently active
 // profile.
 
-[uuid("6F8A566C-4E19-439E-8F07-20E46ED06DEE")]
+[__declspec(uuid("6F8A566C-4E19-439E-8F07-20E46ED06DEE"))]
 interface IMadVRSettings : public IUnknown
 {
   // returns the revision number of the settings record
@@ -416,7 +416,7 @@ interface IMadVRSettings : public IUnknown
   STDMETHOD_(BOOL, SettingsGetBinary )(LPCWSTR path, LPVOID* value, int* bufLenInBytes) = 0;
 };
 
-[uuid("1C3E03D6-F422-4D31-9424-75936F663BF7")]
+[__declspec(uuid("1C3E03D6-F422-4D31-9424-75936F663BF7"))]
 interface IMadVRSettings2 : public IMadVRSettings
 {
   // Enumerate the available settings stuff in the specified path.
