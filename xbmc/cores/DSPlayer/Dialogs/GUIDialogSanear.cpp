@@ -143,7 +143,7 @@ void CGUIDialogSanear::InitializeSettings()
   // BITSTREAM
 
   // dependencies
-  CSettingDependency dependencySanearExclusiveEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencySanearExclusiveEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencySanearExclusiveEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SANEAR_EXCLUSIVE, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsSanearExclusiveEnabled;
@@ -152,7 +152,7 @@ void CGUIDialogSanear::InitializeSettings()
   bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE);
   AddToggle(groupBitstream, SANEAR_EXCLUSIVE, 55121, SettingLevel::Basic, bValue);
   bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM);
-  CSetting *settingSanearAllowBitStream;
+  std::shared_ptr<CSetting>  *settingSanearAllowBitStream;
   settingSanearAllowBitStream = AddToggle(groupBitstream, SANEAR_ALLOWBITSTREAM, 55122, SettingLevel::Basic, bValue);
   settingSanearAllowBitStream->SetDependencies(depsSanearExclusiveEnabled);
 
@@ -163,7 +163,7 @@ void CGUIDialogSanear::InitializeSettings()
   // STEREOCROSSFEED
 
   // dependencies
-  CSettingDependency dependencySanearStereoCFEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencySanearStereoCFEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencySanearStereoCFEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SANEAR_CROSSFEED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsSanearStereoCFEnabled;
@@ -172,21 +172,21 @@ void CGUIDialogSanear::InitializeSettings()
   bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARSTEREOCROSSFEED);
   AddToggle(groupOptions, SANEAR_CROSSFEED, 55124, 0, bValue);
 
-  CSetting *settingSanearCMOY;
+  std::shared_ptr<CSetting>  *settingSanearCMOY;
   settingSanearCMOY = AddButton(groupOptions, SANEAR_CMOY, 55125, 0);
   settingSanearCMOY->SetDependencies(depsSanearStereoCFEnabled);
   
-  CSetting *settingSanearJmeier;
+  std::shared_ptr<CSetting>  *settingSanearJmeier;
   settingSanearJmeier = AddButton(groupOptions, SANEAR_JMEIER, 55126, 0);
   settingSanearJmeier->SetDependencies(depsSanearStereoCFEnabled);
 
   iValue = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF);
-  CSetting *settingSanearCutOff;
+  std::shared_ptr<CSetting>  *settingSanearCutOff;
   settingSanearCutOff = AddSlider(groupOptions, SANEAR_CUTOFF, 55127, 0, iValue, "%i Hz", SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_MIN, 1, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_MAX);
   settingSanearCutOff->SetDependencies(depsSanearStereoCFEnabled);
 
   iValue = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL);
-  CSetting *settingSanearLevel;
+  std::shared_ptr<CSetting>  *settingSanearLevel;
   settingSanearLevel = AddSlider(groupOptions, SANEAR_LEVEL, 55128, 0, iValue, "%i dB", SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_MIN, 1, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_MAX);
   settingSanearLevel->SetDependencies(depsSanearStereoCFEnabled);
 }
@@ -208,37 +208,37 @@ void CGUIDialogSanear::OnSettingChanged(const CSetting *setting)
   if (settingId == SANEAR_DEVICES)
   {
     sValue = static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue());
-    CSettings::GetInstance().SetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES, sValue);
+    std::shared_ptr<CSetting> s::GetInstance().SetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES, sValue);
   }
   if (settingId == SANEAR_EXCLUSIVE)
   {
     bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    CSettings::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE, bValue);
+    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE, bValue);
   }
   if (settingId == SANEAR_ALLOWBITSTREAM)
   {
     bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    CSettings::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
+    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
   }
   if (settingId == SANEAR_IGNORESYSCHANMIX)
   {
     bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    CSettings::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER, bValue);
+    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER, bValue);
   }
   if (settingId == SANEAR_CROSSFEED)
   {
     bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    CSettings::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
+    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
   }
   if (settingId == SANEAR_CUTOFF)
   {
     iValue = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, iValue);
+    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, iValue);
   }
   if (settingId == SANEAR_LEVEL)
   {
     iValue = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, iValue);;
+    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, iValue);;
   }
 }
 

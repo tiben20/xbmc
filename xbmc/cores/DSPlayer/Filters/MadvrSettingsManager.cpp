@@ -832,7 +832,7 @@ void CMadvrSettingsManager::AddDependencies(const std::string &xml, CSettingsMan
     const TiXmlNode *dependencyNode = dependencies->FirstChild(SETTING_XML_ELM_DEPENDENCY);
     while (dependencyNode != NULL)
     {
-      CSettingDependency dependency(settingsManager);
+      std::shared_ptr<CSetting> Dependency dependency(settingsManager);
       if (dependency.Deserialize(dependencyNode))
         settingDependencies.emplace_back(std::move(dependency));
       else

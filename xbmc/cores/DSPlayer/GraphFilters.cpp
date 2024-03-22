@@ -69,7 +69,7 @@ CGraphFilters::~CGraphFilters()
 {
   if (m_isKodiRealFS)
   {
-    CSettings::GetInstance().SetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN, false);
+    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN, false);
     m_isKodiRealFS = false;
   }
 }

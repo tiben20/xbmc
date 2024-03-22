@@ -40,14 +40,14 @@ namespace Com
     if (pos < 0) {
       ret = str;
       ret = StringUtils::Trim(ret);
-      ret = ret.Trim();
+      //ret = ret.Trim();
       str = _T("");
       return ret;
     }
-    ret = str.Left(pos);
-    ret = ret.Trim();
-    str.Delete(0, pos + separator.GetLength());
-    str = str.Trim();
+    ret = StringUtils::WLeft(str, pos);
+    ret = StringUtils::Trim(ret);
+    str.erase(0, pos + separator.length());
+    str = StringUtils::Trim(str);
     return ret;
   }
 

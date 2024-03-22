@@ -94,7 +94,7 @@ void CGUIDialogDSRules::SetupView()
 
 void CGUIDialogDSRules::SetVisible(std::string id, bool visible, ConfigType subType, bool isChild /* = false */)
 {
-  CSetting *setting = m_settingsManager->GetSetting(id);
+  std::shared_ptr<CSetting>  *setting = m_settingsManager->GetSetting(id);
   if (setting->IsVisible() && visible)
     return;
   setting->SetVisible(visible);

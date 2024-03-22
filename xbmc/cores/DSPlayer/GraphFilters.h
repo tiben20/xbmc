@@ -33,6 +33,7 @@
 #include "utils/CharsetConverter.h"
 #include "Filters/Sanear/Interfaces.h"
 #include "settings/lib/SettingDefinitions.h"
+#include "D3d9.h"
 
 static const std::string XYSUBFILTER_FILTERSTR = "XySubFilter";
 static const std::string MADVR_FILTERSTR = "madVR";

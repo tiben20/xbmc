@@ -182,13 +182,13 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   // PREFLANG
 
   // dependencies
-  CSettingDependency dependencyPrefSubLangVisible(SettingDependencyTypeVisible, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencyPrefSubLangVisible(SettingDependencyTypeVisible, m_settingsManager);
   dependencyPrefSubLangVisible.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperatorEquals, true, m_settingsManager)));
   SettingDependencies depsPrefSubLangVisible;
   depsPrefSubLangVisible.push_back(dependencyPrefSubLangVisible);
 
-  CSettingDependency dependencyPrefSubAdvVisible(SettingDependencyTypeVisible, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencyPrefSubAdvVisible(SettingDependencyTypeVisible, m_settingsManager);
   dependencyPrefSubAdvVisible.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsPrefSubAdvVisible;
@@ -199,12 +199,12 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   AddEdit(groupPreflang, LAVSPLITTER_PREFAUDIOLANG, 82001, 0, str, true);
   
   g_charsetConverter.wToUTF8(lavSettings.splitter_prefSubLangs , str, false);
-  CSetting *settingPrefSubLang;
+  std::shared_ptr<CSetting>  *settingPrefSubLang;
   settingPrefSubLang = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBLANG, 82002, 0, str, true);
   settingPrefSubLang->SetDependencies(depsPrefSubLangVisible);
 
   g_charsetConverter.wToUTF8(lavSettings.splitter_subtitleAdvanced, str, false);
-  CSetting *settingPrefSubAdv;
+  std::shared_ptr<CSetting>  *settingPrefSubAdv;
   settingPrefSubAdv = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBADVANCED, 82016, 0, str, true);
   settingPrefSubAdv->SetDependencies(depsPrefSubAdvVisible);
 

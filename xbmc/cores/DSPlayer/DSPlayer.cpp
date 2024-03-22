@@ -314,7 +314,7 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
   {
     g_Windowing.SetWindowedForMadvr();
     CGraphFilters::Get()->SetKodiRealFS(true);
-    CSettings::GetInstance().SetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN, true);
+    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN, true);
   }
 
   CGraphFilters::Get()->SetAuxAudioDelay();
@@ -1484,10 +1484,10 @@ void CDSPlayer::SetVisibleScreenArea(CRect activeVideoRect)
     && activeVideoRect != CRect {0,0,0,0})
   {
     CRect wndRect = g_graphicsContext.GetViewWindow();
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT, activeVideoRect.x1 - wndRect.x1);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT, wndRect.x2 - activeVideoRect.x2);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREATOP, activeVideoRect.y1 - wndRect.y1);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM, wndRect.y2 - activeVideoRect.y2);
+    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT, activeVideoRect.x1 - wndRect.x1);
+    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT, wndRect.x2 - activeVideoRect.x2);
+    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREATOP, activeVideoRect.y1 - wndRect.y1);
+    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM, wndRect.y2 - activeVideoRect.y2);
   }
 }
 

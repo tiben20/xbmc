@@ -178,7 +178,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   // HW ACCELERATION
 
   // dependencies
-  CSettingDependency dependencyHWAccelEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencyHWAccelEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencyHWAccelEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVVIDEO_HWACCEL, "0", SettingDependencyOperatorEquals, true, m_settingsManager)));
   SettingDependencies depsHWAccelEnabled;
@@ -193,7 +193,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   entries.emplace_back(80221, HWAccel_D3D11);
   AddList(groupHW, LAVVIDEO_HWACCEL, 80005, 0, lavSettings.video_dwHWAccel, entries, 80005);
 
-  CSetting *settingHWDevices;
+  std::shared_ptr<CSetting>  *settingHWDevices;
   settingHWDevices = AddList(groupHW, LAVVIDEO_HWACCELDEVICES, 80014, 0,
     lavSettings.video_dwHWAccelDeviceIndex[lavSettings.video_dwHWAccel], 
     HWAccellIndexFiller,
@@ -209,7 +209,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
     values.emplace_back(LAVHWResFlag_HD);
   if (lavSettings.video_dwHWAccelResFlags & LAVHWResFlag_UHD)
     values.emplace_back(LAVHWResFlag_UHD);
-  CSetting *settingHWRes;
+  std::shared_ptr<CSetting>  *settingHWRes;
   settingHWRes = AddList(groupHW, LAVVIDEO_HWACCELRES, 80015, 0, values, ResolutionsFiller, 80015);
   settingHWRes->SetParent(LAVVIDEO_HWACCEL);
   settingHWRes->SetDependencies(depsHWAccelEnabled);
@@ -228,7 +228,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
     values.emplace_back(HWCodec_HEVC);
   if (lavSettings.video_bHWFormats[HWCodec_VP9])
     values.emplace_back(HWCodec_VP9);
-  CSetting *settingHWCodecs;
+  std::shared_ptr<CSetting>  *settingHWCodecs;
   settingHWCodecs = AddList(groupHW, LAVVIDEO_HWACCELCODECS, 80016, 0, values, CodecsFiller, 80016);
   settingHWCodecs->SetParent(LAVVIDEO_HWACCEL);
   settingHWCodecs->SetDependencies(depsHWAccelEnabled);
@@ -269,7 +269,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   // DEINT HW/SW
 
   // dependencies
-  CSettingDependency dependencyHWDeintEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencyHWDeintEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencyHWDeintEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVVIDEO_HWDEINTMODE, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsHWDeintEnabled;
@@ -279,13 +279,13 @@ void CGUIDialogLAVVideo::InitializeSettings()
   entries.clear();
   entries.emplace_back(80210, DeintOutput_FramePer2Field); // "25p/30p (Film)"
   entries.emplace_back(80211, DeintOutput_FramePerField); // "50p/60p (Video)"  
-  CSetting *settingHWDeintOut;
+  std::shared_ptr<CSetting>  *settingHWDeintOut;
   settingHWDeintOut = AddList(groupDeintHW, LAVVIDEO_HWDEINTOUT, 80007, 0, lavSettings.video_dwHWDeintOutput, entries, 80007);
   settingHWDeintOut->SetParent(LAVVIDEO_HWDEINTMODE);
   settingHWDeintOut->SetDependencies(depsHWDeintEnabled);
 
   // dependencies
-  CSettingDependency dependencySWDeintEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencySWDeintEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencySWDeintEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVVIDEO_SWDEINTMODE, "0", SettingDependencyOperatorEquals, true, m_settingsManager)));
   SettingDependencies depSWDeintEnabled;
@@ -300,7 +300,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   entries.clear();
   entries.emplace_back(80210, DeintOutput_FramePer2Field); // "25p/30p (Film)"
   entries.emplace_back(80211, DeintOutput_FramePerField); // "50p/60p (Video)"
-  CSetting *settingSWDeintOut;
+  std::shared_ptr<CSetting>  *settingSWDeintOut;
   settingSWDeintOut = AddList(groupDeintSW, LAVVIDEO_SWDEINTOUT, 80007, 0, lavSettings.video_dwSWDeintOutput, entries, 80007);
   settingSWDeintOut->SetParent(LAVVIDEO_SWDEINTMODE);
   settingSWDeintOut->SetDependencies(depSWDeintEnabled);
@@ -323,7 +323,7 @@ void CGUIDialogLAVVideo::OnSettingChanged(const CSetting *setting)
   if (settingId == LAVVIDEO_HWACCEL)
   {
     lavSettings.video_dwHWAccel = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
-    CSetting* setting_index = m_settingsManager->GetSetting(LAVVIDEO_HWACCELDEVICES);
+    std::shared_ptr<CSetting> * setting_index = m_settingsManager->GetSetting(LAVVIDEO_HWACCELDEVICES);
     ((CSettingInt*)setting_index)->UpdateDynamicOptions();
     static_cast<int>(static_cast<CSettingInt*>(setting_index)->SetValue(lavSettings.video_dwHWAccelDeviceIndex[lavSettings.video_dwHWAccel]));
   }

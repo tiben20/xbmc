@@ -123,13 +123,13 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
     }
   }
 
-  std::map<int, std::shared_ptr<CSettingGroup>> groups;
+  std::map<int, const std::shared_ptr<CSettingGroup>> groups;
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
   g_application.m_pPlayer->LoadSettings(m_iSectionId);
 
   for (const auto &it : madvrSettings.m_gui[m_iSectionId])
   {
-    CSetting *setting;
+    std::shared_ptr<CSetting> setting;
 
     if (groups[it.group] == NULL)
     {
@@ -152,15 +152,15 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
     }
     else if (it.type == "float")
     {
-      setting = AddSlider(groups[it.group], it.dialogId, it.label, 0, madvrSettings.m_db[it.name].asFloat(),
+      setting = AddSlider(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asFloat(),
         it.slider.format, it.slider.min, it.slider.step, it.slider.max, it.slider.parentLabel, usePopup);
     }
     else if (it.type.find("list_") != std::string::npos)
     {
       if (!it.optionsInt.empty())
-        setting = AddList(groups[it.group], it.dialogId, it.label, 0, madvrSettings.m_db[it.name].asInteger(), it.optionsInt, it.label);
+        setting = AddList(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asInteger(), it.optionsInt, it.label);
       else
-        setting = AddList(groups[it.group], it.dialogId, it.label, 0, madvrSettings.m_db[it.name].asString(), MadvrSettingsOptionsString, it.label);
+        setting = AddList(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asString(), MadvrSettingsOptionsString, it.label);
     }
 
     if (!it.dependencies.empty() && setting)

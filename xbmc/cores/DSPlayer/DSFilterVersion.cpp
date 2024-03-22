@@ -116,12 +116,12 @@ void CDSFilterVersion::GetVersionByFilter(const std::string &type, bool bForceUp
   }
 }
 
-void CDSFilterVersion::GetVersionByPath(const std::string &path, FilterVersion &filterVersion)
+void CDSFilterVersion::GetVersionByPath(const std::wstring &path, FilterVersion &filterVersion)
 {
   if (path.empty())
     return;
 
-  std::string szVersionFile = path;
+  std::wstring szVersionFile = path;
   DWORD  verHandle = NULL;
   UINT   size = 0;
   LPBYTE lpBuffer = NULL;
@@ -133,7 +133,7 @@ void CDSFilterVersion::GetVersionByPath(const std::string &path, FilterVersion &
 
     if (GetFileVersionInfo(szVersionFile.c_str(), verHandle, verSize, verData))
     {
-      if (VerQueryValue(verData, "\\", (VOID FAR* FAR*)&lpBuffer, &size))
+      if (VerQueryValue(verData, L"\\", (VOID FAR* FAR*)&lpBuffer, &size))
       {
         if (size)
         {

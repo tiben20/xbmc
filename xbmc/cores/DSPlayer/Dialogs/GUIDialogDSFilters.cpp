@@ -96,7 +96,7 @@ void CGUIDialogDSFilters::InitializeSettings()
 {
   CGUIDialogSettingsManualBase::InitializeSettings();
 
-  const std::shared_ptr<CSettingCategory> = AddCategory("dsfiltersettings", -1);
+  const std::shared_ptr<CSettingCategory> category = AddCategory("dsfiltersettings", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSFilters: unable to setup settings");

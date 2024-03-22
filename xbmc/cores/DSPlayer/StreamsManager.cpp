@@ -190,7 +190,7 @@ void CStreamsManager::SetAudioStream(int iStream)
     return;
 
   m_readyEvent.Reset();
-  CAutoSetEvent event(&m_readyEvent);
+  XbmcThreads::CAutoSetEvent event(&m_readyEvent);
 
   if (m_pIAMStreamSelect)
   {
@@ -397,7 +397,7 @@ void CStreamsManager::SetEdition(int iEdition)
     return;
 
   m_readyEvent.Reset();
-  CAutoSetEvent event(&m_readyEvent);
+  XbmcThreads::CAutoSetEvent event(&m_readyEvent);
 
   if (m_pIAMStreamSelect)
   {
@@ -968,13 +968,13 @@ void CStreamsManager::SetSubtitle(int iStream)
   long disableIndex = GetSubtitle(), enableIndex = iStream;
 
   m_readyEvent.Reset();
-  CAutoSetEvent event(&m_readyEvent);
+  XbmcThreads::CAutoSetEvent event(&m_readyEvent);
 
-  CMediaSettings::GetInstance().GetCurrentVideoSettings().m_SubtitleStream = enableIndex;
+  CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleStream = enableIndex;
 
   if (m_subfilterStreams[enableIndex]->m_subType == EXTERNAL)
   {    
-    CMediaSettings::GetInstance().GetCurrentVideoSettings().m_SubtitleExtTrackName = m_subfilterStreams[enableIndex]->displayname;
+    CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleExtTrackName = m_subfilterStreams[enableIndex]->displayname;
     
     DisconnectCurrentSubtitlePins();
 
@@ -987,7 +987,7 @@ void CStreamsManager::SetSubtitle(int iStream)
 
   else if (m_pIAMStreamSelect)
   {
-    CMediaSettings::GetInstance().GetCurrentVideoSettings().m_SubtitleExtTrackName = "";
+    CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleExtTrackName = "";
 
     if (disableIndex >= 0 && m_subfilterStreams[disableIndex]->connected)
       DisconnectCurrentSubtitlePins();
@@ -1001,7 +1001,7 @@ void CStreamsManager::SetSubtitle(int iStream)
     }
   }
   CLog::Log(LOGDEBUG, "%s Successfully selected subfilter stream number %i", __FUNCTION__, enableIndex);
-  SetSubtitleVisible(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_SubtitleOn);
+  SetSubtitleVisible(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleOn);
 }
 
 void CStreamsManager::SubInterface(SelectSubType action)
@@ -1055,7 +1055,7 @@ void CStreamsManager::SubInterface(SelectSubType action)
 void CStreamsManager::SelectBestAudio()
 {
   std::string sPrefCodec = CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_PREFAUDIOCODEC);
-  int iLibrary = CMediaSettings::GetInstance().GetCurrentVideoSettings().m_AudioStream;
+  int iLibrary = CMediaSettings::GetInstance().GetDefaultVideoSettings().m_AudioStream;
   if ((iLibrary < GetAudioStreamCount()) && !(iLibrary < 0))
   {
     SetAudioStream(iLibrary);

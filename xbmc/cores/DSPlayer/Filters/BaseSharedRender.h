@@ -24,7 +24,7 @@
 
 #include "threads/Event.h"
 #include "IDSPlayer.h"
-
+#include "D3d11.h"
 enum SHAREDRENDER_STATE
 {
   RENDERFRAME_LOCK,

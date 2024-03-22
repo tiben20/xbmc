@@ -207,7 +207,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
   // DRC
 
   // dependencies
-  CSettingDependency dependencyDRCEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencyDRCEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencyDRCEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_DRCENABLED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsDRCEnabled;
@@ -215,7 +215,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
 
   AddToggle(groupDRC, LAVAUDIO_DRCENABLED, 81001, SettingLevel::Basic, lavSettings.audio_bDRCEnabled);
   
-  CSetting *settingDRCLevel;
+  std::shared_ptr<CSetting>  *settingDRCLevel;
   settingDRCLevel = AddSlider(groupDRC, LAVAUDIO_DRCLEVEL, 81002, SettingLevel::Basic, lavSettings.audio_iDRCLevel, "%i%%", 0, 1, 100);
   settingDRCLevel->SetParent(LAVAUDIO_DRCENABLED);
   settingDRCLevel->SetDependencies(depsDRCEnabled);
@@ -223,7 +223,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
   // MIXER
 
   // dependencies
-  CSettingDependency dependencyMixingEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencyMixingEnabled(SettingDependencyTypeEnable, m_settingsManager);
   dependencyMixingEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_MIXINGENABLED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsMixingEnabled;
@@ -238,22 +238,22 @@ void CGUIDialogLAVAudio::InitializeSettings()
   entries.emplace_back(81019, AV_CH_LAYOUT_6POINT1);
   entries.emplace_back(81020, AV_CH_LAYOUT_7POINT1);
   
-  CSetting *settingMixLayout;
+  std::shared_ptr<CSetting>  *settingMixLayout;
   settingMixLayout = AddList(groupMixer, LAVAUDIO_MIXINGLAYOUT, 81014, 0, lavSettings.audio_dwMixingLayout, entries, 81014);
   settingMixLayout->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixLayout->SetDependencies(depsMixingEnabled);
 
-  CSetting *settingMixCenter;
+  std::shared_ptr<CSetting>  *settingMixCenter;
   settingMixCenter = AddSlider(groupMixer, LAVAUDIO_MIXINGCENTER, 81021, 0, DWToFloat(lavSettings.audio_dwMixingCenterLevel), "%1.2f", 0.0f, 0.01f, 1.00f);
   settingMixCenter->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixCenter->SetDependencies(depsMixingEnabled);
 
-  CSetting *settingMixSurround;
+  std::shared_ptr<CSetting>  *settingMixSurround;
   settingMixSurround = AddSlider(groupMixer, LAVAUDIO_MIXINGSURROUND, 81022, SettingLevel::Basic, DWToFloat(lavSettings.audio_dwMixingSurroundLevel), "%1.2f", 0.0f, 0.01f, 1.00f);
   settingMixSurround->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixSurround->SetDependencies(depsMixingEnabled);
 
-  CSetting *settingMixLFE;
+  std::shared_ptr<CSetting>  *settingMixLFE;
   settingMixLFE = AddSlider(groupMixer, LAVAUDIO_MIXINGLFE, 81023, SettingLevel::Basic, DWToFloat(lavSettings.audio_dwMixingLFELevel), "%1.2f", 0.0f, 0.01f, 1.00f);
   settingMixLFE->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixLFE->SetDependencies(depsMixingEnabled);

@@ -481,6 +481,12 @@ int StringUtils::CompareNoCase(const char* s1, const char* s2, size_t n /* = 0 *
   return 0;
 }
 
+std::wstring StringUtils::WLeft(const std::wstring& str, size_t count)
+{
+  count = std::max((size_t)0, std::min(count, str.size()));
+  return str.substr(0, count);
+}
+
 std::string StringUtils::Left(const std::string &str, size_t count)
 {
   count = std::max((size_t)0, std::min(count, str.size()));
@@ -530,6 +536,7 @@ std::wstring& StringUtils::Trim(std::wstring& str)
   TrimLeft(str);
   return TrimRight(str);
 }
+
 std::wstring& StringUtils::TrimLeft(std::wstring& str)
 {
   str.erase(str.begin(),
