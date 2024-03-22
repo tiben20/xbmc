@@ -55,7 +55,7 @@ CDSSettings::CDSSettings(void)
 void CDSSettings::Initialize()
 {
   std::string videoRender;
-  videoRender = CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER);
+  videoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER);
 
   if (videoRender == "EVR")
   {

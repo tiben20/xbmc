@@ -239,12 +239,12 @@ void CGUIDialogLAVAudio::InitializeSettings()
   entries.emplace_back(81020, AV_CH_LAYOUT_7POINT1);
   
   std::shared_ptr<CSetting>  *settingMixLayout;
-  settingMixLayout = AddList(groupMixer, LAVAUDIO_MIXINGLAYOUT, 81014, 0, lavSettings.audio_dwMixingLayout, entries, 81014);
+  settingMixLayout = AddList(groupMixer, LAVAUDIO_MIXINGLAYOUT, 81014, SettingLevel::Basic, lavSettings.audio_dwMixingLayout, entries, 81014);
   settingMixLayout->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixLayout->SetDependencies(depsMixingEnabled);
 
   std::shared_ptr<CSetting>  *settingMixCenter;
-  settingMixCenter = AddSlider(groupMixer, LAVAUDIO_MIXINGCENTER, 81021, 0, DWToFloat(lavSettings.audio_dwMixingCenterLevel), "%1.2f", 0.0f, 0.01f, 1.00f);
+  settingMixCenter = AddSlider(groupMixer, LAVAUDIO_MIXINGCENTER, 81021, SettingLevel::Basic, DWToFloat(lavSettings.audio_dwMixingCenterLevel), "%1.2f", 0.0f, 0.01f, 1.00f);
   settingMixCenter->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixCenter->SetDependencies(depsMixingEnabled);
 
@@ -272,7 +272,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
   AddList(groupEncoding, LAVAUDIO_MIXINGMODE, 81027, 0, lavSettings.audio_dwMixingMode, entries, 81027);
 
   // BUTTON RESET
-  if (!g_application.m_pPlayer->IsPlayingVideo())
+  if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
     AddButton(groupReset, LAVAUDIO_RESET, 10041, SettingLevel::Basic);
 }
 

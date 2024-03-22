@@ -135,8 +135,8 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
   // if needed set resolution to match fps then set pixelshader & settings for madVR
   const auto& components = CServiceBroker::GetAppComponents();
   components.GetComponent<CApplicationPlayer>()->SetResolution();
-  g_application.m_pPlayer->SetPixelShader();
-  g_application.m_pPlayer->RestoreSettings();
+  g_application.GetComponent<CApplicationPlayer>()->SetPixelShader();
+  g_application.GetComponent<CApplicationPlayer>()->RestoreSettings();
 
   if (m_pVideoWindow)
   {
@@ -218,9 +218,9 @@ void CDSGraph::CloseFile()
     CLog::Log(LOGDEBUG, "%s ... done!", __FUNCTION__);
     CGraphFilters::Get()->DVD.Clear();
 
-    if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_EXITMADVRFULLSCREEN))
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_EXITMADVRFULLSCREEN))
     {
-      g_application.m_pPlayer->EnableExclusive(false);
+      g_application.GetComponent<CApplicationPlayer>()->EnableExclusive(false);
     }
 
     pFilterGraph.Release();
@@ -295,7 +295,7 @@ void CDSGraph::UpdateTime()
 
   /*
   TODO EVR STATS
-  if ((CGraphFilters::Get()->VideoRenderer.pQualProp) && m_iCurrentFrameRefreshCycle <= 0 && !g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  if ((CGraphFilters::Get()->VideoRenderer.pQualProp) && m_iCurrentFrameRefreshCycle <= 0 && !g_application.GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR))
   {
     //this is too slow if we are doing it on every UpdateTime
     int avgRate;
@@ -413,14 +413,14 @@ HRESULT CDSGraph::HandleGraphEvent()
   LONG_PTR evParam1, evParam2;
   HRESULT hr = S_OK;
 
-  if (g_application.m_pPlayer->ReadyDS() && m_bPerformStop)
+  if (g_application.GetComponent<CApplicationPlayer>()->ReadyDS() && m_bPerformStop)
   {
     m_bPerformStop = false;
     CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
     CLog::Log(LOGDEBUG, "%s Playback stopped at start", __FUNCTION__);
   }
 
-  if (g_application.m_pPlayer->ReadyDS() && m_bPerformPause)
+  if (g_application.GetComponent<CApplicationPlayer>()->ReadyDS() && m_bPerformPause)
   {
     m_bPerformPause = false;
     CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PAUSE);
@@ -878,19 +878,19 @@ std::string CDSGraph::GetAudioInfo()
   if (!c)
     return "File closed";
 
-  if (!CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
+  if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   {
     audioInfo = StringUtils::Format("Audio: (%s, %d Hz, %d Channels) | Renderer: %s",
-      c->GetAudioCodecDisplayName(g_application.m_pPlayer->GetAudioStream()).c_str(),
-      c->GetSampleRate(g_application.m_pPlayer->GetAudioStream()),
-      c->GetChannels(g_application.m_pPlayer->GetAudioStream()),
+      c->GetAudioCodecDisplayName(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream()).c_str(),
+      c->GetSampleRate(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream()),
+      c->GetChannels(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream()),
       CGraphFilters::Get()->AudioRenderer.osdname.c_str());
   }
   else
   {
     std::string strStreamName;
-    c->GetAudioStreamName(g_application.m_pPlayer->GetAudioStream(),strStreamName);
+    c->GetAudioStreamName(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream(),strStreamName);
     audioInfo = StringUtils::Format("Audio: (%s) | Renderer: %s",
       strStreamName.c_str(),
       CGraphFilters::Get()->AudioRenderer.osdname.c_str());
@@ -912,7 +912,7 @@ std::string CDSGraph::GetVideoInfo()
   if (!c)
     return "File closed";
   
-  if (!CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
+  if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   {
     videoInfo = StringUtils::Format("Video: (%s, %dx%d) | Renderer: %s",
@@ -934,7 +934,7 @@ std::string CDSGraph::GetVideoInfo()
     videoInfo += m_pStrCurrentFrameRate.c_str();
 
   std::string strDXVA;
-  if (!g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  if (!g_application.GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR))
     strDXVA = GetDXVADecoderDescription();
 
   if (!strDXVA.empty())

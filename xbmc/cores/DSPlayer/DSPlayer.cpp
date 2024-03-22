@@ -95,7 +95,7 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_canTempo = false;
   m_HasVideo = false;
   m_HasAudio = false;
-  m_isMadvr = (CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
+  m_isMadvr = (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
 
   if (InitWindow(m_hWnd))
     CLog::Log(LOGDEBUG, "%s : Create DSPlayer window - hWnd: %i", __FUNCTION__, m_hWnd);
@@ -310,7 +310,7 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
     return false;
   }
 
-  if (!CSettings::GetInstance().GetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN))
+  if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN))
   {
     g_Windowing.SetWindowedForMadvr();
     CGraphFilters::Get()->SetKodiRealFS(true);
@@ -321,7 +321,7 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
 
   CLog::Log(LOGINFO, "%s - DSPlayer: Opening: %s", __FUNCTION__, CURL::GetRedacted(file.GetPath()).c_str());
 
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) == KODIGUI_LOAD_DSPLAYER)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) == KODIGUI_LOAD_DSPLAYER)
     LoadVideoSettings(file);
 
   CFileItem fileItem = file;
@@ -442,7 +442,7 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
   info.samplerate = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetSampleRate(index) : 0;
   codecname = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecDisplayName(index) : "";
 
-  if (!CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
+  if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   { 
     label = StringUtils::Format("%s - (%s, %d Hz, %i Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
@@ -452,7 +452,7 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
     info.name = strStreamName;
 }
 
-void CDSPlayer::GetSubtitleStreamInfo(int index, SPlayerSubtitleStreamInfo &info)
+void CDSPlayer::GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info)
 {
   std::string strStreamName;
  if (CStreamsManager::Get()) CStreamsManager::Get()->GetSubtitleName(index, strStreamName);
@@ -639,7 +639,7 @@ LRESULT CALLBACK CDSPlayer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 //CThread
 void CDSPlayer::OnStartup()
 {
-  m_threadID = CThread::GetCurrentThreadId();
+  //is this necessary m_threadID = CThread::GetCurrentThreadId();
 }
 
 void CDSPlayer::OnExit()
@@ -669,7 +669,7 @@ void CDSPlayer::Process()
   CLog::Log(LOGINFO, "%s - Creating DS Graph", __FUNCTION__);
 
   // Set the selected video renderer
-  SetCurrentVideoRenderer(CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER));
+  SetCurrentVideoRenderer(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER));
 
   // Create DirectShow Graph
   hr = g_dsGraph->SetFile(m_currentFileItem, m_PlayerOptions);
@@ -709,7 +709,7 @@ void CDSPlayer::Process()
 
     CMediaSettings::GetInstance().GetAtStartVideoSettings() = CMediaSettings::GetInstance().GetCurrentVideoSettings();
 
-    if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SHOWBDTITLECHOICE))
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWBDTITLECHOICE))
       ShowEditionDlg(true);
 
     // Seek
@@ -752,7 +752,7 @@ void CDSPlayer::HandleMessages()
       if (pMsg->IsType(CDSMsg::RESET_DEVICE))
       {
         CDSMsgBool* speMsg = reinterpret_cast<CDSMsgBool *>(pMsg);
-        g_application.m_pPlayer->Reset(speMsg->m_value);
+        g_application.GetComponent<CApplicationPlayer>()->Reset(speMsg->m_value);
       }
       if (pMsg->IsType(CDSMsg::SET_WINDOW_POS))
       {
@@ -1142,7 +1142,7 @@ bool CDSPlayer::OnAction(const CAction &action)
 
 void CDSPlayer::LoadMadvrSettings(int id)
 {
-  if (id < 0 || !m_isMadvr || CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) != KODIGUI_LOAD_DSPLAYER)
+  if (id < 0 || !m_isMadvr || CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) != KODIGUI_LOAD_DSPLAYER)
     return;
 
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
@@ -1167,14 +1167,14 @@ void CDSPlayer::LoadMadvrSettings(int id)
         sId = StringUtils::Format("Resolution settings SD", id);
     }
 
-    g_application.m_pPlayer->RestoreSettings();
+    g_application.GetComponent<CApplicationPlayer>()->RestoreSettings();
     dspdb.Close();
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, "DSPlayer", sId, TOAST_MESSAGE_TIME, false);
   }
   else
   {
     madvrSettings.RestoreAtStartSettings();
-    g_application.m_pPlayer->RestoreSettings();
+    g_application.GetComponent<CApplicationPlayer>()->RestoreSettings();
 
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, "DSPlayer", "Restored original video settings", TOAST_MESSAGE_TIME, false);
   }
@@ -1263,7 +1263,7 @@ bool CDSPlayer::SelectChannel(bool bNext)
 {
   m_PlayerOptions.identify = true;
 
-  bool bShowPreview = false;/*(CSettings::GetInstance().GetInt("pvrplayback.channelentrytimeout") > 0);*/ // TODO
+  bool bShowPreview = false;/*(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("pvrplayback.channelentrytimeout") > 0);*/ // TODO
 
   if (!bShowPreview)
   {
@@ -1281,9 +1281,9 @@ bool CDSPlayer::ShowPVRChannelInfo()
 {
   bool bReturn(false);
 
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_PVRMENU_DISPLAYCHANNELINFO) > 0)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_PVRMENU_DISPLAYCHANNELINFO) > 0)
   {
-    g_PVRManager.ShowPlayerInfo(CSettings::GetInstance().GetInt(CSettings::SETTING_PVRMENU_DISPLAYCHANNELINFO));
+    g_PVRManager.ShowPlayerInfo(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_PVRMENU_DISPLAYCHANNELINFO));
 
     bReturn = true;
   }
@@ -1306,12 +1306,12 @@ void CDSPlayer::FlushRenderer()
   m_renderManager.Flush();
 }
 
-void CDSPlayer::SetRenderViewMode(int mode)
+void CDSPlayer::SetRenderViewMode(int mode, float zoom, float par, float shift, bool stretch)
 {
   m_renderManager.SetViewMode(mode);
 }
 
-float CDSPlayer::GetRenderAspectRatio()
+float CDSPlayer::GetRenderAspectRatio() const
 {
   return m_renderManager.GetAspectRatio();
 }
@@ -1321,7 +1321,7 @@ void CDSPlayer::TriggerUpdateResolution()
   m_renderManager.TriggerUpdateResolution(0, 0, 0);
 }
 
-bool CDSPlayer::IsRenderingVideo()
+bool CDSPlayer::IsRenderingVideo() const
 {
   return m_renderManager.IsConfigured();
 }
@@ -1367,7 +1367,7 @@ void CDSPlayer::OnResetDisplay()
 void CDSPlayer::UpdateProcessInfo(int index)
 {
   if (index == CURRENT_STREAM)
-    index = g_application.m_pPlayer->GetAudioStream();
+    index = g_application.GetComponent<CApplicationPlayer>()->GetAudioStream();
 
   std::string info;
 
@@ -1416,7 +1416,7 @@ void CDSPlayer::UpdateProcessInfo(int index)
 void CDSPlayer::SetAudioCodeDelayInfo(int index)
 {
   if (index == CURRENT_STREAM)
-    index = g_application.m_pPlayer->GetAudioStream();
+    index = g_application.GetComponent<CApplicationPlayer>()->GetAudioStream();
 
   std::string info;
   int iAudioDelay = CStreamsManager::Get() ? CStreamsManager::Get()->GetLastAVDelay() : 0;
@@ -1479,8 +1479,8 @@ int CDSPlayer::VideoDimsToResolution(int iWidth, int iHeight)
 
 void CDSPlayer::SetVisibleScreenArea(CRect activeVideoRect)
 {
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_OSDINTOACTIVEAREA)
-    && CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_COPYACTIVERECT)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_OSDINTOACTIVEAREA)
+    && CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_COPYACTIVERECT)
     && activeVideoRect != CRect {0,0,0,0})
   {
     CRect wndRect = g_graphicsContext.GetViewWindow();
@@ -1678,7 +1678,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
   CGUIDialogSelect *dialog = (CGUIDialogSelect *)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
 
   bool listAllTitles = false;
-  UINT minLength = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MINTITLELENGTH);
+  UINT minLength = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MINTITLELENGTH);
 
   while (true)
   {

@@ -23,6 +23,7 @@
 
 #include "GUIDialogMadvrSettings.h"
 #include "settings/MediaSettings.h"
+#include "guilib/GUIMessage.h"
 
 CGUIDialogMadvrSettings::CGUIDialogMadvrSettings()
   : CGUIDialogMadvrSettingsBase(WINDOW_DIALOG_MADVR, "DialogSettings.xml")

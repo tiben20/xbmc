@@ -39,6 +39,7 @@
 #include "guilib/LocalizeStrings.h"
 #include "Application/Application.h"
 #include "DSPlayerDatabase.h"
+#include "cores/DSPlayer/Dialogs/GUIDialogMadvrSettings.h"
 #endif
 
 #include <utility>

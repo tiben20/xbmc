@@ -139,8 +139,8 @@ void CDSPropertyPage::Process()
   bool wasFullscreen = false;
   /* todo evr
   if (g_Windowing.IsFullScreen() 
-    && CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_EXCLUSIVEMODE_EVR) 
-    && g_application.m_pPlayer->ReadyDS(DIRECTSHOW_RENDERER_EVR)
+    && CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_EXCLUSIVEMODE_EVR) 
+    && g_application.GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_EVR)
     )
   {
     CDSPlayer::PostGraphMessage(new CDSMsgBool(CDSMsg::RESET_DEVICE, true), false);

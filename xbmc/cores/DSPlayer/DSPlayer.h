@@ -115,25 +115,25 @@ public:
   virtual float GetSubTitleDelay() override;
   virtual int  GetSubtitleCount() override;
   virtual int  GetSubtitle() override;
-  virtual void GetSubtitleStreamInfo(int index, SPlayerSubtitleStreamInfo &info) override;
+  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo&info) override;
   virtual void SetSubtitle(int iStream) override;
-  virtual bool GetSubtitleVisible() override;
+  virtual bool GetSubtitleVisible() const override;
   virtual void SetSubtitleVisible(bool bVisible) override;
   virtual void AddSubtitle(const std::string& strSubPath) override;
 
-  virtual int  GetAudioStreamCount() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioStreamCount() : 0; }
+  virtual int  GetAudioStreamCount() const override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioStreamCount() : 0; }
   virtual int  GetAudioStream() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioStream() : 0; }
   virtual void SetAudioStream(int iStream) override;
 
   //virtual int GetVideoStream() {} const override;
   virtual int GetVideoStreamCount() const override { return 1; }
-  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) override;
+  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) const override;
   //virtual void SetVideoStream(int iStream);
 
-  virtual int  GetChapterCount() override { CSingleExit lock(m_StateSection); return CChaptersManager::Get()->GetChapterCount(); }
-  virtual int  GetChapter() override { CSingleExit lock(m_StateSection); return CChaptersManager::Get()->GetChapter(); }
-  virtual void GetChapterName(std::string& strChapterName, int chapterIdx = -1) override { CSingleExit lock(m_StateSection); CChaptersManager::Get()->GetChapterName(strChapterName, chapterIdx); }
-  virtual int64_t GetChapterPos(int chapterIdx = -1) override { return CChaptersManager::Get()->GetChapterPos(chapterIdx); }
+  virtual int  GetChapterCount() const override { CSingleExit lock(m_StateSection); return CChaptersManager::Get()->GetChapterCount(); }
+  virtual int  GetChapter() const override { CSingleExit lock(m_StateSection); return CChaptersManager::Get()->GetChapter(); }
+  virtual void GetChapterName(std::string& strChapterName, int chapterIdx = -1) const override { CSingleExit lock(m_StateSection); CChaptersManager::Get()->GetChapterName(strChapterName, chapterIdx); }
+  virtual int64_t GetChapterPos(int chapterIdx = -1) const override { return CChaptersManager::Get()->GetChapterPos(chapterIdx); }
   virtual int  SeekChapter(int iChapter) override { return CChaptersManager::Get()->SeekChapter(iChapter); }
 
   virtual void SeekTime(__int64 iTime = 0) override;
@@ -154,10 +154,10 @@ public:
   virtual void FrameMove() override;
   virtual void Render(bool clear, uint32_t alpha = 255, bool gui = true) override;
   virtual void FlushRenderer() override;
-  virtual void SetRenderViewMode(int mode) override;
-  float GetRenderAspectRatio() override;
+  virtual void SetRenderViewMode(int mode, float zoom, float par, float shift, bool stretch) override;
+  virtual float GetRenderAspectRatio() const override;
   virtual void TriggerUpdateResolution() override;
-  virtual bool IsRenderingVideo() override;
+  virtual bool IsRenderingVideo() const override;
   virtual bool IsRenderingGuiLayer() override;
   virtual bool IsRenderingVideoLayer() override;
   virtual bool Supports(EINTERLACEMETHOD method) override;
@@ -245,7 +245,7 @@ public:
   static HWND m_hWnd;
   bool InitWindow(HWND &hWnd);
   void DeInitWindow();
-  std::string m_className;
+  std::wstring m_className;
   HINSTANCE m_hInstance; 
   bool m_isMadvr;
 

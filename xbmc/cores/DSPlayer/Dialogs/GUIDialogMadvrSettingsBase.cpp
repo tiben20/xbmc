@@ -22,7 +22,11 @@
  */
 
 #include "GUIDialogMadvrSettingsBase.h"
+#include "ServiceBroker.h"
 #include "Application/Application.h"
+#include "Application/ApplicationPlayer.h"
+#include "application/ApplicationComponents.h"
+#include "settings/SettingsComponent.h"
 #include "URL.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "filesystem/File.h"
@@ -87,9 +91,11 @@ void CGUIDialogMadvrSettingsBase::RestoreControlStates()
 
 void CGUIDialogMadvrSettingsBase::InitializeSettings()
 {
+  
   CGUIDialogSettingsManualBase::InitializeSettings();
-
-  m_bMadvr = g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) > KODIGUI_NEVER);
+  
+  m_bMadvr = g_application.GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR) && CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) > KODIGUI_NEVER
+  //m_bMadvr = g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) > KODIGUI_NEVER);
   m_iSectionIdInternal = m_iSectionId;
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
@@ -113,7 +119,7 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
       return;
     }
     
-    if (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) == KODIGUI_LOAD_DSPLAYER)
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) == KODIGUI_LOAD_DSPLAYER)
     {
       //LOAD SETTINGS...
       AddButton(groupMadvrSave, SETTING_VIDEO_LOAD, 70611, SettingLevel::Basic);
@@ -125,7 +131,7 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
 
   std::map<int, const std::shared_ptr<CSettingGroup>> groups;
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
-  g_application.m_pPlayer->LoadSettings(m_iSectionId);
+  g_application.GetComponent<CApplicationPlayer>()->LoadSettings(m_iSectionId);
 
   for (const auto &it : madvrSettings.m_gui[m_iSectionId])
   {
@@ -164,7 +170,7 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
     }
 
     if (!it.dependencies.empty() && setting)
-      g_application.m_pPlayer->AddDependencies(it.dependencies, m_settingsManager, setting);
+      g_application.GetComponent<CApplicationPlayer>()->AddDependencies(it.dependencies, m_settingsManager, setting);
 
     if (!it.parent.empty() && setting)
       setting->SetParent(it.parent);
@@ -181,7 +187,7 @@ void CGUIDialogMadvrSettingsBase::OnSettingChanged(const CSetting *setting)
   if (!m_bMadvr)
     return;
 
-  g_application.m_pPlayer->OnSettingChanged(m_iSectionId, m_settingsManager, setting);
+  g_application.GetComponent<CApplicationPlayer>()->OnSettingChanged(m_iSectionId, m_settingsManager, setting);
 }
 
 void CGUIDialogMadvrSettingsBase::OnSettingAction(const CSetting *setting)
@@ -222,7 +228,7 @@ void CGUIDialogMadvrSettingsBase::OnSettingAction(const CSetting *setting)
     }
     else if (it->type == "button_debug")
     {
-      g_application.m_pPlayer->ListSettings(it->value);
+      g_application.GetComponent<CApplicationPlayer>()->ListSettings(it->value);
     }
   }
 
@@ -317,7 +323,7 @@ void CGUIDialogMadvrSettingsBase::LoadMadvrSettings()
     if (selected == MADVR_RES_DEFAULT)
     {
       CMediaSettings::GetInstance().GetCurrentMadvrSettings().RestoreDefaultSettings();
-      g_application.m_pPlayer->RestoreSettings();
+      g_application.GetComponent<CApplicationPlayer>()->RestoreSettings();
       Close();
     }
     else if (selected == MADVR_RES_USER)

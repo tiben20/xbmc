@@ -24,6 +24,7 @@
 
 #include "threads/Event.h"
 #include "IDSPlayer.h"
+#include "d3d9.h"
 #include "D3d11.h"
 enum SHAREDRENDER_STATE
 {

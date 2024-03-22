@@ -196,16 +196,16 @@ void CGUIDialogLAVSplitter::InitializeSettings()
 
   std::string str;
   g_charsetConverter.wToUTF8(lavSettings.splitter_prefAudioLangs, str, false);
-  AddEdit(groupPreflang, LAVSPLITTER_PREFAUDIOLANG, 82001, 0, str, true);
+  AddEdit(groupPreflang, LAVSPLITTER_PREFAUDIOLANG, 82001, SettingLevel::Basic, str, true);
   
   g_charsetConverter.wToUTF8(lavSettings.splitter_prefSubLangs , str, false);
   std::shared_ptr<CSetting>  *settingPrefSubLang;
-  settingPrefSubLang = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBLANG, 82002, 0, str, true);
+  settingPrefSubLang = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBLANG, 82002, SettingLevel::Basic, str, true);
   settingPrefSubLang->SetDependencies(depsPrefSubLangVisible);
 
   g_charsetConverter.wToUTF8(lavSettings.splitter_subtitleAdvanced, str, false);
   std::shared_ptr<CSetting>  *settingPrefSubAdv;
-  settingPrefSubAdv = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBADVANCED, 82016, 0, str, true);
+  settingPrefSubAdv = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBADVANCED, 82016, SettingLevel::Basic, str, true);
   settingPrefSubAdv->SetDependencies(depsPrefSubAdvVisible);
 
   //SUBMODE
@@ -214,11 +214,11 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   entries.emplace_back(82005, LAVSubtitleMode_ForcedOnly);
   entries.emplace_back(82006, LAVSubtitleMode_Default);
   entries.emplace_back(82007, LAVSubtitleMode_Advanced);
-  AddList(groupSubmode, LAVSPLITTER_SUBMODE, 82003, 0, lavSettings.splitter_subtitleMode, entries, 82003);
+  AddList(groupSubmode, LAVSPLITTER_SUBMODE, 82003, SettingLevel::Basic, lavSettings.splitter_subtitleMode, entries, 82003);
 
   //BLURAYSUB
-  AddToggle(groupBluraysub, LAVSPLITTER_PGSFORCEDSTREAM, 82008, 0, lavSettings.splitter_bPGSForcedStream);
-  AddToggle(groupBluraysub, LAVSPLITTER_PGSONLYFORCED, 82009, 0, lavSettings.splitter_bPGSOnlyForced);
+  AddToggle(groupBluraysub, LAVSPLITTER_PGSFORCEDSTREAM, 82008, SettingLevel::Basic, lavSettings.splitter_bPGSForcedStream);
+  AddToggle(groupBluraysub, LAVSPLITTER_PGSONLYFORCED, 82009, SettingLevel::Basic, lavSettings.splitter_bPGSOnlyForced);
 
   //FORMAT
   AddToggle(groupFormat, LAVSPLITTER_IVC1MODE, 82010, 0, lavSettings.splitter_iVC1Mode);
@@ -231,7 +231,7 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   AddToggle(groupDemuxer, LAVSPLITTER_IMPAIREDAUDIO, 82015, 0, lavSettings.splitter_bImpairedAudio);
 
   // BUTTON RESET
-  if (!g_application.m_pPlayer->IsPlayingVideo())
+  if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
     AddButton(groupReset, LAVSPLITTER_RESET, 10041, 0);
 }
 

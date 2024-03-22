@@ -60,14 +60,14 @@ CMadvrSettingsManager::CMadvrSettingsManager(IUnknown* pUnk)
 {
   m_pDXR = pUnk;
   m_bAllowChanges = true;
-  g_application.m_pPlayer->Register(this);
+  g_application.GetComponent<CApplicationPlayer>()->Register(this);
 
   m_bDebug = CMediaSettings::GetInstance().GetCurrentMadvrSettings().m_bDebug;
 }
 
 CMadvrSettingsManager::~CMadvrSettingsManager()
 {
-  g_application.m_pPlayer->Unregister(this);
+  g_application.GetComponent<CApplicationPlayer>()->Unregister(this);
 }
 
 BOOL CMadvrSettingsManager::GetSettings(MADVR_SETTINGS_TYPE type, LPCWSTR path, int enumIndex, LPCWSTR sValue, BOOL* bValue, int* iValue, int *bufSize)
@@ -648,7 +648,7 @@ void CMadvrSettingsManager::ActivateProfile(const std::string &path, const std::
 
 void CMadvrSettingsManager::RestoreSettings()
 {
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) != KODIGUI_LOAD_DSPLAYER)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) != KODIGUI_LOAD_DSPLAYER)
     return;
 
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
@@ -691,7 +691,7 @@ void CMadvrSettingsManager::RestoreSettings()
 
 void CMadvrSettingsManager::LoadSettings(int iSectionId)
 {
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) != KODIGUI_LOAD_MADVR)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) != KODIGUI_LOAD_MADVR)
     return;
 
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();

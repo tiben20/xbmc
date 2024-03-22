@@ -188,7 +188,7 @@ void CWinDsRenderer::Render(DWORD flags)
   
   if (m_oldVideoRect != m_destRect)
   {
-    g_application.m_pPlayer->SetPosition(m_sourceRect, m_destRect, m_viewRect);
+    g_application.GetComponent<CApplicationPlayer>()->SetPosition(m_sourceRect, m_destRect, m_viewRect);
     m_oldVideoRect = m_destRect;
   }
 

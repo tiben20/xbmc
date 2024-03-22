@@ -229,7 +229,7 @@ void CRenderDSManager::FrameMove()
 
 void CRenderDSManager::EndRender()
 {
-  if (m_renderState == STATE_CONFIGURED && !g_application.m_pPlayer->ReadyDS())
+  if (m_renderState == STATE_CONFIGURED && !g_application.GetComponent<CApplicationPlayer>()->ReadyDS())
     g_graphicsContext.Clear(0);
 }
 
@@ -345,7 +345,7 @@ RESOLUTION CRenderDSManager::GetResolution()
   if (m_renderState == STATE_UNCONFIGURED)
     return res;
 
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
     res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, CONF_FLAGS_STEREO_MODE_MASK(m_flags));
 
   return res;
@@ -361,7 +361,7 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
       return;
   }
 
-  g_application.m_pPlayer->RenderToTexture(RENDER_LAYER_OVER);
+  g_application.GetComponent<CApplicationPlayer>()->RenderToTexture(RENDER_LAYER_OVER);
 
   if (!gui && m_pRenderer->IsGuiLayer())
     return;
@@ -440,7 +440,7 @@ void CRenderDSManager::UpdateDisplayLatency()
   if (CGraphFilters::Get()->GetAuxAudioDelay())
     m_displayLatency += (double)g_advancedSettings.GetDisplayAuxDelay(refresh);
 
-  g_application.m_pPlayer->SetAVDelay(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_AudioDelay);
+  g_application.GetComponent<CApplicationPlayer>()->SetAVDelay(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_AudioDelay);
 
   CLog::Log(LOGDEBUG, "CRenderDSManager::UpdateDisplayLatency - Latency set to %1.0f msec", m_displayLatency * 1000.0f);
 }
@@ -462,7 +462,7 @@ void CRenderDSManager::UpdateResolution()
   {
     if (g_graphicsContext.IsFullScreenVideo() && g_graphicsContext.IsFullScreenRoot())
     {
-      if (CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && m_fps > 0.0f)
+      if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && m_fps > 0.0f)
       {
         if (m_Resolution == RES_INVALID)
           m_Resolution = CResolutionUtils::ChooseBestResolution(m_fps, m_width, CONF_FLAGS_STEREO_MODE_MASK(m_flags) != 0);

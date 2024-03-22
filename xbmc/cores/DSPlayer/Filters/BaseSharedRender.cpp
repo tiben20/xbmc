@@ -28,6 +28,7 @@
 #include "application/Application.h"
 #include "threads/SingleLock.h"
 #include "threads/SystemClock.h"
+#include "dsutil/DShowCommon.h"
 
 const DWORD D3DFVF_VID_FRAME_VERTEX = 0x004 | 0x100;
 
@@ -73,7 +74,7 @@ void CRenderWait::Unlock()
 
 void CBaseSharedRender::IncRenderCount()
 {
-  if (!g_application.m_pPlayer->ReadyDS())
+  if (!g_application.GetComponent<CApplicationPlayer>()->ReadyDS())
     return;
 
   m_currentVideoLayer == RENDER_LAYER_UNDER ? m_renderUnderCount += 1 : m_renderOverCount += 1;

@@ -16,7 +16,7 @@
 // 2011-08-03 1.0.2 added IMadVRExclusiveModeControl
 // 2011-07-17 1.0.1 added IMadVRRefreshRateInfo
 // 2011-06-25 1.0.0 initial release
-
+#include "d3d9.h"
 #ifndef __mvrInterfaces__
 #define __mvrInterfaces__
 

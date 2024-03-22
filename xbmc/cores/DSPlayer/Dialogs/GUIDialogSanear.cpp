@@ -135,9 +135,9 @@ void CGUIDialogSanear::InitializeSettings()
 
   // BUTTON
   AddButton(groupProperty, SANEAR_PROPERTYPAGE, 80013, 0);
-
+#if 0
   // DEVICES
-  sValue = CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);
+  sValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);
   AddList(groupBitstream, SANEAR_DEVICES, 55120, 0, sValue, CFGLoader::SettingOptionsSanearDevicesFiller, 81027);
  
   // BITSTREAM
@@ -149,15 +149,15 @@ void CGUIDialogSanear::InitializeSettings()
   SettingDependencies depsSanearExclusiveEnabled;
   depsSanearExclusiveEnabled.push_back(dependencySanearExclusiveEnabled);
 
-  bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE);
+  bValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE);
   AddToggle(groupBitstream, SANEAR_EXCLUSIVE, 55121, SettingLevel::Basic, bValue);
-  bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM);
+  bValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM);
   std::shared_ptr<CSetting>  *settingSanearAllowBitStream;
   settingSanearAllowBitStream = AddToggle(groupBitstream, SANEAR_ALLOWBITSTREAM, 55122, SettingLevel::Basic, bValue);
   settingSanearAllowBitStream->SetDependencies(depsSanearExclusiveEnabled);
 
   // IGNORESYSTEMCHANNELMIXER
-  bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER);
+  bValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER);
   AddToggle(groupBitstream, SANEAR_IGNORESYSCHANMIX, 55133, SettingLevel::Basic, bValue);
 
   // STEREOCROSSFEED
@@ -169,26 +169,27 @@ void CGUIDialogSanear::InitializeSettings()
   SettingDependencies depsSanearStereoCFEnabled;
   depsSanearStereoCFEnabled.push_back(dependencySanearStereoCFEnabled);
 
-  bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARSTEREOCROSSFEED);
-  AddToggle(groupOptions, SANEAR_CROSSFEED, 55124, 0, bValue);
+  bValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SANEARSTEREOCROSSFEED);
+  AddToggle(groupOptions, SANEAR_CROSSFEED, 55124, SettingLevel::Basic, bValue);
 
   std::shared_ptr<CSetting>  *settingSanearCMOY;
-  settingSanearCMOY = AddButton(groupOptions, SANEAR_CMOY, 55125, 0);
+  settingSanearCMOY = AddButton(groupOptions, SANEAR_CMOY, 55125, SettingLevel::Basic);
   settingSanearCMOY->SetDependencies(depsSanearStereoCFEnabled);
   
   std::shared_ptr<CSetting>  *settingSanearJmeier;
-  settingSanearJmeier = AddButton(groupOptions, SANEAR_JMEIER, 55126, 0);
+  settingSanearJmeier = AddButton(groupOptions, SANEAR_JMEIER, 55126, SettingLevel::Basic);
   settingSanearJmeier->SetDependencies(depsSanearStereoCFEnabled);
 
-  iValue = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF);
+  iValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF);
   std::shared_ptr<CSetting>  *settingSanearCutOff;
-  settingSanearCutOff = AddSlider(groupOptions, SANEAR_CUTOFF, 55127, 0, iValue, "%i Hz", SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_MIN, 1, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_MAX);
+  settingSanearCutOff = AddSlider(groupOptions, SANEAR_CUTOFF, 55127, SettingLevel::Basic, iValue, "%i Hz", SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_MIN, 1, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_MAX);
   settingSanearCutOff->SetDependencies(depsSanearStereoCFEnabled);
 
-  iValue = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL);
+  iValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL);
   std::shared_ptr<CSetting>  *settingSanearLevel;
-  settingSanearLevel = AddSlider(groupOptions, SANEAR_LEVEL, 55128, 0, iValue, "%i dB", SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_MIN, 1, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_MAX);
+  settingSanearLevel = AddSlider(groupOptions, SANEAR_LEVEL, 55128, SettingLevel::Basic, iValue, "%i dB", SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_MIN, 1, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_MAX);
   settingSanearLevel->SetDependencies(depsSanearStereoCFEnabled);
+#endif
 }
 
 void CGUIDialogSanear::OnSettingChanged(const CSetting *setting)

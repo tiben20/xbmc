@@ -93,7 +93,7 @@ void CRendererHQ::CheckVideoParameters()
 
   if (m_scalingMethodGui != m_videoSettings.m_ScalingMethod)
   {
-    m_scalingMethodGui = m_videoSettings.m_ScalingMethod;
+    m_scalingMethodGui = (ESCALINGMETHOD)m_videoSettings.m_ScalingMethod;
     m_scalingMethod = m_scalingMethodGui;
 
     if (!Supports(m_scalingMethod))

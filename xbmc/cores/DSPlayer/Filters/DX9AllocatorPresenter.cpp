@@ -226,7 +226,7 @@ CDX9AllocatorPresenter::CDX9AllocatorPresenter(HWND hWnd, HRESULT& hr, bool bIsE
   , m_pEvrShared(nullptr)
   , m_pD3DDev(nullptr)
 {
-  g_application.m_pPlayer->Register(this);
+  g_application.GetComponent<CApplicationPlayer>()->Register(this);
   g_Windowing.Register(this);
   m_bIsFullscreen = g_dsSettings.IsD3DFullscreen();
   m_devType = D3DDEVTYPE_HAL;
@@ -323,7 +323,7 @@ CDX9AllocatorPresenter::~CDX9AllocatorPresenter()
 
   SAFE_DELETE(m_pEvrShared);
   g_Windowing.Unregister(this);
-  g_application.m_pPlayer->Unregister(this);
+  g_application.GetComponent<CApplicationPlayer>()->Unregister(this);
 
   if (m_bDesktopCompositionDisabled)
   {
@@ -921,7 +921,7 @@ HRESULT CDX9AllocatorPresenter::InitD3D9()
   }
 
   /* todo evr
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_EXCLUSIVEMODE_EVR))
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_EXCLUSIVEMODE_EVR))
   {
     m_FocusThread = DNew CFocusThread();
     m_FocusThread->Create();
@@ -1916,7 +1916,7 @@ void CDX9AllocatorPresenter::UpdateAlphaBitmap()
 
 STDMETHODIMP_(bool) CDX9AllocatorPresenter::Paint(bool fAll)
 {
-  if (!g_application.m_pPlayer->IsRenderingVideo() || m_bPendingResetDevice)
+  if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo() || m_bPendingResetDevice)
     return false;
 
   if (CDSPlayer::PlayerState == DSPLAYER_CLOSING || CDSPlayer::PlayerState == DSPLAYER_CLOSED)
@@ -1955,7 +1955,7 @@ STDMETHODIMP_(bool) CDX9AllocatorPresenter::Paint(bool fAll)
   hr = m_pD3DDev->ColorFill(m_pVideoSurface[m_nNbDXSurface + 2], NULL, 0);*/
 
 
-  if (g_application.m_pPlayer->IsRenderingVideo() && !rDstVid.IsRectEmpty())
+  if (g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo() && !rDstVid.IsRectEmpty())
   {
 
     if (m_pVideoTexture[m_nCurSurface])

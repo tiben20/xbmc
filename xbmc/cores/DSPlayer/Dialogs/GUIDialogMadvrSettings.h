@@ -40,7 +40,6 @@ protected:
 
   // specialization of CGUIDialogSettingsManualBase
   virtual void SetupView();
-  virtual void Save() {};
 
   void ReturnToSection();
 };

@@ -84,7 +84,7 @@ CmadVRAllocatorPresenter::~CmadVRAllocatorPresenter()
     pEXL->Unregister(m_exclusiveCallback, this);
 
   // Let's madVR restore original display mode (when adjust refresh it's handled by madVR)
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
   {
     if (Com::SmartQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR)
       pMadVrCmd->SendCommand("restoreDisplayModeNow");
@@ -94,7 +94,7 @@ CmadVRAllocatorPresenter::~CmadVRAllocatorPresenter()
   
   // the order is important here
   SAFE_DELETE(m_pMadvrShared);
-  g_application.m_pPlayer->Unregister(this);
+  g_application.GetComponent<CApplicationPlayer>()->Unregister(this);
   m_pSubPicQueue = nullptr;
   m_pAllocator = nullptr;
   m_pDXR = nullptr;
@@ -128,7 +128,7 @@ void CmadVRAllocatorPresenter::SetResolution()
 
   SIZE nativeVideoSize = GetVideoSize(false);
 
-  if (CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && g_graphicsContext.IsFullScreenRoot())
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && g_graphicsContext.IsFullScreenRoot())
   {
     RESOLUTION res = CResolutionUtils::ChooseBestResolution(fps, nativeVideoSize.cx, false);   
     bool bChanged = SetResolutionInternal(res);
@@ -164,13 +164,13 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
     pMadVrCmd->SendCommandBool("disableSeekbar", true);
 
   // Delay Playback
-  m_pSettingsManager->SetBool("delayPlaybackStart2", CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_DELAYMADVRPLAYBACK));
+  m_pSettingsManager->SetBool("delayPlaybackStart2", CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_DELAYMADVRPLAYBACK));
 
   if (Com::SmartQIPtr<IMadVRExclusiveModeCallback> pEXL = m_pDXR)
     pEXL->Register(m_exclusiveCallback, this);
 
   // Exclusive Mode
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_EXCLUSIVEMODE))
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_EXCLUSIVEMODE))
   {
       m_pSettingsManager->SetBool("exclusiveDelay", true);
       m_pSettingsManager->SetBool("enableExclusive", true);
@@ -182,7 +182,7 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
   }
 
   // Direct3D Mode
-  int iD3DMode = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_D3DPRESNTATION);
+  int iD3DMode = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_D3DPRESNTATION);
   switch (iD3DMode)
   {
   case MADVR_D3D9:
@@ -205,8 +205,8 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
   }
 
   // Pre-Presented Frames
-  int iNumPresentWindowed = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_NUMPRESENTWINDOWED);
-  int iNumPresentExclusive = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_NUMPRESENTEXCLUSIVE);
+  int iNumPresentWindowed = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_NUMPRESENTWINDOWED);
+  int iNumPresentExclusive = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_NUMPRESENTEXCLUSIVE);
 
   if (iNumPresentWindowed > 0)
     m_pSettingsManager->SetInt("preRenderFramesWindowed", iNumPresentWindowed);
@@ -357,13 +357,13 @@ HRESULT CmadVRAllocatorPresenter::Render( REFERENCE_TIME rtStart, REFERENCE_TIME
     m_pSubPicQueue->SetFPS(m_fps);
   }
 
-  if (!g_application.m_pPlayer->IsRenderingVideo())
+  if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
   {
     m_NativeVideoSize = GetVideoSize(false);
     m_AspectRatio = GetVideoSize(true);
 
     // Configure Render Manager
-    g_application.m_pPlayer->Configure(m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy, m_fps, CONF_FLAGS_FULLSCREEN);
+    g_application.GetComponent<CApplicationPlayer>()->Configure(m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy, m_fps, CONF_FLAGS_FULLSCREEN);
     CLog::Log(LOGDEBUG, "%s Render manager configured (FPS: %f) %i %i %i %i", __FUNCTION__, m_fps, m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy);
   }
 
@@ -468,7 +468,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
   // Configure initial Madvr Settings
   ConfigureMadvr();
 
-  g_application.m_pPlayer->Register(this);
+  g_application.GetComponent<CApplicationPlayer>()->Register(this);
 
   (*ppRenderer = (IUnknown*)(INonDelegatingUnknown*)(this))->AddRef();
 

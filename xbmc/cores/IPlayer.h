@@ -100,6 +100,58 @@ enum ERENDERFEATURE
 };
 
 #if HAS_DS_PLAYER
+
+struct SPlayerAudioStreamInfo
+{
+  bool valid;
+  int bitrate;
+  int channels;
+  int samplerate;
+  int bitspersample;
+  std::string language;
+  std::string name;
+  std::string audioCodecName;
+
+  SPlayerAudioStreamInfo()
+  {
+    valid = false;
+    bitrate = 0;
+    channels = 0;
+    samplerate = 0;
+    bitspersample = 0;
+  }
+};
+
+struct SPlayerSubtitleStreamInfo
+{
+  std::string language;
+  std::string name;
+};
+
+struct SPlayerVideoStreamInfo
+{
+  bool valid;
+  int bitrate;
+  float videoAspectRatio;
+  int height;
+  int width;
+  std::string language;
+  std::string name;
+  std::string videoCodecName;
+  CRect SrcRect;
+  CRect DestRect;
+  std::string stereoMode;
+
+  SPlayerVideoStreamInfo()
+  {
+    valid = false;
+    bitrate = 0;
+    videoAspectRatio = 1.0f;
+    height = 0;
+    width = 0;
+  }
+};
+
 class IPlayer : public IDSRendererAllocatorCallback, public IDSRendererPaintCallback, public IMadvrSettingCallback, public IDSPlayer
 #else
 class IPlayer
@@ -122,7 +174,29 @@ public:
   virtual bool HasRDS() const { return false; }
   virtual bool HasID3() const { return false; }
   virtual bool IsPassthrough() const { return false;}
-  virtual bool CanSeek() const { return true; }
+#if HAS_DS_PLAYER
+  virtual bool CanSeek() const = 0;
+  virtual float GetPercentage() = 0;
+  virtual float GetCachePercentage() = 0;
+  virtual int  GetSubtitleCount() = 0;
+  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo& info) const =0;
+  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) { };
+  virtual bool IsRenderingVideoLayer() { return false; };
+  virtual bool IsRenderingGuiLayer() { return false; };
+  virtual bool Supports(EINTERLACEMETHOD method) { return false; };
+  virtual bool Supports(ESCALINGMETHOD method) { return false; };
+  virtual bool Supports(ERENDERFEATURE feature) { return false; }
+  virtual void SetPixelShader() = 0;
+  virtual void SetResolution() = 0;
+  virtual int64_t GetTime() { return 0; }
+  virtual int64_t GetTotalTime() { return 0; }
+  virtual float GetSpeed() = 0;
+  virtual bool SupportsTempo() { return false; }
+  virtual bool HasMenu() const { return false; };
+  virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo& info) {};
+#else
+#endif
+  
   virtual void Seek(bool bPlus = true, bool bLargeStep = false, bool bChapterOverride = false) = 0;
   virtual bool SeekScene(bool bPlus = true) {return false;}
   virtual void SeekPercentage(float fPercent = 0){}
@@ -244,6 +318,9 @@ public:
   /*!
    \brief hook into render loop of render thread
    */
+#if HAS_DS_PLAYER
+  virtual void FrameMove() {};
+#endif
   virtual void Render(bool clear, uint32_t alpha = 255, bool gui = true) {}
   virtual void FlushRenderer() {}
   virtual void SetRenderViewMode(int mode, float zoom, float par, float shift, bool stretch) {}
