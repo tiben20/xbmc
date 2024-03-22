@@ -61,7 +61,7 @@ public:
   HRESULT NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
 
 private :
-  std::string      m_name;
+  std::wstring      m_name;
   LCID            m_lcid;
   REFERENCE_TIME  m_rtStart;
 
@@ -75,7 +75,7 @@ class CRenderedHdmvSubtitleFile : public ISubPicProviderImpl, public ISubStream
 public:
   CRenderedHdmvSubtitleFile(CCritSec* pLock, SUBTITLE_TYPE nType);
   ~CRenderedHdmvSubtitleFile(void);
-  bool Open(std::string fn);
+  bool Open(std::wstring fn);
 
   DECLARE_IUNKNOWN
   STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);
@@ -103,7 +103,7 @@ public:
   HRESULT ParseSample (IMediaSample* pSample);
 
 private :
-  std::string      m_name;
+  std::wstring      m_name;
   LCID            m_lcid;
   uint64_t        m_totalSize;
   REFERENCE_TIME  m_lastParseTimeTo;

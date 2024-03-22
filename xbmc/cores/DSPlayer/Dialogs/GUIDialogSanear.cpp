@@ -95,34 +95,34 @@ void CGUIDialogSanear::InitializeSettings()
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
 
-  CSettingCategory *category = AddCategory("dsplayerlavaudio", -1);
+  std::shared_ptr<CSettingCategory> category = AddCategory("dsplayerlavaudio", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogSanear: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupProperty = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupProperty = AddGroup(category);
   if (groupProperty == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogSanear: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *group = AddGroup(category);
+  std::shared_ptr<CSettingGroup> group = AddGroup(category);
   if (group == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogSanear: unable to setup settings");
     return;
   }
-  CSettingGroup *groupBitstream = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupBitstream = AddGroup(category);
   if (groupBitstream == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogSanear: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupOptions = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupOptions = AddGroup(category);
   if (groupOptions == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogSanear: unable to setup settings");
@@ -150,15 +150,15 @@ void CGUIDialogSanear::InitializeSettings()
   depsSanearExclusiveEnabled.push_back(dependencySanearExclusiveEnabled);
 
   bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE);
-  AddToggle(groupBitstream, SANEAR_EXCLUSIVE, 55121, 0, bValue);
+  AddToggle(groupBitstream, SANEAR_EXCLUSIVE, 55121, SettingLevel::Basic, bValue);
   bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM);
   CSetting *settingSanearAllowBitStream;
-  settingSanearAllowBitStream = AddToggle(groupBitstream, SANEAR_ALLOWBITSTREAM, 55122, 0, bValue);
+  settingSanearAllowBitStream = AddToggle(groupBitstream, SANEAR_ALLOWBITSTREAM, 55122, SettingLevel::Basic, bValue);
   settingSanearAllowBitStream->SetDependencies(depsSanearExclusiveEnabled);
 
   // IGNORESYSTEMCHANNELMIXER
   bValue = CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER);
-  AddToggle(groupBitstream, SANEAR_IGNORESYSCHANMIX, 55133, 0, bValue);
+  AddToggle(groupBitstream, SANEAR_IGNORESYSCHANMIX, 55133, SettingLevel::Basic, bValue);
 
   // STEREOCROSSFEED
 

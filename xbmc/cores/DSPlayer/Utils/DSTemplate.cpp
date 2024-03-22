@@ -27,18 +27,19 @@
 #include "DSUtil/DSUtil.h"
 #include "ShlObj.h"
 #include "dmoreg.h"
-
+#include "utils/StringUtils.h"
 
 #pragma comment(lib, "msdmo.lib")
 
 namespace Com
 {
-  std::string get_next_token(std::string &str, std::string separator)
+  std::wstring get_next_token(std::wstring &str, std::wstring separator)
   {
-    std::string ret;
-    int pos = str.Find(separator);
+    std::wstring ret;
+    int pos = str.find(separator);
     if (pos < 0) {
       ret = str;
+      ret = StringUtils::Trim(ret);
       ret = ret.Trim();
       str = _T("");
       return ret;
@@ -74,7 +75,7 @@ namespace Com
   {
   }
 
-  URI::URI(std::string url)
+  URI::URI(std::wstring url)
   {
     Parse(url);
   }
@@ -93,44 +94,42 @@ namespace Com
     return *this;
   }
 
-  URI &URI::operator =(std::string url)
+  URI &URI::operator =(std::wstring url)
   {
     Parse(url);
     return *this;
   }
 
-  int URI::Parse(std::string url)
+  int URI::Parse(std::wstring url)
   {
     // protocol://host:port/request_url
-    protocol = "http";
-    host = "";
-    request_url = "";
+    protocol = _T("http");
+    host = _T("");
+    request_url = _T("");
 
     int pos;
-
-    pos = url.find("://");
+    pos = url.Find(_T("://"));
     if (pos > 0) {
-      protocol = StringUtils::Left(url,pos);
-      url.erase(0, pos + 3);
+      protocol = url.Left(pos);
+      url.Delete(0, pos + 3);
     }
     port = 80;		// map protocol->port
 
-    pos = url.find("/");
+    pos = url.Find(_T("/"));
     if (pos < 0) {
-      request_url = "/";
+      request_url = _T("/");
       host = url;
     }
     else {
-      host = StringUtils::Left(url, pos);
-      url.erase(0, pos);
+      host = url.Left(pos);
+      url.Delete(0, pos);
       request_url = url;
     }
 
-    pos = host.find(":");
+    pos = host.Find(_T(":"));
     if (pos > 0) {
-      std::string temp_host = host;
-      host = StringUtils::Left(temp_host, pos);
-      
+      std::wstring temp_host = host;
+      host = temp_host.Left(pos);
       temp_host.Delete(0, pos + 1);
 
       temp_host.Trim();
@@ -303,9 +302,9 @@ namespace Com
     return *this;
   }
 
-  void DoReplace(std::string &str, std::string old_str, std::string new_str)
+  void DoReplace(std::wstring &str, std::wstring old_str, std::wstring new_str)
   {
-    std::string	temp = str;
+    std::wstring	temp = str;
     temp.MakeUpper();
     int p = temp.Find(old_str);
     if (p >= 0) {
@@ -318,8 +317,8 @@ namespace Com
   {
     LPOLESTR	str;
     StringFromCLSID(clsid, &str);
-    std::string		str_clsid(str);
-    std::string		key_name;
+    std::wstring		str_clsid(str);
+    std::wstring		key_name;
     if (str)
       CoTaskMemFree(str);
 
@@ -334,7 +333,7 @@ namespace Com
       std::string tmpstrPath = key.getValue("");
 
       file = tmpstrPath;
-      std::string		progfiles, sysdir, windir;
+      std::wstring		progfiles, sysdir, windir;
       LPSTR temp = NULL;
       SHGetSpecialFolderPath(NULL, temp, CSIDL_PROGRAM_FILES, FALSE);
       progfiles = temp;
@@ -481,7 +480,7 @@ namespace Com
     return 0;
   }
 
-  int FilterTemplate::LoadFromMoniker(std::string displayname)
+  int FilterTemplate::LoadFromMoniker(std::wstring displayname)
   {
     /*
         First create the moniker and then extract all the information just like when
@@ -507,7 +506,7 @@ namespace Com
       VariantInit(&var);
       hr = propbag->Read(L"FriendlyName", &var, 0);
       if (SUCCEEDED(hr)) {
-        name = std::string(var.bstrVal);
+        name = std::wstring(var.bstrVal);
       }
       VariantClear(&var);
 
@@ -548,7 +547,7 @@ namespace Com
   {
   }
 
-  FilterCategory::FilterCategory(std::string nm, GUID cat_clsid, bool dmo) :
+  FilterCategory::FilterCategory(std::wstring nm, GUID cat_clsid, bool dmo) :
     name(nm),
     clsid(cat_clsid),
     is_dmo(dmo)
@@ -613,7 +612,7 @@ namespace Com
           VariantInit(&var);
           hr = propbag->Read(L"FriendlyName", &var, 0);
           if (SUCCEEDED(hr)) {
-            category.name = std::string(var.bstrVal);
+            category.name = std::wstring(var.bstrVal);
           }
           VariantClear(&var);
 
@@ -669,8 +668,8 @@ namespace Com
 
   int _FilterCompare(FilterTemplate &f1, FilterTemplate &f2)
   {
-    std::string s1 = f1.name; s1.MakeUpper();
-    std::string s2 = f2.name; s2.MakeUpper();
+    std::wstring s1 = f1.name; s1.MakeUpper();
+    std::wstring s2 = f2.name; s2.MakeUpper();
 
     return s1.Compare(s2);
   }
@@ -726,7 +725,7 @@ namespace Com
     }
   }
 
-  int FilterTemplates::Find(std::string name, FilterTemplate *filter)
+  int FilterTemplates::Find(std::wstring name, FilterTemplate *filter)
   {
     if (!filter) return -1;
     for (int i = 0; i < filters.size(); i++) {
@@ -750,7 +749,7 @@ namespace Com
     return -1;
   }
 
-  HRESULT FilterTemplates::CreateInstance(std::string name, IBaseFilter **filter)
+  HRESULT FilterTemplates::CreateInstance(std::wstring name, IBaseFilter **filter)
   {
     FilterTemplate	ft;
     if (Find(name, &ft) >= 0) {
@@ -835,43 +834,43 @@ namespace Com
         FilterTemplate		filter;
 
         // let's fill any information
-        filter.name = std::string(name);
+        filter.name = std::wstring(name);
         filter.clsid = dmo_clsid;
         filter.category = clsid;
         filter.type = FilterTemplate::FT_DMO;
         filter.moniker = NULL;
 
         LPOLESTR		str;
-        std::string			display_name;
+        std::wstring			display_name;
 
         display_name = _T("@device:dmo:");
         StringFromCLSID(dmo_clsid, &str);
-        if (str) { display_name += std::string(str);	CoTaskMemFree(str);	str = NULL; }
+        if (str) { display_name += std::wstring(str);	CoTaskMemFree(str);	str = NULL; }
         StringFromCLSID(clsid, &str);
-        if (str) { display_name += std::string(str);	CoTaskMemFree(str);	str = NULL; }
+        if (str) { display_name += std::wstring(str);	CoTaskMemFree(str);	str = NULL; }
         filter.moniker_name = display_name;
         filter.version = 2;
         filter.FindFilename();
 
         // find out merit
         StringFromCLSID(dmo_clsid, &str);
-        std::string		str_clsid(str);
-        std::string		key_name;
+        std::wstring		str_clsid(str);
+        std::wstring		key_name;
         if (str) CoTaskMemFree(str);
 
 #if 0
         key_name.Format(_T("CLSID\\%s"), str_clsid);
         RegKey key(HKEY_CLASSES_ROOT, key_name, false);
-        std::map<std::string, std::string> keyMaps = key.getValues();
+        std::map<std::wstring, std::wstring> keyMaps = key.getValues();
         if (keyMaps.empty())
         {
           filter.merit = 0x00600000 + 0x800;
         }
         else
         {
-          std::string strdmo = "Merit";
-          std::string result;
-          result = keyMaps.find(std::string("Merit"))->second;
+          std::wstring strdmo = "Merit";
+          std::wstring result;
+          result = keyMaps.find(std::wstring("Merit"))->second;
 
           if (result.length() == 0)
           {
@@ -1018,7 +1017,7 @@ namespace Com
         VariantInit(&var);
         hr = propbag->Read(L"FriendlyName", &var, 0);
         if (SUCCEEDED(hr)) {
-          filter.name = std::string(var.bstrVal);
+          filter.name = std::wstring(var.bstrVal);
         }
         VariantClear(&var);
 
@@ -1051,7 +1050,7 @@ namespace Com
             LPOLESTR	moniker_name;
             hr = moniker->GetDisplayName(NULL, NULL, &moniker_name);
             if (SUCCEEDED(hr)) {
-              filter.moniker_name = std::string(moniker_name);
+              filter.moniker_name = std::wstring(moniker_name);
 
               IMalloc *alloc = NULL;
               hr = CoGetMalloc(1, &alloc);
@@ -1220,7 +1219,7 @@ namespace Com
       // pin info
       pin->QueryPinInfo(&info);
 
-      npin.name = std::string(info.achName);
+      npin.name = std::wstring(info.achName);
       npin.filter = info.pFilter; info.pFilter->AddRef();
       npin.pin = pin;	pin->AddRef();
       npin.dir = dir;
@@ -1381,7 +1380,7 @@ namespace Com
     OLECHAR szCLSID[CHARS_IN_GUID];
     StringFromGUID2(clsid, szCLSID, CHARS_IN_GUID);
 
-    std::string	keyname;
+    std::wstring	keyname;
     keyname.Format(_T("CLSID\\%s"), szCLSID);
 
     // delete subkey

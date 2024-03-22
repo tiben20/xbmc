@@ -95,7 +95,7 @@ void CGUIDialogDSPlayercoreFactory::InitializeSettings()
 {
   CGUIDialogSettingsManualBase::InitializeSettings();
 
-  CSettingCategory *category = AddCategory("dsplayercoresettings", -1);
+  std::shared_ptr<CSettingCategory> category = AddCategory("dsplayercoresettings", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSPlayercoreFactory: unable to setup settings");
@@ -103,14 +103,14 @@ void CGUIDialogDSPlayercoreFactory::InitializeSettings()
   }
 
   // get all necessary setting groups
-  CSettingGroup *group = AddGroup(category);
+  std::shared_ptr<CSettingGroup> group = AddGroup(category);
   if (group == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSPlayercoreFactory: unable to setup settings");
     return;
   }
 
-  CSettingGroup *groupSave = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupSave = AddGroup(category);
   if (groupSave == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSPlayercoreFactory: unable to setup settings");

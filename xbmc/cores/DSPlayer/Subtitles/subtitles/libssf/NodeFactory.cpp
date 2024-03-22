@@ -122,12 +122,12 @@ namespace ssf
       {
         if(!pDef->m_predefined)
         {
-          throw Exception(_T("redefinition of '%s' is not allowed"), std::string(name));
+          throw Exception(_T("redefinition of '%s' is not allowed"), std::wstring(name));
         }
 
         if(!pDef->IsTypeUnknown() && !pDef->IsType(type))
         {
-          throw Exception(_T("cannot redefine type of %s to %s"), std::string(name), std::string(type));
+          throw Exception(_T("cannot redefine type of %s to %s"), std::wstring(name), std::wstring(type));
         }
       }
     }

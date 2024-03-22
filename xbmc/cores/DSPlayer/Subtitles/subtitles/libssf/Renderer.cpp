@@ -163,7 +163,7 @@ namespace ssf
       LOGFONT lf;
       memset(&lf, 0, sizeof(lf));
       lf.lfCharSet = DEFAULT_CHARSET;
-      _tcscpy_s(lf.lfFaceName, std::string(t.style.font.face));
+      _tcscpy_s(lf.lfFaceName, std::wstring(t.style.font.face));
       lf.lfHeight = (LONG)(t.style.font.size * scale.cy + 0.5);
       lf.lfWeight = (LONG)(t.style.font.weight + 0.5);
       lf.lfItalic = !!t.style.font.italic;

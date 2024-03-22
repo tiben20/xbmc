@@ -47,7 +47,7 @@ protected:
   void LoadMadvrSettings();
   void SaveMadvrSettings();
 
-  CSettingCategory *m_category;
+  std::shared_ptr<CSettingCategory> m_category;
   std::map<int, int> m_focusPositions;
   bool m_bMadvr;
   int m_iSectionIdInternal;

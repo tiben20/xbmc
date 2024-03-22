@@ -242,7 +242,7 @@ CRenderedTextSubtitle : public CSimpleTextSubtitle, public ISubPicProviderImpl, 
   STSStyle *m_pStyleOverride; // the app can decide to use this style instead of a built-in one
   bool m_doOverrideStyle;
 
-  void ParseEffect(CSubtitle* sub, std::string str);
+  void ParseEffect(CSubtitle* sub, std::wstring str);
   void ParseString(CSubtitle* sub, std::wstring str, STSStyle& style);
   void ParsePolygon(CSubtitle* sub, std::wstring str, STSStyle& style);
   bool ParseSSATag(CSubtitle* sub, std::wstring str, STSStyle& style, STSStyle& org, bool fAnimate = false);

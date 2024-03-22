@@ -40,7 +40,7 @@ namespace ssf
   {
   }
 
-  bool CRenderer::Open(std::string fn, std::string name)
+  bool CRenderer::Open(std::wstring fn, std::wstring name)
   {
     m_fn.Empty();
     m_name.Empty();
@@ -49,7 +49,7 @@ namespace ssf
 
     if(name.IsEmpty())
     {
-      std::string str = fn;
+      std::wstring str = fn;
       str.Replace('\\', '/');
       name = str.Left(str.ReverseFind('.'));
       name = name.Mid(name.ReverseFind('/')+1);
@@ -73,7 +73,7 @@ namespace ssf
     return false;  
   }
 
-  bool CRenderer::Open(InputStream& s, std::string name)
+  bool CRenderer::Open(InputStream& s, std::wstring name)
   {
     m_fn.Empty();
     m_name.Empty();

@@ -573,7 +573,7 @@ wstring CRealTextParser::RenderTags(const list<Tag>& p_crlTags)
     }
     else
     {
-//      AfxMessageBox(std::string(_T("Unknown RealText-tag: ")) + oTag.m_szName.c_str());
+//      AfxMessageBox(std::wstring(_T("Unknown RealText-tag: ")) + oTag.m_szName.c_str());
       g_log->Log(LOGERROR, "%s Unknown RealText tag: %s", __FUNCTION__, oTag.m_szName.c_str());
     }
   }

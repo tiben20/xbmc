@@ -14,7 +14,7 @@
 //   - IPTC information (if available)
 //   - EXIF information (if available)
 // All gathered information is stored in a vector of 'description' and 'value'
-// pairs (where both description and value fields are of CStdString types).
+// pairs (where both description and value fields are of std::wstring types).
 //--------------------------------------------------------------------------
 
 #include "JpegParse.h"
@@ -273,7 +273,7 @@ bool CJpegParse::Process (const char *picFileName)
   // Gather all information about the file
 
 /*    // Get file name...
-  CStdString tmp, urlFName, path;
+  std::wstring tmp, urlFName, path;
   CURL url(picFileName);
   url.GetURLWithoutUserDetails(urlFName);
   CUtil::Split(urlFName, path, tmp);

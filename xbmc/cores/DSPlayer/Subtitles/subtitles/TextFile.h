@@ -33,7 +33,7 @@ public:
 private:
   enc m_encoding, m_defaultencoding;
   int m_offset;
-  std::string m_strFileName;
+  std::wstring m_strFileName;
 
 public:
   CTextFile(enc e = ASCII);
@@ -47,7 +47,7 @@ public:
 
   // CFile
 
-  std::string GetFilePath() const;
+  std::wstring GetFilePath() const;
 
   // CStdioFile
 
@@ -65,7 +65,7 @@ public:
 class CWebTextFile : public CTextFile/*, IDownloadQueueObserver*/
 {
   LONGLONG m_llMaxSize;
-  std::string m_tempfn;
+  std::wstring m_tempfn;
   /*CEvent m_downloadEvent;
   TICKET m_dlTicket;
   bool m_dlSucceeded;*/
@@ -79,7 +79,7 @@ public:
   void Close();
 };
 
-extern std::string  AToT(std::string str);
-extern std::string  WToT(std::wstring str);
-extern std::string TToA(std::string str);
-extern std::wstring TToW(std::string str);
+extern std::wstring  AToT(std::string str);
+extern std::wstring  WToT(std::wstring str);
+extern std::string TToA(std::wstring str);
+extern std::wstring TToW(std::wstring str);

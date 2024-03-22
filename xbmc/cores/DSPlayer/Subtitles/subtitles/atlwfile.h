@@ -51,7 +51,7 @@ class CFileT
 {
 protected:
   BOOL m_bCloseOnDelete;
-  std::string m_strFileName;
+  std::wstring m_strFileName;
 public:
    HANDLE m_hFile;
    enum OpenFlags {
@@ -475,7 +475,7 @@ public:
     memcpy((void*) lpsz, (void*) foo.GetBuffer(), foo.length());
     return lpsz;
   }
-  virtual BOOL ReadString(std::string& rString)
+  virtual BOOL ReadString(std::wstring& rString)
   {
     rString = _T("");    // empty string without deallocating
     const int nMaxSize = 128;

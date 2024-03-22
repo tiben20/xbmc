@@ -28,7 +28,7 @@
 #define DeclareNameAndValue(pNode, name, val) \
     _bstr_t foo; \
     pNode->get_nodeName((BSTR *)&foo); \
-    std::string name(foo); ::SysFreeString(foo); name.ToLower(); \
+    std::wstring name(foo); ::SysFreeString(foo); name.ToLower(); \
     _variant_t val; \
     pNode->get_nodeValue(&val); \
 
@@ -140,7 +140,7 @@ static DWORD ColorToDWORD(std::wstring str)
   }
   else
   {
-    std::map<std::string, DWORD>::const_iterator it = g_colors.find(std::string(str));
+    std::map<std::wstring, DWORD>::const_iterator it = g_colors.find(std::wstring(str));
     if (it == g_colors.end())
       ret = 0;
     else

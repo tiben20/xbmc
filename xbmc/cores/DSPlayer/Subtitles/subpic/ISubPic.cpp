@@ -1010,7 +1010,7 @@ ISubPicAllocatorPresenterImpl::ISubPicAllocatorPresenterImpl(HWND hWnd, HRESULT&
   , m_rtSubtitleDelay(0)
   , m_bPendingResetDevice(false)
 {
-  std::string _pError;
+  std::wstring _pError;
   _pError = "";
   if(!IsWindow(m_hWnd)) 
   {

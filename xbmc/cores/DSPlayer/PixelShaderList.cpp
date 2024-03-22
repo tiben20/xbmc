@@ -107,7 +107,7 @@ bool CPixelShaderList::LoadXMLFile(const std::string& xmlFile)
   TiXmlElement* shaders = rootElement->FirstChildElement("shader");
   while (shaders)
   {
-    std::auto_ptr<CExternalPixelShader> shader(new CExternalPixelShader(shaders));
+    std::unique_ptr<CExternalPixelShader> shader(new CExternalPixelShader(shaders));
     if (shader->IsValid())
     {
       if (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind1st(std::ptr_fun(HasSameID),

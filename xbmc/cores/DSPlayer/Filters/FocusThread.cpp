@@ -23,7 +23,6 @@
 #include "DSPlayer.h"
 
 #define SAFE_CLOSE_HANDLE(p) { if (p) { if ((p) != INVALID_HANDLE_VALUE) VERIFY(CloseHandle(p)); (p) = nullptr; } }
-ThreadIdentifier CFocusThread::m_threadID = 0;
 
 LRESULT CALLBACK FocusWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -64,13 +63,13 @@ CFocusThread::CFocusThread()
 
 CFocusThread::~CFocusThread()
 {
-    SAFE_CLOSE_HANDLE(m_hEvtInit);
+    //SAFE_CLOSE_HANDLE(m_hEvtInit);
     UnregisterClass(_T("D3DFocusClass"), nullptr);
 }
 
 void CFocusThread::OnStartup()
 {    
-  m_threadID = CThread::GetCurrentThreadId();
+  //m_threadID = CThread::GetCurrentThreadId();
   m_hWnd = CreateWindow(_T("D3DFocusClass"), _T("D3D Focus Window"), WS_OVERLAPPED, 0, 0, 0, 0, nullptr, nullptr, nullptr, nullptr);
   SetEvent(m_hEvtInit);
   if (!m_hWnd) {

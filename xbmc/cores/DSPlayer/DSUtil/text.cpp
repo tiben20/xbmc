@@ -2,7 +2,7 @@
 #include "text.h"
 
 /*
-std::string Explode(std::string str, std::list<std::string>& sl, TCHAR sep, int limit)
+std::wstring Explode(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, int limit)
 {
   sl.clear();
 
@@ -13,7 +13,7 @@ std::string Explode(std::string str, std::list<std::string>& sl, TCHAR sep, int 
 
   for(int i = 0, j = 0; (j = str.Find(sep, i)) >= 0; i = j+1)
   {
-    std::string tmp = str.Mid(i, j-i);
+    std::wstring tmp = str.Mid(i, j-i);
     tmp.TrimLeft(sep); tmp.TrimRight(sep);
     tmp.TrimLeft(); tmp.TrimRight();
     sl.push_back(tmp);
@@ -21,7 +21,7 @@ std::string Explode(std::string str, std::list<std::string>& sl, TCHAR sep, int 
     {
       if(j+1 < str.GetLength()) 
       {
-        std::string tmp = str.Mid(j+1);
+        std::wstring tmp = str.Mid(j+1);
         tmp.TrimLeft(sep); tmp.TrimRight(sep);
         tmp.TrimLeft(); tmp.TrimRight();
         sl.push_back(tmp);
@@ -40,7 +40,7 @@ std::string Explode(std::string str, std::list<std::string>& sl, TCHAR sep, int 
   return sl.GetHead();
 }
 
-std::string ExplodeMin(std::string str, std::list<std::string>& sl, TCHAR sep, int limit)
+std::wstring ExplodeMin(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, int limit)
 {
   Explode(str, sl, sep, limit);
   POSITION pos = sl.GetHeadPosition();
@@ -50,14 +50,14 @@ std::string ExplodeMin(std::string str, std::list<std::string>& sl, TCHAR sep, i
     if(sl.GetNext(pos).IsEmpty())
       sl.RemoveAt(tmp);
   }
-  if(sl.IsEmpty()) sl.push_back(std::string()); // eh
+  if(sl.IsEmpty()) sl.push_back(std::wstring()); // eh
 
   return sl.GetHead();
 }
 
-std::string Implode(std::list<std::string>& sl, TCHAR sep)
+std::wstring Implode(std::list<std::wstring>& sl, TCHAR sep)
 {
-  std::string ret;
+  std::wstring ret;
   POSITION pos = sl.GetHeadPosition();
   while(pos)
   {
@@ -161,7 +161,7 @@ std::string UrlDecode(std::string str, bool fRaw)
   return str;
 }
 
-std::string ExtractTag(std::string tag, std::map<LPCTSTR, std::string>& attribs, bool& fClosing)
+std::wstring ExtractTag(std::wstring tag, std::map<LPCTSTR, std::wstring>& attribs, bool& fClosing)
 {
   tag.Trim();
   attribs.clear();
@@ -171,19 +171,19 @@ std::string ExtractTag(std::string tag, std::map<LPCTSTR, std::string>& attribs,
 
   int i = tag.Find(' ');
   if(i < 0) i = tag.GetLength();
-  std::string type = tag.Left(i); type.MakeLower();
+  std::wstring type = tag.Left(i); type.MakeLower();
   tag = tag.Mid(i).Trim();
 
   while((i = tag.Find('=')) > 0)
   {
-    std::string attrib = tag.Left(i).Trim(); attrib.MakeLower();
+    std::wstring attrib = tag.Left(i).Trim(); attrib.MakeLower();
     tag = tag.Mid(i+1);
     for(i = 0; i < tag.GetLength() && _istspace(tag[i]); i++);
     tag = i < tag.GetLength() ? tag.Mid(i) : _T("");
     if(!tag.IsEmpty() && tag[0] == '\"') {tag = tag.Mid(1); i = tag.Find('\"');}
     else i = tag.Find(' ');
     if(i < 0) i = tag.GetLength();
-    std::string param = tag.Left(i).Trim();
+    std::wstring param = tag.Left(i).Trim();
     if(!param.IsEmpty())
       attribs[attrib] = param;
     tag = i+1 < tag.GetLength() ? tag.Mid(i+1) : _T("");
@@ -192,30 +192,30 @@ std::string ExtractTag(std::string tag, std::map<LPCTSTR, std::string>& attribs,
   return(type);
 }
 
-std::list<std::string>& MakeLower(std::list<std::string>& sl)
+std::list<std::wstring>& MakeLower(std::list<std::wstring>& sl)
 {
-  for (std::list<std::string>::iterator it = sl.begin();
+  for (std::list<std::wstring>::iterator it = sl.begin();
     it != sl.end(); ++it)
     it->MakeLower();
 
   return sl;
 }
 
-std::list<std::string>& MakeUpper(std::list<std::string>& sl)
+std::list<std::wstring>& MakeUpper(std::list<std::wstring>& sl)
 {
-  for (std::list<std::string>::iterator it = sl.begin();
+  for (std::list<std::wstring>::iterator it = sl.begin();
     it != sl.end(); ++it)
     it->MakeUpper();
   return sl;
 }
 
-std::list<std::string>& RemoveStrings(std::list<std::string>& sl, int minlen, int maxlen)
+std::list<std::wstring>& RemoveStrings(std::list<std::wstring>& sl, int minlen, int maxlen)
 {
-  std::list<std::string>::iterator pos = sl.begin();
+  std::list<std::wstring>::iterator pos = sl.begin();
   while(pos != sl.end())
   {
-    std::list<std::string>::iterator tmp = pos;
-    std::string& str = (*pos); pos++;
+    std::list<std::wstring>::iterator tmp = pos;
+    std::wstring& str = (*pos); pos++;
     int len = str.GetLength();
     if(len < minlen || len > maxlen) sl.erase(tmp);
   }

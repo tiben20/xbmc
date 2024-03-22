@@ -598,7 +598,7 @@ void CGUIFontTTF::DrawTextInternal(CGraphicContext& context,
     for (auto itGlyph = glyphBegin; itGlyph != glyphs.cend(); ++itGlyph)
     {
       // If starting text on a new line, determine justification effects
-      // Get the current letter in the CStdString
+      // Get the current letter in the std::wstring
       UTILS::COLOR::Color color = (text[itGlyph->m_glyphInfo.cluster] & 0xff0000) >> 16;
       if (color >= colors.size())
         color = 0;

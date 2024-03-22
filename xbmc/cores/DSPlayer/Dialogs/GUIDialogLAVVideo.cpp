@@ -101,60 +101,60 @@ void CGUIDialogLAVVideo::InitializeSettings()
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
 
-  CSettingCategory *category = AddCategory("dsplayerlavvideo", -1);
+  std::shared_ptr<CSettingCategory> category = AddCategory("dsplayerlavvideo", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupProperty = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupProperty = AddGroup(category);
   if (groupProperty == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
-  CSettingGroup *group = AddGroup(category);
+  std::shared_ptr<CSettingGroup> group = AddGroup(category);
   if (group == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
-  CSettingGroup *groupHW = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupHW = AddGroup(category);
   if (groupHW == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupSettings = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupSettings = AddGroup(category);
   if (groupSettings == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupOutput = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupOutput = AddGroup(category);
   if (groupOutput == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupDeintSW = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupDeintSW = AddGroup(category);
   if (groupDeintSW == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupDeintHW = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupDeintHW = AddGroup(category);
   if (groupDeintHW == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVVideo: unable to setup settings");
     return;
   }
-  CSettingGroup *groupReset = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupReset = AddGroup(category);
   if (groupReset == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");

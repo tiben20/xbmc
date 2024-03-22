@@ -121,7 +121,7 @@ bool CTextFile::IsUnicode()
 
 // CFile
 
-std::string CTextFile::GetFilePath() const
+std::wstring CTextFile::GetFilePath() const
 {
   // to avoid a CException coming from CTime
   return m_strFileName; // __super::GetFilePath();
@@ -197,7 +197,7 @@ void CTextFile::WriteString(LPCWSTR lpsz/*std::wstring str*/)
   else if(m_encoding == ANSI)
   {
     str.Replace(L"\n", L"\r\n");
-    std::string stra = std::string(std::string(str)); // TODO: codepage
+    std::string stra = std::string(std::wstring(str)); // TODO: codepage
     Write((LPCSTR)stra, stra.GetLength());
   }
   else if(m_encoding == UTF8)
@@ -253,7 +253,7 @@ BOOL CTextFile::ReadString(std::string& str)
 
   if(m_encoding == ASCII)
   {
-    std::string s;
+    std::wstring s;
     fEOF = !__super::ReadString(s);
     str = TToA(s);
   }
@@ -331,7 +331,7 @@ BOOL CTextFile::ReadString(std::wstring& str)
 
   if(m_encoding == ASCII)
   {
-    std::string s;
+    std::wstring s;
     fEOF = !__super::ReadString(s);
     str = TToW(s);
   }
@@ -346,7 +346,7 @@ BOOL CTextFile::ReadString(std::wstring& str)
       if(c == '\n') break;
       stra += c;
     }
-    str = std::wstring(std::string(stra)); // TODO: codepage
+    str = std::wstring(std::wstring(stra)); // TODO: codepage
   }
   else if(m_encoding == UTF8)
   {
@@ -416,7 +416,7 @@ CWebTextFile::CWebTextFile(LONGLONG llMaxSize)
 
 bool CWebTextFile::Open(LPCTSTR lpszFileName)
 {
-  std::string fn(lpszFileName);
+  std::wstring fn(lpszFileName);
 
   if(fn.Find(_T("http://")) != 0)
     return __super::Open(lpszFileName);
@@ -428,7 +428,7 @@ bool CWebTextFile::Open(LPCTSTR lpszFileName)
   m_downloadEvent.Reset();
 
   std::string url(lpszFileName);
-  std::string dlTo = "special://temps/" + url.Mid(url.ReverseFind('/') + 1);
+  std::wstring dlTo = "special://temps/" + url.Mid(url.ReverseFind('/') + 1);
   m_dlTicket = g_DownloadManager.RequestFile(url, dlTo, this);
 
   // Wait for the download to be complete
@@ -468,23 +468,23 @@ void CWebTextFile::OnFileComplete( TICKET aTicket, std::string& aFilePath, INT a
 */
 ///////////////////////////////////////////////////////////////
 
-std::string AToT(std::string str)
+std::wstring AToT(std::string str)
 {
-  std::string ret;
+  std::wstring ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (TCHAR)(BYTE)str[i];
   return(ret);
 }
 
-std::string WToT(std::wstring str)
+std::wstring WToT(std::wstring str)
 {
-  std::string ret;
+  std::wstring ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (TCHAR)(WORD)str[i];
   return(ret);
 }
 
-std::string TToA(std::string str)
+std::string TToA(std::wstring str)
 {
   std::string ret;
 #ifdef UNICODE
@@ -496,7 +496,7 @@ std::string TToA(std::string str)
   return(ret);
 }
 
-std::wstring TToW(std::string str)
+std::wstring TToW(std::wstring str)
 {
   std::wstring ret;
 #ifdef UNICODE

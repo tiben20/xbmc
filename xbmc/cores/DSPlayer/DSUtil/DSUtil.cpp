@@ -1,4 +1,4 @@
-a/* 
+/* 
  *  Copyright (C) 2003-2006 Gabest
  *  http://www.gabest.org
  *
@@ -112,7 +112,7 @@ HRESULT GUIDFromString(std::wstring str, GUID& guid)
 
 std::wstring GetFilterPath(CLSID pClsid)
 {
-  std::string strGuidD;
+  std::wstring strGuidD;
   strGuidD = StringFromGUID(pClsid);
   return GetFilterPath(strGuidD);
 }
@@ -593,7 +593,7 @@ std::wstring GetFilterName(IBaseFilter* pBF)
   return(name);
 }
 
-std::wstring GetFilterPath(std::string pClsid)
+std::wstring GetFilterPath(std::wstring pClsid)
 {
 
   std::wstring subKey = _T("\\CLSID\\") + pClsid + _T("\\InprocServer32");
@@ -909,8 +909,8 @@ std::string GetDshowError(HRESULT hr)
   char szErr[MAX_ERROR_TEXT_LEN];
   DWORD res = AMGetErrorTextA(hr, szErr, MAX_ERROR_TEXT_LEN);
   if (res > 0)
-    return std::string(szErr);
-  return std::string("");
+    return std::wstring(szErr);
+  return std::wstring("");
 
 }
 

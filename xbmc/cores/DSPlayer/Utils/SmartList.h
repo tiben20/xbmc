@@ -534,42 +534,42 @@ namespace Com
     ComPtrList<T>  m_list;
   };
 
-  //This is just easier than auto_ptr which not allow copy constructors for stl containers
+  //This is just easier than unique_ptr which not allow copy constructors for stl containers
   template< typename T >
-  class Auto_Ptr
+  class unique_ptr
   {
   public:
-    Auto_Ptr() throw() :
+    unique_ptr() throw() :
       m_p(NULL)
     {
     }
     template< typename Y >
-    Auto_Ptr(Auto_Ptr< Y >& p) throw()
+    unique_ptr(unique_ptr< Y >& p) throw()
     {
       m_p = p.Detach();  // Transfer ownership
     }
 
-    Auto_Ptr(Auto_Ptr< T >& p) throw()
+    unique_ptr(unique_ptr< T >& p) throw()
     {
       m_p = p.Detach();  // Transfer ownership
     }
 
-    explicit Auto_Ptr(T* p) throw() :
+    explicit unique_ptr(T* p) throw() :
       m_p(p)
     {
     }
-    ~Auto_Ptr() throw()
+    ~unique_ptr() throw()
     {
       Release();
     }
 
     // Templated version to allow pBase = pDerived
     template< typename Y >
-    Auto_Ptr< T >& operator=(Auto_Ptr< Y >& p) throw()
+    unique_ptr< T >& operator=(unique_ptr< Y >& p) throw()
     {
       if (m_p == p.m_p)
       {
-        // This means that two Auto_Ptr of two different types had the same m_p in them
+        // This means that two unique_ptr of two different types had the same m_p in them
         // which is never correct
         _ASSERTE(FALSE);
       }
@@ -580,7 +580,7 @@ namespace Com
       }
       return(*this);
     }
-    Auto_Ptr< T >& operator=(Auto_Ptr< T >& p) throw()
+    unique_ptr< T >& operator=(unique_ptr< T >& p) throw()
     {
       if (*this == p)
       {
@@ -600,13 +600,13 @@ namespace Com
       return(*this);
     }
 
-    //OPERATOR FOR RETURNING std::auto_ptr
-    operator std::auto_ptr< T >()//(_In_ const std::auto_ptr<Q>& lp) throw()
+    //OPERATOR FOR RETURNING std::unique_ptr
+    operator std::unique_ptr< T >()//(_In_ const std::unique_ptr<Q>& lp) throw()
     {
-      return std::auto_ptr<T>(*this);
+      return std::unique_ptr<T>(*this);
     }
 
-    Auto_Ptr< T >& get() throw()
+    unique_ptr< T >& get() throw()
     {
       return *this;
     }
@@ -617,12 +617,12 @@ namespace Com
       }*/
 
     // basic comparison operators
-    bool operator!=(Auto_Ptr<T>& p) const
+    bool operator!=(unique_ptr<T>& p) const
     {
       return !operator==(p);
     }
 
-    bool operator==(Auto_Ptr<T>& p) const
+    bool operator==(unique_ptr<T>& p) const
     {
       return m_p == p.m_p;
     }
@@ -683,18 +683,18 @@ namespace Com
   };*/
 
   template< class T >
-  class Auto_Ptr_List : public CGenericList < T >
+  class unique_ptr_List : public CGenericList < T >
   {
   public:
-    Auto_Ptr_List() : CGenericList<T>("AutoPtrList"){}
+    unique_ptr_List() : CGenericList<T>("AutoPtrList"){}
     bool empty() { return (GetCount() < 1); }
     bool IsEmpty() { return (GetCount() < 1); }
     int size() { return GetCount(); }
     T* GetPrev(POSITION& rp) { return Get(Prev(rp)); }
   private:
     // Private to prevent use
-    Auto_Ptr_List(const Auto_Ptr_List&) throw();
-    Auto_Ptr_List& operator=(const Auto_Ptr_List&) throw();
+    unique_ptr_List(const unique_ptr_List&) throw();
+    unique_ptr_List& operator=(const unique_ptr_List&) throw();
   };
 #endif
 

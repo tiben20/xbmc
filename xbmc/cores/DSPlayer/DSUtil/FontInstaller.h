@@ -9,7 +9,7 @@ class CFontInstaller
   BOOL (WINAPI *pMoveFileEx)(LPCTSTR, LPCTSTR,DWORD);
 
   std::list<HANDLE> m_fonts;
-  std::list<std::string> m_files;
+  std::list<std::wstring> m_files;
   bool InstallFontMemory(const void* pData, UINT len);
   bool InstallFontFile(const void* pData, UINT len);
 

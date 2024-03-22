@@ -130,9 +130,9 @@ public:
 interface IVSFRipper : public IUnknown
 {
   STDMETHOD (SetCallBack) (IVSFRipperCallback* pCallback) PURE;
-  STDMETHOD (LoadParamFile) (std::string fn) PURE;
-  STDMETHOD (SetInput) (std::string infn) PURE;
-  STDMETHOD (SetOutput) (std::string outfn) PURE;
+  STDMETHOD (LoadParamFile) (std::wstring fn) PURE;
+  STDMETHOD (SetInput) (std::wstring infn) PURE;
+  STDMETHOD (SetOutput) (std::wstring outfn) PURE;
   STDMETHOD (GetRipperData) (VSFRipperData& rd) PURE;
   STDMETHOD (UpdateRipperData) (VSFRipperData& rd) PURE;
   STDMETHOD (Index) () PURE;
@@ -158,12 +158,12 @@ private:
   //
 
   CCritSec m_csAccessLock;
-  std::string m_infn, m_outfn;
+  std::wstring m_infn, m_outfn;
   CVobFile m_vob;
   VSFRipperData m_rd;
 
-  bool LoadIfo(std::string fn);
-  bool LoadVob(std::string fn);
+  bool LoadIfo(std::wstring fn);
+  bool LoadVob(std::wstring fn);
   bool LoadChunks(std::vector<vcchunk>& chunks);
   bool SaveChunks(std::vector<vcchunk>& chunks);
 
@@ -181,9 +181,9 @@ public:
 
   // IVSFRipper
   STDMETHODIMP SetCallBack(IVSFRipperCallback* pCallback);
-  STDMETHODIMP LoadParamFile(std::string fn);
-  STDMETHODIMP SetInput(std::string infn);
-  STDMETHODIMP SetOutput(std::string outfn);
+  STDMETHODIMP LoadParamFile(std::wstring fn);
+  STDMETHODIMP SetInput(std::wstring infn);
+  STDMETHODIMP SetOutput(std::wstring outfn);
   STDMETHODIMP GetRipperData(VSFRipperData& rd);
   STDMETHODIMP UpdateRipperData(VSFRipperData& rd);
   STDMETHODIMP Index();

@@ -46,24 +46,24 @@ namespace Com
   class URI
   {
   public:
-    std::string		protocol;
-    std::string		host;
-    std::string		request_url;
-    std::string		complete_request;
+    std::wstring		protocol;
+    std::wstring		host;
+    std::wstring		request_url;
+    std::wstring		complete_request;
     int			port;
 
   public:
     URI();
     URI(const URI &u);
-    URI(std::string url);
+    URI(std::wstring url);
     virtual ~URI();
 
     URI &operator =(const URI &u);
-    URI &operator =(std::string url);
+    URI &operator =(std::wstring url);
 
-    int Parse(std::string url);
+    int Parse(std::wstring url);
   public:
-    operator std::string() { return complete_request; }
+    operator std::wstring() { return complete_request; }
   };
 
   //-------------------------------------------------------------------------
@@ -92,14 +92,14 @@ namespace Com
   class FilterTemplate
   {
   public:
-    std::string		name;
-    std::string		moniker_name;
+    std::wstring		name;
+    std::wstring		moniker_name;
     GUID		clsid;
     GUID		category;
     DWORD		version;
     DWORD		merit;
     IMoniker	*moniker;
-    std::string		file;
+    std::wstring		file;
     bool		file_exists;
 
     std::vector<PinTemplate>		input_pins;
@@ -123,7 +123,7 @@ namespace Com
     HRESULT CreateInstance(IBaseFilter **filter);
     HRESULT FindFilename();
 
-    int LoadFromMoniker(std::string displayname);
+    int LoadFromMoniker(std::wstring displayname);
     int Load(char *buf, int size);
     int ParseMonikerName();
   };
@@ -131,12 +131,12 @@ namespace Com
   class FilterCategory
   {
   public:
-    std::string		name;
+    std::wstring		name;
     GUID		clsid;
     bool		is_dmo;				// is this category DMO ?
   public:
     FilterCategory();
-    FilterCategory(std::string nm, GUID cat_clsid, bool dmo = false);
+    FilterCategory(std::wstring nm, GUID cat_clsid, bool dmo = false);
     FilterCategory(const FilterCategory &fc);
     virtual ~FilterCategory();
     FilterCategory &operator =(const FilterCategory &fc);
@@ -171,7 +171,7 @@ namespace Com
     int EnumerateAudioRenderers();
     int EnumerateVideoRenderers();
 
-    int Find(std::string name, FilterTemplate *filter);
+    int Find(std::wstring name, FilterTemplate *filter);
     int Find(GUID clsid, FilterTemplate *filter);
     int AddFilters(IEnumMoniker *emoniker, int enumtype = 0, GUID category = GUID_NULL);
 
@@ -183,7 +183,7 @@ namespace Com
     void _Sort_(int lo, int hi);
 
     // vytvaranie
-    HRESULT CreateInstance(std::string name, IBaseFilter **filter);
+    HRESULT CreateInstance(std::wstring name, IBaseFilter **filter);
     HRESULT CreateInstance(GUID clsid, IBaseFilter **filter);
   };
 
@@ -192,7 +192,7 @@ namespace Com
   public:
     IBaseFilter		*filter;
     IPin			*pin;
-    std::string			name;
+    std::wstring			name;
     PIN_DIRECTION	dir;
 
     enum {
@@ -223,7 +223,7 @@ namespace Com
 
   bool IsVideoUncompressed(GUID subtype);
 
-  std::string get_next_token(std::string &str, std::string separator);
+  std::wstring get_next_token(std::wstring &str, std::wstring separator);
 
   HRESULT UnregisterFilter(GUID clsid, GUID category);
   HRESULT UnregisterCOM(GUID clsid);

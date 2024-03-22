@@ -103,9 +103,9 @@ std::wstring CMediaTypeEx::ToString(IPin* pPin)
       {
         codec = GetAudioCodecName(subtype, wfe->wFormatTag);
         dim.Format(L"%dHz"), wfe->nSamplesPerSec;
-        if(wfe->nChannels == 1) dim.Format(L"%s mono"), std::string(dim);
-        else if(wfe->nChannels == 2) dim.Format(L"%s stereo"), std::string(dim);
-        else dim.Format(L"%s %dch"), std::string(dim), wfe->nChannels;
+        if(wfe->nChannels == 1) dim.Format(L"%s mono"), std::wstring(dim);
+        else if(wfe->nChannels == 2) dim.Format(L"%s stereo"), std::wstring(dim);
+        else dim.Format(L"%s %dch"), std::wstring(dim), wfe->nChannels;
         if(wfe->nAvgBytesPerSec) rate.Format(L"%dKbps"), wfe->nAvgBytesPerSec*8/1000;
       }
     }
@@ -115,9 +115,9 @@ std::wstring CMediaTypeEx::ToString(IPin* pPin)
 
       codec = GetAudioCodecName(subtype, 0);
       dim.Format(L"%dHz"), vf->nSamplesPerSec;
-      if(vf->nChannels == 1) dim.Format(L"%s mono"), std::string(dim);
-      else if(vf->nChannels == 2) dim.Format(L"%s stereo"), std::string(dim);
-      else dim.Format(L"%s %dch"), std::string(dim), vf->nChannels;
+      if(vf->nChannels == 1) dim.Format(L"%s mono"), std::wstring(dim);
+      else if(vf->nChannels == 2) dim.Format(L"%s stereo"), std::wstring(dim);
+      else dim.Format(L"%s %dch"), std::wstring(dim), vf->nChannels;
       if(vf->nAvgBitsPerSec) rate.Format(L"%dKbps"), vf->nAvgBitsPerSec/1000;
     }
     else if(formattype == FORMAT_VorbisFormat2)
@@ -126,9 +126,9 @@ std::wstring CMediaTypeEx::ToString(IPin* pPin)
 
       codec = GetAudioCodecName(subtype, 0);
       dim.Format(L"%dHz"), vf->SamplesPerSec;
-      if(vf->Channels == 1) dim.Format(L"%s mono"), std::string(dim);
-      else if(vf->Channels == 2) dim.Format(L"%s stereo"), std::string(dim);
-      else dim.Format(L"%s %dch"), std::string(dim), vf->Channels;
+      if(vf->Channels == 1) dim.Format(L"%s mono"), std::wstring(dim);
+      else if(vf->Channels == 2) dim.Format(L"%s stereo"), std::wstring(dim);
+      else dim.Format(L"%s %dch"), std::wstring(dim), vf->Channels;
     }        
   }
   else if(majortype == MEDIATYPE_Text)
@@ -182,7 +182,7 @@ std::string CMediaTypeEx::GetVideoCodecName(const GUID& subtype, DWORD biCompres
   std::string str;
   
   static std::map<DWORD, std::string> names;
-  //static CAtlMap<DWORD, std::string> names;
+  //static CAtlMap<DWORD, std::wstring> names;
 
   if(names.empty())
   {
@@ -408,7 +408,7 @@ std::string CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
 {
   std::string str;
 
-/*  static CAtlMap<GUID, std::string> names;
+/*  static CAtlMap<GUID, std::wstring> names;
 
   if(names.IsEmpty())
   {
@@ -430,26 +430,26 @@ std::string CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
   return str;
 }
 
-/*void CMediaTypeEx::Dump(CAtlList<std::string>& sl)
+/*void CMediaTypeEx::Dump(CAtlList<std::wstring>& sl)
 {
-  std::string str;
+  std::wstring str;
 
   sl.RemoveAll();
 
   int fmtsize = 0;
 
-  std::string major = CStringFromGUID(majortype);
-  std::string sub = CStringFromGUID(subtype);
-  std::string format = CStringFromGUID(formattype);
+  std::wstring major = CStringFromGUID(majortype);
+  std::wstring sub = CStringFromGUID(subtype);
+  std::wstring format = CStringFromGUID(formattype);
 
   sl.AddTail(ToString() + "\n");  
 
   sl.AddTail("AM_MEDIA_TYPE: ");
-  str.Format("majortype: %s %s"), std::string(GuidNames[majortype]), major;
+  str.Format("majortype: %s %s"), std::wstring(GuidNames[majortype]), major;
   sl.AddTail(str);
-  str.Format("subtype: %s %s"), std::string(GuidNames[subtype]), sub;
+  str.Format("subtype: %s %s"), std::wstring(GuidNames[subtype]), sub;
   sl.AddTail(str);
-  str.Format("formattype: %s %s"), std::string(GuidNames[formattype]), format;
+  str.Format("formattype: %s %s"), std::wstring(GuidNames[formattype]), format;
   sl.AddTail(str);
   str.Format("bFixedSizeSamples: %d"), bFixedSizeSamples;
   sl.AddTail(str);
@@ -683,9 +683,9 @@ std::string CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
     sl.AddTail("SUBTITLEINFO:");
     str.Format("dwOffset: %d"), si.dwOffset;
     sl.AddTail(str);
-    str.Format("IsoLang: %s"), std::string(std::string(si.IsoLang, sizeof(si.IsoLang)-1));
+    str.Format("IsoLang: %s"), std::wstring(std::string(si.IsoLang, sizeof(si.IsoLang)-1));
     sl.AddTail(str);
-    str.Format("TrackName: %s"), std::string(std::wstring(si.TrackName, sizeof(si.TrackName)-1));
+    str.Format("TrackName: %s"), std::wstring(std::wstring(si.TrackName, sizeof(si.TrackName)-1));
     sl.AddTail(str);
 
     sl.AddTail("");
@@ -701,7 +701,7 @@ std::string CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
 
       for(int k = i, l = min(i + 16, (int)cbFormat); k < l; k++)
       {
-        std::string byte;
+        std::wstring byte;
         byte.Format("%c%02x"), fmtsize > 0 && fmtsize == k ? '|' : ' ', pbFormat[k];
         str += byte;
       }

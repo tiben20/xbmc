@@ -29,7 +29,7 @@ void ILogImpl::Log(int loglevel, const char *format, ...)
 {
   assert(0);
 #if TODO
-  std::string msg;
+  std::wstring msg;
 
   va_list va;
   va_start(va, format);

@@ -106,7 +106,7 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
 
   if (m_bMadvr && m_iSectionId == MADVR_VIDEO_ROOT)
   {
-    CSettingGroup *groupMadvrSave = AddGroup(m_category);
+    std::shared_ptr<CSettingGroup> groupMadvrSave = AddGroup(m_category);
     if (groupMadvrSave == NULL)
     {
       CLog::Log(LOGERROR, "CGUIDialogMadvrSettings: unable to setup settings");
@@ -116,14 +116,14 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
     if (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) == KODIGUI_LOAD_DSPLAYER)
     {
       //LOAD SETTINGS...
-      AddButton(groupMadvrSave, SETTING_VIDEO_LOAD, 70611, 0);
+      AddButton(groupMadvrSave, SETTING_VIDEO_LOAD, 70611, SettingLevel::Basic);
 
       //SAVE SETTINGS...
-      AddButton(groupMadvrSave, SETTING_VIDEO_SAVE, 70600, 0);
+      AddButton(groupMadvrSave, SETTING_VIDEO_SAVE, 70600, SettingLevel::Basic);
     }
   }
 
-  std::map<int, CSettingGroup *> groups;
+  std::map<int, std::shared_ptr<CSettingGroup>> groups;
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
   g_application.m_pPlayer->LoadSettings(m_iSectionId);
 
@@ -143,11 +143,12 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
 
     if (it.type.find("button_") != std::string::npos)
     {
-      setting = AddButton(groups[it.group], it.dialogId, it.label, 0);
+      
+      setting = AddButton(groups[it.group], it.dialogId, it.label, SettingLevel::Basic);
     }
     else if (it.type == "bool")
     {
-      setting = AddToggle(groups[it.group], it.dialogId, it.label, 0, madvrSettings.m_db[it.name].asBoolean());
+      setting = AddToggle(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asBoolean());
     }
     else if (it.type == "float")
     {

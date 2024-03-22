@@ -171,7 +171,7 @@ void CGUIDialogDSRules::InitializeSettings()
 {
   CGUIDialogSettingsManualBase::InitializeSettings();
 
-  CSettingCategory *category = AddCategory("dsrulesettings", -1);
+  std::shared_ptr<CSettingCategory> category = AddCategory("dsrulesettings", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSRules: unable to setup settings");
@@ -179,35 +179,35 @@ void CGUIDialogDSRules::InitializeSettings()
   }
 
   // get all necessary setting groups
-  CSettingGroup *groupPriority = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupPriority = AddGroup(category);
   if (groupPriority == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSRules: unable to setup settings");
     return;
   }
 
-  CSettingGroup *groupRule = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupRule = AddGroup(category);
   if (groupRule == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSRules: unable to setup settings");
     return;
   }
 
-  CSettingGroup *groupFilter = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupFilter = AddGroup(category);
   if (groupFilter == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSRules: unable to setup settings");
     return;
   }
 
-  CSettingGroup *groupExtra = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupExtra = AddGroup(category);
   if (groupFilter == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSRules: unable to setup settings");
     return;
   }
 
-  CSettingGroup *groupSave = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupSave = AddGroup(category);
   if (groupFilter == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogDSRules: unable to setup settings");
@@ -342,7 +342,7 @@ void CGUIDialogDSRules::InitializeSettings()
   }
 
   // Stamp Button
-  CSettingGroup *groupTmp;
+  std::shared_ptr<CSettingGroup> groupTmp;
 
   for (const auto &it : m_ruleList)
   {

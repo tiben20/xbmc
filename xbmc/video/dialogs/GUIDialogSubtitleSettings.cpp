@@ -287,7 +287,7 @@ void CGUIDialogSubtitleSettings::InitializeSettings()
   }
   
 #if HAS_DS_PLAYER
-  CSettingGroup *groupEdition = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupEdition = AddGroup(category);
   if (groupEdition == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogAudioSubtitleSettings: unable to setup settings");

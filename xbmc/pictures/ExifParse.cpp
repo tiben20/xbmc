@@ -221,12 +221,12 @@ int CExifParse::Get32(const void* const Long, const bool motorolaOrder)
 }
 
 //--------------------------------------------------------------------------
-// It appears that CStdString constructor replaces "\n" with "\r\n" which results
+// It appears that std::wstring constructor replaces "\n" with "\r\n" which results
 // in "\r\r\n" if there already is "\r\n", which in turn results in corrupted
 // display. So this is an attempt to undo effects of a smart constructor. Also,
 // replaces all nonprintable characters with "."
 //--------------------------------------------------------------------------
-/*void CExifParse::FixComment(CStdString& comment)
+/*void CExifParse::FixComment(std::wstring& comment)
 {
   comment.Replace("\r\r\n", "\r\n");
   for (unsigned int i=0; i<comment.length(); i++)
@@ -303,7 +303,7 @@ double CExifParse::ConvertAnyFormat(const void* const ValuePtr, int Format)
 //--------------------------------------------------------------------------
 // Convert exposure time into a human readable format
 //--------------------------------------------------------------------------
-/*void CExifParse::GetExposureTime(const float exposureTime, CStdString& outStr)
+/*void CExifParse::GetExposureTime(const float exposureTime, std::wstring& outStr)
 {
   if (exposureTime)
   {

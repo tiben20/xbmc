@@ -22,7 +22,7 @@
 #include "stdafx.h"
 #include "ccdecoder.h"
 
-CCDecoder::CCDecoder(std::string fn, std::string rawfn) : m_fn(fn), m_rawfn(rawfn)
+CCDecoder::CCDecoder(std::wstring fn, std::wstring rawfn) : m_fn(fn), m_rawfn(rawfn)
 {
   m_sts.CreateDefaultStyle(ANSI_CHARSET);
 

@@ -391,7 +391,7 @@ HRESULT CRenderedHdmvSubtitleFile::ParseData( REFERENCE_TIME rtFrom, REFERENCE_T
   return S_OK;
 }
 
-bool CRenderedHdmvSubtitleFile::Open(std::string fn)
+bool CRenderedHdmvSubtitleFile::Open(std::wstring fn)
 {
   ATL::CFile f;
   if(! f.Open(fn, ATL::CFile::modeRead|ATL::CFile::typeBinary|ATL::CFile::shareDenyNone))

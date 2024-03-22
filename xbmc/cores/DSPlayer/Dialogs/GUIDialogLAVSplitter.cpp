@@ -99,66 +99,66 @@ void CGUIDialogLAVSplitter::InitializeSettings()
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
 
-  CSettingCategory *category = AddCategory("dsplayerlavsplitter", -1);
+  std::shared_ptr<CSettingCategory> category = AddCategory("dsplayerlavsplitter", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupProperty = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupProperty = AddGroup(category);
   if (groupProperty == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *group = AddGroup(category);
+  std::shared_ptr<CSettingGroup> group = AddGroup(category);
   if (group == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
-  CSettingGroup *groupPreflang = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupPreflang = AddGroup(category);
   if (groupPreflang == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupSubmode = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupSubmode = AddGroup(category);
   if (groupSubmode == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupBluraysub = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupBluraysub = AddGroup(category);
   if (groupBluraysub == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupFormat = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupFormat = AddGroup(category);
   if (groupFormat == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
-  CSettingGroup *groupDemuxer = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupDemuxer = AddGroup(category);
   if (groupDemuxer == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
-  CSettingGroup *groupQueueNet = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupQueueNet = AddGroup(category);
   if (groupQueueNet == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVSplitter: unable to setup settings");
     return;
   }
-  CSettingGroup *groupReset = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupReset = AddGroup(category);
   if (groupReset == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");

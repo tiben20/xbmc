@@ -48,7 +48,7 @@ public:
 class MOD_PNGIMAGE
 {
 public:
-  std::string	filename;
+  std::wstring	filename;
   int		width;
   int		height;
 
@@ -199,11 +199,11 @@ public:
   friend LOGFONTA& operator <<= (LOGFONTA& lfa, STSStyle& s);
   friend LOGFONTW& operator <<= (LOGFONTW& lfw, STSStyle& s);
 
-  friend std::string& operator <<= (std::string& style, STSStyle& s);
-  friend STSStyle& operator <<= (STSStyle& s, std::string& style);
+  friend std::wstring& operator <<= (std::wstring& style, STSStyle& s);
+  friend STSStyle& operator <<= (STSStyle& s, std::wstring& style);
 };
 
-class CSTSStyleMap : public std::map<std::string, STSStyle*>
+class CSTSStyleMap : public std::map<std::wstring, STSStyle*>
 {
 public:
   CSTSStyleMap() {}
@@ -215,7 +215,7 @@ typedef struct
 {
   std::wstring str;
   bool fUnicode;
-  std::string style, actor, effect;
+  std::wstring style, actor, effect;
   Com::SmartRect marginRect;
   int layer;
   int start, end;
@@ -246,12 +246,12 @@ protected:
   virtual void OnChanged() {}
 
 public:
-  std::string m_name;
+  std::wstring m_name;
   LCID m_lcid;
   exttype m_exttype;
   tmode m_mode;
   CTextFile::enc m_encoding;
-  std::string m_path;
+  std::wstring m_path;
 
   Com::SmartSize m_dstScreenSize;
   int m_defaultWrapStyle;
@@ -294,22 +294,22 @@ public:
 
   void Append(CSimpleTextSubtitle& sts, int timeoff = -1);
 
-  bool Open(std::string fn, int CharSet, std::string name = _T(""));
-  bool Open(CTextFile* f, int CharSet, std::string name); 
-  bool Open(BYTE* data, int len, int CharSet, std::string name); 
-  bool SaveAs(std::string fn, exttype et, double fps = -1, CTextFile::enc = CTextFile::ASCII);
+  bool Open(std::wstring fn, int CharSet, std::wstring name = _T(""));
+  bool Open(CTextFile* f, int CharSet, std::wstring name); 
+  bool Open(BYTE* data, int len, int CharSet, std::wstring name); 
+  bool SaveAs(std::wstring fn, exttype et, double fps = -1, CTextFile::enc = CTextFile::ASCII);
 
 #ifdef _VSMOD // load embedded images
-	bool LoadUUEFile(CTextFile* file, std::string m_fn);
-	bool LoadEfile(std::string& img, std::string m_fn);
+	bool LoadUUEFile(CTextFile* file, std::wstring m_fn);
+	bool LoadEfile(std::wstring& img, std::wstring m_fn);
 
     void MakeIndex(int SizeOfSegment);
 #endif
-  void Add(std::wstring str, bool fUnicode, int start, int end, std::string style = _T("Default"), std::string actor = _T(""), std::string effect = _T(""), Com::SmartRect marginRect = Com::SmartRect(0,0,0,0), int layer = 0, int readorder = -1);
+  void Add(std::wstring str, bool fUnicode, int start, int end, std::wstring style = _T("Default"), std::wstring actor = _T(""), std::wstring effect = _T(""), Com::SmartRect marginRect = Com::SmartRect(0,0,0,0), int layer = 0, int readorder = -1);
 
   STSStyle* CreateDefaultStyle(int CharSet);
   void ChangeUnknownStylesToDefault();
-  void AddStyle(std::string name, STSStyle* style); // style will be stored and freed in Empty() later
+  void AddStyle(std::wstring name, STSStyle* style); // style will be stored and freed in Empty() later
   bool CopyStyles(const CSTSStyleMap& styles, bool fAppend = false);
 
   bool SetDefaultStyle(STSStyle& s);
@@ -351,7 +351,7 @@ extern BYTE CharSetList[];
 extern TCHAR* CharSetNames[];
 extern int CharSetLen;
 
-class CHtmlColorMap : public std::map<std::string, DWORD> {public: CHtmlColorMap();};
+class CHtmlColorMap : public std::map<std::wstring, DWORD> {public: CHtmlColorMap();};
 extern CHtmlColorMap g_colors;
 
 

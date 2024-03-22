@@ -301,7 +301,7 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
   return E_FAIL;
 }
 
-std::string GetExtension(std::string&  filename)
+std::wstring GetExtension(std::wstring&  filename)
 {
   const size_t i = filename.rfind('.');
   return filename.substr(i+1, filename.size());
@@ -320,22 +320,22 @@ HRESULT CSubManager::LoadExternalSubtitle( const wchar_t* subPath, ISubStream** 
 
     if(!pSubStream)
     {
-      std::auto_ptr<CVobSubFile> pVSF(new CVobSubFile(&m_csSubLock));
-      if(std::string(GetExtension(path).MakeLower()) == _T("idx") && pVSF.get() && pVSF->Open(path) && pVSF->GetStreamCount() > 0)
+      std::unique_ptr<CVobSubFile> pVSF(new CVobSubFile(&m_csSubLock));
+      if(std::wstring(GetExtension(path).MakeLower()) == _T("idx") && pVSF.get() && pVSF->Open(path) && pVSF->GetStreamCount() > 0)
         pSubStream = pVSF.release();
     }
 
     if (!pSubStream)
     {
-      std::auto_ptr<CRenderedHdmvSubtitleFile> pPGS(new CRenderedHdmvSubtitleFile(&m_csSubLock, ST_HDMV));
-      if ((std::string(GetExtension(path).MakeLower()) == _T("pgs") || std::string(GetExtension(path).MakeLower()) == _T("sup"))
+      std::unique_ptr<CRenderedHdmvSubtitleFile> pPGS(new CRenderedHdmvSubtitleFile(&m_csSubLock, ST_HDMV));
+      if ((std::wstring(GetExtension(path).MakeLower()) == _T("pgs") || std::wstring(GetExtension(path).MakeLower()) == _T("sup"))
         && pPGS.get() && pPGS->Open(path))
         pSubStream = pPGS.release();
     }
 
     if(!pSubStream)
     {
-      std::auto_ptr<CRenderedTextSubtitle> pRTS(new CRenderedTextSubtitle(&m_csSubLock));
+      std::unique_ptr<CRenderedTextSubtitle> pRTS(new CRenderedTextSubtitle(&m_csSubLock));
       if(pRTS.get() && pRTS->Open(path, DEFAULT_CHARSET) && pRTS->GetStreamCount() > 0) {
         ApplyStyleSubStream(pRTS.get());
         pSubStream = pRTS.release();

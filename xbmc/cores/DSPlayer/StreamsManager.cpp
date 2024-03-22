@@ -1024,7 +1024,7 @@ void CStreamsManager::SubInterface(SelectSubType action)
       {
         if (group == XYVSFILTER_SUB_EXTERNAL)
         {
-          std::auto_ptr<CDSStreamDetailSubfilter> s(new CDSStreamDetailSubfilter(EXTERNAL));
+          std::unique_ptr<CDSStreamDetailSubfilter> s(new CDSStreamDetailSubfilter(EXTERNAL));
 
           langName = ISOToLanguage(fileName);
           if (!langName.empty() && !fileName.empty())
@@ -1935,7 +1935,7 @@ int CSubtitleManager::AddSubtitle(const std::string& subFilePath)
   if (!m_pManager)
     return -1;
 
-  std::auto_ptr<CDSStreamDetailSubtitleExternal> s(new CDSStreamDetailSubtitleExternal());
+  std::unique_ptr<CDSStreamDetailSubtitleExternal> s(new CDSStreamDetailSubtitleExternal());
 
   if (m_subtitleStreams.empty())
     s->flags = AMSTREAMSELECTINFO_ENABLED;
@@ -2112,7 +2112,7 @@ void CStreamsManager::UpdateDVDStream()
   m_audioStreams.clear();
   for (unsigned int i = 0; i < nbrStreams; i++)
   {
-    std::auto_ptr<CDSStreamDetailAudio> s(new CDSStreamDetailAudio());
+    std::unique_ptr<CDSStreamDetailAudio> s(new CDSStreamDetailAudio());
     DVD_AudioAttributes audio;
     hr = CGraphFilters::Get()->DVD.dvdInfo->GetAudioAttributes(i, &audio);
 
@@ -2172,8 +2172,8 @@ void CStreamsManager::UpdateDVDStream()
     if (subpic.Type != DVD_SPType_Language)
       continue;
 
-    std::auto_ptr<CDSStreamDetailSubtitle> s(new CDSStreamDetailSubtitle());
-    std::auto_ptr<CDSStreamDetailSubfilter> s2(new CDSStreamDetailSubfilter(INTERNAL));
+    std::unique_ptr<CDSStreamDetailSubtitle> s(new CDSStreamDetailSubtitle());
+    std::unique_ptr<CDSStreamDetailSubfilter> s2(new CDSStreamDetailSubfilter(INTERNAL));
     s->lcid = subpic.Language;
     s2->lcid = subpic.Language;
     FormatStreamName(*(s.get()));

@@ -29,13 +29,15 @@ public:
   CFocusThread();
   ~CFocusThread();
 
-  static ThreadIdentifier m_threadID;
+
   void StopThread(bool bWait = true)
   {
-    if (m_threadID)
+    
+    if (IsRunning())
     {
-      PostThreadMessage(m_threadID, WM_QUIT, 0, 0);
-      m_threadID = 0;
+
+      PostThreadMessage(GetCurrentNativeThreadID(), WM_QUIT, 0, 0);
+      //m_threadID = 0;
     }
     CThread::StopThread(bWait);
   }

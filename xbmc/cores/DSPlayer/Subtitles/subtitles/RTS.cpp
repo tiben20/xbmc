@@ -1760,7 +1760,7 @@ void CRenderedTextSubtitle::Deinit()
   m_vidrect.SetRectEmpty();
 }
 
-void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, std::string str)
+void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, std::wstring str)
 {
   str.Trim();
   if(!sub || str.IsEmpty()) return;
@@ -1768,7 +1768,7 @@ void CRenderedTextSubtitle::ParseEffect(CSubtitle* sub, std::string str)
   const TCHAR* s = _tcschr(str, ';');
   if(!s) {s = (LPTSTR)(LPCTSTR)str; s += str.GetLength()-1;}
   s++;
-  std::string effect = str.Left(s - str);
+  std::wstring effect = str.Left(s - str);
 
   if(!effect.CompareNoCase(_T("Banner;")))
   {
@@ -2196,7 +2196,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, std::wstring str, STSSty
     else if(cmd == L"fn")
     {
       style.fontName = (!p.IsEmpty() && p != L"0")
-        ? std::string(p).Trim()
+        ? std::wstring(p).Trim()
         : org.fontName;
     }
     else if(cmd == L"frx")
@@ -2368,7 +2368,7 @@ bool CRenderedTextSubtitle::ParseSSATag(CSubtitle* sub, std::wstring str, STSSty
     else if(cmd == L"r")
     {
       STSStyle* val;
-      CSTSStyleMap::iterator it = m_styles.find(std::string(p));
+      CSTSStyleMap::iterator it = m_styles.find(std::wstring(p));
       style = (!p.IsEmpty() && it != m_styles.end() && it->second) ? *(it->second) : org;
     }
     else if(cmd == L"shad")
@@ -2555,7 +2555,7 @@ bool CRenderedTextSubtitle::ParseHtmlTag(CSubtitle* sub, std::wstring str, STSSt
 
         if(nColor >= 0 && nColor < 4)
         {
-          std::string key = WToT(params[i]).TrimLeft('#');
+          std::wstring key = WToT(params[i]).TrimLeft('#');
           DWORD val;
           CHtmlColorMap::const_iterator it = g_colors.find(key);
           if(it != g_colors.end())

@@ -109,6 +109,11 @@ public:
   static std::string Left(const std::string &str, size_t count);
   static std::string Mid(const std::string &str, size_t first, size_t count = std::string::npos);
   static std::string Right(const std::string &str, size_t count);
+  //wide
+  static std::wstring& Trim(std::wstring& str);
+  static std::wstring& TrimLeft(std::wstring& str);
+  static std::wstring& TrimRight(std::wstring &str);
+
   static std::string& Trim(std::string &str);
   static std::string& Trim(std::string &str, const char* const chars);
   static std::string& TrimLeft(std::string &str);

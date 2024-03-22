@@ -42,7 +42,7 @@ namespace ssf
     va_list args;
     va_start(args, fmt);
     int len = _vsctprintf(fmt, args) + 1;
-    std::string str;
+    std::wstring str;
     if(len > 0) _vstprintf_s(str.GetBufferSetLength(len), len, fmt, args);
     va_end(args);
 

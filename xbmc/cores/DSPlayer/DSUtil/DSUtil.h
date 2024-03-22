@@ -28,7 +28,7 @@
 #include "H264Nalu.h"
 #include "vd.h"
 #include "text.h"
-#include "utils/StringUtils.h"
+#include "utils\StdString.h"
 
 #define SAFE_DELETE(p)        { delete (p); p = nullptr;  }
 
@@ -60,7 +60,7 @@ typedef struct
 
 extern void setThreadName(DWORD dwThreadID, LPCSTR szThreadName);
 extern bool IsPinConnected(IPin* pPin);
-extern std::wstring GetFilterPath(std::string pClsid);
+extern std::wstring GetFilterPath(std::wstring pClsid);
 extern std::wstring GetFilterPath(CLSID pClsid);
 extern std::wstring GetFilterName(IBaseFilter* pBF);
 extern std::string GetPinMainTypeString(IPin* pPin);

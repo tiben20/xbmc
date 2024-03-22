@@ -124,7 +124,7 @@ namespace ssf
       if(c == '.') 
       {
         if(str.empty()) s.ThrowError(_T("'type' cannot be an empty string"));
-        if(!iswcsym(s.PeekChar())) s.ThrowError(_T("unexpected dot after type '%s'"), std::string(str));
+        if(!iswcsym(s.PeekChar())) s.ThrowError(_T("unexpected dot after type '%s'"), std::wstring(str));
 
         types.push_back(str);
         str.Empty();
@@ -249,9 +249,9 @@ namespace ssf
         // TODO: allow spec references: parent.<type>, self.<type>, child.<type>
 
         Definition* pDef = GetDefByName(str);
-        if(!pDef) s.ThrowError(_T("cannot find definition of '%s'"), std::string(str));
+        if(!pDef) s.ThrowError(_T("cannot find definition of '%s'"), std::wstring(str));
 
-        if(!pParentDef->IsVisible(pDef)) s.ThrowError(_T("cannot access '%s' from here"), std::string(str));
+        if(!pParentDef->IsVisible(pDef)) s.ThrowError(_T("cannot access '%s' from here"), std::wstring(str));
 
         pParentDef->push_back(pDef);
       }

@@ -103,7 +103,7 @@ protected:
   D3DFORMAT                             m_DisplayType;
   D3DTEXTUREFILTERTYPE                  m_filter;
   D3DCAPS9                              m_caps;
-  std::auto_ptr<CPixelShaderCompiler>   m_pPSC;
+  std::unique_ptr<CPixelShaderCompiler>   m_pPSC;
 
   // Thread stuff
   float                                 m_bicubicA;

@@ -525,6 +525,26 @@ static int isspace_c(char c)
   return (c & 0x80) == 0 && ::isspace(c);
 }
 
+std::wstring& StringUtils::Trim(std::wstring& str)
+{
+  TrimLeft(str);
+  return TrimRight(str);
+}
+std::wstring& StringUtils::TrimLeft(std::wstring& str)
+{
+  str.erase(str.begin(),
+    std::find_if(str.begin(), str.end(), [](char s) { return isspace_c(s) == 0; }));
+  return str;
+}
+
+std::wstring& StringUtils::TrimRight(std::wstring& str)
+{
+  str.erase(std::find_if(str.rbegin(), str.rend(), [](char s) { return isspace_c(s) == 0; }).base(),
+    str.end());
+  return str;
+}
+
+
 std::string& StringUtils::TrimLeft(std::string &str)
 {
   str.erase(str.begin(),

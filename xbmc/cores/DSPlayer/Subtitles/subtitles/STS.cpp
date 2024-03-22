@@ -179,7 +179,7 @@ struct htmlcolor {TCHAR* name; DWORD color;} hmtlcolors[] =
 CHtmlColorMap::CHtmlColorMap()
 {
   for(int i = 0; i < countof(hmtlcolors); i++)
-    insert( std::pair<std::string, DWORD>(hmtlcolors[i].name, hmtlcolors[i].color));
+    insert( std::pair<std::wstring, DWORD>(hmtlcolors[i].name, hmtlcolors[i].color));
 }
 
 CHtmlColorMap g_colors;
@@ -669,7 +669,7 @@ static bool OpenSubViewer(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet
   return(ret.size() > 0);
 }
 
-static STSStyle* GetMicroDVDStyle(std::string str, int CharSet)
+static STSStyle* GetMicroDVDStyle(std::wstring str, int CharSet)
 {
   STSStyle* ret = DNew STSStyle();
   if(!ret) return(NULL);
@@ -684,7 +684,7 @@ static STSStyle* GetMicroDVDStyle(std::string str, int CharSet)
     int k = str.Find('}', j);
     if(k < 0) k = len;
 
-    std::string code = str.Mid(j, k-j);
+    std::wstring code = str.Mid(j, k-j);
     if(code.GetLength() > 2) code.SetAt(1, (TCHAR)towlower(code[1]));
 
     if(!_tcsnicmp(code, _T("{c:$"), 4))
@@ -855,7 +855,7 @@ static bool OpenMicroDVD(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet)
 {
   bool fCheck = false, fCheck2 = false;
 
-  std::string style(_T("Default"));
+  std::wstring style(_T("Default"));
 
   std::wstring buff;
   while(file->ReadString(buff))
@@ -882,7 +882,7 @@ static bool OpenMicroDVD(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet)
         {
           style = buff.Mid(1, i-1);
           style.MakeUpper();
-          if(style.GetLength()) {std::string str = style.Mid(1); str.MakeLower(); style = style.Left(1) + str;}
+          if(style.GetLength()) {std::wstring str = style.Mid(1); str.MakeLower(); style = style.Left(1) + str;}
           ret.AddStyle(style, s);
           CharSet = s->charSet;
           continue;
@@ -991,7 +991,7 @@ static std::wstring SMI2SSA(std::wstring str, int CharSet)
           if ( arg.IsEmpty())
             continue;
 
-          std::map<std::string, DWORD>::const_iterator it = g_colors.find(std::string(arg));
+          std::map<std::wstring, DWORD>::const_iterator it = g_colors.find(std::wstring(arg));
           if(it != g_colors.end())
             color = (DWORD)it->second;
           else if((color = wcstol(arg, NULL, 16) ) == 0)
@@ -1223,7 +1223,7 @@ double GetFloat(std::wstring& buff, char sep = ',') //throw(...)
   return((double)ret);
 }
 
-static bool LoadFont(std::string& font)
+static bool LoadFont(std::wstring& font)
 {
   int len = font.GetLength();
 
@@ -1278,7 +1278,7 @@ static bool LoadFont(std::string& font)
     for(int i = 0, j = datalen>>2; i < j; i++)
       chksum += ((DWORD*)(BYTE*)&pData[0])[i];
 
-    std::string fn;
+    std::wstring fn;
     fn.Format(_T("%sfont%08x.ttf"), path, chksum);
 
     if(GetFileAttributes(fn) == INVALID_FILE_ATTRIBUTES)
@@ -1300,7 +1300,7 @@ static bool LoadFont(std::string& font)
 
 static bool LoadUUEFont(CTextFile* file)
 {
-  std::string s, font;
+  std::wstring s, font;
   while(file->ReadString(s))
   {
     s.Trim();
@@ -1331,7 +1331,7 @@ static bool LoadUUEFont(CTextFile* file)
 }
 
 #ifdef _VSMOD
-bool CSimpleTextSubtitle::LoadEfile(std::string& img, std::string m_fn)
+bool CSimpleTextSubtitle::LoadEfile(std::wstring& img, std::wstring m_fn)
 {
   /*int len = img.GetLength();
 
@@ -1375,9 +1375,9 @@ bool CSimpleTextSubtitle::LoadEfile(std::string& img, std::string m_fn)
 }
 
 
-bool CSimpleTextSubtitle::LoadUUEFile(CTextFile* file, std::string m_fn)
+bool CSimpleTextSubtitle::LoadUUEFile(CTextFile* file, std::wstring m_fn)
 {
-  std::string s, img;
+  std::wstring s, img;
   while(file->ReadString(s))
   {
     s.Trim();
@@ -1504,7 +1504,7 @@ static bool OpenSubStationAlpha(CTextFile* file, CSimpleTextSubtitle& ret, int C
 
       try 
       {
-        std::string StyleName;
+        std::wstring StyleName;
         int alpha = 0;
 
         StyleName = WToT(GetStr(buff));
@@ -1577,7 +1577,7 @@ static bool OpenSubStationAlpha(CTextFile* file, CSimpleTextSubtitle& ret, int C
       try
       {
         int hh1, mm1, ss1, ms1_div10, hh2, mm2, ss2, ms2_div10, layer = 0;
-        std::string Style, Actor, Effect;
+        std::wstring Style, Actor, Effect;
         Com::SmartRect marginRect;
 
         if(version <= 4)
@@ -1706,7 +1706,7 @@ static bool OpenXombieSub(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet
 
       try 
       {
-        std::string StyleName;
+        std::wstring StyleName;
 
         StyleName = WToT(GetStr(buff)) + _T("_") + WToT(GetStr(buff));
         style->fontName = WToT(GetStr(buff));
@@ -1754,9 +1754,9 @@ static bool OpenXombieSub(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet
     {
       try
       {
-        std::string id;
+        std::wstring id;
         int hh1, mm1, ss1, ms1, hh2, mm2, ss2, ms2, layer = 0;
-        std::string Style, Actor;
+        std::wstring Style, Actor;
         Com::SmartRect marginRect;
 
         if(GetStr(buff) != L"D") continue;
@@ -1811,7 +1811,7 @@ static bool OpenXombieSub(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet
 
 static bool OpenUSF(CTextFile* file, CSimpleTextSubtitle& ret, int CharSet)
 {
-  std::string str;
+  std::wstring str;
   while(file->ReadString(str))
   {
     if(str.Find(_T("USFSubtitles")) >= 0)
@@ -2007,7 +2007,7 @@ void CSimpleTextSubtitle::Append(CSimpleTextSubtitle& sts, int timeoff)
 
 void CSTSStyleMap::Free()
 {
-  std::map<std::string, STSStyle*>::const_iterator it = begin();
+  std::map<std::wstring, STSStyle*>::const_iterator it = begin();
   for (; it != end(); ++it)
     delete it->second;
 
@@ -2018,7 +2018,7 @@ bool CSimpleTextSubtitle::CopyStyles(const CSTSStyleMap& styles, bool fAppend)
 {
   if(!fAppend) m_styles.Free();
 
-  std::map<std::string, STSStyle*>::const_iterator it = styles.begin();
+  std::map<std::wstring, STSStyle*>::const_iterator it = styles.begin();
   for (; it != styles.end(); ++it)
   {
     STSStyle* s = DNew STSStyle;
@@ -2047,7 +2047,7 @@ void CSimpleTextSubtitle::Empty()
 #endif
 }
 
-void CSimpleTextSubtitle::Add(std::wstring str, bool fUnicode, int start, int end, std::string style, std::string actor, std::string effect, Com::SmartRect marginRect, int layer, int readorder)
+void CSimpleTextSubtitle::Add(std::wstring str, bool fUnicode, int start, int end, std::wstring style, std::wstring actor, std::wstring effect, Com::SmartRect marginRect, int layer, int readorder)
 {
   if(str.Trim().IsEmpty() || start > end) return;
 
@@ -2195,18 +2195,18 @@ void CSimpleTextSubtitle::MakeIndex(int SizeOfSegment)
 
 STSStyle* CSimpleTextSubtitle::CreateDefaultStyle(int CharSet)
 {
-  std::string def(_T("Default"));
+  std::wstring def(_T("Default"));
 
   STSStyle* ret = NULL;
 
-  std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(def);
+  std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(def);
   if (it == m_styles.end())
   {
     STSStyle* style = DNew STSStyle();
     style->charSet = CharSet;
     AddStyle(def, style);
 
-    std::map<std::string, STSStyle*>::const_iterator it2 = m_styles.find(def);
+    std::map<std::wstring, STSStyle*>::const_iterator it2 = m_styles.find(def);
     if (it2 != m_styles.end())
       ret = it2->second;
 
@@ -2223,7 +2223,7 @@ STSStyle* CSimpleTextSubtitle::CreateDefaultStyle(int CharSet)
 
 void CSimpleTextSubtitle::ChangeUnknownStylesToDefault()
 {
-  std::map<std::string, STSStyle*> unknown;
+  std::map<std::wstring, STSStyle*> unknown;
   bool fReport = true;
 
   for(size_t i = 0; i < size(); i++)
@@ -2231,10 +2231,10 @@ void CSimpleTextSubtitle::ChangeUnknownStylesToDefault()
     STSEntry& stse = at(i);
 
     STSStyle* val;
-    std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(stse.style);
+    std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(stse.style);
     if(it == m_styles.end())
     {
-      std::map<std::string, STSStyle*>::const_iterator it2 = unknown.find(stse.style);
+      std::map<std::wstring, STSStyle*>::const_iterator it2 = unknown.find(stse.style);
       if (it2 == unknown.end())
       {
         if(fReport)
@@ -2250,14 +2250,14 @@ void CSimpleTextSubtitle::ChangeUnknownStylesToDefault()
   }
 }
 
-void CSimpleTextSubtitle::AddStyle(std::string name, STSStyle* style)
+void CSimpleTextSubtitle::AddStyle(std::wstring name, STSStyle* style)
 {
   int i, j;
 
   if(name.IsEmpty()) name = _T("Default");
 
   STSStyle* val;
-  std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(name);
+  std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(name);
   if(it != m_styles.end())
   {
     val = it->second;
@@ -2273,7 +2273,7 @@ void CSimpleTextSubtitle::AddStyle(std::string name, STSStyle* style)
 
     int idx = 1;
 
-    std::string name2 = name;
+    std::wstring name2 = name;
 
     if(i < len && _stscanf(name.Right(len-i), _T("%d"), &idx) == 1)
     {
@@ -2282,7 +2282,7 @@ void CSimpleTextSubtitle::AddStyle(std::string name, STSStyle* style)
 
     idx++;
 
-    std::string name3;
+    std::wstring name3;
     do
     {
       name3.Format(_T("%s%d"), name2, idx);
@@ -2305,7 +2305,7 @@ void CSimpleTextSubtitle::AddStyle(std::string name, STSStyle* style)
 
 bool CSimpleTextSubtitle::SetDefaultStyle(STSStyle& s)
 {
-  std::map<std::string, STSStyle*>::iterator it = m_styles.find(_T("Default"));
+  std::map<std::wstring, STSStyle*>::iterator it = m_styles.find(_T("Default"));
 
   if(it == m_styles.end())
   {
@@ -2324,7 +2324,7 @@ bool CSimpleTextSubtitle::SetDefaultStyle(STSStyle& s)
 
 bool CSimpleTextSubtitle::GetDefaultStyle(STSStyle& s)
 {
-  std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(_T("Default"));
+  std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(_T("Default"));
 
   if(it == m_styles.end()) return false;
   s = *(it->second);
@@ -2517,13 +2517,13 @@ int CSimpleTextSubtitle::TranslateSegmentEnd(int i, double fps)
 
 STSStyle* CSimpleTextSubtitle::GetStyle(int i)
 {
-  std::string def = _T("Default");
+  std::wstring def = _T("Default");
   STSStyle* style = NULL;
 
-  std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(at(i).style);
+  std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(at(i).style);
   if(it == m_styles.end())
   {
-    std::map<std::string, STSStyle*>::const_iterator it2 = m_styles.find(def);
+    std::map<std::wstring, STSStyle*>::const_iterator it2 = m_styles.find(def);
     style = it2->second;
   } else
     style = it->second;
@@ -2535,15 +2535,15 @@ STSStyle* CSimpleTextSubtitle::GetStyle(int i)
 
 bool CSimpleTextSubtitle::GetStyle(int i, STSStyle& stss)
 {
-  std::string def = _T("Default");
+  std::wstring def = _T("Default");
 
   STSStyle* style = NULL;
-  std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(at(i).style);
+  std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(at(i).style);
 
   STSStyle* defstyle = NULL;
   if(it == m_styles.end())
   {
-    std::map<std::string, STSStyle*>::const_iterator it2 = m_styles.find(def);
+    std::map<std::wstring, STSStyle*>::const_iterator it2 = m_styles.find(def);
     if(it2 == m_styles.end())
     {
       defstyle = CreateDefaultStyle(DEFAULT_CHARSET); 
@@ -2738,7 +2738,7 @@ void CSimpleTextSubtitle::CreateSegments()
 */
 }
 
-bool CSimpleTextSubtitle::Open(std::string fn, int CharSet, std::string name)
+bool CSimpleTextSubtitle::Open(std::wstring fn, int CharSet, std::wstring name)
 {
   Empty();
 
@@ -2764,13 +2764,13 @@ bool CSimpleTextSubtitle::Open(std::string fn, int CharSet, std::string name)
 static int CountLines(CTextFile* f, ULONGLONG from, ULONGLONG to)
 {
   int n = 0;
-  std::string s;
+  std::wstring s;
   f->Seek(from, 0);
   while(f->ReadString(s) && f->GetPosition() < to) n++;
   return(n);
 }
 
-bool CSimpleTextSubtitle::Open(CTextFile* f, int CharSet, std::string name)
+bool CSimpleTextSubtitle::Open(CTextFile* f, int CharSet, std::wstring name)
 {
   Empty();
 
@@ -2820,7 +2820,7 @@ bool CSimpleTextSubtitle::Open(CTextFile* f, int CharSet, std::string name)
   return(false);
 }
 
-bool CSimpleTextSubtitle::Open(BYTE* data, int len, int CharSet, std::string name)
+bool CSimpleTextSubtitle::Open(BYTE* data, int len, int CharSet, std::wstring name)
 {
   char path[MAX_PATH];
   if(!GetTempPathA(MAX_PATH, path)) return(false);
@@ -2844,7 +2844,7 @@ bool CSimpleTextSubtitle::Open(BYTE* data, int len, int CharSet, std::string nam
   return(fRet);
 }
 
-bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFile::enc e)
+bool CSimpleTextSubtitle::SaveAs(std::wstring fn, exttype et, double fps, CTextFile::enc e)
 {
   if(fn.Mid(fn.ReverseFind('.')+1).CompareNoCase(exttypestr[et])) 
   {
@@ -2858,7 +2858,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
 
   if(et == EXTSMI)
   {
-    std::string str;
+    std::wstring str;
 
     str += _T("<SAMI>\n<HEAD>\n");
     str += _T("<STYLE TYPE=\"text/css\">\n");
@@ -2876,7 +2876,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
   }
   else if(et == EXTSSA || et == EXTASS)
   {
-    std::string str;
+    std::wstring str;
 
     str  = _T("[Script Info]\n");
     str += (et == EXTSSA) ? _T("; This is a Sub Station Alpha v4 script.\n") : _T("; This is an Advanced Sub Station Alpha v4+ script.\n");
@@ -2906,11 +2906,11 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
       ? _T("[V4 Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, TertiaryColour, BackColour, Bold, Italic, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n")
       : _T("[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
 
-    std::string str2;
+    std::wstring str2;
     str2.Format(str, m_dstScreenSize.cx, m_dstScreenSize.cy);
     f.WriteString(str2);
 
-    std::string _str = "";
+    std::wstring _str = "";
 
     str  = (et == EXTSSA)
       ? _T("Style: %s,%s,%d,&H%06x,&H%06x,&H%06x,&H%06x,%d,%d,%d,%d,%d,%d,%d,%d,%d")
@@ -2921,15 +2921,15 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
       : _T(",%d,%d,%d,%d,%d,%d,%d\n");
       
 
-    std::map<std::string, STSStyle*>::const_iterator it = m_styles.begin();
+    std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.begin();
     for (; it != m_styles.end(); ++it)
     {
-      std::string key = it->first;
+      std::wstring key = it->first;
       STSStyle* s = it->second;
 
       if(et == EXTSSA)
       {
-        std::string str2;
+        std::wstring str2;
         str2.Format(str, key,
           s->fontName, (int)s->fontSize,
           s->colors[0]&0xffffff, 
@@ -2942,7 +2942,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
           s->scrAlignment <= 3 ? s->scrAlignment : s->scrAlignment <= 6 ? ((s->scrAlignment-3)|8) : s->scrAlignment <= 9 ? ((s->scrAlignment-6)|4) : 2,
           s->marginRect.left, s->marginRect.right, (s->marginRect.top + s->marginRect.bottom) / 2);
         
-        std::string tmp;
+        std::wstring tmp;
         tmp.Format(_str,
           s->alpha[0],
           s->charSet);
@@ -2952,7 +2952,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
       }
       else
       {
-        std::string str2;
+        std::wstring str2;
         str2.Format(str, key,
           s->fontName, (int)s->fontSize,
           (s->colors[0]&0xffffff) | (s->alpha[0]<<24),
@@ -2965,7 +2965,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
           (int)s->fontSpacing, (float)s->fontAngleZ,
           s->borderStyle == 0 ? 1 : s->borderStyle == 1 ? 3 : 0);
 
-        std::string tmp;
+        std::wstring tmp;
         tmp.Format(_str,
           (int)s->outlineWidthY,
           (int)s->shadowDepthY,
@@ -3076,7 +3076,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
   }
 
   STSStyle* s;
-  std::map<std::string, STSStyle*>::const_iterator it = m_styles.find(_T("Default"));
+  std::map<std::wstring, STSStyle*>::const_iterator it = m_styles.find(_T("Default"));
   if(!m_fUsingAutoGeneratedDefaultStyle && it != m_styles.end() && et != EXTSSA && et != EXTASS)
   {
     s = it->second;
@@ -3084,7 +3084,7 @@ bool CSimpleTextSubtitle::SaveAs(std::string fn, exttype et, double fps, CTextFi
     if(!f.Save(fn + _T(".style"), e))
       return(false);
 
-    std::string str, str2;
+    std::wstring str, str2;
 
     str += _T("ScriptType: v4.00+\n");
     str += _T("PlayResX: %d\n");
@@ -3336,7 +3336,7 @@ LOGFONTW& operator <<= (LOGFONTW& lfw, STSStyle& s)
   return(lfw);
 }
 
-std::string& operator <<= (std::string& style, STSStyle& s)
+std::wstring& operator <<= (std::wstring& style, STSStyle& s)
 {
   /*style.Format(_T("%d;%d;%d;%d;%d;%d;%f;%f;%f;%f;0x%06x;0x%06x;0x%06x;0x%06x;0x%02x;0x%02x;0x%02x;0x%02x;%d;%s;%f;%f;%f;%f;%d;%d;%d;%d;%d;%f;%f;%f;%f;%d"),
     s.marginRect.left, s.marginRect.right, s.marginRect.top, s.marginRect.bottom,
@@ -3355,7 +3355,7 @@ std::string& operator <<= (std::string& style, STSStyle& s)
   return(style);
 }
 
-STSStyle& operator <<= (STSStyle& s, std::string& style)
+STSStyle& operator <<= (STSStyle& s, std::wstring& style)
 {
   s.SetDefault();
 

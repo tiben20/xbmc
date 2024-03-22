@@ -108,67 +108,67 @@ void CGUIDialogLAVAudio::InitializeSettings()
   CGUIDialogSettingsManualBase::InitializeSettings();
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
-
-  CSettingCategory *category = AddCategory("dsplayerlavaudio", -1);
+  
+  std::shared_ptr<CSettingCategory> category = AddCategory("dsplayerlavaudio", -1);
   if (category == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupProperty = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupProperty = AddGroup(category);
   if (groupProperty == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *group = AddGroup(category);
+  std::shared_ptr<CSettingGroup> group = AddGroup(category);
   if (group == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
-  CSettingGroup *groupBitstream = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupBitstream = AddGroup(category);
   if (groupBitstream == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupOptions = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupOptions = AddGroup(category);
   if (groupOptions == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupDRC = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupDRC = AddGroup(category);
   if (groupDRC == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
   // get all necessary setting groups
-  CSettingGroup *groupMixer = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupMixer = AddGroup(category);
   if (groupMixer == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
-  CSettingGroup *groupSettings = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupSettings = AddGroup(category);
   if (groupSettings == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
-  CSettingGroup *groupEncoding = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupEncoding = AddGroup(category);
   if (groupEncoding == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
-  CSettingGroup *groupReset = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupReset = AddGroup(category);
   if (groupReset == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
@@ -184,25 +184,25 @@ void CGUIDialogLAVAudio::InitializeSettings()
   CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
   // BUTTON
-  AddButton(groupProperty, LAVAUDIO_PROPERTYPAGE, 80013, 0);
+  AddButton(groupProperty, LAVAUDIO_PROPERTYPAGE, 80013, SettingLevel::Basic);
 
   // TRAYICON
-  AddToggle(group, LAVAUDIO_TRAYICON, 80001, 0, lavSettings.audio_bTrayIcon);
+  AddToggle(group, LAVAUDIO_TRAYICON, 80001, SettingLevel::Basic, lavSettings.audio_bTrayIcon);
 
   // BITSTREAM
-  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_AC3, 81003, 0, lavSettings.audio_bBitstream[0]);
-  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_EAC3, 81004, 0, lavSettings.audio_bBitstream[1]);
-  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_TRUEHD, 81005, 0, lavSettings.audio_bBitstream[2]);
-  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_DTS, 81006, 0, lavSettings.audio_bBitstream[3]);
-  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_DTSHD, 81007, 0, lavSettings.audio_bBitstream[4]);
-  AddToggle(groupBitstream, LAVAUDIO_DTSHDFRAMING, 81008, 0, lavSettings.audio_bDTSHDFraming);
+  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_AC3, 81003, SettingLevel::Basic, lavSettings.audio_bBitstream[0]);
+  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_EAC3, 81004, SettingLevel::Basic, lavSettings.audio_bBitstream[1]);
+  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_TRUEHD, 81005, SettingLevel::Basic, lavSettings.audio_bBitstream[2]);
+  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_DTS, 81006, SettingLevel::Basic, lavSettings.audio_bBitstream[3]);
+  AddToggle(groupBitstream, LAVAUDIO_BITSTREAM_DTSHD, 81007, SettingLevel::Basic, lavSettings.audio_bBitstream[4]);
+  AddToggle(groupBitstream, LAVAUDIO_DTSHDFRAMING, 81008, SettingLevel::Basic, lavSettings.audio_bDTSHDFraming);
 
   // OPTIONS
-  AddToggle(groupOptions, LAVAUDIO_AUTOSYNCAV, 81009, 0, lavSettings.audio_bAutoAVSync);
-  AddToggle(groupOptions, LAVAUDIO_OUTSTANDARD, 81010, 0, lavSettings.audio_bOutputStandardLayout);
-  AddToggle(groupOptions, LAVAUDIO_EXPANDMONO, 81011, 0, lavSettings.audio_bExpandMono);
-  AddToggle(groupOptions, LAVAUDIO_EXPAND61, 81012, 0, lavSettings.audio_bExpand61);
-  AddToggle(groupOptions, LAVAUDIO_51LEGACY, 81031, 0, lavSettings.audio_b51Legacy);
+  AddToggle(groupOptions, LAVAUDIO_AUTOSYNCAV, 81009, SettingLevel::Basic, lavSettings.audio_bAutoAVSync);
+  AddToggle(groupOptions, LAVAUDIO_OUTSTANDARD, 81010, SettingLevel::Basic, lavSettings.audio_bOutputStandardLayout);
+  AddToggle(groupOptions, LAVAUDIO_EXPANDMONO, 81011, SettingLevel::Basic, lavSettings.audio_bExpandMono);
+  AddToggle(groupOptions, LAVAUDIO_EXPAND61, 81012, SettingLevel::Basic, lavSettings.audio_bExpand61);
+  AddToggle(groupOptions, LAVAUDIO_51LEGACY, 81031, SettingLevel::Basic, lavSettings.audio_b51Legacy);
 
   // DRC
 
@@ -213,10 +213,10 @@ void CGUIDialogLAVAudio::InitializeSettings()
   SettingDependencies depsDRCEnabled;
   depsDRCEnabled.push_back(dependencyDRCEnabled);
 
-  AddToggle(groupDRC, LAVAUDIO_DRCENABLED, 81001, 0, lavSettings.audio_bDRCEnabled);
+  AddToggle(groupDRC, LAVAUDIO_DRCENABLED, 81001, SettingLevel::Basic, lavSettings.audio_bDRCEnabled);
   
   CSetting *settingDRCLevel;
-  settingDRCLevel = AddSlider(groupDRC, LAVAUDIO_DRCLEVEL, 81002, 0, lavSettings.audio_iDRCLevel, "%i%%", 0, 1, 100);
+  settingDRCLevel = AddSlider(groupDRC, LAVAUDIO_DRCLEVEL, 81002, SettingLevel::Basic, lavSettings.audio_iDRCLevel, "%i%%", 0, 1, 100);
   settingDRCLevel->SetParent(LAVAUDIO_DRCENABLED);
   settingDRCLevel->SetDependencies(depsDRCEnabled);
 
@@ -229,7 +229,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
   SettingDependencies depsMixingEnabled;
   depsMixingEnabled.push_back(dependencyMixingEnabled);
 
-  AddToggle(groupMixer, LAVAUDIO_MIXINGENABLED, 81013, 0, lavSettings.audio_bMixingEnabled);
+  AddToggle(groupMixer, LAVAUDIO_MIXINGENABLED, 81013, SettingLevel::Basic, lavSettings.audio_bMixingEnabled);
   entries.clear();
   entries.emplace_back(81015, AV_CH_LAYOUT_MONO);
   entries.emplace_back(81016, AV_CH_LAYOUT_STEREO);
@@ -249,20 +249,20 @@ void CGUIDialogLAVAudio::InitializeSettings()
   settingMixCenter->SetDependencies(depsMixingEnabled);
 
   CSetting *settingMixSurround;
-  settingMixSurround = AddSlider(groupMixer, LAVAUDIO_MIXINGSURROUND, 81022, 0, DWToFloat(lavSettings.audio_dwMixingSurroundLevel), "%1.2f", 0.0f, 0.01f, 1.00f);
+  settingMixSurround = AddSlider(groupMixer, LAVAUDIO_MIXINGSURROUND, 81022, SettingLevel::Basic, DWToFloat(lavSettings.audio_dwMixingSurroundLevel), "%1.2f", 0.0f, 0.01f, 1.00f);
   settingMixSurround->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixSurround->SetDependencies(depsMixingEnabled);
 
   CSetting *settingMixLFE;
-  settingMixLFE = AddSlider(groupMixer, LAVAUDIO_MIXINGLFE, 81023, 0, DWToFloat(lavSettings.audio_dwMixingLFELevel), "%1.2f", 0.0f, 0.01f, 1.00f);
+  settingMixLFE = AddSlider(groupMixer, LAVAUDIO_MIXINGLFE, 81023, SettingLevel::Basic, DWToFloat(lavSettings.audio_dwMixingLFELevel), "%1.2f", 0.0f, 0.01f, 1.00f);
   settingMixLFE->SetParent(LAVAUDIO_MIXINGENABLED);
   settingMixLFE->SetDependencies(depsMixingEnabled);
 
 
   // SETTINGS
-  AddToggle(groupSettings, LAVAUDIO_MIXING_DONTMIX, 81024, 0, lavSettings.audio_dwMixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO);
-  AddToggle(groupSettings, LAVAUDIO_MIXING_NORMALIZE, 81025, 0, lavSettings.audio_dwMixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
-  AddToggle(groupSettings, LAVAUDIO_MIXING_CLIP, 81026, 0, lavSettings.audio_dwMixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION);
+  AddToggle(groupSettings, LAVAUDIO_MIXING_DONTMIX, 81024, SettingLevel::Basic, lavSettings.audio_dwMixingFlags & LAV_MIXING_FLAG_UNTOUCHED_STEREO);
+  AddToggle(groupSettings, LAVAUDIO_MIXING_NORMALIZE, 81025, SettingLevel::Basic, lavSettings.audio_dwMixingFlags & LAV_MIXING_FLAG_NORMALIZE_MATRIX);
+  AddToggle(groupSettings, LAVAUDIO_MIXING_CLIP, 81026, SettingLevel::Basic, lavSettings.audio_dwMixingFlags & LAV_MIXING_FLAG_CLIP_PROTECTION);
 
   // ENCODINGS
   entries.clear();
@@ -273,7 +273,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
 
   // BUTTON RESET
   if (!g_application.m_pPlayer->IsPlayingVideo())
-    AddButton(groupReset, LAVAUDIO_RESET, 10041, 0);
+    AddButton(groupReset, LAVAUDIO_RESET, 10041, SettingLevel::Basic);
 }
 
 void CGUIDialogLAVAudio::OnSettingChanged(const CSetting *setting)
