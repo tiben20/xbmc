@@ -118,7 +118,7 @@ public:
   virtual ~IDSPlayer() {};
 
   virtual bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags) { return false; };
-  virtual bool UsingDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) { return false; };
+  virtual bool UsingDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) const { return false; };
   virtual bool ReadyDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) { return false; };
   virtual void Register(IDSRendererAllocatorCallback* pAllocatorCallback) {};
   virtual void Register(IDSRendererPaintCallback* pPaintCallback) {};

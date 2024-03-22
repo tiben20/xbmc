@@ -40,6 +40,9 @@
 #include "StreamsManager.h"
 
 #include "utils/CPUInfo.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 //#include "windowing/windows/WinSystemWin32DX.h"
 
@@ -215,7 +218,7 @@ void CRenderDSManager::FrameMove()
 
       if (m_flags & CONF_FLAGS_FULLSCREEN)
       {
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_SWITCHTOFULLSCREEN);
+        CServiceBroker::GetAppMessenger()->PostMsg(TMSG_SWITCHTOFULLSCREEN);
       }
     }
     if (m_renderState == STATE_CONFIGURED && m_bWaitingForRenderOnDS && g_graphicsContext.IsFullScreenVideo())
@@ -293,7 +296,7 @@ bool CRenderDSManager::Flush()
   else
   {
     m_flushEvent.Reset();
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_RENDERER_FLUSH);
+    CServiceBroker::GetAppMessenger()->PostMsg(TMSG_RENDERER_FLUSH);
     if (!m_flushEvent.WaitMSec(1000))
     {
       CLog::Log(LOGERROR, "%s - timed out waiting for renderer to flush", __FUNCTION__);

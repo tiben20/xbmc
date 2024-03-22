@@ -56,10 +56,11 @@
 #include "utils/timeutils.h"
 #include "utils/ipinhook.h"
 #include "DSInputStreamPVRManager.h"
-
 #include "guilib/LocalizeStrings.h"
 #include "cores/DataCacheCore.h"
 #include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 enum
 {
@@ -416,14 +417,14 @@ HRESULT CDSGraph::HandleGraphEvent()
   if (g_application.GetComponent<CApplicationPlayer>()->ReadyDS() && m_bPerformStop)
   {
     m_bPerformStop = false;
-    CApplicationMessenger::GetInstance().SendMsg(TMSG_MEDIA_STOP);
+    CServiceBroker::GetAppMessenger()->SendMsg(TMSG_MEDIA_STOP);
     CLog::Log(LOGDEBUG, "%s Playback stopped at start", __FUNCTION__);
   }
 
   if (g_application.GetComponent<CApplicationPlayer>()->ReadyDS() && m_bPerformPause)
   {
     m_bPerformPause = false;
-    CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_PAUSE);
+    CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_PAUSE);
     CLog::Log(LOGDEBUG, "%s Playback paused at start", __FUNCTION__);
   }
 
@@ -440,19 +441,19 @@ HRESULT CDSGraph::HandleGraphEvent()
     {
     case EC_STEP_COMPLETE:
       CLog::Log(LOGDEBUG, "%s EC_STEP_COMPLETE", __FUNCTION__);
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+      CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_COMPLETE:
       CLog::Log(LOGDEBUG, "%s EC_COMPLETE", __FUNCTION__);
       m_State.eof = true;
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+      CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_BUFFERING_DATA:
       CLog::Log(LOGDEBUG, "%s EC_BUFFERING_DATA", __FUNCTION__);
       break;
     case EC_USERABORT:
       CLog::Log(LOGDEBUG, "%s EC_USERABORT", __FUNCTION__);
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+      CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_ERRORABORT:
     case EC_ERRORABORTEX:
@@ -464,7 +465,7 @@ HRESULT CDSGraph::HandleGraphEvent()
       }
       else
         CLog::Log(LOGDEBUG, "%s EC_ERRORABORT. Error code: 0x%X", __FUNCTION__, evParam1);
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+      CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_STATE_CHANGE:
       CLog::Log(LOGDEBUG, "%s EC_STATE_CHANGE", __FUNCTION__);

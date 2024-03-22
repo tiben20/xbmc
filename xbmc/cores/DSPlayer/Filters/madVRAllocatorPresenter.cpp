@@ -31,6 +31,9 @@
 #include "DSPlayer.h"
 #include "utils/log.h"
 #include "utils/SystemInfo.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 using namespace KODI::MESSAGING;
 

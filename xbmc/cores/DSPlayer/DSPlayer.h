@@ -168,7 +168,7 @@ public:
   CRect GetActiveVideoRect() override;
   bool IsEnteringExclusive() override;
   void EnableExclusive(bool bEnable) override;
-  void SetPixelShader() override;
+  void SetPixelShader() const override;
   void SetResolution() override;
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override;
   bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) override;
@@ -191,7 +191,7 @@ public:
 
   // IDSPlayer
   bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags) override;
-  bool UsingDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) override;
+  bool UsingDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) const override;
   bool ReadyDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) override;
   void Register(IDSRendererAllocatorCallback* pAllocatorCallback) override { m_pAllocatorCallback = pAllocatorCallback; }
   void Register(IDSRendererPaintCallback* pPaintCallback) override { m_pPaintCallback = pPaintCallback; }

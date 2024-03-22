@@ -46,6 +46,9 @@
 #include "DSPlayerDatabase.h"
 #include "guilib/StereoscopicsManager.h"
 #include "DSPropertyPage.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 CDSStreamDetail::CDSStreamDetail()
   : IAMStreamSelect_Index(0), flags(0), pObj(NULL), pUnk(NULL), lcid(0),

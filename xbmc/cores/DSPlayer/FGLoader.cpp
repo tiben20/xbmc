@@ -55,6 +55,9 @@
 #include "Filters/Sanear/Factory.h"
 #include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 namespace
 {

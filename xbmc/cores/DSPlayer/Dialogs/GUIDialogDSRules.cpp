@@ -43,6 +43,9 @@
 #include "Filters/RendererSettings.h"
 #include "PixelShaderList.h"
 #include "utils/DSFileUtils.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 #define SETTING_RULE_SAVE                     "rule.save"
 #define SETTING_RULE_ADD                      "rule.add"

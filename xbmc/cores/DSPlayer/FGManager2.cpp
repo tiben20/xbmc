@@ -31,7 +31,9 @@
 #include "Filters/RendererSettings.h"
 #include "video/VideoInfoTag.h"
 #include "PixelShaderList.h"
-
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
 {

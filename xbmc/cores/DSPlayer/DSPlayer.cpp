@@ -67,6 +67,9 @@
 #include "DSFilterVersion.h"
 #include "DVDFileInfo.h"
 
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 using namespace PVR;
 using namespace std;
 using namespace KODI::MESSAGING;
@@ -1030,7 +1033,7 @@ bool CDSPlayer::OnAction(const CAction &action)
       else
       {
         CLog::Log(LOGWARNING, "%s - failed to switch channel. playback stopped", __FUNCTION__);
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+        CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       }
       return true;
       break;
@@ -1050,7 +1053,7 @@ bool CDSPlayer::OnAction(const CAction &action)
       else
       {
         CLog::Log(LOGWARNING, "%s - failed to switch channel. playback stopped", __FUNCTION__);
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+        CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       }
       return true;
       break;
@@ -1070,7 +1073,7 @@ bool CDSPlayer::OnAction(const CAction &action)
       else
       {
         CLog::Log(LOGWARNING, "%s - failed to switch channel. playback stopped", __FUNCTION__);
-        CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+        CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       }
       return true;
       break;
@@ -1205,7 +1208,7 @@ void CDSPlayer::UpdateApplication()
     if (g_pPVRStream->UpdateItem(item))
     {
       g_application.CurrentFileItem() = item;
-      CApplicationMessenger::GetInstance().PostMsg(TMSG_UPDATE_CURRENT_ITEM, 0, -1, static_cast<void*>(new CFileItem(item)));
+      CServiceBroker::GetAppMessenger()->PostMsg(TMSG_UPDATE_CURRENT_ITEM, 0, -1, static_cast<void*>(new CFileItem(item)));
     }
   }
 }
@@ -1516,7 +1519,7 @@ void CDSPlayer::EnableExclusive(bool bEnable)
     m_pAllocatorCallback->EnableExclusive(bEnable);
 }
 
-void CDSPlayer::SetPixelShader()
+void CDSPlayer::SetPixelShader() const
 {
   if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
     m_pAllocatorCallback->SetPixelShader();
@@ -1634,7 +1637,7 @@ bool CDSPlayer::Configure(unsigned int width, unsigned int height, unsigned int 
   return m_renderManager.Configure(width, height, d_width, d_height, fps, flags);
 }
 
-bool CDSPlayer::UsingDS(DIRECTSHOW_RENDERER videoRenderer)
+bool CDSPlayer::UsingDS(DIRECTSHOW_RENDERER videoRenderer) const
 {
   if (videoRenderer == DIRECTSHOW_RENDERER_UNDEF)
     videoRenderer = m_CurrentVideoRenderer;
@@ -1795,7 +1798,7 @@ void CGraphManagementThread::Process()
           }
           else if (newPos >= g_dsGraph->GetTotalTime())
           {
-            CApplicationMessenger::GetInstance().PostMsg(TMSG_MEDIA_STOP);
+            CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
             break;
           }
 

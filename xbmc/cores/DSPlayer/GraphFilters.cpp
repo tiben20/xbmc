@@ -38,8 +38,10 @@
 #include "Utils/DSFilterEnumerator.h"
 #include "Utils/AudioEnumerator.h"
 #include "Filters/Sanear/Factory.h"
-#include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 #pragma comment(lib , "version.lib")
 
