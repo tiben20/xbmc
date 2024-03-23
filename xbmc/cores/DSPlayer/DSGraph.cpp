@@ -61,6 +61,7 @@
 #include "ServiceBroker.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "cores/audioengine/engines/activeae/activeae.h"
 
 enum
 {
@@ -177,8 +178,8 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
       break;
   }
   EndEnumFilters
-
-    SetVolume(g_application.GetVolume(false));
+    
+    SetVolume(CServiceBroker::GetActiveAE()->GetVolume());
 
   CDSPlayer::PlayerState = DSPLAYER_LOADED;
   return hr;
@@ -364,7 +365,7 @@ void CDSGraph::UpdateWindowPosition()
     HRESULT hr;
     Com::SmartRect videoRect, windowRect;
     CRect vr;
-    vr = g_graphicsContext.GetViewWindow();
+    vr = CServiceBroker::GetWinSystem()->GetGfxContext().GetViewWindow();
 
     hr = m_pBasicVideo->SetDefaultSourcePosition();
     hr = m_pBasicVideo->SetDestinationPosition(videoRect.left, videoRect.top, videoRect.Width(), videoRect.Height());
@@ -534,15 +535,15 @@ HRESULT CDSGraph::HandleGraphEvent()
           }
           }*/
         }
-        Domain = _T("First Play");
+        Domain = "First Play";
         m_DvdState.isInMenu = false;
         break;
       case DVD_DOMAIN_VideoManagerMenu:
-        Domain = _T("Video Manager Menu");
+        Domain = "Video Manager Menu";
         m_DvdState.isInMenu = true;
         break;
       case DVD_DOMAIN_VideoTitleSetMenu:
-        Domain = _T("Video Title Set Menu");
+        Domain = "Video Title Set Menu";
         //Entered menu
         m_DvdState.isInMenu = true;
         break;
@@ -555,7 +556,7 @@ HRESULT CDSGraph::HandleGraphEvent()
       case DVD_DOMAIN_Stop:
         Domain = "stopped";
         break;
-      default: Domain = _T("-"); break;
+      default: Domain = "-"; break;
       }
     }
       break;
@@ -576,7 +577,7 @@ void CDSGraph::SetVolume(float nVolume)
 
   if (m_pBasicAudio && (nVolume != m_currentVolume))
   {
-    m_pBasicAudio->put_Volume((nVolume == VOLUME_MINIMUM) ? -10000 : (nVolume - 1) * 6000);
+    m_pBasicAudio->put_Volume((nVolume == 0.0f) ? -10000 : (nVolume - 1) * 6000);
     m_currentVolume = nVolume;
   }
 }
@@ -726,7 +727,7 @@ void CDSGraph::Seek(uint64_t position, uint32_t flags /*= AM_SEEKING_AbsolutePos
     return;
   }
   CSingleExit lock(m_ObjectLock);
-
+#if 0
   if (g_pPVRStream || CGraphFilters::Get()->UsingMediaPortalTsReader())
   {
     // For live tv and in-progress recordings.
@@ -738,7 +739,7 @@ void CDSGraph::Seek(uint64_t position, uint32_t flags /*= AM_SEEKING_AbsolutePos
 
   if (showPopup)
     g_infoManager.SetDisplayAfterSeek(100000);
-
+#endif
   if (!m_pMediaSeeking)
     return;
 
@@ -757,8 +758,8 @@ void CDSGraph::Seek(uint64_t position, uint32_t flags /*= AM_SEEKING_AbsolutePos
   int iTime = DS_TIME_TO_MSEC(position);
   int seekOffset = (int)(iTime - DS_TIME_TO_MSEC(GetTime()));
   m_callback.OnPlayBackSeek(iTime, seekOffset);
-  if (showPopup)
-    g_infoManager.SetDisplayAfterSeek();
+  //if (showPopup)
+  //  g_infoManager.SetDisplayAfterSeek();
 }
 
 void CDSGraph::Seek(bool bPlus, bool bLargeStep)
@@ -786,21 +787,21 @@ void CDSGraph::Seek(bool bPlus, bool bLargeStep)
     return;
 
   int64_t seek = 0;
-  if (g_advancedSettings.m_videoUseTimeSeeking && DS_TIME_TO_SEC(GetTotalTime()) > 2 * g_advancedSettings.m_videoTimeSeekForwardBig)
+  if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoUseTimeSeeking && DS_TIME_TO_SEC(GetTotalTime()) > 2 * CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoTimeSeekForwardBig)
   {
     if (bLargeStep)
-      seek = bPlus ? g_advancedSettings.m_videoTimeSeekForwardBig : g_advancedSettings.m_videoTimeSeekBackwardBig;
+      seek = bPlus ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoTimeSeekForwardBig : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoTimeSeekBackwardBig;
     else
-      seek = bPlus ? g_advancedSettings.m_videoTimeSeekForward : g_advancedSettings.m_videoTimeSeekBackward;
+      seek = bPlus ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoTimeSeekForward : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoTimeSeekBackward;
     seek = GetTime() + SEC_TO_DS_TIME(seek);
   }
   else
   {
     float percent;
     if (bLargeStep)
-      percent = (float)(bPlus ? g_advancedSettings.m_videoPercentSeekForwardBig : g_advancedSettings.m_videoPercentSeekBackwardBig);
+      percent = (float)(bPlus ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoPercentSeekForwardBig : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoPercentSeekBackwardBig);
     else
-      percent = (float)(bPlus ? g_advancedSettings.m_videoPercentSeekForward : g_advancedSettings.m_videoPercentSeekBackward);
+      percent = (float)(bPlus ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoPercentSeekForward : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoPercentSeekBackward);
     seek = GetTotalTime() * (float)((GetPercentage() + percent) / 100);
   }
 

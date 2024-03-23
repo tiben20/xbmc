@@ -44,7 +44,7 @@ HRESULT CMadvrSharedRender::Render(DS_RENDER_LAYER layer)
   if (m_bWaitKodiRendering)
     m_dsWait.Wait(100);
 
-  if (!g_application.GetComponent<CApplicationPlayer>()->ReadyDS() || (g_graphicsContext.IsFullScreenVideo() && layer == RENDER_LAYER_UNDER))
+  if (!g_application.GetComponent<CApplicationPlayer>()->ReadyDS() || (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo() && layer == RENDER_LAYER_UNDER))
     return CALLBACK_INFO_DISPLAY;
 
   // Render the GUI on madVR
@@ -55,7 +55,7 @@ HRESULT CMadvrSharedRender::Render(DS_RENDER_LAYER layer)
     m_kodiWait.Unlock();
 
   // Return to madVR if we rendered something
-  if (m_bGuiVisible && !g_advancedSettings.m_bDisableMadvrLowLatency)
+  if (m_bGuiVisible && !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bDisableMadvrLowLatency)
   {
     return CALLBACK_USER_INTERFACE;
   }

@@ -115,7 +115,7 @@ const D3DFORMAT_TYPE  D3DFormatType[] =
 
 const LPCTSTR    DXVAVersion[] = { _T("DXVA "), _T("DXVA1"), _T("DXVA2") };
 
-LPCTSTR GetDXVADecoderDescription()
+LPCSTR GetDXVADecoderDescription()
 {
   return GetDXVAMode(&g_guidDXVADecoder);
 }

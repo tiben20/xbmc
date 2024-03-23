@@ -42,7 +42,7 @@ HRESULT CEvrSharedRender::Render(DS_RENDER_LAYER layer)
   if (m_bWaitKodiRendering)
     m_dsWait.Wait(100);
 
-  if (!g_application.GetComponent<CApplicationPlayer>()->ReadyDS() || (g_graphicsContext.IsFullScreenVideo() && layer == RENDER_LAYER_UNDER))
+  if (!g_application.GetComponent<CApplicationPlayer>()->ReadyDS() || (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo() && layer == RENDER_LAYER_UNDER))
     return S_FALSE;
 
   // Render the GUI on EVR

@@ -1642,7 +1642,7 @@ void CSubtitleManager::Initialize()
   style.colors[0] = color[CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_COLOR)];
   style.alpha[0] = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.alpha");
 
-  g_graphicsContext.SetScalingResolution(RES_PAL_4x3, true);
+  CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(RES_PAL_4x3, true);
   style.fontSize = (float)(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_HEIGHT)) * 50.0 / 72.0;
 
   int fontStyle = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_STYLE);

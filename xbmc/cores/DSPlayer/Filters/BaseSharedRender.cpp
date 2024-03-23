@@ -142,7 +142,7 @@ CBaseSharedRender::CBaseSharedRender()
 {
   color_t clearColour = g_Windowing.UseLimitedColor() ? (16 * 0x010101) : 0;
   CD3DHelper::XMStoreColor(m_fColor, clearColour);
-  m_bWaitKodiRendering = !g_advancedSettings.m_bNotWaitKodiRendering;
+  m_bWaitKodiRendering = !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bNotWaitKodiRendering;
 }
 
 CBaseSharedRender::~CBaseSharedRender()

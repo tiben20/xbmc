@@ -59,7 +59,7 @@ CDSPlayerDatabase::~CDSPlayerDatabase(void)
 
 bool CDSPlayerDatabase::Open()
 {
-  return CDatabase::Open(g_advancedSettings.m_databaseDSPlayer);
+  return CDatabase::Open(CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_databaseDSPlayer);
 }
 
 void CDSPlayerDatabase::CreateTables()

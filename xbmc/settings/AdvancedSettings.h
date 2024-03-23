@@ -174,6 +174,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
 #if HAS_DS_PLAYER
     float m_videoDefaultAuxLatency;
     std::string m_videoDefaultAuxDeviceName;
+    unsigned int m_videoBusyDialogDelay_ms;
 #endif
     int  m_videoCaptureUseOcclusionQuery;
     bool m_DXVACheckCompatibility;

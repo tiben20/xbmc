@@ -58,7 +58,7 @@ CmadVRAllocatorPresenter::CmadVRAllocatorPresenter(HWND hWnd, HRESULT& hr, std::
   m_exclusiveCallback = ExclusiveCallback;
   m_firstBoot = true;
   m_isEnteringExclusive = false;
-  m_kodiGuiDirtyAlgo = g_advancedSettings.m_guiAlgorithmDirtyRegions;
+  m_kodiGuiDirtyAlgo = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions;
   m_activeVideoRect.SetRect(0, 0, 0, 0);
   m_frameCount = 0;
   
@@ -93,7 +93,7 @@ CmadVRAllocatorPresenter::~CmadVRAllocatorPresenter()
       pMadVrCmd->SendCommand("restoreDisplayModeNow");
   }
 
-  g_advancedSettings.m_guiAlgorithmDirtyRegions = m_kodiGuiDirtyAlgo;
+  CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions = m_kodiGuiDirtyAlgo;
   
   // the order is important here
   SAFE_DELETE(m_pMadvrShared);
@@ -131,7 +131,7 @@ void CmadVRAllocatorPresenter::SetResolution()
 
   SIZE nativeVideoSize = GetVideoSize(false);
 
-  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && g_graphicsContext.IsFullScreenRoot())
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot())
   {
     RESOLUTION res = CResolutionUtils::ChooseBestResolution(fps, nativeVideoSize.cx, false);   
     bool bChanged = SetResolutionInternal(res);
@@ -263,7 +263,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::RenderOsd(LPCSTR name, REFERENCE_TIME fra
 {
   CAutoLock cAutoLock(this);
 
-  if (g_graphicsContext.IsFullScreenVideo())
+  if (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo())
     m_activeVideoRect.SetRect(activeVideoRect->left, activeVideoRect->top, activeVideoRect->right, activeVideoRect->bottom);
 
   if (m_pMadvrShared != nullptr)
@@ -310,7 +310,7 @@ HRESULT CmadVRAllocatorPresenter::SetDevice(IDirect3DDevice9* pD3DDev)
     m_pMadvrShared->CreateTextures(g_Windowing.Get3D11Device(), m_pD3DDev, (int)m_ScreenSize.cx, (int)m_ScreenSize.cy);
 
     m_firstBoot = false;
-    g_advancedSettings.m_guiAlgorithmDirtyRegions = DIRTYREGION_SOLVER_FILL_VIEWPORT_ALWAYS;
+    CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions = DIRTYREGION_SOLVER_FILL_VIEWPORT_ALWAYS;
   }
 
   Com::SmartSize size(m_ScreenSize.cx,m_ScreenSize.cy);
@@ -460,8 +460,8 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
     RECT w;
     w.left = 0;
     w.top = 0;
-    w.right = g_graphicsContext.GetWidth();
-    w.bottom = g_graphicsContext.GetHeight();
+    w.right = CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth();
+    w.bottom = CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight();
     pVW->SetWindowPosition(w.left, w.top, w.right - w.left, w.bottom - w.top);
 
     // madVR supports calling IVideoWindow::put_Owner before the pins are connected
@@ -487,15 +487,15 @@ void CmadVRAllocatorPresenter::SetPosition(CRect sourceRect, CRect videoRect, CR
 
 STDMETHODIMP_(void) CmadVRAllocatorPresenter::SetPosition(RECT w, RECT v)
 {
-  if (!g_graphicsContext.IsFullScreenVideo())
+  if (!CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo())
   {
     w.left = 0;
     w.top = 0;
-    w.right = g_graphicsContext.GetWidth();
-    w.bottom = g_graphicsContext.GetHeight();
+    w.right = CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth();
+    w.bottom = CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight();
   }
 
-  RENDER_STEREO_MODE stereoMode = g_graphicsContext.GetStereoMode();
+  RENDER_STEREO_MODE stereoMode = CServiceBroker::GetWinSystem()->GetGfxContext().GetStereoMode();
   switch (stereoMode)
   {
   case RENDER_STEREO_MODE_SPLIT_VERTICAL:

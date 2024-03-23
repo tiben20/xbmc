@@ -658,7 +658,7 @@ void CGraphFilters::GetActiveDecoder(std::pair<std::string, bool> &activeDecoder
 void CGraphFilters::SetAuxAudioDelay()
 {
   CAudioEnumerator pSound;
-  m_auxAudioDelay = pSound.IsDevice(g_advancedSettings.GetAuxDeviceName());
+  m_auxAudioDelay = pSound.IsDevice(CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->GetAuxDeviceName());
 }
 
 #endif

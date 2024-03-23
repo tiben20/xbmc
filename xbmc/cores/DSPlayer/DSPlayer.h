@@ -225,8 +225,8 @@ public:
   CCriticalSection m_StateSection;
   CCriticalSection m_CleanSection;
 
-  int GetPictureWidth() { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
-  int GetPictureHeight()  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
+  int GetPictureWidth() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
+  int GetPictureHeight() const  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
 
   void GetGeneralInfo(std::string& strGeneralInfo);
 
@@ -336,5 +336,16 @@ protected:
   int m_renderOverCount;
   DS_RENDER_LAYER m_currentVideoLayer;
   DIRECTSHOW_RENDERER m_CurrentVideoRenderer;
+
+  //added from videoplayer let to see if its what we need
+  struct SContent
+  {
+    mutable CCriticalSection m_section;
+    CSelectionStreams m_selectionStreams;
+    std::vector<ProgramInfo> m_programs;
+    int m_videoIndex{ -1 };
+    int m_audioIndex{ -1 };
+    int m_subtitleIndex{ -1 };
+  } m_content;
 };
 
