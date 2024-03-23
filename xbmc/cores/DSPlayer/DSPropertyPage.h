@@ -32,6 +32,7 @@
 #include "threads/Thread.h"
 #include "DSUtil/SmartPtr.h"
 #include "GraphFilters.h"
+#include "prsht.h"
 
 class CDSPlayerPropertyPageSite : public IPropertyPageSite, public CUnknown
 {

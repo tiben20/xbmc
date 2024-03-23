@@ -114,7 +114,7 @@ public:
 class CFGFilterFile : public CFGFilter
 {
 protected:
-  std::string m_path;
+  std::wstring m_path;
   std::string m_xFileType;
   std::string m_internalName;
   HINSTANCE m_hInst;
@@ -128,7 +128,7 @@ public:
   HRESULT Create(IBaseFilter** ppBF);
   std::string GetXFileType() { return m_xFileType; };
   std::string GetInternalName() { return m_internalName; };
-  std::string GetPath() { return m_path; }
+  std::wstring GetPath() { return m_path; }
 };
 
 interface IDsRenderer;

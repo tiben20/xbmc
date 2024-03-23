@@ -174,8 +174,8 @@ public:
   CRect GetActiveVideoRect();
   bool IsEnteringExclusive();
   void EnableExclusive(bool bEnable);
-  void SetPixelShader() const;
-  void SetResolution() const;
+  void SetPixelShader();
+  void SetResolution();
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect);
   bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret);
   void Reset(bool bForceWindowed);

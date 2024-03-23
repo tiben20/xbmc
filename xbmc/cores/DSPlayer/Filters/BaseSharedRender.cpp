@@ -51,6 +51,7 @@ CRenderWait::CRenderWait()
 
 void CRenderWait::Wait(int ms)
 {
+  //XbmcThreads::EndTime<> endTime{std::chrono::milliseconds(timemillis)};
   XbmcThreads::EndTime<> timeout(ms);
   CSingleExit lock(m_presentlock);
   while (m_renderState == RENDERFRAME_LOCK && !timeout.IsTimePast())

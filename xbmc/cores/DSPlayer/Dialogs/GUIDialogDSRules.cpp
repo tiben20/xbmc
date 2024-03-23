@@ -46,6 +46,7 @@
 #include "ServiceBroker.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "settings/dialogs/GUIDialogSettingsManualBase.h"
 
 #define SETTING_RULE_SAVE                     "rule.save"
 #define SETTING_RULE_ADD                      "rule.add"
@@ -97,19 +98,21 @@ void CGUIDialogDSRules::SetupView()
 
 void CGUIDialogDSRules::SetVisible(std::string id, bool visible, ConfigType subType, bool isChild /* = false */)
 {
-  std::shared_ptr<CSetting>  *setting = m_settingsManager->GetSetting(id);
+  const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
+  CSettingsManager* settingsMgr = settings->GetSettingsManager();
+  std::shared_ptr<CSetting> setting = settingsMgr->GetSetting(id);
   if (setting->IsVisible() && visible)
     return;
   setting->SetVisible(visible);
   setting->SetEnabled(visible);
   if (!isChild)
-    m_settingsManager->SetString(id, "[null]");
+    settingsMgr->SetString(id, "[null]");
   else
   { 
     if (subType == SPINNERATTRSHADER)
-      m_settingsManager->SetString(id, "prescale");
+      settingsMgr->SetString(id, "prescale");
     else
-      m_settingsManager->SetString(id, "");
+      settingsMgr->SetString(id, "");
   }
 }
 
@@ -223,7 +226,7 @@ void CGUIDialogDSRules::InitializeSettings()
   if (m_ruleList.size() == 0)
   {
     // RULE
-    m_dsmanager->InitConfig(m_ruleList, SPINNERATTR, "rules.priority", 60024, "priority", "", m_dsmanager->PriorityOptionFiller);
+    m_dsmanager->InitConfig(m_ruleList, SPINNERATTR, "rules.priority", 60024, "priority", "",m_dsmanager->PriorityOptionFiller);
     m_dsmanager->InitConfig(m_ruleList, EDITATTR, "rules.name", 60002, "name"); 
     m_dsmanager->InitConfig(m_ruleList, EDITATTR, "rules.filetypes", 60003, "filetypes");
     m_dsmanager->InitConfig(m_ruleList, EDITATTR, "rules.filename", 60004, "filename");

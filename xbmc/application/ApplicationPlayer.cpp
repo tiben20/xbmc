@@ -805,18 +805,18 @@ void CApplicationPlayer::EnableExclusive(bool bEnable)
   }
 }
 
-void CApplicationPlayer::SetPixelShader() const
+void CApplicationPlayer::SetPixelShader()
 {
-  const std::shared_ptr<const IPlayer> player = GetInternal();
+  std::shared_ptr<IPlayer> player = GetInternal();
   if (player)
   {
     player->SetPixelShader();
   }
 }
 
-void CApplicationPlayer::SetResolution() const
+void CApplicationPlayer::SetResolution()
 {
-  const std::shared_ptr<const IPlayer> player = GetInternal();
+  std::shared_ptr<IPlayer> player = GetInternal();
   if (player)
   {
     player->SetResolution();

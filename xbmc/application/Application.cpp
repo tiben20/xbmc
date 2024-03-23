@@ -755,8 +755,7 @@ bool CApplication::Initialize()
   appListener->RegisterActionListener(&appPlayer->GetSeekHandler());
   appListener->RegisterActionListener(&CPlayerController::GetInstance());
 
-  C
-    ::GetRepositoryUpdater().Start();
+  CServiceBroker::GetRepositoryUpdater().Start();
   if (!profileManager->UsingLoginScreen())
     CServiceBroker::GetServiceAddons().Start();
 

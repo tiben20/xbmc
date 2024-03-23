@@ -108,30 +108,32 @@ namespace Com
     request_url = _T("");
 
     int pos;
-    pos = url.Find(_T("://"));
+    
+    pos = url.find(_T("://"));
     if (pos > 0) {
-      protocol = url.Left(pos);
-      url.Delete(0, pos + 3);
+      
+      protocol = StringUtils::WLeft(url,pos);
+      url = url.erase(0, pos + 3);
     }
     port = 80;		// map protocol->port
 
-    pos = url.Find(_T("/"));
+    pos = url.find(_T("/"));
     if (pos < 0) {
       request_url = _T("/");
       host = url;
     }
     else {
-      host = url.Left(pos);
-      url.Delete(0, pos);
+      host = StringUtils::WLeft(url, pos);
+      url = url.erase(0, pos);
       request_url = url;
     }
 
-    pos = host.Find(_T(":"));
+    pos = host.find(_T(":"));
     if (pos > 0) {
       std::wstring temp_host = host;
-      host = temp_host.Left(pos);
-      temp_host.Delete(0, pos + 1);
-
+      host = StringUtils::WLeft(temp_host,pos);
+      temp_host = temp_host.erase(0, pos + 1);
+      
       temp_host.Trim();
       _stscanf_s(temp_host, _T("%d"), &port);
     }

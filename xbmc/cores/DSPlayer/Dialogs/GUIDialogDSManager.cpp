@@ -24,6 +24,8 @@
 #include "GUIDialogDSManager.h"
 #include "cores/DSPlayer/Utils/DSFilterEnumerator.h"
 #include "profiles/ProfileManager.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 #include "utils/log.h"
 #include "utils/DSFileUtils.h"
 #include <iterator>
@@ -102,14 +104,15 @@ void CGUIDialogDSManager::GetPath(xmlType type, std::string &xmlFile, std::strin
 {
   if (type == MEDIASCONFIG)
   {
-    xmlFile = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/mediasconfig.xml");
+    
+    xmlFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/mediasconfig.xml");
     xmlRoot = "mediasconfig";
     xmlNode = "rules";
   }
 
   if (type == FILTERSCONFIG)
   {
-    xmlFile = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/filtersconfig.xml");
+    xmlFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/filtersconfig.xml");
     xmlRoot = "filtersconfig";
     xmlNode = "filters";
   }
@@ -123,13 +126,13 @@ void CGUIDialogDSManager::GetPath(xmlType type, std::string &xmlFile, std::strin
 
   if (type == SHADERS)
   {
-    xmlFile = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/shaders.xml");
+    xmlFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/shaders.xml");
     xmlRoot = "shaders";
   }
 
   if (type == PLAYERCOREFACTORY)
   {
-    xmlFile = CProfilesManager::GetInstance().GetUserDataItem("playercorefactory.xml");
+    xmlFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("playercorefactory.xml");
     xmlRoot = "playercorefactory";
     xmlNode = "rules";
   }
@@ -243,7 +246,7 @@ void CGUIDialogDSManager::GetFilterList(xmlType type, std::vector<DynamicStringS
   }
 }
 
-void CGUIDialogDSManager::AllFiltersConfigOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::AllFiltersConfigOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   std::vector<DynamicStringSettingOption> listUserdata;
   std::vector<DynamicStringSettingOption> listHome;
@@ -260,7 +263,7 @@ void CGUIDialogDSManager::AllFiltersConfigOptionFiller(const CSetting *setting, 
   list.erase(unique(list.begin(), list.end()), list.end());
 }
 
-void CGUIDialogDSManager::ShadersOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   list.emplace_back("", "[null]");
 
@@ -288,13 +291,13 @@ void CGUIDialogDSManager::ShadersOptionFiller(const CSetting *setting, std::vect
   }
 }
 
-void CGUIDialogDSManager::ShadersScaleOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::ShadersScaleOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   list.emplace_back("Pre-resize", "preresize");
   list.emplace_back("Post-resize", "postresize");
 }
 
-void CGUIDialogDSManager::DSFilterOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::DSFilterOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   CDSFilterEnumerator p_dfilter;
   std::vector<DSFiltersInfo> filterList;
@@ -306,14 +309,14 @@ void CGUIDialogDSManager::DSFilterOptionFiller(const CSetting *setting, std::vec
     list.emplace_back(it.lpstrName, it.lpstrGuid);
 }
 
-void CGUIDialogDSManager::BoolOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::BoolOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   list.emplace_back("[null]", "[null]");
   list.emplace_back("true", "true");
   list.emplace_back("false", "false");
 }
 
-void CGUIDialogDSManager::PriorityOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::PriorityOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
 {
   list.emplace_back("", "[null]");
 

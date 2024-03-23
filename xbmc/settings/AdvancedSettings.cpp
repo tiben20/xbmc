@@ -1497,3 +1497,4 @@ float CAdvancedSettings::GetDisplayAuxDelay(float refreshrate)
   }
   return delay;
 }
+#endif

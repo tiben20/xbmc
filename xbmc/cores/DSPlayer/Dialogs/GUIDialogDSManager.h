@@ -91,12 +91,12 @@ public:
   void LoadDsXML(xmlType type, TiXmlElement* &pNode, bool forceCreate = false);
   void SaveDsXML(xmlType type);
   void GetPath(xmlType type, std::string &xmlFile, std::string &xmlNode, std::string &xmlRoot);
-  static void AllFiltersConfigOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static void ShadersOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static void ShadersScaleOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static void DSFilterOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static void BoolOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static void PriorityOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void AllFiltersConfigOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void ShadersScaleOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void DSFilterOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void BoolOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void PriorityOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
   static bool compare_by_word(const DynamicStringSettingOption& lhs, const DynamicStringSettingOption& rhs);
   void GetFilterList(xmlType type, std::vector<DynamicStringSettingOption> &list);
   TiXmlElement* KeepSelectedNode(TiXmlElement* pNode, const std::string &subNodeName);

@@ -95,7 +95,7 @@ public:
   // IPlayer
   CDSPlayer(IPlayerCallback& callback);
   virtual ~CDSPlayer();
-  virtual bool OpenFile(const CFileItem& file, const CPlayerOptions &options) override;
+  virtual bool OpenFile(const CFileItem& file, const CPlayerOptions& options) override;
   virtual bool CloseFile(bool reopen = false) override;
   virtual bool IsPlaying() const override;
   virtual bool HasVideo() const override;
@@ -115,7 +115,7 @@ public:
   virtual float GetSubTitleDelay() override;
   virtual int  GetSubtitleCount() override;
   virtual int  GetSubtitle() override;
-  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo&info) override;
+  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) override;
   virtual void SetSubtitle(int iStream) override;
   virtual bool GetSubtitleVisible() const override;
   virtual void SetSubtitleVisible(bool bVisible) override;
@@ -127,7 +127,7 @@ public:
 
   //virtual int GetVideoStream() {} const override;
   virtual int GetVideoStreamCount() const override { return 1; }
-  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) const override;
+  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo& info) const override;
   //virtual void SetVideoStream(int iStream);
 
   virtual int  GetChapterCount() const override { std::unique_lock<CCriticalSection> lock(m_StateSection); return CChaptersManager::Get()->GetChapterCount(); }
@@ -143,12 +143,12 @@ public:
   virtual void SetSpeed(float iSpeed) override;
   virtual float GetSpeed() override;
   virtual bool SupportsTempo() override;
-  virtual bool OnAction(const CAction &action) override;
+  virtual bool OnAction(const CAction& action) override;
   virtual bool HasMenu() const override { return g_dsGraph->IsDvd(); };
   bool IsInMenu() const override { return g_dsGraph->IsInMenu(); };
-  virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info) override;
+  virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo& info) override;
 #if TODO
-  virtual bool SwitchChannel(const PVR::CPVRChannelPtr &channel) override;
+  virtual bool SwitchChannel(const PVR::CPVRChannelPtr& channel) override;
 #endif
   // RenderManager
   virtual void FrameMove() override;
@@ -163,7 +163,7 @@ public:
   virtual bool Supports(EINTERLACEMETHOD method) override;
   virtual bool Supports(ESCALINGMETHOD method) override;
   virtual bool Supports(ERENDERFEATURE feature) override;
-  
+
   // IDSRendererAllocatorCallback
   CRect GetActiveVideoRect() override;
   bool IsEnteringExclusive() override;
@@ -171,7 +171,7 @@ public:
   void SetPixelShader() const override;
   void SetResolution() override;
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override;
-  bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) override;
+  bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) override;
   void Reset(bool bForceWindowed) override;
   void DisplayChange(bool bExternalChange) override;
 
@@ -184,10 +184,10 @@ public:
   // IMadvrSettingCallback
   void LoadSettings(int iSectionId);
   void RestoreSettings();
-  void GetProfileActiveName(const std::string &path, std::string *profile) override;
-  void OnSettingChanged(int iSectionId, CSettingsManager* settingsManager, const CSetting *setting) override;
-  void AddDependencies(const std::string &xml, CSettingsManager *settingsManager, CSetting *setting) override;
-  void ListSettings(const std::string &path) override;
+  void GetProfileActiveName(const std::string& path, std::string* profile) override;
+  void OnSettingChanged(int iSectionId, CSettingsManager* settingsManager, const CSetting* setting) override;
+  void AddDependencies(const std::string& xml, CSettingsManager* settingsManager, CSetting* setting) override;
+  void ListSettings(const std::string& path) override;
 
   // IDSPlayer
   bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags) override;
@@ -202,7 +202,7 @@ public:
 
   int  GetEditionsCount() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetEditionsCount() : 0; }
   int  GetEdition() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetEdition() : 0; }
-  void GetEditionInfo(int iEdition, std::string &strEditionName, REFERENCE_TIME *prt) override { if (CStreamsManager::Get()) CStreamsManager::Get()->GetEditionInfo(iEdition, strEditionName, prt); };
+  void GetEditionInfo(int iEdition, std::string& strEditionName, REFERENCE_TIME* prt) override { if (CStreamsManager::Get()) CStreamsManager::Get()->GetEditionInfo(iEdition, strEditionName, prt); };
   void SetEdition(int iEdition) override { if (CStreamsManager::Get()) CStreamsManager::Get()->SetEdition(iEdition); };
   bool IsMatroskaEditions() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->IsMatroskaEditions() : false; }
   void ShowEditionDlg(bool playStart) override;
@@ -214,7 +214,7 @@ public:
   virtual bool IsCaching() const override { return false; }
 
   //CDSPlayer
-  CDVDClock&  GetClock() { return m_pClock; }
+  CDVDClock& GetClock() { return m_pClock; }
   IPlayerCallback& GetPlayerCallback() { return m_callback; }
 
   static DSPLAYER_STATE PlayerState;
@@ -226,7 +226,7 @@ public:
   CCriticalSection m_CleanSection;
 
   int GetPictureWidth() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
-  int GetPictureHeight() const  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
+  int GetPictureHeight() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
 
   void GetGeneralInfo(std::string& strGeneralInfo);
 
@@ -239,19 +239,19 @@ public:
 
   void UpdateProcessInfo(int index = CURRENT_STREAM);
   void SetAudioCodeDelayInfo(int index = CURRENT_STREAM);
-  
+
   //madVR Window
   static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
   static HWND m_hWnd;
-  bool InitWindow(HWND &hWnd);
+  bool InitWindow(HWND& hWnd);
   void DeInitWindow();
   std::wstring m_className;
-  HINSTANCE m_hInstance; 
+  HINSTANCE m_hInstance;
   bool m_isMadvr;
 
-  CProcessInfo *m_processInfo;
+  CProcessInfo* m_processInfo;
 
-  static void PostMessage(CDSMsg *msg, bool wait = true)
+  static void PostMessage(CDSMsg* msg, bool wait = true)
   {
     if (!m_threadID || PlayerState == DSPLAYER_CLOSING || PlayerState == DSPLAYER_CLOSED)
     {
@@ -272,8 +272,8 @@ public:
     }
   }
 
-  static HWND GetDShWnd(){ return m_hWnd; }
-
+  static HWND GetDShWnd() { return m_hWnd; }
+  static bool IsDSPlayerThread() { return CThread::GetCurrentThread()->IsCurrentThread(); }
 protected:
   void SetDSWndVisible(bool bVisible) override;
   void SetRenderOnDS(bool bRender) override;

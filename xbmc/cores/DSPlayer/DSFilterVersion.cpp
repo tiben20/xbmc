@@ -109,7 +109,7 @@ void CDSFilterVersion::GetVersionByFilter(const std::string &type, bool bForceUp
   CFGFilter *pFilter = NULL;
   if (pFilter = CFilterCoreFactory::GetFilterFromName(type))
   {
-    std::string sPath = static_cast<CFGFilterFile *>(pFilter)->GetPath();
+    std::wstring sPath = static_cast<CFGFilterFile *>(pFilter)->GetPath();
     FilterVersion filterVersion;
     GetVersionByPath(sPath, filterVersion);
     m_FilterVersions[type] = filterVersion;
@@ -159,10 +159,10 @@ void CDSFilterVersion::GetVersionByPath(const std::wstring &path, FilterVersion 
   }
 }
 
-std::string CDSFilterVersion::GetMadvrFilePath()
+std::wstring CDSFilterVersion::GetMadvrFilePath()
 {
   HKEY hKey;
-  std::string sPath = "";
+  std::wstring sPath = L"";
   if (RegOpenKeyExW(HKEY_CLASSES_ROOT, L"CLSID\\{E1A8B82A-32CE-4B0D-BE0D-AA68C772E423}\\InprocServer32", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
   {
     wchar_t buf[MAX_PATH];
@@ -170,7 +170,7 @@ std::string CDSFilterVersion::GetMadvrFilePath()
     DWORD valType;
     if (RegQueryValueExW(hKey, NULL, 0, &valType, (LPBYTE)buf, &bufSize) == ERROR_SUCCESS && valType == REG_SZ)
     {
-      g_charsetConverter.wToUTF8(std::wstring(buf, bufSize / sizeof(wchar_t)), sPath);
+      //g_charsetConverter.wToUTF8(std::wstring(buf, bufSize / sizeof(wchar_t)), sPath);
     }
     RegCloseKey(hKey);
   }

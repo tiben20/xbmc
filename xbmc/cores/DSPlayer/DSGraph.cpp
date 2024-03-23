@@ -584,7 +584,7 @@ void CDSGraph::SetVolume(float nVolume)
 
 void CDSGraph::Stop(bool rewind)
 {
-  if (!CDSPlayer::IsCurrentThread())
+  if (!CDSPlayer::IsDSPlayerThread())
   {
     CDSPlayer::PostMessage(new CDSMsgBool(CDSMsg::PLAYER_STOP, rewind));
     return;
@@ -651,7 +651,7 @@ bool CDSGraph::OnMouseMove(tagPOINT pt)
 
 void CDSGraph::Play(bool force/* = false*/)
 {
-  if (!CDSPlayer::IsCurrentThread())
+  if (!CDSPlayer::IsDSPlayerThread())
   {
     CDSPlayer::PostMessage(new CDSMsgBool(CDSMsg::PLAYER_PLAY, force));
     return;
@@ -668,7 +668,7 @@ void CDSGraph::Play(bool force/* = false*/)
 
 void CDSGraph::Pause()
 {
-  if (!CDSPlayer::IsCurrentThread())
+  if (!CDSPlayer::IsDSPlayerThread())
   {
     CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PAUSE));
     return;
@@ -721,7 +721,7 @@ bool CDSGraph::SetSpeed(double dSpeed)
 
 void CDSGraph::Seek(uint64_t position, uint32_t flags /*= AM_SEEKING_AbsolutePositioning*/, bool showPopup /*= true*/)
 {
-  if (!CDSPlayer::IsCurrentThread())
+  if (!CDSPlayer::IsDSPlayerThread())
   {
     CDSPlayer::PostMessage(new CDSMsgPlayerSeekTime(position, flags));
     return;
@@ -824,14 +824,14 @@ void CDSGraph::SeekPercentage(float iPercent)
 uint64_t CDSGraph::GetTime(bool forcePlaybackTime)
 {
   // Returns Playback Time or LiveTV EPG Time, depends on player mode(LiveTV video or none PVR video) and OSD state
-  return (CDSPlayer::IsCurrentThread() || forcePlaybackTime || !m_State.isPVR) ? m_State.time : m_State.time_live;
+  return (CDSPlayer::IsDSPlayerThread() || forcePlaybackTime || !m_State.isPVR) ? m_State.time : m_State.time_live;
 }
 
 // return length in DS_TIME_BASE unit
 uint64_t CDSGraph::GetTotalTime(bool forcePlaybackTime)
 {
   // Returns Playback Time or LiveTV EPG Time, depends on player mode(LiveTV video or none PVR video) and OSD state
-  return (CDSPlayer::IsCurrentThread() || forcePlaybackTime || !m_State.isPVR) ? m_State.time_total : m_State.time_total_live;
+  return (CDSPlayer::IsDSPlayerThread() || forcePlaybackTime || !m_State.isPVR) ? m_State.time_total : m_State.time_total_live;
 }
 
 float CDSGraph::GetPercentage()
