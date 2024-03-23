@@ -55,8 +55,8 @@ public:
   ~CRenderDSManager();
 
   // Functions called from render thread
-  void GetVideoRect(CRect &source, CRect &dest, CRect &view);
-  float GetAspectRatio();
+  void GetVideoRect(CRect &source, CRect &dest, CRect &view) const;
+  float GetAspectRatio() const;
   void Update();
   void FrameMove();
   bool HasFrame();
@@ -94,7 +94,7 @@ protected:
 
   CDebugRenderer m_debugRenderer;
   CBaseRenderer *m_pRenderer;
-  CCriticalSection m_statelock;
+  mutable CCriticalSection m_statelock;
   CCriticalSection m_datalock;
   bool m_bTriggerUpdateResolution;
   bool m_bTriggerDisplayChange;

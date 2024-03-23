@@ -195,7 +195,7 @@ bool CDSInputStreamPVRManager::Open(const CFileItem& file)
         bReturnVal = false;
 
       // Convert Stream URL To TimeShift file path 
-      if (bReturnVal && g_advancedSettings.m_bDSPlayerUseUNCPathsForLiveTV)
+      if (bReturnVal && CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bDSPlayerUseUNCPathsForLiveTV)
       {
         if (m_pPVRBackend && m_pPVRBackend->SupportsStreamConversion(strTranslatedPVRFile))
         {
@@ -216,7 +216,7 @@ bool CDSInputStreamPVRManager::Open(const CFileItem& file)
       {
         CPVRRecordingPtr recordingPtr = file.GetPVRRecordingInfoTag();
         std::string strRecordingUrl;
-        bReturnVal = m_pPVRBackend->GetRecordingStreamURL(recordingPtr->m_strRecordingId, strRecordingUrl, g_advancedSettings.m_bDSPlayerUseUNCPathsForLiveTV);
+        bReturnVal = m_pPVRBackend->GetRecordingStreamURL(recordingPtr->m_strRecordingId, strRecordingUrl, CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bDSPlayerUseUNCPathsForLiveTV);
         if (bReturnVal)
           strTranslatedPVRFile = strRecordingUrl;
       }
@@ -297,7 +297,7 @@ bool CDSInputStreamPVRManager::GetNewChannel(CFileItem& fileItem)
     {
       bResult = true;
       // Convert Stream URL To TimeShift file
-      if (g_advancedSettings.m_bDSPlayerUseUNCPathsForLiveTV && m_pPVRBackend && m_pPVRBackend->SupportsStreamConversion(strNewFile))
+      if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bDSPlayerUseUNCPathsForLiveTV && m_pPVRBackend && m_pPVRBackend->SupportsStreamConversion(strNewFile))
       {
         std::string timeShiftFile = "";
         if (m_pPVRBackend->ConvertStreamURLToTimeShiftFilePath(strNewFile, timeShiftFile))
@@ -427,7 +427,7 @@ bool CDSInputStreamPVRManager::SelectChannelByNumber(unsigned int iChannelNumber
 
 bool CDSInputStreamPVRManager::SupportsChannelSwitch()const
 {
-  if (!m_pPVRBackend || !g_advancedSettings.m_bDSPlayerFastChannelSwitching)
+  if (!m_pPVRBackend || !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bDSPlayerFastChannelSwitching)
     return false;
 
   PVR_CLIENT pvrClient;

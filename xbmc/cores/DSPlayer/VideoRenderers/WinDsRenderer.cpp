@@ -136,7 +136,7 @@ bool CWinDsRenderer::RenderCapture(CRenderCapture* capture)
 void CWinDsRenderer::RenderUpdate(bool clear, unsigned int flags, unsigned int alpha)
 {
   if (clear)
-    g_graphicsContext.Clear(m_clearColour);
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(m_clearColour);
 
   if (alpha < 255)
     g_Windowing.SetAlphaBlendEnable(true);
@@ -146,7 +146,7 @@ void CWinDsRenderer::RenderUpdate(bool clear, unsigned int flags, unsigned int a
   if (!m_bConfigured)
     return;
 
-  CSingleExit lock(g_graphicsContext);
+  CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
 
   ManageRenderArea();
 
@@ -164,7 +164,7 @@ void CWinDsRenderer::Flush()
 
 void CWinDsRenderer::PreInit()
 {
-  CSingleExit lock(g_graphicsContext);
+  CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
   m_bConfigured = false;
   UnInit();
 
@@ -184,7 +184,7 @@ void CWinDsRenderer::Render(DWORD flags)
   /*if( flags & RENDER_FLAG_NOOSD ) 
     return;*/
 
-  //CSingleExit lock(g_graphicsContext);
+  //CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
   
   if (m_oldVideoRect != m_destRect)
   {

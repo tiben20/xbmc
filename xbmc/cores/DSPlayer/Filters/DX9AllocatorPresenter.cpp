@@ -236,7 +236,7 @@ CDX9AllocatorPresenter::CDX9AllocatorPresenter(HWND hWnd, HRESULT& hr, bool bIsE
   m_fRefreshRate = 0;
   m_interlaced = false;
   m_adapter = D3DADAPTER_DEFAULT;
-  m_kodiGuiDirtyAlgo = g_advancedSettings.m_guiAlgorithmDirtyRegions;
+  m_kodiGuiDirtyAlgo = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions;
   m_activeVideoRect.SetRect(0, 0, 0, 0);
 
   if (FAILED(hr))
@@ -336,7 +336,7 @@ CDX9AllocatorPresenter::~CDX9AllocatorPresenter()
   m_pLine = NULL;
   m_pD3DDev = NULL;
   m_pD3D = NULL;
-  g_advancedSettings.m_guiAlgorithmDirtyRegions = m_kodiGuiDirtyAlgo;
+  CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions = m_kodiGuiDirtyAlgo;
 
   if (m_hD3D9)
   {
@@ -756,7 +756,7 @@ void CDX9AllocatorPresenter::SetPosition(CRect sourceRect, CRect videoRect, CRec
   m_VideoRect.left = (long)videoRect.x1;
   m_VideoRect.right = (long)videoRect.x2;
 
-  RENDER_STEREO_MODE stereoMode = g_graphicsContext.GetStereoMode();
+  RENDER_STEREO_MODE stereoMode = CServiceBroker::GetWinSystem()->GetGfxContext().GetStereoMode();
   switch (stereoMode)
   {
   case RENDER_STEREO_MODE_SPLIT_VERTICAL:
@@ -2099,7 +2099,7 @@ STDMETHODIMP_(bool) CDX9AllocatorPresenter::Paint(bool fAll)
         }
       }
 #endif
-      if (g_graphicsContext.IsFullScreenVideo())
+      if (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo())
         m_activeVideoRect.SetRect(rDstVid.left, rDstVid.top, rDstVid.right, rDstVid.bottom);
 
       if (rSrcVid.Size() != rDstVid.Size())

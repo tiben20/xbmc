@@ -76,6 +76,9 @@ public:
   unsigned int GetMinDXTPitch() const { return m_minDXTPitch; }
 
   virtual void ShowSplash(const std::string& message);
+#if HAS_DS_PLAYER
+  virtual void SetWindowedForMadvr() = 0;
+#endif
 
 protected:
   bool                m_bRenderCreated;

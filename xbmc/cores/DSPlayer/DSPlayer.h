@@ -101,13 +101,13 @@ public:
   virtual bool HasVideo() const override;
   virtual bool HasAudio() const override;
   virtual void Pause() override;
-  virtual bool CanSeek()  override { return g_dsGraph->CanSeek(); }
+  virtual bool CanSeek() const  override { return g_dsGraph->CanSeek(); }
   virtual void Seek(bool bPlus, bool bLargeStep, bool bChapterOverride) override;
   virtual void SeekPercentage(float iPercent) override;
   virtual float GetPercentage() override { return g_dsGraph->GetPercentage(); }
   virtual float GetCachePercentage() override { return g_dsGraph->GetCachePercentage(); }
   virtual void SetVolume(float nVolume)  override { g_dsGraph->SetVolume(nVolume); }
-  virtual void SetMute(bool bOnOff)  override { if (bOnOff) g_dsGraph->SetVolume(VOLUME_MINIMUM); }
+  virtual void SetMute(bool bOnOff)  override { if (bOnOff) g_dsGraph->SetVolume(0.0f); }
   virtual void SetAVDelay(float fValue = 0.0f) override;
   virtual float GetAVDelay() override;
 
@@ -130,16 +130,16 @@ public:
   virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) const override;
   //virtual void SetVideoStream(int iStream);
 
-  virtual int  GetChapterCount() const override { CSingleExit lock(m_StateSection); return CChaptersManager::Get()->GetChapterCount(); }
-  virtual int  GetChapter() const override { CSingleExit lock(m_StateSection); return CChaptersManager::Get()->GetChapter(); }
-  virtual void GetChapterName(std::string& strChapterName, int chapterIdx = -1) const override { CSingleExit lock(m_StateSection); CChaptersManager::Get()->GetChapterName(strChapterName, chapterIdx); }
+  virtual int  GetChapterCount() const override { std::unique_lock<CCriticalSection> lock(m_StateSection); return CChaptersManager::Get()->GetChapterCount(); }
+  virtual int  GetChapter() const override { std::unique_lock<CCriticalSection> lock(m_StateSection); return CChaptersManager::Get()->GetChapter(); }
+  virtual void GetChapterName(std::string& strChapterName, int chapterIdx = -1) const override { std::unique_lock<CCriticalSection> lock(m_StateSection); CChaptersManager::Get()->GetChapterName(strChapterName, chapterIdx); }
   virtual int64_t GetChapterPos(int chapterIdx = -1) const override { return CChaptersManager::Get()->GetChapterPos(chapterIdx); }
   virtual int  SeekChapter(int iChapter) override { return CChaptersManager::Get()->SeekChapter(iChapter); }
 
   virtual void SeekTime(__int64 iTime = 0) override;
   virtual bool SeekTimeRelative(__int64 iTime) override;
-  virtual __int64 GetTime() override { CSingleExit lock(m_StateSection); return llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTime())); }
-  virtual __int64 GetTotalTime() override { CSingleExit lock(m_StateSection); return llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTotalTime())); }
+  virtual __int64 GetTime() override { std::unique_lock<CCriticalSection> lock(m_StateSection); return llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTime())); }
+  virtual __int64 GetTotalTime() override { std::unique_lock<CCriticalSection> lock(m_StateSection); return llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTotalTime())); }
   virtual void SetSpeed(float iSpeed) override;
   virtual float GetSpeed() override;
   virtual bool SupportsTempo() override;
@@ -222,11 +222,11 @@ public:
   CFileItem m_currentFileItem;
   CPlayerOptions m_PlayerOptions;
 
-  CCriticalSection m_StateSection;
+  mutable CCriticalSection m_StateSection;
   CCriticalSection m_CleanSection;
 
-  int GetPictureWidth() { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
-  int GetPictureHeight()  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
+  int GetPictureWidth() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
+  int GetPictureHeight() const  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
 
   void GetGeneralInfo(std::string& strGeneralInfo);
 
@@ -272,7 +272,6 @@ public:
     }
   }
 
-  static bool IsCurrentThread() { return CThread::IsCurrentThread(m_threadID); }
   static HWND GetDShWnd(){ return m_hWnd; }
 
 protected:
@@ -336,5 +335,16 @@ protected:
   int m_renderOverCount;
   DS_RENDER_LAYER m_currentVideoLayer;
   DIRECTSHOW_RENDERER m_CurrentVideoRenderer;
+
+  //added from videoplayer let to see if its what we need
+  struct SContent
+  {
+    mutable CCriticalSection m_section;
+    //CSelectionStreams m_selectionStreams;
+    std::vector<ProgramInfo> m_programs;
+    int m_videoIndex{ -1 };
+    int m_audioIndex{ -1 };
+    int m_subtitleIndex{ -1 };
+  } m_content;
 };
 
