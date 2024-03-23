@@ -226,7 +226,11 @@ public:
   CCriticalSection m_CleanSection;
 
   int GetPictureWidth() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
+<<<<<<< HEAD
   int GetPictureHeight() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
+=======
+  int GetPictureHeight() const  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
+>>>>>>> 94897a1f3b71e4417ea26a02166566b77a57727d
 
   void GetGeneralInfo(std::string& strGeneralInfo);
 
@@ -340,7 +344,11 @@ protected:
   struct SContent
   {
     mutable CCriticalSection m_section;
+<<<<<<< HEAD
     //CSelectionStreams m_selectionStreams;
+=======
+    CSelectionStreams m_selectionStreams;
+>>>>>>> 94897a1f3b71e4417ea26a02166566b77a57727d
     std::vector<ProgramInfo> m_programs;
     int m_videoIndex{ -1 };
     int m_audioIndex{ -1 };
