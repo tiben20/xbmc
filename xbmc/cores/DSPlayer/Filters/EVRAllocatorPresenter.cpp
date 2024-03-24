@@ -35,13 +35,18 @@
 #include "DSUtil/DSUtil.h"
 #include "DSUtil/SmartPtr.h"
 #include "Utils/TimeUtils.h"
-#include "Application/Application.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "utils/log.h"
 #include "utils/DSFileUtils.h"
 #include "DSPlayer.h"
 #include "guilib/IDirtyRegionSolver.h"
+#include "ServiceBroker.h"
+#include "application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
+#include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
+#include "settings/SettingsComponent.h"
 
 #if (0)    // Set to 1 to activate EVR traces
 #define TRACE_EVR(x)    CLog::Log(0,x)
@@ -1069,7 +1074,7 @@ HRESULT CEVRAllocatorPresenter::SetMediaType(IMFMediaType* pType)
     m_pMediaType = pType;
     g_charsetConverter.wToUTF8(GetMediaTypeName(pAMMedia->subtype), strTemp);
     StringUtils::Replace(strTemp, "MEDIASUBTYPE_", "");
-    m_strStatsMsg[MSG_MIXEROUT] = StringUtils::Format("Mixer output : %s", strTemp.c_str());
+    m_strStatsMsg[MSG_MIXEROUT] = StringUtils::Format(L"Mixer output : %s", strTemp.c_str());
   }
 
   pType->FreeRepresentation(FORMAT_VideoInfo2, (void*)pAMMedia);
@@ -1727,9 +1732,9 @@ void CEVRAllocatorPresenter::GetMixerThread()
         // If framerate not set by Video Decoder choose 23.97...
         if (m_rtTimePerFrame == 0)
           m_rtTimePerFrame = 417166;
-
+        
         m_fps = (float)(10000000.0 / m_rtTimePerFrame);
-        if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
+        if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IsRenderingVideo())
         {
           g_application.GetComponent<CApplicationPlayer>()->Configure(m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy, m_fps, CONF_FLAGS_FULLSCREEN);
           CLog::Log(LOGDEBUG, "%s Render manager configured (FPS: %f)", __FUNCTION__, m_fps);
@@ -2201,7 +2206,11 @@ void CEVRAllocatorPresenter::RenderThread()
 
   timeGetDevCaps(&tc, sizeof(TIMECAPS));
   DWORD dwResolution = std::min(std::max(tc.wPeriodMin, 0u), tc.wPeriodMax);
-  VERIFY(timeBeginPeriod(dwResolution) == 0);
+  if (timeBeginPeriod(dwResolution) == 0)
+  {
+    //TODO before they were using VERIFY
+    ASSERT(0);
+  }
 
   auto checkPendingMediaFinished = [this]() {
     if (m_bPendingMediaFinished) {
