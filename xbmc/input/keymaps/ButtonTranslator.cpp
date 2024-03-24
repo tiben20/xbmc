@@ -135,7 +135,6 @@ bool CButtonTranslator::Load()
 bool CButtonTranslator::LoadKeymap(const std::string& keymapPath)
 {
 #if HAS_DS_PLAYER
-  CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bIgnoreSystemAppcommand
   if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bIgnoreSystemAppcommand
     && keymapPath.find("system") != keymapPath.npos
     && (keymapPath.find("appcommand") != keymapPath.npos

@@ -41,15 +41,19 @@
 #include "ServiceBroker.h"
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
+#include "settings/Settings.h"
+#include "settings/AdvancedSettings.h"
+#include "settings/SettingsComponent.h"
+#include "rendering/dx/DeviceResources.h"
+
 #include "FileSystem/File.h"
 #include "PixelShaderList.h"
 #include "settings/MediaSettings.h"
 #include "DSPlayer.h"
 #include "utils/DSFileUtils.h"
 #include "guilib/IDirtyRegionSolver.h"
-#include "settings/AdvancedSettings.h"
 #include "FocusThread.h"
-
+#include <format>
 #ifndef TRACE
 #define TRACE(x)
 #endif
@@ -230,12 +234,8 @@ CDX9AllocatorPresenter::CDX9AllocatorPresenter(HWND hWnd, HRESULT& hr, bool bIsE
   , m_pEvrShared(nullptr)
   , m_pD3DDev(nullptr)
 {
-  const auto& components = CServiceBroker::GetAppComponents();
-  const auto appPlayer = components.GetComponent<CApplicationPlayer>();
 
-  appPlayer->Register(this);
-  //g_application.GetComponent<CApplicationPlayer>()->Register(this);
-  //g_Windowing.Register(this);
+  CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
   m_bIsFullscreen = g_dsSettings.IsD3DFullscreen();
   m_devType = D3DDEVTYPE_HAL;
   m_nBackBufferWidth = 0;
@@ -274,7 +274,7 @@ CDX9AllocatorPresenter::CDX9AllocatorPresenter(HWND hWnd, HRESULT& hr, bool bIsE
     _Error += "No D3DX9 dll found. To enable stats, shaders and complex resizers, please make sure to install the latest DirectX End-User Runtime.\n";
   }
 
-  m_hD3D9 = LoadLibrary("d3d9.dll");
+  m_hD3D9 = LoadLibrary(L"d3d9.dll");
 
   m_DetectedFrameRate = 0.0;
   m_DetectedFrameTime = 0.0;
@@ -330,8 +330,11 @@ CDX9AllocatorPresenter::~CDX9AllocatorPresenter()
   }
 
   SAFE_DELETE(m_pEvrShared);
+  CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Unregister(this);
+#if TODO
+  //is this still used btw we removed it in creator
   g_Windowing.Unregister(this);
-  g_application.GetComponent<CApplicationPlayer>()->Unregister(this);
+#endif
 
   if (m_bDesktopCompositionDisabled)
   {
@@ -624,7 +627,8 @@ HRESULT CDX9AllocatorPresenter::CreateDevice(std::string &_Error)
 
   HRESULT hr =InitD3D9();
   m_pEvrShared = DNew CEvrSharedRender();
-  m_pEvrShared->CreateTextures(g_Windowing.Get3D11Device(), (IDirect3DDevice9Ex*)m_pD3DDev, m_ScreenSize.cx, m_ScreenSize.cy);
+  
+  m_pEvrShared->CreateTextures(DX::DeviceResources::Get()->GetD3DDevice(), (IDirect3DDevice9Ex*)m_pD3DDev, m_ScreenSize.cx, m_ScreenSize.cy);
 
   m_pResizerPixelShader[0] = 0;
   m_pResizerPixelShader[1] = 0;
@@ -791,7 +795,7 @@ void CDX9AllocatorPresenter::DisplayChange(bool bExternalChange)
 {
   CAutoLock lock(&m_DisplayChangeLock);
 
-  if (g_Windowing.Get3D11Device() == nullptr || m_pD3DDev == nullptr)
+  if (DX::DeviceResources::Get()->GetD3DDevice() == nullptr || m_pD3DDev == nullptr)
     return;
 
   CLog::Log(LOGDEBUG, "%s need to re-create the shared textures", __FUNCTION__);
@@ -807,7 +811,7 @@ void CDX9AllocatorPresenter::DisplayChange(bool bExternalChange)
   }
 
   m_pEvrShared = DNew CEvrSharedRender();
-  m_pEvrShared->CreateTextures(g_Windowing.Get3D11Device(), (IDirect3DDevice9Ex*)m_pD3DDev, (int)m_ScreenSize.cx, (int)m_ScreenSize.cy);
+  m_pEvrShared->CreateTextures(DX::DeviceResources::Get()->GetD3DDevice(), (IDirect3DDevice9Ex*)m_pD3DDev, (int)m_ScreenSize.cx, (int)m_ScreenSize.cy);
 }
 
 HRESULT CDX9AllocatorPresenter::ResetRenderParam()
@@ -821,7 +825,9 @@ HRESULT CDX9AllocatorPresenter::ResetRenderParam()
 
 void CDX9AllocatorPresenter::BuildPresentParameters()
 {
-  g_Windowing.GetParamsForDSPlayer(m_useWindowedDX, m_nBackBufferWidth, m_nBackBufferHeight, m_bVSync, m_fRefreshRate, m_interlaced);
+  CRenderSystemDX* renderSystem = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
+
+  renderSystem->GetParamsForDSPlayer(m_useWindowedDX, m_nBackBufferWidth, m_nBackBufferHeight, m_bVSync, m_fRefreshRate, m_interlaced);
 
   if (m_ForceWindowedDX)
     m_useWindowedDX = true;
@@ -1034,11 +1040,11 @@ uint32_t CDX9AllocatorPresenter::GetAdapter(IDirect3D9* pD3D, bool CreateDevice)
   if (m_hWnd == NULL || pD3D == NULL)
     return D3DADAPTER_DEFAULT;
 
-  if (CreateDevice && (pD3D->GetAdapterCount() > 1) && (g_dsSettings.D3D9RenderDevice != _T(L"")))
+  if (CreateDevice && (pD3D->GetAdapterCount() > 1) && (g_dsSettings.D3D9RenderDevice != L""))
   {
     WCHAR    strGUID[50];
     D3DADAPTER_IDENTIFIER9 adapterIdentifier;
-    m_D3D9Device = _T("");
+    m_D3D9Device = L"";
 
     for (UINT adp = 0, num_adp = pD3D->GetAdapterCount(); adp < num_adp; ++adp)
     {
@@ -1046,7 +1052,8 @@ uint32_t CDX9AllocatorPresenter::GetAdapter(IDirect3D9* pD3D, bool CreateDevice)
       {
         if ((::StringFromGUID2(adapterIdentifier.DeviceIdentifier, strGUID, 50) > 0) && (g_dsSettings.D3D9RenderDevice == strGUID))
         {
-          m_D3D9Device = adapterIdentifier.Description;
+          
+          m_D3D9Device = AToW(adapterIdentifier.Description);
           return  adp;
         }
       }
@@ -1065,7 +1072,7 @@ uint32_t CDX9AllocatorPresenter::GetAdapter(IDirect3D9* pD3D, bool CreateDevice)
       {
         D3DADAPTER_IDENTIFIER9 adapterIdentifier;
         if (pD3D->GetAdapterIdentifier(adp, 0, &adapterIdentifier) == S_OK)
-          m_D3D9Device = adapterIdentifier.Description;
+          m_D3D9Device = AToW(adapterIdentifier.Description);
       }
       return adp;
     }
@@ -1980,14 +1987,14 @@ STDMETHODIMP_(bool) CDX9AllocatorPresenter::Paint(bool fAll)
         // Map brightness and contrast settings
 
         // Range from 0 and 2
-        contrast = (float)CMediaSettings::GetInstance().GetCurrentVideoSettings().m_Contrast / 50.f;
+        contrast = (float)CMediaSettings::GetInstance().GetDefaultVideoSettings().m_Contrast / 50.f;
 
         // Range from -1 and 1
-        brightness = (float)(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_Brightness - 50.f) / 50.f;
+        brightness = (float)(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_Brightness - 50.f) / 50.f;
 
         if (m_bscShader.IsValid()
-          && ((abs(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_Contrast - 50) >= 1)
-          || (abs(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_Brightness - 50) >= 1)))
+          && ((abs(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_Contrast - 50) >= 1)
+          || (abs(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_Brightness - 50) >= 1)))
         {
           Com::SmartPtr<IDirect3DSurface9> pRT;
           hr = m_pD3DDev->GetRenderTarget(0, &pRT);
@@ -2043,7 +2050,7 @@ STDMETHODIMP_(bool) CDX9AllocatorPresenter::Paint(bool fAll)
           {
             CSingleExit lock(g_dsSettings.pixelShaderList->m_accessLock);
             g_dsSettings.pixelShaderList->UpdateActivatedList();
-            PixelShaderVector& psVec = g_dsSettings.pixelShaderList->GetActivatedPixelShaders();
+            PixelShaderVector psVec = g_dsSettings.pixelShaderList->GetActivatedPixelShaders();
 
             for (PixelShaderVector::iterator it = psVec.begin();
               it != psVec.end(); it++)
@@ -2074,7 +2081,7 @@ STDMETHODIMP_(bool) CDX9AllocatorPresenter::Paint(bool fAll)
       Vector dst[4];
       Transform(rDstVid, dst);
 
-      EDSSCALINGMETHOD iDX9Resizer = CMediaSettings::GetInstance().GetCurrentVideoSettings().GetDSPlayerScalingMethod();
+      EDSSCALINGMETHOD iDX9Resizer = CMediaSettings::GetInstance().GetDefaultVideoSettings().GetDSPlayerScalingMethod();
 
       float A = 0;
 
@@ -2304,7 +2311,7 @@ double CDX9AllocatorPresenter::GetFrameRate()
   return 10000000.0 / m_rtTimePerFrame;
 }
 
-void CDX9AllocatorPresenter::DrawText(const RECT &rc, const std::string &strText, int _Priority)
+void CDX9AllocatorPresenter::DrawText(const RECT &rc, const std::wstring &strText, int _Priority)
 {
   if (_Priority < 1)
     return;
@@ -2318,7 +2325,7 @@ void CDX9AllocatorPresenter::DrawText(const RECT &rc, const std::string &strText
   else
     OffsetRect(&Rect2, -1, -1);
   if (Quality > 0)
-    m_pFont->DrawText(m_pSprite, strText.c_str(), -1, &Rect2, DT_NOCLIP, Color0);
+    m_pFont->DrawText(m_pSprite,  strText.c_str(), -1, &Rect2, DT_NOCLIP, Color0);
   OffsetRect(&Rect2, 1, 0);
   if (Quality > 3)
     m_pFont->DrawText(m_pSprite, strText.c_str(), -1, &Rect2, DT_NOCLIP, Color0);
@@ -2365,66 +2372,66 @@ void CDX9AllocatorPresenter::DrawStats()
     m_pSprite->Begin(D3DXSPRITE_ALPHABLEND);
     RECT      rc = { 700, 40, 0, 0 };
     rc.left = 40;
-    std::string    strText;
+    std::wstring    strText;
     int TextHeight = lrint(25.0*m_TextScale);
     //    strText.Format("Frame rate   : %7.03f   (%7.3f ms = %.03f, %s)   (%7.3f ms = %.03f%s)    Clock: %7.3f ms %+1.4f %%  %+1.9f  %+1.9f", m_fAvrFps, double(m_rtTimePerFrame) / 10000.0, 10000000.0 / (double)(m_rtTimePerFrame), m_bInterlaced ? L"I" : L"P", GetFrameTime() * 1000.0, GetFrameRate(), m_DetectedLock ? L" L" : L"", m_ClockDiff/10000.0, m_ModeratedTimeSpeed*100.0 - 100.0, m_ModeratedTimeSpeedDiff, m_ClockDiffCalc/10000.0);
     if (bDetailedStats > 1)
     {
       if (m_bIsEVR)
-        strText = StringUtils::Format("Frame rate   : %7.03f   (%7.3f ms = %.03f, %s)   (%7.3f ms = %.03f%s, %2.03f StdDev)  Clock: %1.4f %%", m_fAvrFps, double(m_rtTimePerFrame) / 10000.0, 10000000.0 / (double)(m_rtTimePerFrame), m_bInterlaced ? L"I" : L"P", GetFrameTime() * 1000.0, GetFrameRate(), m_DetectedLock ? L" L" : L"", m_DetectedFrameTimeStdDev / 10000.0, m_ModeratedTimeSpeed*100.0);
+        strText = StringUtils::Format(L"Frame rate   : %7.03f   (%7.3f ms = %.03f, %s)   (%7.3f ms = %.03f%s, %2.03f StdDev)  Clock: %1.4f %%", m_fAvrFps, double(m_rtTimePerFrame) / 10000.0, 10000000.0 / (double)(m_rtTimePerFrame), m_bInterlaced ? L"I" : L"P", GetFrameTime() * 1000.0, GetFrameRate(), m_DetectedLock ? L" L" : L"", m_DetectedFrameTimeStdDev / 10000.0, m_ModeratedTimeSpeed*100.0);
       else
-        strText = StringUtils::Format("Frame rate   : %7.03f   (%7.3f ms = %.03f, %s)", m_fAvrFps, double(m_rtTimePerFrame) / 10000.0, 10000000.0 / (double)(m_rtTimePerFrame), m_bInterlaced ? L"I" : L"P");
+        strText = StringUtils::Format(L"Frame rate   : %7.03f   (%7.3f ms = %.03f, %s)", m_fAvrFps, double(m_rtTimePerFrame) / 10000.0, 10000000.0 / (double)(m_rtTimePerFrame), m_bInterlaced ? L"I" : L"P");
     }
     else
-      strText = StringUtils::Format("Frame rate   : %7.03f   (%.03f%s)", m_fAvrFps, GetFrameRate(), m_DetectedLock ? L" L" : L"");
+      strText = StringUtils::Format(L"Frame rate   : %7.03f   (%.03f%s)", m_fAvrFps, GetFrameRate(), m_DetectedLock ? L" L" : L"");
     DrawText(rc, strText, 1);
     OffsetRect(&rc, 0, TextHeight);
 
     if (bDetailedStats > 1)
     {
-      strText = StringUtils::Format("Settings     : ");
+      strText = StringUtils::Format(L"Settings     : ");
 
       if (m_bIsEVR)
-        strText += "EVR ";
+        strText += L"EVR ";
       else
-        strText += "VMR9 ";
+        strText += L"VMR9 ";
 
       if (g_dsSettings.pRendererSettings->d3dFullscreen)
-        strText += "FS ";
+        strText += L"FS ";
       if (g_dsSettings.pRendererSettings->fullscreenGUISupport)
-        strText += "FSGui ";
+        strText += L"FSGui ";
 
       if (g_dsSettings.pRendererSettings->disableDesktopComposition)
-        strText += "DisDC ";
+        strText += L"DisDC ";
 
       if (g_dsSettings.pRendererSettings->flushGPUBeforeVSync)
-        strText += "GPUFlushBV ";
+        strText += L"GPUFlushBV ";
       if (g_dsSettings.pRendererSettings->flushGPUAfterPresent)
-        strText += "GPUFlushAP ";
+        strText += L"GPUFlushAP ";
 
       if (g_dsSettings.pRendererSettings->flushGPUWait)
-        strText += "GPUFlushWt ";
+        strText += L"GPUFlushWt ";
 
       if (g_dsSettings.pRendererSettings->vSync)
-        strText += "VS ";
+        strText += L"VS ";
       if (g_dsSettings.pRendererSettings->alterativeVSync)
-        strText += "AltVS ";
+        strText += L"AltVS ";
       if (g_dsSettings.pRendererSettings->vSyncAccurate)
-        strText += "AccVS ";
+        strText += L"AccVS ";
       if (g_dsSettings.pRendererSettings->vSyncOffset)
-        strText = StringUtils::Format("%s VSOfst(%d)", strText.c_str(), g_dsSettings.pRendererSettings->vSyncOffset);
+        strText = StringUtils::Format(L"%s VSOfst(%d)", strText.c_str(), g_dsSettings.pRendererSettings->vSyncOffset);
 
       if (m_bIsEVR)
       {
         CEVRRendererSettings *pSettings = (CEVRRendererSettings *)g_dsSettings.pRendererSettings;
         if (pSettings->highColorResolution)
-          strText += "10bit ";
+          strText += L"10bit ";
         if (pSettings->enableFrameTimeCorrection)
-          strText += "FTC ";
+          strText += L"FTC ";
         if (pSettings->outputRange == 0)
-          strText += "0-255 ";
+          strText += L"0-255 ";
         else if (pSettings->outputRange == 1)
-          strText += "16-235 ";
+          strText += L"16-235 ";
       }
 
 
@@ -2435,13 +2442,13 @@ void CDX9AllocatorPresenter::DrawStats()
 
     if (bDetailedStats > 1)
     {
-      strText = StringUtils::Format("Formats      : Surface %s    Backbuffer %s    Display %s     Device D3DDev", GetD3DFormatStr(m_SurfaceType), GetD3DFormatStr(D3DFMT_X8R8G8B8), GetD3DFormatStr(m_DisplayType));
+      strText = StringUtils::Format(L"Formats      : Surface %s    Backbuffer %s    Display %s     Device D3DDev", GetD3DFormatStr(m_SurfaceType), GetD3DFormatStr(D3DFMT_X8R8G8B8), GetD3DFormatStr(m_DisplayType));
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
 
       if (m_bIsEVR)
       {
-        strText = StringUtils::Format("Refresh rate : %.05f Hz    SL: %4d     (%3d Hz)      Last Duration: %10.6f      Corrected Frame Time: %s", m_DetectedRefreshRate, int(m_DetectedScanlinesPerFrame + 0.5), m_RefreshRate, double(m_LastFrameDuration) / 10000.0, m_bCorrectedFrameTime ? "Yes" : "No");
+        strText = StringUtils::Format(L"Refresh rate : %.05f Hz    SL: %4d     (%3d Hz)      Last Duration: %10.6f      Corrected Frame Time: %s", m_DetectedRefreshRate, int(m_DetectedScanlinesPerFrame + 0.5), m_RefreshRate, double(m_LastFrameDuration) / 10000.0, m_bCorrectedFrameTime ? "Yes" : "No");
         DrawText(rc, strText, 1);
         OffsetRect(&rc, 0, TextHeight);
       }
@@ -2450,16 +2457,16 @@ void CDX9AllocatorPresenter::DrawStats()
     if (m_bSyncStatsAvailable)
     {
       if (bDetailedStats > 1)
-        strText = StringUtils::Format("Sync offset  : min = %+8.3f ms, max = %+8.3f ms, StdDev = %7.3f ms, Avr = %7.3f ms, Mode = %d", (double(llMinSyncOffset) / 10000.0), (double(llMaxSyncOffset) / 10000.0), m_fSyncOffsetStdDev / 10000.0, m_fSyncOffsetAvr / 10000.0, m_VSyncMode);
+        strText = StringUtils::Format(L"Sync offset  : min = %+8.3f ms, max = %+8.3f ms, StdDev = %7.3f ms, Avr = %7.3f ms, Mode = %d", (double(llMinSyncOffset) / 10000.0), (double(llMaxSyncOffset) / 10000.0), m_fSyncOffsetStdDev / 10000.0, m_fSyncOffsetAvr / 10000.0, m_VSyncMode);
       else
-        strText = StringUtils::Format("Sync offset  : Mode = %d", m_VSyncMode);
+        strText = StringUtils::Format(L"Sync offset  : Mode = %d", m_VSyncMode);
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
     }
 
     if (bDetailedStats > 1)
     {
-      strText = StringUtils::Format("Jitter       : min = %+8.3f ms, max = %+8.3f ms, StdDev = %7.3f ms", (double(llMinJitter) / 10000.0), (double(llMaxJitter) / 10000.0), m_fJitterStdDev / 10000.0);
+      strText = StringUtils::Format(L"Jitter       : min = %+8.3f ms, max = %+8.3f ms, StdDev = %7.3f ms", (double(llMinJitter) / 10000.0), (double(llMaxJitter) / 10000.0), m_fJitterStdDev / 10000.0);
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
     }
@@ -2467,16 +2474,16 @@ void CDX9AllocatorPresenter::DrawStats()
     if (bDetailedStats > 1)
     {
       if (m_VBlankEndPresent == -100000)
-        strText = StringUtils::Format("VBlank Wait  : Start %4d   End %4d   Wait %7.3f ms   Lock %7.3f ms   Offset %4d   max %4d", m_VBlankStartWait, m_VBlankEndWait, (double(m_VBlankWaitTime) / 10000.0), (double(m_VBlankLockTime) / 10000.0), m_VBlankMin, m_VBlankMax - m_VBlankMin);
+        strText = StringUtils::Format(L"VBlank Wait  : Start %4d   End %4d   Wait %7.3f ms   Lock %7.3f ms   Offset %4d   max %4d", m_VBlankStartWait, m_VBlankEndWait, (double(m_VBlankWaitTime) / 10000.0), (double(m_VBlankLockTime) / 10000.0), m_VBlankMin, m_VBlankMax - m_VBlankMin);
       else
-        strText = StringUtils::Format("VBlank Wait  : Start %4d   End %4d   Wait %7.3f ms   Lock %7.3f ms   Offset %4d   max %4d   EndPresent %4d", m_VBlankStartWait, m_VBlankEndWait, (double(m_VBlankWaitTime) / 10000.0), (double(m_VBlankLockTime) / 10000.0), m_VBlankMin, m_VBlankMax - m_VBlankMin, m_VBlankEndPresent);
+        strText = StringUtils::Format(L"VBlank Wait  : Start %4d   End %4d   Wait %7.3f ms   Lock %7.3f ms   Offset %4d   max %4d   EndPresent %4d", m_VBlankStartWait, m_VBlankEndWait, (double(m_VBlankWaitTime) / 10000.0), (double(m_VBlankLockTime) / 10000.0), m_VBlankMin, m_VBlankMax - m_VBlankMin, m_VBlankEndPresent);
     }
     else
     {
       if (m_VBlankEndPresent == -100000)
-        strText = StringUtils::Format("VBlank Wait  : Start %4d   End %4d", m_VBlankStartWait, m_VBlankEndWait);
+        strText = StringUtils::Format(L"VBlank Wait  : Start %4d   End %4d", m_VBlankStartWait, m_VBlankEndWait);
       else
-        strText = StringUtils::Format("VBlank Wait  : Start %4d   End %4d   EP %4d", m_VBlankStartWait, m_VBlankEndWait, m_VBlankEndPresent);
+        strText = StringUtils::Format(L"VBlank Wait  : Start %4d   End %4d   EP %4d", m_VBlankStartWait, m_VBlankEndWait, m_VBlankEndPresent);
     }
     DrawText(rc, strText, 1);
     OffsetRect(&rc, 0, TextHeight);
@@ -2487,7 +2494,7 @@ void CDX9AllocatorPresenter::DrawStats()
 
     if (bDetailedStats > 1 && bDoVSyncInPresent)
     {
-      strText = StringUtils::Format("Present Wait : Wait %7.3f ms   min %7.3f ms   max %7.3f ms", (double(m_PresentWaitTime) / 10000.0), (double(m_PresentWaitTimeMin) / 10000.0), (double(m_PresentWaitTimeMax) / 10000.0));
+      strText = StringUtils::Format(L"Present Wait : Wait %7.3f ms   min %7.3f ms   max %7.3f ms", (double(m_PresentWaitTime) / 10000.0), (double(m_PresentWaitTimeMin) / 10000.0), (double(m_PresentWaitTimeMax) / 10000.0));
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
     }
@@ -2495,23 +2502,23 @@ void CDX9AllocatorPresenter::DrawStats()
     if (bDetailedStats > 1)
     {
       if (m_WaitForGPUTime)
-        strText = StringUtils::Format("Paint Time   : Draw %7.3f ms   min %7.3f ms   max %7.3f ms   GPU %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0), (double(m_PaintTimeMin) / 10000.0), (double(m_PaintTimeMax) / 10000.0), (double(m_WaitForGPUTime) / 10000.0));
+        strText = StringUtils::Format(L"Paint Time   : Draw %7.3f ms   min %7.3f ms   max %7.3f ms   GPU %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0), (double(m_PaintTimeMin) / 10000.0), (double(m_PaintTimeMax) / 10000.0), (double(m_WaitForGPUTime) / 10000.0));
       else
-        strText = StringUtils::Format("Paint Time   : Draw %7.3f ms   min %7.3f ms   max %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0), (double(m_PaintTimeMin) / 10000.0), (double(m_PaintTimeMax) / 10000.0));
+        strText = StringUtils::Format(L"Paint Time   : Draw %7.3f ms   min %7.3f ms   max %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0), (double(m_PaintTimeMin) / 10000.0), (double(m_PaintTimeMax) / 10000.0));
     }
     else
     {
       if (m_WaitForGPUTime)
-        strText = StringUtils::Format("Paint Time   : Draw %7.3f ms   GPU %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0), (double(m_WaitForGPUTime) / 10000.0));
+        strText = StringUtils::Format(L"Paint Time   : Draw %7.3f ms   GPU %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0), (double(m_WaitForGPUTime) / 10000.0));
       else
-        strText = StringUtils::Format("Paint Time   : Draw %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0));
+        strText = StringUtils::Format(L"Paint Time   : Draw %7.3f ms", (double(m_PaintTime - m_WaitForGPUTime) / 10000.0));
     }
     DrawText(rc, strText, 2);
     OffsetRect(&rc, 0, TextHeight);
 
     if (bDetailedStats > 1)
     {
-      strText = StringUtils::Format("Raster Status: Wait %7.3f ms   min %7.3f ms   max %7.3f ms", (double(m_RasterStatusWaitTime) / 10000.0), (double(m_RasterStatusWaitTimeMin) / 10000.0), (double(m_RasterStatusWaitTimeMax) / 10000.0));
+      strText = StringUtils::Format(L"Raster Status: Wait %7.3f ms   min %7.3f ms   max %7.3f ms", (double(m_RasterStatusWaitTime) / 10000.0), (double(m_RasterStatusWaitTimeMin) / 10000.0), (double(m_RasterStatusWaitTimeMax) / 10000.0));
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
     }
@@ -2519,18 +2526,18 @@ void CDX9AllocatorPresenter::DrawStats()
     if (bDetailedStats > 1)
     {
       if (m_bIsEVR)
-        strText = StringUtils::Format("Buffering    : Buffered %3d    Free %3d    Current Surface %3d", m_nUsedBuffer, m_nNbDXSurface - m_nUsedBuffer, m_nCurSurface, m_nVMR9Surfaces, m_iVMR9Surface);
+        strText = StringUtils::Format(L"Buffering    : Buffered %3d    Free %3d    Current Surface %3d", m_nUsedBuffer, m_nNbDXSurface - m_nUsedBuffer, m_nCurSurface, m_nVMR9Surfaces, m_iVMR9Surface);
       else
-        strText = StringUtils::Format("Buffering    : VMR9Surfaces %3d   VMR9Surface %3d", m_nVMR9Surfaces, m_iVMR9Surface);
+        strText = StringUtils::Format(L"Buffering    : VMR9Surfaces %3d   VMR9Surface %3d", m_nVMR9Surfaces, m_iVMR9Surface);
     }
     else
-      strText = StringUtils::Format("Buffered     : %3d", m_nUsedBuffer);
+      strText = StringUtils::Format(L"Buffered     : %3d", m_nUsedBuffer);
     DrawText(rc, strText, 1);
     OffsetRect(&rc, 0, TextHeight);
 
     if (bDetailedStats > 1)
     {
-      strText = StringUtils::Format("Video size   : %d x %d  (AR = %d x %d)", m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy);
+      strText = StringUtils::Format(L"Video size   : %d x %d  (AR = %d x %d)", m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy);
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
       if (m_pVideoTexture[0] || m_pVideoSurface[0])
@@ -2543,25 +2550,25 @@ void CDX9AllocatorPresenter::DrawStats()
 
         if (desc.Width != m_NativeVideoSize.cx || desc.Height != m_NativeVideoSize.cy)
         {
-          strText = StringUtils::Format("Texture size : %d x %d", desc.Width, desc.Height);
+          strText = StringUtils::Format(L"Texture size : %d x %d", desc.Width, desc.Height);
           DrawText(rc, strText, 1);
           OffsetRect(&rc, 0, TextHeight);
         }
       }
 
 
-      strText = StringUtils::Format("%-13s: %s", GetDXVAVersion(), GetDXVADecoderDescription());
+      strText = StringUtils::Format(L"%-13s: %s", GetDXVAVersion(), GetDXVADecoderDescription());
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
 
-      if (m_D3D9Device != _T(""))
+      if (m_D3D9Device != L"")
       {
-        strText = "Render device: " + m_D3D9Device;
+        strText = L"Render device: " + m_D3D9Device;
         DrawText(rc, strText, 1);
         OffsetRect(&rc, 0, TextHeight);
       }
 
-      strText = StringUtils::Format("DirectX SDK  : %d", g_dsSettings.GetDXSdkRelease());
+      strText = StringUtils::Format(L"DirectX SDK  : %d", g_dsSettings.GetDXSdkRelease());
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
 
