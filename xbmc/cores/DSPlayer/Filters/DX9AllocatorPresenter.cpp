@@ -37,6 +37,10 @@
 #include "utils/Log.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "Application/Application.h"
+#include "application/ApplicationPlayer.h"
+#include "ServiceBroker.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 #include "FileSystem/File.h"
 #include "PixelShaderList.h"
 #include "settings/MediaSettings.h"
@@ -226,8 +230,12 @@ CDX9AllocatorPresenter::CDX9AllocatorPresenter(HWND hWnd, HRESULT& hr, bool bIsE
   , m_pEvrShared(nullptr)
   , m_pD3DDev(nullptr)
 {
-  g_application.GetComponent<CApplicationPlayer>()->Register(this);
-  g_Windowing.Register(this);
+  const auto& components = CServiceBroker::GetAppComponents();
+  const auto appPlayer = components.GetComponent<CApplicationPlayer>();
+
+  appPlayer->Register(this);
+  //g_application.GetComponent<CApplicationPlayer>()->Register(this);
+  //g_Windowing.Register(this);
   m_bIsFullscreen = g_dsSettings.IsD3DFullscreen();
   m_devType = D3DDEVTYPE_HAL;
   m_nBackBufferWidth = 0;

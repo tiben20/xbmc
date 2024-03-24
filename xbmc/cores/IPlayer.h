@@ -186,8 +186,9 @@ public:
   virtual bool Supports(EINTERLACEMETHOD method) { return false; };
   virtual bool Supports(ESCALINGMETHOD method) { return false; };
   virtual bool Supports(ERENDERFEATURE feature) { return false; }
-  virtual void SetPixelShader() = 0;
-  virtual void SetResolution() = 0;
+  virtual void SetPixelShader() const = 0;
+  virtual void SetResolution() const = 0;
+  virtual void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) = 0;
   virtual int64_t GetTime() { return 0; }
   virtual int64_t GetTotalTime() { return 0; }
   virtual float GetSpeed() = 0;

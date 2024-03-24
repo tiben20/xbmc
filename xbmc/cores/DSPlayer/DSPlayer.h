@@ -169,9 +169,9 @@ public:
   bool IsEnteringExclusive() override;
   void EnableExclusive(bool bEnable) override;
   void SetPixelShader() const override;
-  void SetResolution() override;
+  void SetResolution() const override;
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override;
-  bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) override;
+  bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) const override;
   void Reset(bool bForceWindowed) override;
   void DisplayChange(bool bExternalChange) override;
 
@@ -226,11 +226,7 @@ public:
   CCriticalSection m_CleanSection;
 
   int GetPictureWidth() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureWidth() : 0; }
-<<<<<<< HEAD
   int GetPictureHeight() const { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
-=======
-  int GetPictureHeight() const  { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetPictureHeight() : 0; }
->>>>>>> 94897a1f3b71e4417ea26a02166566b77a57727d
 
   void GetGeneralInfo(std::string& strGeneralInfo);
 
@@ -239,7 +235,7 @@ public:
   void UpdateApplication();
   void UpdateChannelSwitchSettings();
   void LoadVideoSettings(const CFileItem& file);
-  void SetPosition();
+  void SetPosition() const;
 
   void UpdateProcessInfo(int index = CURRENT_STREAM);
   void SetAudioCodeDelayInfo(int index = CURRENT_STREAM);
@@ -344,11 +340,8 @@ protected:
   struct SContent
   {
     mutable CCriticalSection m_section;
-<<<<<<< HEAD
     //CSelectionStreams m_selectionStreams;
-=======
-    CSelectionStreams m_selectionStreams;
->>>>>>> 94897a1f3b71e4417ea26a02166566b77a57727d
+
     std::vector<ProgramInfo> m_programs;
     int m_videoIndex{ -1 };
     int m_audioIndex{ -1 };

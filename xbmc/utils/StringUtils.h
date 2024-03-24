@@ -103,6 +103,8 @@ public:
   static bool EqualsNoCase(const std::string &str1, const std::string &str2);
   static bool EqualsNoCase(const std::string &str1, const char *s2);
   static bool EqualsNoCase(const char *s1, const char *s2);
+  static int CompareNoCase(const std::wstring& str1, const std::wstring& str2, size_t n = 0);
+  static int CompareNoCase(const wchar_t* s1, const wchar_t* s2, size_t n = 0);
   static int CompareNoCase(const std::string& str1, const std::string& str2, size_t n = 0);
   static int CompareNoCase(const char* s1, const char* s2, size_t n = 0);
   static int ReturnDigits(const std::string &str);
@@ -114,7 +116,7 @@ public:
   static std::wstring& Trim(std::wstring& str);
   static std::wstring& TrimLeft(std::wstring& str);
   static std::wstring& TrimRight(std::wstring &str);
-
+  
   static std::string& Trim(std::string &str);
   static std::string& Trim(std::string &str, const char* const chars);
   static std::string& TrimLeft(std::string &str);

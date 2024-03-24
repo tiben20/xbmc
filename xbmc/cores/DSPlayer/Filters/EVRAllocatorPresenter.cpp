@@ -343,11 +343,11 @@ CEVRAllocatorPresenter::CEVRAllocatorPresenter(HWND hWnd, HRESULT& hr, std::stri
   }
 
   // Load EVR specifics DLLs
-  hLib = LoadLibrary("dxva2.dll");
+  hLib = LoadLibrary(L"dxva2.dll");
   pfDXVA2CreateDirect3DDeviceManager9 = hLib ? (PTR_DXVA2CreateDirect3DDeviceManager9)GetProcAddress(hLib, "DXVA2CreateDirect3DDeviceManager9") : NULL;
 
   // Load EVR functions
-  hLib = LoadLibrary("evr.dll");
+  hLib = LoadLibrary(L"evr.dll");
   pfMFCreateDXSurfaceBuffer = hLib ? (PTR_MFCreateDXSurfaceBuffer)GetProcAddress(hLib, "MFCreateDXSurfaceBuffer") : NULL;
   pfMFCreateVideoSampleFromSurface = hLib ? (PTR_MFCreateVideoSampleFromSurface)GetProcAddress(hLib, "MFCreateVideoSampleFromSurface") : NULL;
   pfMFCreateVideoMediaType = hLib ? (PTR_MFCreateVideoMediaType)GetProcAddress(hLib, "MFCreateVideoMediaType") : NULL;
@@ -367,7 +367,7 @@ CEVRAllocatorPresenter::CEVRAllocatorPresenter(HWND hWnd, HRESULT& hr, std::stri
   }
 
   // Load Vista specifics DLLs
-  hLib = LoadLibrary("AVRT.dll");
+  hLib = LoadLibrary(L"AVRT.dll");
   pfAvSetMmThreadCharacteristicsW = hLib ? (PTR_AvSetMmThreadCharacteristicsW)GetProcAddress(hLib, "AvSetMmThreadCharacteristicsW") : NULL;
   pfAvSetMmThreadPriority = hLib ? (PTR_AvSetMmThreadPriority)GetProcAddress(hLib, "AvSetMmThreadPriority") : NULL;
   pfAvRevertMmThreadCharacteristics = hLib ? (PTR_AvRevertMmThreadCharacteristics)GetProcAddress(hLib, "AvRevertMmThreadCharacteristics") : NULL;

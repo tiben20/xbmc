@@ -599,7 +599,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         else if (!g_Windowing.IsAlteringWindow())
         {
           g_Windowing.UpdateResolutions();
-          if (g_advancedSettings.m_fullScreen)
+          if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_fullScreen)
           {
             newEvent.type = XBMC_VIDEOMOVE;
             newEvent.move.x = 0;

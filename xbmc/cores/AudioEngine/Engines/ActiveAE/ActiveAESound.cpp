@@ -41,7 +41,7 @@ CActiveAESound::~CActiveAESound()
 
 void CActiveAESound::Play()
 {
-  m_activeAE->PlaySound(this);
+  m_activeAE->PlaySoundW(this);
 
 }
 

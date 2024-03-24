@@ -137,8 +137,8 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
   // if needed set resolution to match fps then set pixelshader & settings for madVR
   const auto& components = CServiceBroker::GetAppComponents();
   components.GetComponent<CApplicationPlayer>()->SetResolution();
-  g_application.GetComponent<CApplicationPlayer>()->SetPixelShader();
-  g_application.GetComponent<CApplicationPlayer>()->RestoreSettings();
+  components.GetComponent<CApplicationPlayer>()->SetPixelShader();
+  components.GetComponent<CApplicationPlayer>()->RestoreSettings();
 
   if (m_pVideoWindow)
   {

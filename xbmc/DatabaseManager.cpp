@@ -61,7 +61,7 @@ void CDatabaseManager::Initialize()
   { CPVRDatabase db; UpdateDatabase(db, &advancedSettings->m_databaseTV); }
   { CPVREpgDatabase db; UpdateDatabase(db, &advancedSettings->m_databaseEpg); }
 #if HAS_DS_PLAYER
-  { CDSPlayerDatabase db; UpdateDatabase(db, &g_advancedSettings.m_databaseDSPlayer); }
+  { CDSPlayerDatabase db; UpdateDatabase(db, &CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_databaseDSPlayer); }
 #endif
   CLog::Log(LOGDEBUG, "{}, updating databases... DONE", __FUNCTION__);
 

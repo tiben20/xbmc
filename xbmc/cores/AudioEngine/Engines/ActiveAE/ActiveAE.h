@@ -281,7 +281,7 @@ private:
   void FreeSound(IAESound* sound) override;
 
 protected:
-  void PlaySound(CActiveAESound *sound);
+  void PlaySoundW(CActiveAESound *sound);
   static uint8_t **AllocSoundSample(SampleConfig &config, int &samples, int &bytes_per_sample, int &planes, int &linesize);
   static void FreeSoundSample(uint8_t **data);
   void GetDelay(AEDelayStatus& status, CActiveAEStream *stream) { m_stats.GetDelay(status, stream); }

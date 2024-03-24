@@ -30,6 +30,9 @@
 
 #include <algorithm>
 #include <utility>
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/AdvancedSettings.h"
 
 using namespace KODI;
 using namespace KEYMAP;
@@ -132,7 +135,8 @@ bool CButtonTranslator::Load()
 bool CButtonTranslator::LoadKeymap(const std::string& keymapPath)
 {
 #if HAS_DS_PLAYER
-  if (g_advancedSettings.m_bIgnoreSystemAppcommand
+  CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bIgnoreSystemAppcommand
+  if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bIgnoreSystemAppcommand
     && keymapPath.find("system") != keymapPath.npos
     && (keymapPath.find("appcommand") != keymapPath.npos
       || keymapPath.find("gamepad") != keymapPath.npos

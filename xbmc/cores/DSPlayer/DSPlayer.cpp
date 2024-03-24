@@ -1558,7 +1558,7 @@ void CDSPlayer::SetPixelShader() const
     m_pAllocatorCallback->SetPixelShader();
 }
 
-void CDSPlayer::SetResolution()
+void CDSPlayer::SetResolution() const
 {
   if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
     m_pAllocatorCallback->SetResolution();
@@ -1579,13 +1579,13 @@ void CDSPlayer::SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect)
     SetPosition();
 }
 
-void CDSPlayer::SetPosition()
+void CDSPlayer::SetPosition() const
 {
   if (UsingDS())
     m_pAllocatorCallback->SetPosition(m_sourceRect, m_videoRect, m_viewRect);
 }
 
-bool CDSPlayer::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret)
+bool CDSPlayer::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const
 {
   if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
     return m_pAllocatorCallback->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret);

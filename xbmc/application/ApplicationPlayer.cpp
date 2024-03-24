@@ -805,18 +805,18 @@ void CApplicationPlayer::EnableExclusive(bool bEnable)
   }
 }
 
-void CApplicationPlayer::SetPixelShader()
+void CApplicationPlayer::SetPixelShader() const
 {
-  std::shared_ptr<IPlayer> player = GetInternal();
+  std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
     player->SetPixelShader();
   }
 }
 
-void CApplicationPlayer::SetResolution()
+void CApplicationPlayer::SetResolution() const
 {
-  std::shared_ptr<IPlayer> player = GetInternal();
+  std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
     player->SetResolution();
@@ -825,16 +825,18 @@ void CApplicationPlayer::SetResolution()
 
 void CApplicationPlayer::SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect)
 {
-  std::shared_ptr<IPlayer> player = GetInternal();
+  std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
+#if TODO
     player->SetPosition(sourceRect, videoRect, viewRect);
+#endif
   }
 }
 
 bool CApplicationPlayer::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret)
 {
-  std::shared_ptr<IPlayer> player = GetInternal();
+  std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
     return player->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret);
@@ -908,9 +910,9 @@ void CApplicationPlayer::LoadSettings(int iSectionId)
   }
 }
 
-void CApplicationPlayer::RestoreSettings()
+void CApplicationPlayer::RestoreSettings() const
 {
-  std::shared_ptr<IPlayer> player = GetInternal();
+  std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
     player->RestoreSettings();

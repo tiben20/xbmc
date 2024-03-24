@@ -40,7 +40,7 @@
 #include "Application/Application.h"
 #include "settings/Settings.h"
 #include "DSPlayer.h"
-#include "prsht.h"
+
 #include "rendering/dx/RenderContext.h"
 
 LONG GdiGetCharDimensions(HDC hdc, LPTEXTMETRICW lptm, LONG *height)
@@ -190,9 +190,7 @@ void CDSPropertyPage::Process()
 
     propSheet.hwndParent = DX::Windowing()->GetHwnd();
 
-    std::string filterName;
-    g_charsetConverter.wToUTF8(GetFilterName(m_pBF), filterName);
-    propSheet.pszCaption = filterName.c_str();
+    propSheet.pszCaption = GetFilterName(m_pBF).c_str();
 
     hpsp = (HPROPSHEETPAGE *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY,
       pPages.cElems * sizeof(HPROPSHEETPAGE));
@@ -241,7 +239,7 @@ void CDSPropertyPage::Process()
 
       std::string strTitle = "";
       g_charsetConverter.wToUTF8(pPageInfo.pszTitle, strTitle);
-      psp.pszTitle = strTitle.c_str();
+      psp.pszTitle = pPageInfo.pszTitle;// strTitle.c_str();
       hpsp[propSheet.nPages++] = CreatePropertySheetPage(&psp);
       CoTaskMemFree(pPageInfo.pszTitle);
       if (pPageInfo.pszDocString)

@@ -28,6 +28,7 @@
 #include "ShlObj.h"
 #include "dmoreg.h"
 #include "utils/StringUtils.h"
+#include <cstdarg>
 
 #pragma comment(lib, "msdmo.lib")
 
@@ -133,14 +134,13 @@ namespace Com
       std::wstring temp_host = host;
       host = StringUtils::WLeft(temp_host,pos);
       temp_host = temp_host.erase(0, pos + 1);
-      
-      temp_host.Trim();
-      _stscanf_s(temp_host, _T("%d"), &port);
+      temp_host = StringUtils::Trim(temp_host);
+      _stscanf_s(temp_host.c_str(), _T("%d"), &port);
     }
 
     if (host == _T("") || request_url == _T("")) return -1;
-
-    complete_request.Format(_T("%s://%s:%d%s"), protocol, host, port, request_url);
+    complete_request.append(protocol).append(L"://").append(host).append(L":80").append(request_url);
+    //complete_request = StringUtils::FormatV(_T("%s://%s:%d%s"), protocol, host, port, request_url);
     return 0;
   }
 
@@ -307,11 +307,12 @@ namespace Com
   void DoReplace(std::wstring &str, std::wstring old_str, std::wstring new_str)
   {
     std::wstring	temp = str;
-    temp.MakeUpper();
-    int p = temp.Find(old_str);
+    StringUtils::ToUpper(temp);
+    
+    int p = temp.find(old_str);
     if (p >= 0) {
-      str.Delete(p, old_str.GetLength());
-      str.Insert(p, new_str);
+      str = str.erase(p, old_str.length());
+      str.insert(p, new_str);
     }
   }
 
@@ -447,7 +448,7 @@ namespace Com
 
       if (FAILED(CreateBindCtx(0, &bind)))
         break;
-      hr = MkParseDisplayName(bind, AToW(moniker_name), &eaten, &loc_moniker);
+      hr = MkParseDisplayName(bind, moniker_name.c_str(), &eaten, &loc_moniker);
       if (hr != NOERROR)
       {
         bind = NULL; break;
@@ -473,10 +474,10 @@ namespace Com
     }
 
     // we parse out the filter type
-    if (moniker_name.Find(_T(":sw:")) >= 0)		type = FilterTemplate::FT_FILTER; else
-      if (moniker_name.Find(_T(":dmo:")) >= 0)	type = FilterTemplate::FT_DMO; else
-        if (moniker_name.Find(_T(":cm:")) >= 0)		type = FilterTemplate::FT_ACM_ICM; else
-          if (moniker_name.Find(_T(":pnp:")) >= 0)		type = FilterTemplate::FT_PNP; else
+    if (moniker_name.find(_T(":sw:")) >= 0)		type = FilterTemplate::FT_FILTER; else
+      if (moniker_name.find(_T(":dmo:")) >= 0)	type = FilterTemplate::FT_DMO; else
+        if (moniker_name.find(_T(":cm:")) >= 0)		type = FilterTemplate::FT_ACM_ICM; else
+          if (moniker_name.find(_T(":pnp:")) >= 0)		type = FilterTemplate::FT_PNP; else
             type = FilterTemplate::FT_KSPROXY;
 
     return 0;
@@ -496,7 +497,7 @@ namespace Com
     ULONG					f, eaten = 0;
 
     if (FAILED(CreateBindCtx(0, &bind))) return -1;
-    hr = MkParseDisplayName(bind, AToW(displayname), &eaten, &loc_moniker);
+    hr = MkParseDisplayName(bind, displayname.c_str(), &eaten, &loc_moniker);
     bind = NULL;
     if (hr != NOERROR)
       return -1;
@@ -670,10 +671,10 @@ namespace Com
 
   int _FilterCompare(FilterTemplate &f1, FilterTemplate &f2)
   {
-    std::wstring s1 = f1.name; s1.MakeUpper();
-    std::wstring s2 = f2.name; s2.MakeUpper();
-
-    return s1.Compare(s2);
+    std::wstring s1 = f1.name; StringUtils::ToUpper(s1);
+    std::wstring s2 = f2.name; StringUtils::ToUpper(s2);
+    return StringUtils::CompareNoCase(s1, s2);
+    //return s1.Compare(s2);
   }
 
   void FilterTemplates::SwapItems(int i, int j)
@@ -1199,6 +1200,7 @@ namespace Com
     if (FAILED(hr)) return hr;
 
     epins->Reset();
+    IPin* other_pin;
     while (epins->Next(1, &pin, &f) == NOERROR) {
       PIN_DIRECTION	dir;
       PIN_INFO		info;
@@ -1209,7 +1211,7 @@ namespace Com
       if (dir == PINDIR_INPUT && (!(flags&Pin::PIN_FLAG_INPUT))) goto label_next;
       if (dir == PINDIR_OUTPUT && (!(flags&Pin::PIN_FLAG_OUTPUT))) goto label_next;
 
-      IPin	*other_pin = NULL;
+      other_pin = NULL;
       bool	is_connected;
       pin->ConnectedTo(&other_pin);
       is_connected = (other_pin == NULL ? false : true);
@@ -1383,10 +1385,12 @@ namespace Com
     StringFromGUID2(clsid, szCLSID, CHARS_IN_GUID);
 
     std::wstring	keyname;
-    keyname.Format(_T("CLSID\\%s"), szCLSID);
+    keyname = _T("CLSID\\");
+    keyname = keyname.append(szCLSID);
 
     // delete subkey
-    int ret = Com::EliminateSubKey(HKEY_CLASSES_ROOT, keyname.GetBuffer());
+    //might need a fix on the getbuffer
+    int ret = Com::EliminateSubKey(HKEY_CLASSES_ROOT, keyname.c_str());
     if (ret < 0) return -1;
 
     return 0;

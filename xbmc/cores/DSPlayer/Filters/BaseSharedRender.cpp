@@ -24,11 +24,17 @@
 #include "Utils/Log.h"
 #include "guilib/GUIWindowManager.h"
 #include "windowing/windows/WinSystemWin32DX.h"
-#include "settings/AdvancedSettings.h"
 #include "application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 #include "threads/SingleLock.h"
 #include "threads/SystemClock.h"
 #include "dsutil/DShowCommon.h"
+
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/AdvancedSettings.h"
+#include "settings/SettingsComponent.h"
 
 const DWORD D3DFVF_VID_FRAME_VERTEX = 0x004 | 0x100;
 
@@ -52,10 +58,12 @@ CRenderWait::CRenderWait()
 void CRenderWait::Wait(int ms)
 {
   //XbmcThreads::EndTime<> endTime{std::chrono::milliseconds(timemillis)};
-  XbmcThreads::EndTime<> timeout(ms);
-  CSingleExit lock(m_presentlock);
+  std::unique_lock<CCriticalSection> lock(m_presentlock);
+  XbmcThreads::EndTime<> timeout{ std::chrono::milliseconds(ms) };
+  //CSingleExit lock(m_presentlock);
+
   while (m_renderState == RENDERFRAME_LOCK && !timeout.IsTimePast())
-    m_presentevent.wait(lock, timeout.MillisLeft());
+    m_presentevent.wait(lock, timeout.GetInitialTimeoutValue());
 }
 
 void CRenderWait::Lock()
@@ -75,7 +83,7 @@ void CRenderWait::Unlock()
 
 void CBaseSharedRender::IncRenderCount()
 {
-  if (!g_application.GetComponent<CApplicationPlayer>()->ReadyDS())
+  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS())
     return;
 
   m_currentVideoLayer == RENDER_LAYER_UNDER ? m_renderUnderCount += 1 : m_renderOverCount += 1;
@@ -141,7 +149,7 @@ HRESULT CBaseSharedRender::ForceComplete()
 
 CBaseSharedRender::CBaseSharedRender()
 {
-  color_t clearColour = g_Windowing.UseLimitedColor() ? (16 * 0x010101) : 0;
+  uint32_t clearColour = CServiceBroker::GetWinSystem()->UseLimitedColor() ? (16 * 0x010101) : 0;
   CD3DHelper::XMStoreColor(m_fColor, clearColour);
   m_bWaitKodiRendering = !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bNotWaitKodiRendering;
 }

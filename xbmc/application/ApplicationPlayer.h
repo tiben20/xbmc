@@ -174,8 +174,8 @@ public:
   CRect GetActiveVideoRect();
   bool IsEnteringExclusive();
   void EnableExclusive(bool bEnable);
-  void SetPixelShader();
-  void SetResolution();
+  void SetPixelShader() const;
+  void SetResolution() const;
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect);
   bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret);
   void Reset(bool bForceWindowed);
@@ -189,7 +189,7 @@ public:
 
   // IMadvrSettingCallback
   void LoadSettings(int iSectionId);
-  void RestoreSettings();
+  void RestoreSettings() const;
   void GetProfileActiveName(const std::string &path, std::string *profile);
   void OnSettingChanged(int iSectionId, CSettingsManager* settingsManager, const CSetting *setting);
   void AddDependencies(const std::string &xml, CSettingsManager *settingsManager, CSetting *setting);

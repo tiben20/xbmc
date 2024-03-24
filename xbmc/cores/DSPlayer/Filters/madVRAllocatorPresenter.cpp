@@ -118,7 +118,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::NonDelegatingQueryInterface(REFIID riid, 
   return __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-void CmadVRAllocatorPresenter::SetResolution()
+void CmadVRAllocatorPresenter::SetResolution() const
 {
   ULONGLONG frameRate;
   float fps;
@@ -554,7 +554,7 @@ STDMETHODIMP_(bool) CmadVRAllocatorPresenter::Paint(bool fAll)
   return false;
 }
 
-void CmadVRAllocatorPresenter::SetPixelShader()
+void CmadVRAllocatorPresenter::SetPixelShader() const
 {
   g_dsSettings.pixelShaderList->UpdateActivatedList();
   m_shaderStage = 0;

@@ -83,7 +83,7 @@ public:
   virtual void SetPixelShader() const {};
   virtual void SetResolution() const  {};
   virtual void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) {};
-  virtual bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) { return false; };
+  virtual bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const { return false; };
   virtual void Reset(bool bForceWindowed) {};
   virtual void DisplayChange(bool bExternalChange) {};
 };
@@ -105,7 +105,7 @@ public:
   virtual ~IMadvrSettingCallback() {};
 
   virtual void LoadSettings(int iSectionId) {};
-  virtual void RestoreSettings() {};
+  virtual void RestoreSettings() const {};
   virtual void GetProfileActiveName(const std::string &path, std::string *profile) {};
   virtual void OnSettingChanged(int iSectionId, CSettingsManager* settingsManager, const CSetting *setting) {};
   virtual void AddDependencies(const std::string &xml, CSettingsManager *settingsManager, CSetting *setting) {};
