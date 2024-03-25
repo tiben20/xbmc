@@ -46,7 +46,9 @@ public:
   bool Save(TiXmlNode *settings) const override;
 
 #if HAS_DS_PLAYER
+#if TODO
   virtual void OnSettingChanged(const CSetting *setting) override;
+#endif
 #endif
 
   void OnSettingAction(const std::shared_ptr<const CSetting>& setting) override;

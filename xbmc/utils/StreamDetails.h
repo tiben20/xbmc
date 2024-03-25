@@ -48,7 +48,7 @@ protected:
   friend class CStreamDetails;
 };
 
-class CStreamDetailVideo final : public CStreamDetail
+class CStreamDetailVideo : public CStreamDetail
 {
 public:
   CStreamDetailVideo();
@@ -71,7 +71,7 @@ public:
 #endif
 };
 
-class CStreamDetailAudio final : public CStreamDetail
+class CStreamDetailAudio : public CStreamDetail
 {
 public:
   CStreamDetailAudio();
@@ -85,7 +85,7 @@ public:
   std::string m_strLanguage;
 };
 
-class CStreamDetailSubtitle final : public CStreamDetail
+class CStreamDetailSubtitle : public CStreamDetail
 {
 public:
   CStreamDetailSubtitle();

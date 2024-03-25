@@ -71,7 +71,7 @@ public:
   CDSStreamDetail();
 
   uint32_t                IAMStreamSelect_Index; ///< IAMStreamSelect index of the stream
-  std::string              displayname; ///< Stream displayname
+  std::wstring              displayname; ///< Stream displayname
   unsigned long           flags; ///< Stream flags. Set to AMSTREAMSELECTINFO_ENABLED if the stream if selected in the GUI, 0 otherwise
   Com::SmartPtr<IPin>     pObj; ///< Output pin of the splitter
   Com::SmartPtr<IPin>     pUnk; ///< Not used
@@ -80,8 +80,8 @@ public:
   bool                    connected; ///< Is the stream connected
 };
 
-//  std::string codecname; ///< Stream codec name
-//  std::string codec; ///< Stream codec ID
+//  std::wstring codecname; ///< Stream codec name
+//  std::wstring codec; ///< Stream codec ID
 
 /// Informations about an audio stream
 class CDSStreamDetailAudio : public CDSStreamDetail, public CStreamDetailAudio
@@ -89,7 +89,7 @@ class CDSStreamDetailAudio : public CDSStreamDetail, public CStreamDetailAudio
 public:
   CDSStreamDetailAudio();
 
-  std::string              m_strCodecName;
+  std::wstring              m_strCodecName;
   uint32_t                m_iBitRate; ///< Audio bitrate
   uint32_t                m_iSampleRate; ///< Audio samplerate
 };
@@ -98,7 +98,7 @@ public:
 struct CDSStreamDetailVideo : public CDSStreamDetail, public CStreamDetailVideo
 {
 public:
-  std::string              m_strCodecName;
+  std::wstring              m_strCodecName;
 
   CDSStreamDetailVideo();
 };
@@ -118,10 +118,10 @@ class CDSStreamDetailSubtitle : public CDSStreamDetail, public CStreamDetailSubt
 public:
   CDSStreamDetailSubtitle(SubtitleType type = INTERNAL);
 
-  std::string           encoding; ///< Subtitle encoding
+  std::wstring           encoding; ///< Subtitle encoding
   uint32_t              offset; ///< Not used
-  std::string           isolang; ///< ISO Code of the subtitle language.
-  std::string           trackname; ///< 
+  std::wstring           isolang; ///< ISO Code of the subtitle language.
+  std::wstring           trackname; ///< 
   GUID                  subtype;
   const SubtitleType    m_subType;
 };
@@ -131,10 +131,10 @@ class CDSStreamDetailSubfilter : public CDSStreamDetail, public CStreamDetailSub
 public:
   CDSStreamDetailSubfilter(SubtitleType type);
 
-  std::string           encoding; ///< Subtitle encoding
+  std::wstring           encoding; ///< Subtitle encoding
   uint32_t              offset; ///< Not used
-  std::string           isolang; ///< ISO Code of the subtitle language.
-  std::string           trackname; ///< 
+  std::wstring           isolang; ///< ISO Code of the subtitle language.
+  std::wstring           trackname; ///< 
   GUID                  subtype;
   const SubtitleType    m_subType;
 };
@@ -159,7 +159,7 @@ public:
 
   CDSStreamDetailSubtitleExternal();
 
-  std::string            path; ///< Subtitle file path
+  std::wstring            path; ///< Subtitle file path
   Com::SmartPtr<ISubStream> substream;
 };
 
@@ -189,7 +189,7 @@ public:
    * @param[in] iStream Index of the audio stream to get displayname of
    * @param[out] strStreamName Name of the iStream audio stream
    */
-  void GetAudioStreamName(int iStream, std::string &strStreamName);
+  void GetAudioStreamName(int iStream, std::wstring &strStreamName);
   /** Change the current audio stream
    * @param[in] iStream Index of the audio stream
    * @remarks If the IAMStreamSelect interface wasn't found, the graph must be stopped and restarted in order to change the audio stream
@@ -197,18 +197,18 @@ public:
   void SetAudioStream(int iStream);
   /// @return Audio streams count
 
-  void GetVideoStreamName(std::string &strStreamName);
+  void GetVideoStreamName(std::wstring &strStreamName);
 
   int  GetSubtitleCount();
   int  GetSubtitle();
-  void GetSubtitleName(int iStream, std::string &strStreamName);
+  void GetSubtitleName(int iStream, std::wstring &strStreamName);
   bool GetSubtitleVisible();
   void SetSubtitleVisible(bool bVisible);
-  bool SetSubtitle(const std::string &sTrackName);
+  bool SetSubtitle(const std::wstring &sTrackName);
   void SetSubtitle(int iStream);
-  void SelectBestSubtitle(const std::string &fileName = "");
+  void SelectBestSubtitle(const std::wstring &fileName = "");
   void SelectBestAudio();
-  int AddSubtitle(const std::string& subFilePath);
+  int AddSubtitle(const std::wstring& subFilePath);
   void SetAVDelay(float fValue = 0.0f, int iDisplayerLatency = 0);
   float GetAVDelay();
   int GetLastAVDelay() { return m_lastDelay; };
@@ -219,11 +219,11 @@ public:
 
   int  GetEditionsCount();
   int  GetEdition();
-  void GetEditionInfo(int iEdition, std::string &strEditionName, REFERENCE_TIME *prt);
+  void GetEditionInfo(int iEdition, std::wstring &strEditionName, REFERENCE_TIME *prt);
   void SetEdition(int iEdition);
   bool IsMatroskaEditions(){ return m_mkveditions; };
 
-  std::string GetStereoMode();
+  std::wstring GetStereoMode();
 
   DWORD GetHWAccel();
 
@@ -239,10 +239,10 @@ public:
   /// @return The sample rate of the current audio stream
   int GetSampleRate(int istream);
   /// @return The ID of the audio codec used in the media file (ie FLAC, MP3, DTS ...)
-  std::string GetAudioCodecName(int istream);
+  std::wstring GetAudioCodecName(int istream);
   /// @return The displayname of the audio codec used in the media file (ie FLAC, MP3, DTS ...)
-  std::string GetAudioCodecDisplayName();
-  std::string GetAudioCodecDisplayName(int istream);
+  std::wstring GetAudioCodecDisplayName();
+  std::wstring GetAudioCodecDisplayName(int istream);
   /// @return An instance to the IAMStreamSelect interface if the splitter expose it, NULL otherwise
   IAMStreamSelect *GetStreamSelector() { return m_pIAMStreamSelect; }
 
@@ -254,9 +254,9 @@ public:
   /// @return Current video height
   int GetPictureHeight();
   /// @return The ID of the video codec used in the media file (XviD, DivX, h264, ...)
-  std::string GetVideoCodecName();
+  std::wstring GetVideoCodecName();
   /// @return The displayname of the video codec used in the media file (XviD, DivX, h264, ...)
-  std::string GetVideoCodecDisplayName() { return m_videoStream.m_strCodecName; }
+  std::wstring GetVideoCodecDisplayName() { return m_videoStream.m_strCodecName; }
 
   /** Initialize the manager
    * @return True if the manager is initialized, false otherwise
@@ -269,8 +269,8 @@ public:
   static void MediaTypeToStreamDetail(AM_MEDIA_TYPE *mt, CStreamDetail& s);
   static void FormatStreamName(CStreamDetail& s);
   static void FormatStreamNameBySplitter(CStreamDetail& s);
-  static void ExtractCodecDetail(CStreamDetail& s, std::string& codecInfos);
-  static std::string ISOToLanguage(std::string code);
+  static void ExtractCodecDetail(CStreamDetail& s, std::wstring& codecInfos);
+  static std::wstring ISOToLanguage(std::wstring code);
 
   void LoadDVDStreams();
   void UpdateDVDStream();
@@ -348,7 +348,7 @@ public:
    * @param[in] iStream Index of the subtitle to get displayname of
    * @param[out] strStreamName Name of the iStream subtitle
    */
-  void GetSubtitleName(int iStream, std::string &strStreamName);
+  void GetSubtitleName(int iStream, std::wstring &strStreamName);
   /** Change the current subtitle
    * @param[in] iStream Index of the subtitle
    * @remarks If the IAMStreamSelect interface wasn't found, the graph must be stopped and restarted in order to change the subtitle
@@ -371,7 +371,7 @@ public:
    * @return -1 if the function fails. Otherwise, returns the index of the added subtitle
    * @remarks The subtitle will be automatically flagged as external
    */
-  int AddSubtitle(const std::string& subFilePath);
+  int AddSubtitle(const std::wstring& subFilePath);
 
   void SetTime(REFERENCE_TIME rtNow);
   void SetSizes(Com::SmartRect window, Com::SmartRect video);

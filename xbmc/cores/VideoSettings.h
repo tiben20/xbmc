@@ -219,6 +219,7 @@ public:
   void SetDSPlayerScalingMethod(EDSSCALINGMETHOD method);
   EDSSCALINGMETHOD GetDSPlayerScalingMethod();
   std::string m_SubtitleExtTrackName;
+  bool m_SubtitleCached;
 #endif
   EINTERLACEMETHOD m_InterlaceMethod;
   int m_ScalingMethod;

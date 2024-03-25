@@ -152,6 +152,7 @@ public:
   static constexpr auto SETTING_SUBTITLES_STEREOSCOPICDEPTH = "subtitles.stereoscopicdepth";
   static constexpr auto SETTING_SUBTITLES_FONTNAME = "subtitles.fontname";
   static constexpr auto SETTING_SUBTITLES_FONTSIZE = "subtitles.fontsize";
+  static constexpr auto SETTING_SUBTITLES_HEIGHT = "subtitles.height";
   static constexpr auto SETTING_SUBTITLES_STYLE = "subtitles.style";
   static constexpr auto SETTING_SUBTITLES_COLOR = "subtitles.colorpick";
   static constexpr auto SETTING_SUBTITLES_BORDERSIZE = "subtitles.bordersize";
@@ -492,6 +493,9 @@ public:
   static constexpr auto SETTING_DSPLAYER_MANAGEMADVRWITHKODI = "dsplayer.madvrsettingswithkodi";
   static constexpr auto SETTING_DSPLAYER_DELAYMADVRPLAYBACK = "dsplayer.delaymadvrplayback";
   static constexpr auto SETTING_DSPLAYER_EXCLUSIVEMODE = "dsplayer.exclusivemode";
+  static constexpr auto SETTING_SUBTITLES_OVERRIDEASSFONTS = "subtitle.overideassfonts";
+  
+
 //todo evr
 //  static constexpr auto SETTING_DSPLAYER_EXCLUSIVEMODE_EVR = "dsplayer.exclusivemodeevr";
   static constexpr auto SETTING_DSPLAYER_EXITMADVRFULLSCREEN = "dsplayer.exitmadvrfullscreen";
