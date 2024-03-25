@@ -18,6 +18,7 @@
 #include "application/Application.h"
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPowerHandling.h"
+#include "application/ApplicationPlayer.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIControl.h" // for EVENT_RESULT
 #include "guilib/GUIWindowManager.h"
@@ -592,13 +593,14 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       CLog::Log(LOGDEBUG, __FUNCTION__": display change event");
       if (g_application.GetRenderGUI() && GET_X_LPARAM(lParam) > 0 && GET_Y_LPARAM(lParam) > 0)
       {
-        if (g_application.m_pPlayer->GetCurrentPlayer() == "DSPlayer")
+        if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer")
         {
-          g_application.m_pPlayer->DisplayChange(!g_Windowing.IsAlteringWindow());
+          
+          CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->DisplayChange(!DX::Windowing()->IsAlteringWindow());
         }
-        else if (!g_Windowing.IsAlteringWindow())
+        else if (!DX::Windowing()->IsAlteringWindow())
         {
-          g_Windowing.UpdateResolutions();
+          DX::Windowing()->UpdateResolutions();
           if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_fullScreen)
           {
             newEvent.type = XBMC_VIDEOMOVE;
@@ -611,7 +613,8 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
             newEvent.resize.w = GET_X_LPARAM(lParam);
             newEvent.resize.h = GET_Y_LPARAM(lParam);
           }
-          m_pEventFunc(newEvent);
+          appPort->OnEvent(newEvent);
+          //m_pEventFunc(newEvent);
         }
       }
       return(0);

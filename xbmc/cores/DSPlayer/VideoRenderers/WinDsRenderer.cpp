@@ -37,7 +37,11 @@
 #include "settings/MediaSettings.h"
 #include "windowing/GraphicContext.h"
 #include "application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 #include "cores/dsplayer/IDSPlayer.h"
+#include "windowing/windows/WinSystemWin32DX.h"
+#include "rendering/dx/rendercontext.h"
 
 CWinDsRenderer::CWinDsRenderer(): 
   m_bConfigured(false)
@@ -103,7 +107,7 @@ bool CWinDsRenderer::RenderCapture(CRenderCapture* capture)
 
   bool succeeded = false;
 
-  ID3D11DeviceContext* pContext = g_Windowing.Get3D11Context();
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
 
   CRect saveSize = m_destRect;
   saveRotatedCoords();//backup current m_rotatedDestCoords
@@ -137,11 +141,11 @@ void CWinDsRenderer::RenderUpdate(bool clear, unsigned int flags, unsigned int a
 {
   if (clear)
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(m_clearColour);
-
+  CRenderSystemDX* renderSystem = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
   if (alpha < 255)
-    g_Windowing.SetAlphaBlendEnable(true);
+    renderSystem->SetAlphaBlendEnable(true);
   else
-    g_Windowing.SetAlphaBlendEnable(false);
+    renderSystem->SetAlphaBlendEnable(false);
 
   if (!m_bConfigured)
     return;
@@ -156,7 +160,7 @@ void CWinDsRenderer::RenderUpdate(bool clear, unsigned int flags, unsigned int a
 void CWinDsRenderer::Flush()
 {
   PreInit();
-  SetViewMode(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ViewMode);
+  SetViewMode(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_ViewMode);
   ManageRenderArea();
 
   m_bConfigured = true;
@@ -169,7 +173,7 @@ void CWinDsRenderer::PreInit()
   UnInit();
 
   // setup the background colour
-  m_clearColour = g_Windowing.UseLimitedColor() ? (16 * 0x010101) : 0;
+  m_clearColour = DX::Windowing()->UseLimitedColor() ? (16 * 0x010101) : 0;
   return;
 }
 
@@ -188,7 +192,7 @@ void CWinDsRenderer::Render(DWORD flags)
   
   if (m_oldVideoRect != m_destRect)
   {
-    g_application.GetComponent<CApplicationPlayer>()->SetPosition(m_sourceRect, m_destRect, m_viewRect);
+    CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->SetPosition(m_sourceRect, m_destRect, m_viewRect);
     m_oldVideoRect = m_destRect;
   }
 

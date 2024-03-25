@@ -65,7 +65,8 @@ void CEvrSharedRender::BeginRender()
   m_dsWait.Lock();
 
   // Clear RenderTarget
-  ID3D11DeviceContext* pContext = g_Windowing.Get3D11Context();
+  
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
   ID3D11RenderTargetView* pSurface11;
 
   m_pD3DDeviceKodi->CreateRenderTargetView(m_pKodiUnderTexture, NULL, &pSurface11);
@@ -84,7 +85,7 @@ void CEvrSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 {
   m_currentVideoLayer = layer;
 
-  ID3D11DeviceContext* pContext = g_Windowing.Get3D11Context();
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
   ID3D11RenderTargetView* pSurface11;
 
   m_pD3DDeviceKodi->CreateRenderTargetView(layer == RENDER_LAYER_UNDER ? m_pKodiUnderTexture : m_pKodiOverTexture, NULL, &pSurface11);
@@ -95,7 +96,7 @@ void CEvrSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 void CEvrSharedRender::EndRender()
 {
   // Force to complete the rendering on Kodi device
-  g_Windowing.FinishCommandList();
+  DX::DeviceResources::Get()->FinishCommandList();
   ForceComplete();
 
   m_bGuiVisible = GuiVisible();
