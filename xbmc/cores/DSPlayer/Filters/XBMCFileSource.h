@@ -55,8 +55,8 @@ private:
 };
 
 
-[uuid("EC5882E5-B1CB-4750-AF15-70459CAEC0D1")]
-class CXBMCASyncReader :
+
+class __declspec(uuid("EC5882E5-B1CB-4750-AF15-70459CAEC0D1")) CXBMCASyncReader :
   public CAsyncReader,
   public IFileSourceFilter
 {

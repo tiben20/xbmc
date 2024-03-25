@@ -56,8 +56,7 @@
 #define XYVSFILTER_SUB_EXTERNAL 6590018
 #define XYVSFILTER_SUB_INTERNAL 6590016
 
-[__declspec(uuid("5711A92E-913E-45A5-9714-8481887644E3"))]
-interface IBdStreamSelect : public IUnknown
+interface __declspec(uuid("5711A92E-913E-45A5-9714-8481887644E3")) IBdStreamSelect : public IUnknown
 {
   STDMETHOD_(UINT, GetTitlesCount)() PURE;
   STDMETHOD_(UINT, GetSelTitle)() PURE;
@@ -206,7 +205,7 @@ public:
   void SetSubtitleVisible(bool bVisible);
   bool SetSubtitle(const std::wstring &sTrackName);
   void SetSubtitle(int iStream);
-  void SelectBestSubtitle(const std::wstring &fileName = "");
+  void SelectBestSubtitle(const std::wstring &fileName = L"");
   void SelectBestAudio();
   int AddSubtitle(const std::wstring& subFilePath);
   void SetAVDelay(float fValue = 0.0f, int iDisplayerLatency = 0);
