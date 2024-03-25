@@ -42,6 +42,7 @@
 #include "ServiceBroker.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "guilib/GUIComponent.h"
 
 #pragma comment(lib , "version.lib")
 
@@ -131,13 +132,13 @@ void CGraphFilters::ShowInternalPPage(const std::string &type, bool showProperty
   else
   {
     if (type == INTERNAL_LAVVIDEO)
-      g_windowManager.ActivateWindow(WINDOW_DIALOG_LAVVIDEO);
+      CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LAVVIDEO);
     if (type == INTERNAL_LAVAUDIO)
-      g_windowManager.ActivateWindow(WINDOW_DIALOG_LAVAUDIO);
+      CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LAVAUDIO);
     if (type == INTERNAL_LAVSPLITTER)
-      g_windowManager.ActivateWindow(WINDOW_DIALOG_LAVSPLITTER);
+      CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LAVSPLITTER);
     if (type == INTERNAL_SANEAR)
-      g_windowManager.ActivateWindow(WINDOW_DIALOG_SANEAR);
+      CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_SANEAR);
   }
 }
 
@@ -145,22 +146,22 @@ bool CGraphFilters::ShowOSDPPage(IBaseFilter *pBF)
 {
   if (Video.pBF == pBF && Video.internalFilter)
   {
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_LAVVIDEO);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LAVVIDEO);
     return true;
   }
   if (Audio.pBF == pBF && Audio.internalFilter)
   {
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_LAVAUDIO);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LAVAUDIO);
     return true;
   }
   if ((Source.pBF == pBF && Source.internalFilter) || (Splitter.pBF == pBF && Splitter.internalFilter))
   {
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_LAVSPLITTER);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LAVSPLITTER);
     return true;
   }
   if (AudioRenderer.pBF == pBF && AudioRenderer.internalFilter)
   {
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_SANEAR);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_SANEAR);
     return true;
   }
 

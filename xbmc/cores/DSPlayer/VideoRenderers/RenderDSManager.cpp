@@ -43,8 +43,8 @@
 #include "ServiceBroker.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
-
-//#include "windowing/windows/WinSystemWin32DX.h"
+#include "rendering/RenderSystem.h"
+#include "windowing/windows/WinSystemWin32DX.h"
 
 using namespace KODI::MESSAGING;
 
@@ -503,7 +503,12 @@ void CRenderDSManager::DisplayChange(bool bExternalChange)
     refreshRate = static_cast<float>(iRefreshRate);
 
   // Convert Current Resolution to Kodi Res
-  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f%s", g_Windowing.GetCurrentScreen(), width, height, refreshRate, bInterlaced ? "istd" : "pstd");
+#if TODO
+  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f%s", DX::DeviceResources::Get()->GetCurrentScreen(), width, height, refreshRate, bInterlaced ? "istd" : "pstd");
+#else
+  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f%s", 0, width, height, refreshRate, bInterlaced ? "istd" : "pstd");
+#endif
+  
   RESOLUTION res = CDisplaySettings::GetResolutionFromString(sRes);
   RESOLUTION_INFO res_info = CDisplaySettings::GetInstance().GetResolutionInfo(res);
 

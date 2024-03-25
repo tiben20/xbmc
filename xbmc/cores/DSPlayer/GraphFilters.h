@@ -225,7 +225,7 @@ private:
 
   bool m_bDialogProcessInfo = false;
   
-  std::map<int, DynamicIntegerSettingOptions> m_mapHWAccelDeviceInfo;
+  std::map<int, TranslatableIntegerSettingOptions> m_mapHWAccelDeviceInfo;
 
   Com::SmartPtr<IBaseFilter> m_pBF;
   IDirect3DDevice9 * m_pD3DDevice;
