@@ -76,10 +76,6 @@ void CGUIDialogDSPlayercoreFactory::OnDeinitWindow(int nextWindowID)
   ShowDSPlayercoreFactory();
 }
 
-void CGUIDialogDSPlayercoreFactory::Save()
-{
-
-}
 void CGUIDialogDSPlayercoreFactory::SetupView()
 {
   CGUIDialogSettingsManualBase::SetupView();
@@ -181,7 +177,7 @@ void CGUIDialogDSPlayercoreFactory::InitializeSettings()
     AddButton(groupSave, SETTING_RULE_DEL, 60017, SettingLevel::Basic);
 }
 
-void CGUIDialogDSPlayercoreFactory::OnSettingChanged(const CSetting setting)
+void CGUIDialogDSPlayercoreFactory::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -196,9 +192,9 @@ void CGUIDialogDSPlayercoreFactory::OnSettingChanged(const CSetting setting)
     if (settingId == it->m_setting)
     {
       if (it->m_configType != BOOLATTR)
-        it->m_value = static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue());
+        it->m_value = std::static_pointer_cast<const CSettingString>(setting)->GetValue();
       else
-        it->SetBoolValue(static_cast<bool>(static_cast<const CSettingBool*>(setting)->GetValue()));
+        it->SetBoolValue(std::static_pointer_cast<const CSettingBool>(setting)->GetValue());
     }
   }
 }
@@ -237,7 +233,7 @@ void CGUIDialogDSPlayercoreFactory::ActionInternal(const std::string &settingId)
 
     m_dsmanager->SaveDsXML(PLAYERCOREFACTORY);
 
-    CPlayerCoreFactory::GetInstance().OnSettingsLoaded();
+    CServiceBroker::GetPlayerCoreFactory().OnSettingsLoaded();
 
     CGUIDialogDSPlayercoreFactory::Close();
   }

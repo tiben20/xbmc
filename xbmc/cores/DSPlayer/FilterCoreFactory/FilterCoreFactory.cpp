@@ -246,7 +246,7 @@ CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, boo
   }
 
   std::vector<CFGFilterFile *>::const_iterator it = std::find_if(m_Filters.begin(),
-    m_Filters.end(), std::bind2nd(std::ptr_fun(CompareCFGFilterFileToString), filter));
+    m_Filters.end(), std::bind2nd(std::not_fn(CompareCFGFilterFileToString), filter));
 
   if (it == m_Filters.end())
   {

@@ -54,7 +54,7 @@ public:
       if (((CExternalPixelShader*)(*it))->GetId() == id)
         return true;
     }
-    //return (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind1st(std::ptr_fun(HasSameID),
+    //return (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind(std::not_fn(HasSameID),
     //  id)) != m_pixelShaders.end());
   }
 

@@ -54,6 +54,7 @@
 #include "addons/Skin.h"
 #include "GraphFilters.h"
 #include "libavutil/channel_layout.h"
+#include "application/ApplicationPlayer.h"
 
 #define LAVAUDIO_PROPERTYPAGE      "lavaudio.propertypage"
 #define LAVAUDIO_TRAYICON          "lavaudio.trayicon"
@@ -180,7 +181,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
   CGraphFilters::Get()->GetInternalFilter(CGraphFilters::INTERNAL_LAVAUDIO, &pBF);
   CGraphFilters::Get()->GetLavSettings(CGraphFilters::INTERNAL_LAVAUDIO, pBF);
 
-  StaticIntegerSettingOptions entries;
+  IntegerSettingOptions entries;
   CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
   // BUTTON
@@ -209,12 +210,12 @@ void CGUIDialogLAVAudio::InitializeSettings()
   // dependencies
   CSettingDependency dependencyDRCEnabled(SettingDependencyType::Enable,GetSettingsManager());
   dependencyDRCEnabled.Or()
-    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_DRCENABLED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
+    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_DRCENABLED, "true", SettingDependencyOperator::Equals, false, GetSettingsManager())));
   SettingDependencies depsDRCEnabled;
   depsDRCEnabled.push_back(dependencyDRCEnabled);
 
   AddToggle(groupDRC, LAVAUDIO_DRCENABLED, 81001, SettingLevel::Basic, lavSettings.audio_bDRCEnabled);
-  
+#if TODO
   std::shared_ptr<CSetting>  *settingDRCLevel;
   settingDRCLevel = AddSlider(groupDRC, LAVAUDIO_DRCLEVEL, 81002, SettingLevel::Basic, lavSettings.audio_iDRCLevel, "%i%%", 0, 1, 100);
   settingDRCLevel->SetParent(LAVAUDIO_DRCENABLED);
@@ -223,9 +224,9 @@ void CGUIDialogLAVAudio::InitializeSettings()
   // MIXER
 
   // dependencies
-  std::shared_ptr<CSetting> Dependency dependencyMixingEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  CSettingDependency dependencyMixingEnabled(SettingDependencyType:::Enable, GetSettingsManager());
   dependencyMixingEnabled.Or()
-    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_MIXINGENABLED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
+    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_MIXINGENABLED, "true", SettingDependencyOperator::Equals, false, GetSettingsManager())));
   SettingDependencies depsMixingEnabled;
   depsMixingEnabled.push_back(dependencyMixingEnabled);
 
@@ -270,9 +271,10 @@ void CGUIDialogLAVAudio::InitializeSettings()
   entries.emplace_back(81029, MatrixEncoding_Dolby);
   entries.emplace_back(81030, MatrixEncoding_DPLII);
   AddList(groupEncoding, LAVAUDIO_MIXINGMODE, 81027, 0, lavSettings.audio_dwMixingMode, entries, 81027);
+#endif
 
   // BUTTON RESET
-  if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
+  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IsPlayingVideo())
     AddButton(groupReset, LAVAUDIO_RESET, 10041, SettingLevel::Basic);
 }
 
@@ -287,66 +289,66 @@ void CGUIDialogLAVAudio::OnSettingChanged(const std::shared_ptr<const CSetting>&
   const std::string &settingId = setting->GetId();
 
   if (settingId == LAVAUDIO_TRAYICON)
-    lavSettings.audio_bTrayIcon = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bTrayIcon = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_DRCENABLED)
-    lavSettings.audio_bDRCEnabled = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bDRCEnabled = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_DRCLEVEL)
-    lavSettings.audio_iDRCLevel = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.audio_iDRCLevel = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVAUDIO_BITSTREAM_AC3)
-    lavSettings.audio_bBitstream[0] = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bBitstream[0] = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_BITSTREAM_EAC3)
-    lavSettings.audio_bBitstream[1] = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bBitstream[1] = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_BITSTREAM_TRUEHD)
-    lavSettings.audio_bBitstream[2] = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bBitstream[2] = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_BITSTREAM_DTS)
-    lavSettings.audio_bBitstream[3] = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bBitstream[3] = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_BITSTREAM_DTSHD)
-    lavSettings.audio_bBitstream[4] = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bBitstream[4] = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_DTSHDFRAMING)
-    lavSettings.audio_bDTSHDFraming = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bDTSHDFraming = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_AUTOSYNCAV)
-    lavSettings.audio_bAutoAVSync = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bAutoAVSync = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_EXPANDMONO)
-    lavSettings.audio_bExpandMono = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bExpandMono = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_EXPAND61)
-    lavSettings.audio_bExpand61 = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bExpand61 = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_51LEGACY)
-    lavSettings.audio_b51Legacy = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_b51Legacy = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_OUTSTANDARD)
-    lavSettings.audio_bOutputStandardLayout = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bOutputStandardLayout = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_MIXINGENABLED)
-    lavSettings.audio_bMixingEnabled = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.audio_bMixingEnabled = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVAUDIO_MIXINGLAYOUT)
-    lavSettings.audio_dwMixingLayout = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.audio_dwMixingLayout = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVAUDIO_MIXING_DONTMIX)
   {
-    if (static_cast<bool>(static_cast<const CSettingBool*>(setting)->GetValue()))
+    if (std::static_pointer_cast<const CSettingBool>(setting)->GetValue())
       lavSettings.audio_dwMixingFlags |= LAV_MIXING_FLAG_UNTOUCHED_STEREO;
     else
       lavSettings.audio_dwMixingFlags &= ~LAV_MIXING_FLAG_UNTOUCHED_STEREO;
   }
   if (settingId == LAVAUDIO_MIXING_NORMALIZE)
   {
-    if (static_cast<bool>(static_cast<const CSettingBool*>(setting)->GetValue()))
+    if (std::static_pointer_cast<const CSettingBool>(setting)->GetValue())
       lavSettings.audio_dwMixingFlags |= LAV_MIXING_FLAG_NORMALIZE_MATRIX;
     else
       lavSettings.audio_dwMixingFlags &= ~LAV_MIXING_FLAG_NORMALIZE_MATRIX;
   }
   if (settingId == LAVAUDIO_MIXING_CLIP)
   {
-    if (static_cast<bool>(static_cast<const CSettingBool*>(setting)->GetValue()))
+    if (std::static_pointer_cast<const CSettingBool>(setting)->GetValue())
       lavSettings.audio_dwMixingFlags |= LAV_MIXING_FLAG_CLIP_PROTECTION;
     else
       lavSettings.audio_dwMixingFlags &= ~LAV_MIXING_FLAG_CLIP_PROTECTION;
   }
   if (settingId == LAVAUDIO_MIXINGMODE)
-    lavSettings.audio_dwMixingMode = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.audio_dwMixingMode = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVAUDIO_MIXINGCENTER)
-    lavSettings.audio_dwMixingCenterLevel = FloatToDw(static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue()));
+    lavSettings.audio_dwMixingCenterLevel = FloatToDw(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
   if (settingId == LAVAUDIO_MIXINGSURROUND)
-    lavSettings.audio_dwMixingSurroundLevel = FloatToDw(static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue()));
+    lavSettings.audio_dwMixingSurroundLevel = FloatToDw(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
   if (settingId == LAVAUDIO_MIXINGLFE)
-    lavSettings.audio_dwMixingLFELevel = FloatToDw(static_cast<float>(static_cast<const CSettingNumber*>(setting)->GetValue()));
+    lavSettings.audio_dwMixingLFELevel = FloatToDw(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
 
   // Get current running filter
   IBaseFilter *pBF;

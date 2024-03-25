@@ -225,6 +225,7 @@ void CGUIDialogDSRules::InitializeSettings()
 
   if (m_ruleList.size() == 0)
   {
+#if TODO
     // RULE
     m_dsmanager->InitConfig(m_ruleList, SPINNERATTR, "rules.priority", 60024, "priority", "",m_dsmanager->PriorityOptionFiller);
     m_dsmanager->InitConfig(m_ruleList, EDITATTR, "rules.name", 60002, "name"); 
@@ -276,6 +277,7 @@ void CGUIDialogDSRules::InitializeSettings()
     m_dsmanager->InitConfig(m_ruleList, SPINNERATTRSHADER, "rules.shprepost2", 60023, "stage", "shader", m_dsmanager->ShadersScaleOptionFiller, 2, "shaders");
     m_dsmanager->InitConfig(m_ruleList, EDITATTRSHADER, "rules.shvideores2", 60019, "videoresolution", "shader", 0, 2, "shaders");
     m_dsmanager->InitConfig(m_ruleList, EDITATTRSHADER, "rules.shvideocodec2", 60020, "videocodec", "shader", 0, 2, "shaders");
+#ENDIF
   }
 
   // Reset Button value
@@ -381,7 +383,7 @@ void CGUIDialogDSRules::InitializeSettings()
 
 
   if (!m_dsmanager->GetNew())
-    AddButton(groupSave, SETTING_RULE_DEL, 60017, 0);
+    AddButton(groupSave, SETTING_RULE_DEL, 60017, SettingLevel::Basic);
 }
 
 void CGUIDialogDSRules::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
@@ -400,9 +402,9 @@ void CGUIDialogDSRules::OnSettingChanged(const std::shared_ptr<const CSetting>& 
     if (settingId == it->m_setting)
     {
       if (it->m_configType != BOOLATTR)
-        it->m_value = static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue());
+        it->m_value = std::static_pointer_cast<const CSettingString>(setting)->GetValue();
       else
-        it->SetBoolValue(static_cast<bool>(static_cast<const CSettingBool*>(setting)->GetValue()));
+        it->SetBoolValue(std::static_pointer_cast<const CSettingBool>(setting)->GetValue()));
     }
   }
   HideUnused();

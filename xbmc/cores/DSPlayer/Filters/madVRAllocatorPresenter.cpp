@@ -218,7 +218,7 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
     m_pSettingsManager->SetInt("preRenderFrames", iNumPresentExclusive);
 }
 
-bool CmadVRAllocatorPresenter::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret)
+bool CmadVRAllocatorPresenter::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const
 {
   if (Com::SmartQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR)
     return (pMVRSR->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret) != 0);
@@ -623,8 +623,7 @@ bool CmadVRAllocatorPresenter::SetResolutionInternal(const RESOLUTION res, bool 
     bool bResChanged = false;
 
     // Windows 8 refresh rate workaround for 24.0, 48.0 and 60.0 Hz
-    if (CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin8) 
-      && !CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10_FCU) 
+    if ( !CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10) 
       && (res_info.fRefreshRate == 24.0 || res_info.fRefreshRate == 48.0 || res_info.fRefreshRate == 60.0))
     {
       CLog::Log(LOGDEBUG, "%s : Using Windows 8+ workaround for refresh rate %d Hz", __FUNCTION__, static_cast<int>(res_info.fRefreshRate));

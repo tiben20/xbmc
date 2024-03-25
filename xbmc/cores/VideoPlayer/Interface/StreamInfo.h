@@ -42,9 +42,9 @@ struct StreamInfo
 {
   bool valid = false;
   int bitrate = 0;
-  std::wstring language;
-  std::wstring name;
-  std::wstring codecName;
+  std::string language;
+  std::string name;
+  std::string codecName;
   StreamFlags flags = StreamFlags::FLAG_NONE;
 
 protected:

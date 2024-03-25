@@ -22,7 +22,6 @@
 #if HAS_DS_PLAYER
 
 #include "PixelShaderList.h"
-#include "profiles/ProfileManager.h"
 #include "FileSystem\File.h"
 #include "FileSystem\Directory.h"
 #include "utils/XMLUtils.h"
@@ -30,6 +29,9 @@
 #include "Util.h"
 #include "utils\log.h"
 #include "utils\URIUtils.h"
+#include "ServiceBroker.h"
+#include "profiles/ProfileManager.h"
+#include "settings/SettingsComponent.h"
 
 CPixelShaderList::~CPixelShaderList()
 {
@@ -47,7 +49,7 @@ CPixelShaderList::~CPixelShaderList()
 
 void CPixelShaderList::SaveXML()
 {
-  std::string userDataDSPlayer = URIUtils::AddFileToFolder(CProfilesManager::GetInstance().GetUserDataFolder(), "dsplayer");
+  std::string userDataDSPlayer = URIUtils::AddFileToFolder(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataFolder(), "dsplayer");
   if (!XFILE::CDirectory::Exists(userDataDSPlayer))
   {
     if (!XFILE::CDirectory::Create(userDataDSPlayer))
@@ -77,7 +79,7 @@ void CPixelShaderList::SaveXML()
 
 void CPixelShaderList::Load()
 {
-  LoadXMLFile(CProfilesManager::GetInstance().GetUserDataItem("dsplayer/shaders.xml"));
+  LoadXMLFile(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/shaders.xml"));
   LoadXMLFile("special://xbmc/system/players/dsplayer/shaders/shaders.xml");
 }
 
@@ -110,8 +112,7 @@ bool CPixelShaderList::LoadXMLFile(const std::string& xmlFile)
     std::unique_ptr<CExternalPixelShader> shader(new CExternalPixelShader(shaders));
     if (shader->IsValid())
     {
-      if (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind1st(std::ptr_fun(HasSameID),
-        shader->GetId())) != m_pixelShaders.end())
+      if (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind(std::not_fn(HasSameID), shader->GetId())) != m_pixelShaders.end())
       {
         shaders = shaders->NextSiblingElement("shader");
         continue;
@@ -146,7 +147,7 @@ void CPixelShaderList::EnableShader(const uint32_t id, const uint32_t stage, boo
 {
   CSingleExit lock(m_accessLock);
 
-  PixelShaderVector::iterator it = (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind1st(std::ptr_fun(HasSameID),
+  PixelShaderVector::iterator it = (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind(std::not_fn(HasSameID),
     id)));
   if (it == m_pixelShaders.end())
     return;

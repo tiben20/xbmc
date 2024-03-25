@@ -25,6 +25,8 @@
 #include "PixelShaderCompiler.h"
 #include "FileSystem\File.h"
 #include "utils/XMLUtils.h"
+#include "ServiceBroker.h"
+#include "settings/SettingsComponent.h"
 #include "profiles/ProfileManager.h"
 #include "utils/log.h"
 #include "Utils/StringUtils.h"
@@ -70,7 +72,7 @@ CExternalPixelShader::CExternalPixelShader(TiXmlElement* xml)
   if (!XFILE::CFile::Exists(m_SourceFile))
   {
     std::string originalFile = m_SourceFile;
-    m_SourceFile = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/shaders/" + originalFile);
+    m_SourceFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/shaders/" + originalFile);
     if (!XFILE::CFile::Exists(m_SourceFile))
     {
       m_SourceFile = "special://xbmc/system/players/dsplayer/shaders/" + originalFile;
@@ -102,7 +104,7 @@ CExternalPixelShader::CExternalPixelShader(std::string strFile, std::string strP
   if (!XFILE::CFile::Exists(m_SourceFile))
   {
     std::string originalFile = m_SourceFile;
-    m_SourceFile = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/shaders/" + originalFile);
+    m_SourceFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/shaders/" + originalFile);
     if (!XFILE::CFile::Exists(m_SourceFile))
     {
       m_SourceFile = "special://xbmc/system/players/dsplayer/shaders/" + originalFile;

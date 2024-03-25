@@ -25,6 +25,7 @@
 
 #include "settings/dialogs/GUIDialogSettingsManualBase.h"
 #include "GUIDialogDSManager.h"
+#include "utils/stringutils.h"
 
 class CRules
 {
@@ -58,7 +59,7 @@ protected:
 
   // specialization of CGUIDialogSettingsBase
   virtual bool AllowResettingSettings() const { return false; }
-  virtual void Save();
+  virtual bool Save();
 
   // specialization of CGUIDialogSettingsManualBase
   virtual void InitializeSettings();

@@ -210,7 +210,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   if (lavSettings.video_dwHWAccelResFlags & LAVHWResFlag_UHD)
     values.emplace_back(LAVHWResFlag_UHD);
   std::shared_ptr<CSetting>  *settingHWRes;
-  settingHWRes = AddList(groupHW, LAVVIDEO_HWACCELRES, 80015, 0, values, ResolutionsFiller, 80015);
+  settingHWRes = AddList(groupHW, LAVVIDEO_HWACCELRES, 80015,SettingLevel::Basic, values, ResolutionsFiller, 80015);
   settingHWRes->SetParent(LAVVIDEO_HWACCEL);
   settingHWRes->SetDependencies(depsHWAccelEnabled);
 

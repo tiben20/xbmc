@@ -1641,7 +1641,7 @@ void CSubtitleManager::Initialize()
   if (!pManager)
     return;
 #if TODO
-  m_pManager.reset(pManager, std::bind2nd(std::ptr_fun(DeleteSubtitleManager), m_dll));
+  m_pManager.reset(pManager, std::bind2nd(std::not_fn(DeleteSubtitleManager), m_dll));
 #endif
 
   SSubStyle style; //auto default on constructor

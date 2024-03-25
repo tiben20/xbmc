@@ -134,9 +134,11 @@ void CGUIDialogDSFilters::InitializeSettings()
   {
     m_dsmanager->InitConfig(m_filterList, OSDGUID, "dsfilters.osdname", 65003, "", "osdname");
     m_dsmanager->InitConfig(m_filterList, EDITATTR, "dsfilters.name", 65004, "name");
+#if TODO
     m_dsmanager->InitConfig(m_filterList, FILTER, "dsfilters.type", 65005, "type", "", TypeOptionFiller);
     m_dsmanager->InitConfig(m_filterList, OSDGUID, "dsfilters.guid", 65006, "", "guid");
     m_dsmanager->InitConfig(m_filterList, FILTERSYSTEM, "dsfilters.systemfilter", 65010, "", "", m_dsmanager->DSFilterOptionFiller);
+#endif
   }
 
   // Reset Button value
@@ -202,14 +204,14 @@ void CGUIDialogDSFilters::OnSettingChanged(const std::shared_ptr<const CSetting>
     {
       if (settingId == it->m_setting)
       {
-        it->m_value = static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue());
+        it->m_value = std::static_pointer_cast<const CSettingString>(setting)->GetValue();
       }
     }
     if (it->m_configType == FILTERSYSTEM)
     {
       if (settingId == "dsfilters.systemfilter")
       {
-        it->m_value = static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue());
+        it->m_value = std::static_pointer_cast<const CSettingString>(setting)->GetValue();
 
         if (it->m_value != "[null]")
         {
@@ -217,10 +219,9 @@ void CGUIDialogDSFilters::OnSettingChanged(const std::shared_ptr<const CSetting>
           std::string strFilterName = strOSDName;
           StringUtils::ToLower(strFilterName);
           StringUtils::Replace(strFilterName, " ", "_");
-
-          m_settingsManager->SetString("dsfilters.guid", it->m_value.c_str());
-          m_settingsManager->SetString("dsfilters.osdname", strOSDName);
-          m_settingsManager->SetString("dsfilters.name", strFilterName);
+          GetSettingsManager()->SetString("dsfilters.guid", it->m_value.c_str());
+          GetSettingsManager()->SetString("dsfilters.osdname", strOSDName);
+          GetSettingsManager()->SetString("dsfilters.name", strFilterName);
         }
       }
     }
