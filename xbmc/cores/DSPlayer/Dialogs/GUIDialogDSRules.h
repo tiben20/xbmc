@@ -51,8 +51,8 @@ public:
 protected:
 
   // implementations of ISettingCallback
-  virtual void OnSettingChanged(const CSetting *setting);
-  virtual void OnSettingAction(const CSetting *setting);
+  virtual void OnSettingChanged(const std::shared_ptr<const CSetting>& setting);
+  virtual void OnSettingAction(const std::shared_ptr<const CSetting>& setting);
   virtual void OnInitWindow();
   virtual void OnDeinitWindow(int nextWindowID);
 

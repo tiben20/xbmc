@@ -44,6 +44,8 @@
 #include "Filters/RendererSettings.h"
 #include "PixelShaderList.h"
 #include "utils/DSFileUtils.h"
+#include "ServiceBroker.h"
+#include "guilib/GUIComponent.h"
 
 #define SETTING_FILTER_SAVE                   "dsfilters.save"
 #define SETTING_FILTER_ADD                    "dsfilters.add"
@@ -169,20 +171,20 @@ void CGUIDialogDSFilters::InitializeSettings()
   for (const auto &it : m_filterList)
   {
     if (it->m_configType == FILTERSYSTEM)
-      AddList(groupSystem, it->m_setting, it->m_label, 0, it->m_value, it->m_filler, it->m_label);
+      AddList(groupSystem, it->m_setting, it->m_label, SettingLevel::Basic, it->m_value, it->m_filler, it->m_label);
 
     if (it->m_configType == EDITATTR || it->m_configType == OSDGUID)
-      AddEdit(group, it->m_setting, it->m_label, 0, it->m_value, true);
+      AddEdit(group, it->m_setting, it->m_label, SettingLevel::Basic, it->m_value, true);
 
     if (it->m_configType == FILTER)
-      AddList(group, it->m_setting, it->m_label, 0, it->m_value, it->m_filler, it->m_label);
+      AddList(group, it->m_setting, it->m_label, SettingLevel::Basic, it->m_value, it->m_filler, it->m_label);
   }
 
   if (!m_dsmanager->GetNew())
-    AddButton(groupSave, SETTING_FILTER_DEL, 65009, 0);
+    AddButton(groupSave, SETTING_FILTER_DEL, 65009, SettingLevel::Basic);
 }
 
-void CGUIDialogDSFilters::OnSettingChanged(const CSetting *setting)
+void CGUIDialogDSFilters::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -225,7 +227,7 @@ void CGUIDialogDSFilters::OnSettingChanged(const CSetting *setting)
   }
 }
 
-void CGUIDialogDSFilters::OnSettingAction(const CSetting *setting)
+void CGUIDialogDSFilters::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -312,8 +314,8 @@ void CGUIDialogDSFilters::ShowDSFiltersList()
 
   int selected;
   int count = 0;
+  CGUIDialogSelect* pDlg = (CGUIDialogSelect*)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SELECT);
 
-  CGUIDialogSelect *pDlg = (CGUIDialogSelect *)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
   if (!pDlg)
     return;
 
@@ -348,7 +350,7 @@ void CGUIDialogDSFilters::ShowDSFiltersList()
   CGUIDialogDSManager::Get()->SetConfig(selected == count, selected);
 
   if (selected > -1) 
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_DSFILTERS);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_DSFILTERS);
 }
 
 void CGUIDialogDSFilters::TypeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)

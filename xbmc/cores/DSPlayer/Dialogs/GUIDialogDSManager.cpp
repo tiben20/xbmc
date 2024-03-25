@@ -29,7 +29,7 @@
 #include "utils/log.h"
 #include "utils/DSFileUtils.h"
 #include <iterator>
-
+#include "utils/StringUtils.h"
 using namespace std;
 
 DSConfigList::DSConfigList(ConfigType type) :

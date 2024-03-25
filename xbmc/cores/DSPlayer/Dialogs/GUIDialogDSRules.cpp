@@ -361,22 +361,22 @@ void CGUIDialogDSRules::InitializeSettings()
       else
         groupTmp = groupRule;
 
-      AddEdit(groupTmp, it->m_setting, it->m_label, 0, it->m_value.c_str(), true);
+      AddEdit(groupTmp, it->m_setting, it->m_label, SettingLevel::Basic, it->m_value.c_str(), true);
     }
     if (it->m_configType == SPINNERATTR)
-      AddList(groupPriority, it->m_setting, it->m_label, 0, it->m_value, it->m_filler, it->m_label);
+      AddList(groupPriority, it->m_setting, it->m_label,SettingLevel::Basic , it->m_value, it->m_filler, it->m_label);
 
     if (it->m_configType == SPINNERATTRSHADER)
-      AddSpinner(groupExtra, it->m_setting, it->m_label, 0, it->m_value, it->m_filler);
+      AddSpinner(groupExtra, it->m_setting, it->m_label,SettingLevel::Basic , it->m_value, it->m_filler);
 
     if (it->m_configType == BOOLATTR)
-      AddToggle(groupRule, it->m_setting, it->m_label, 0, it->GetBoolValue());
+      AddToggle(groupRule, it->m_setting, it->m_label,SettingLevel::Basic , it->GetBoolValue());
 
     if (it->m_configType == FILTER)
-      AddList(groupFilter, it->m_setting, it->m_label, 0, it->m_value, it->m_filler, it->m_label);
+      AddList(groupFilter, it->m_setting, it->m_label,SettingLevel::Basic , it->m_value, it->m_filler, it->m_label);
 
     if (it->m_configType == EXTRAFILTER || it->m_configType == SHADER)
-      AddList(groupExtra, it->m_setting, it->m_label, 0, it->m_value, it->m_filler, it->m_label);
+      AddList(groupExtra, it->m_setting, it->m_label,SettingLevel::Basic , it->m_value, it->m_filler, it->m_label);
   }
 
 
@@ -384,7 +384,7 @@ void CGUIDialogDSRules::InitializeSettings()
     AddButton(groupSave, SETTING_RULE_DEL, 60017, 0);
 }
 
-void CGUIDialogDSRules::OnSettingChanged(const CSetting *setting)
+void CGUIDialogDSRules::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -408,7 +408,7 @@ void CGUIDialogDSRules::OnSettingChanged(const CSetting *setting)
   HideUnused();
 }
 
-void CGUIDialogDSRules::OnSettingAction(const CSetting *setting)
+void CGUIDialogDSRules::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;  

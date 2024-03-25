@@ -128,7 +128,7 @@ void CGUIDialogSubtitleSettings::OnSettingChanged(const std::shared_ptr<const CS
   {
     float value = static_cast<float>(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
 #if HAS_DS_PLAYER
-    m_bIsDSPlayer ? value = -value : value = dValue;
+    m_bIsDSPlayer ? value = -value : value = value;
 #endif
     
     appPlayer->SetSubTitleDelay(value);
@@ -346,9 +346,9 @@ void CGUIDialogSubtitleSettings::InitializeSettings()
     AddButton(groupSubtitles, SETTING_SUBTITLE_BROWSER, 13250, SettingLevel::Basic);
 
 #if HAS_DS_PLAYER
-  if (g_application.m_pPlayer->GetEditionsCount() > 1)
+  if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetEditionsCount() > 1)
   {
-    AddButton(groupEdition, EDITONS_SETTINGS, g_application.m_pPlayer->IsMatroskaEditions() ? 55023 : 55024, 0);
+    AddButton(groupEdition, EDITONS_SETTINGS, CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IsMatroskaEditions() ? 55023 : 55024, SettingLevel::Basic);
   }
 #endif
 
@@ -404,7 +404,7 @@ void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(
     std::string strItem;
     std::string strLanguage;
 
-    if (!g_LangCodeExpander.Lookup(info.language, strLanguage))
+    if (!g_LangCodeExpander.Lookup(WToA(info.language), strLanguage))
       strLanguage = g_localizeStrings.Get(13205); // Unknown
 
     if (info.name.length() == 0)
@@ -416,7 +416,7 @@ void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(
 
 #if HAS_DS_PLAYER
     if (g_application.GetCurrentPlayer() == "DSPlayer")
-      strItem = info.name;
+      strItem = WToA(info.name);
 #endif
 
     strItem += StringUtils::Format(" ({}/{})", i + 1, subtitleStreamCount);

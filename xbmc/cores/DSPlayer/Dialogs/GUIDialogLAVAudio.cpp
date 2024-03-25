@@ -143,7 +143,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
     return;
   }
   // get all necessary setting groups
-  std::shared_ptr<CSettingGroup> groupDRC = AddGroup(category);
+  const std::shared_ptr<CSettingGroup> groupDRC = AddGroup(category);
   if (groupDRC == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
@@ -207,7 +207,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
   // DRC
 
   // dependencies
-  std::shared_ptr<CSetting> Dependency dependencyDRCEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  CSettingDependency dependencyDRCEnabled(SettingDependencyType::Enable,GetSettingsManager());
   dependencyDRCEnabled.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVAUDIO_DRCENABLED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
   SettingDependencies depsDRCEnabled;
@@ -276,7 +276,7 @@ void CGUIDialogLAVAudio::InitializeSettings()
     AddButton(groupReset, LAVAUDIO_RESET, 10041, SettingLevel::Basic);
 }
 
-void CGUIDialogLAVAudio::OnSettingChanged(const CSetting *setting)
+void CGUIDialogLAVAudio::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -359,7 +359,7 @@ void CGUIDialogLAVAudio::OnSettingChanged(const CSetting *setting)
   CGraphFilters::Get()->SaveLavSettings(CGraphFilters::INTERNAL_LAVAUDIO);
 }
 
-void CGUIDialogLAVAudio::OnSettingAction(const CSetting *setting)
+void CGUIDialogLAVAudio::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;

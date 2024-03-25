@@ -310,7 +310,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
     AddButton(groupReset, LAVVIDEO_RESET, 10041, 0);
 }
 
-void CGUIDialogLAVVideo::OnSettingChanged(const CSetting *setting)
+void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -396,7 +396,7 @@ void CGUIDialogLAVVideo::OnSettingChanged(const CSetting *setting)
   CGraphFilters::Get()->SaveLavSettings(CGraphFilters::INTERNAL_LAVVIDEO);
 }
 
-void CGUIDialogLAVVideo::OnSettingAction(const CSetting *setting)
+void CGUIDialogLAVVideo::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;

@@ -33,8 +33,8 @@ public:
   
 protected:
   virtual void InitializeSettings();
-  virtual void OnSettingChanged(const CSetting *setting);
-  virtual void OnSettingAction(const CSetting *setting);
+  virtual void OnSettingChanged(const std::shared_ptr<const CSetting>& setting);
+  virtual void OnSettingAction(const std::shared_ptr<const CSetting>& setting);
 
   virtual void SaveControlStates();
   virtual void RestoreControlStates();

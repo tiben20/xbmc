@@ -177,7 +177,7 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
   }
 }
 
-void CGUIDialogMadvrSettingsBase::OnSettingChanged(const CSetting *setting)
+void CGUIDialogMadvrSettingsBase::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -190,7 +190,7 @@ void CGUIDialogMadvrSettingsBase::OnSettingChanged(const CSetting *setting)
   g_application.GetComponent<CApplicationPlayer>()->OnSettingChanged(m_iSectionId, m_settingsManager, setting);
 }
 
-void CGUIDialogMadvrSettingsBase::OnSettingAction(const CSetting *setting)
+void CGUIDialogMadvrSettingsBase::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;

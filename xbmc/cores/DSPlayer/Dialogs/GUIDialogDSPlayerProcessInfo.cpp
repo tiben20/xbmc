@@ -22,6 +22,9 @@
 #include "GraphFilters.h"
 
 #include "input/keyboard/Key.h"
+#include "input/actions/Action.h"
+#include "input/actions/ActionIDs.h"
+#include "guilib/GUIMessage.h"
 
 CGUIDialogDSPlayerProcessInfo ::CGUIDialogDSPlayerProcessInfo (void)
     : CGUIDialog(WINDOW_DIALOG_DSPLAYER_PROCESS_INFO, "DialogPlayerProcessInfo.xml")

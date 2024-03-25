@@ -192,7 +192,7 @@ void CGUIDialogSanear::InitializeSettings()
 #endif
 }
 
-void CGUIDialogSanear::OnSettingChanged(const CSetting *setting)
+void CGUIDialogSanear::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -243,7 +243,7 @@ void CGUIDialogSanear::OnSettingChanged(const CSetting *setting)
   }
 }
 
-void CGUIDialogSanear::OnSettingAction(const CSetting *setting)
+void CGUIDialogSanear::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
