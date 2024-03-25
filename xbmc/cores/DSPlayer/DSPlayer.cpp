@@ -200,7 +200,7 @@ void CDSPlayer::SetSubtitleVisible(bool bVisible)
 void CDSPlayer::AddSubtitle(const std::string& strSubPath) 
 {
   if (CStreamsManager::Get())
-    CStreamsManager::Get()->SetSubtitle(CStreamsManager::Get()->AddSubtitle(strSubPath));
+    CStreamsManager::Get()->SetSubtitle(CStreamsManager::Get()->AddSubtitle(AToW(strSubPath)));
 }
 
 bool CDSPlayer::WaitForFileClose()
@@ -422,19 +422,19 @@ bool CDSPlayer::CloseFile(bool reopen)
 void CDSPlayer::GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) const
 {
   std::unique_lock<CCriticalSection> lock(m_content.m_section);
-  std::string strStreamName;
+  std::wstring strStreamName;
 
   if (CStreamsManager::Get()) CStreamsManager::Get()->GetVideoStreamName(strStreamName);
   info.name = strStreamName;
   info.width = (GetPictureWidth());
   info.height = (GetPictureHeight());
-  info.videoCodecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetVideoCodecName() : "";
+  info.videoCodecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetVideoCodecName() : L"";
   info.videoAspectRatio = (float)info.width / (float)info.height;
   CRect viewRect;
   m_renderManager.GetVideoRect(info.SrcRect, info.DestRect, viewRect);
-  info.stereoMode = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetStereoMode() : "";
-  if (info.stereoMode == "mono")
-    info.stereoMode = "";
+  info.stereoMode = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetStereoMode() : L"";
+  if (info.stereoMode == L"mono")
+    info.stereoMode = L"";
 }
 
 void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
@@ -444,22 +444,22 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
 
   CSingleExit lock(m_StateSection);
 
-  std::string strStreamName;
-  std::string label;
-  std::string codecname;
+  std::wstring strStreamName;
+  std::wstring label;
+  std::wstring codecname;
 
   info.bitrate = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetBitsPerSample(index) : 0;
-  info.audioCodecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecName(index) : "";
+  info.audioCodecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecName(index) : L"";
   if (CStreamsManager::Get()) CStreamsManager::Get()->GetAudioStreamName(index, strStreamName);
   info.language = strStreamName;
   info.channels = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetChannels(index) : 0;
   info.samplerate = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetSampleRate(index) : 0;
-  codecname = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecDisplayName(index) : "";
+  codecname = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecDisplayName(index) : L"";
 
   if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   { 
-    label = StringUtils::Format("%s - (%s, %d Hz, %i Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
+    label = StringUtils::Format(L"%s - (%s, %d Hz, %i Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
     info.name = label;
   }
   else
@@ -468,7 +468,7 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
 
 void CDSPlayer::GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info)
 {
-  std::string strStreamName;
+  std::wstring strStreamName;
  if (CStreamsManager::Get()) CStreamsManager::Get()->GetSubtitleName(index, strStreamName);
   
   info.language = strStreamName;
@@ -720,7 +720,8 @@ void CDSPlayer::Process()
     SetAVDelay(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_AudioDelay);
 
     // Select Subtitle Stream, Delay, On/Off
-    if (CStreamsManager::Get()) CStreamsManager::Get()->SelectBestSubtitle(m_currentFileItem.GetPath());
+    
+    if (CStreamsManager::Get()) CStreamsManager::Get()->SelectBestSubtitle(AToW(m_currentFileItem.GetPath()));
     SetSubTitleDelay(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleDelay);
     SetSubtitleVisible(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleOn);
 
@@ -1431,7 +1432,7 @@ void CDSPlayer::UpdateProcessInfo(int index)
   unsigned int heigth = GetPictureHeight();
   m_processInfo->SetVideoDimensions(width, heigth);
 
-  info = CStreamsManager::Get() ? CStreamsManager::Get()->GetVideoCodecName() : "";
+  info = CStreamsManager::Get() ? WToA(CStreamsManager::Get()->GetVideoCodecName()) : "";
 
   // add active decoder info
   std::pair<std::string, bool> activeDecoder;
@@ -1455,7 +1456,7 @@ void CDSPlayer::SetAudioCodeDelayInfo(int index)
 
   std::string info;
   int iAudioDelay = CStreamsManager::Get() ? CStreamsManager::Get()->GetLastAVDelay() : 0;
-  info = StringUtils::Format("%s, %ims delay", CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioCodecDisplayName(index).c_str() : "", iAudioDelay);
+  info = StringUtils::Format("%s, %ims delay", CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioCodecDisplayName(index).c_str() : L"", iAudioDelay);
 
   m_processInfo->SetAudioDecoderName(info);
 
@@ -1728,7 +1729,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
     int selected = GetEdition();
     for (UINT i = 0; i < count; i++)
     {
-      std::string name;
+      std::wstring name;
       REFERENCE_TIME duration;
 
       GetEditionInfo(i, name, &duration);
@@ -1739,8 +1740,8 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
           selected = editionOptions.size();
 
         if (name.length() == 0)
-          name = "Unnamed";
-        dialog->Add(name);
+          name = L"Unnamed";
+        dialog->Add(WToA(name));
         editionOptions.push_back(i);
       }
     }

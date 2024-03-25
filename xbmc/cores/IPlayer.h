@@ -108,9 +108,9 @@ struct SPlayerAudioStreamInfo
   int channels;
   int samplerate;
   int bitspersample;
-  std::string language;
-  std::string name;
-  std::string audioCodecName;
+  std::wstring language;
+  std::wstring name;
+  std::wstring audioCodecName;
 
   SPlayerAudioStreamInfo()
   {
@@ -135,12 +135,12 @@ struct SPlayerVideoStreamInfo
   float videoAspectRatio;
   int height;
   int width;
-  std::string language;
-  std::string name;
-  std::string videoCodecName;
+  std::wstring language;
+  std::wstring name;
+  std::wstring videoCodecName;
   CRect SrcRect;
   CRect DestRect;
-  std::string stereoMode;
+  std::wstring stereoMode;
 
   SPlayerVideoStreamInfo()
   {

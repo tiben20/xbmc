@@ -95,6 +95,7 @@ void CGUIDialogLAVSplitter::SetupView()
 
 void CGUIDialogLAVSplitter::InitializeSettings()
 {
+#if TODO
   CGUIDialogSettingsManualBase::InitializeSettings();
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
@@ -182,7 +183,7 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   // PREFLANG
 
   // dependencies
-  std::shared_ptr<CSetting> Dependency dependencyPrefSubLangVisible(SettingDependencyTypeVisible, m_settingsManager);
+  CSettingDependency dependencyPrefSubLangVisible(SettingDependencyType::Visible, GetSettingsManager());
   dependencyPrefSubLangVisible.Or()
     ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperatorEquals, true, m_settingsManager)));
   SettingDependencies depsPrefSubLangVisible;
@@ -199,12 +200,12 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   AddEdit(groupPreflang, LAVSPLITTER_PREFAUDIOLANG, 82001, SettingLevel::Basic, str, true);
   
   g_charsetConverter.wToUTF8(lavSettings.splitter_prefSubLangs , str, false);
-  std::shared_ptr<CSetting>  *settingPrefSubLang;
+  std::shared_ptr<CSetting> settingPrefSubLang;
   settingPrefSubLang = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBLANG, 82002, SettingLevel::Basic, str, true);
   settingPrefSubLang->SetDependencies(depsPrefSubLangVisible);
 
   g_charsetConverter.wToUTF8(lavSettings.splitter_subtitleAdvanced, str, false);
-  std::shared_ptr<CSetting>  *settingPrefSubAdv;
+  std::shared_ptr<CSetting>  settingPrefSubAdv;
   settingPrefSubAdv = AddEdit(groupPreflang, LAVSPLITTER_PREFSUBADVANCED, 82016, SettingLevel::Basic, str, true);
   settingPrefSubAdv->SetDependencies(depsPrefSubAdvVisible);
 
@@ -233,9 +234,10 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   // BUTTON RESET
   if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
     AddButton(groupReset, LAVSPLITTER_RESET, 10041, 0);
+#endif
 }
 
-void CGUIDialogLAVSplitter::OnSettingChanged(const CSetting *setting)
+void CGUIDialogLAVSplitter::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -248,40 +250,40 @@ void CGUIDialogLAVSplitter::OnSettingChanged(const CSetting *setting)
   std::wstring strW;
 
   if (settingId == LAVSPLITTER_TRAYICON)
-    lavSettings.splitter_bTrayIcon = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bTrayIcon = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_PREFAUDIOLANG)
   { 
-    g_charsetConverter.utf8ToW(static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue()), strW, false);
+    g_charsetConverter.utf8ToW(std::static_pointer_cast<const CSettingString>(setting)->GetValue(),strW,false);// static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue()), strW, false);
     lavSettings.splitter_prefAudioLangs = strW;
   }
   if (settingId == LAVSPLITTER_PREFSUBLANG)
   {
-    g_charsetConverter.utf8ToW(static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue()), strW, false);
+    g_charsetConverter.utf8ToW(std::static_pointer_cast<const CSettingString>(setting)->GetValue(), strW, false);
     lavSettings.splitter_prefSubLangs = strW;
   }
   if (settingId == LAVSPLITTER_PREFSUBADVANCED)
   {
-    g_charsetConverter.utf8ToW(static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue()), strW, false);
+    g_charsetConverter.utf8ToW(std::static_pointer_cast<const CSettingString>(setting)->GetValue(), strW, false);
     lavSettings.splitter_subtitleAdvanced = strW;
   }
   if (settingId == LAVSPLITTER_SUBMODE)
-    lavSettings.splitter_subtitleMode = (LAVSubtitleMode)static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.splitter_subtitleMode = (LAVSubtitleMode)std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVSPLITTER_PGSFORCEDSTREAM)
-    lavSettings.splitter_bPGSForcedStream = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bPGSForcedStream = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_PGSONLYFORCED)
-    lavSettings.splitter_bPGSOnlyForced = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bPGSOnlyForced = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_IVC1MODE)
-    lavSettings.splitter_iVC1Mode = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_iVC1Mode = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_MATROSKAEXTERNAL)
-    lavSettings.splitter_bMatroskaExternalSegments = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bMatroskaExternalSegments = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_SUBSTREAM)
-    lavSettings.splitter_bSubstreams = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bSubstreams = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_REMAUDIOSTREAM)
-    lavSettings.splitter_bStreamSwitchRemoveAudio = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bStreamSwitchRemoveAudio = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_PREFHQAUDIO)
-    lavSettings.splitter_bPreferHighQualityAudio = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bPreferHighQualityAudio = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_IMPAIREDAUDIO)
-    lavSettings.splitter_bImpairedAudio = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.splitter_bImpairedAudio = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
 
   // Get current running filter
   IBaseFilter *pBF;
@@ -294,7 +296,7 @@ void CGUIDialogLAVSplitter::OnSettingChanged(const CSetting *setting)
   CGraphFilters::Get()->SaveLavSettings(CGraphFilters::INTERNAL_LAVSPLITTER);
 }
 
-void CGUIDialogLAVSplitter::OnSettingAction(const CSetting *setting)
+void CGUIDialogLAVSplitter::OnSettingAction(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;

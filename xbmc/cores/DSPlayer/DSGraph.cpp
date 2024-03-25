@@ -891,7 +891,7 @@ std::string CDSGraph::GetAudioInfo()
   }
   else
   {
-    std::string strStreamName;
+    std::wstring strStreamName;
     c->GetAudioStreamName(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream(),strStreamName);
     audioInfo = StringUtils::Format("Audio: (%s) | Renderer: %s",
       strStreamName.c_str(),
@@ -925,7 +925,7 @@ std::string CDSGraph::GetVideoInfo()
   } 
   else
   {
-    std::string strStreamName;
+    std::wstring strStreamName;
     c->GetVideoStreamName(strStreamName);
     videoInfo = StringUtils::Format("Video: (%s) | Renderer: %s",
       strStreamName.c_str(), 
