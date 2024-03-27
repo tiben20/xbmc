@@ -21,7 +21,10 @@
 #include "utils/StringUtils.h"
 #include "utils/SystemInfo.h"
 #if HAS_DS_PLAYER
+#include "ServiceBroker.h"
 #include "DSFilterVersion.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 #endif
 
 #define CONTROL_TB_POLICY   30
@@ -182,7 +185,7 @@ void CGUIWindowSystemInfo::FrameMove()
       SetControlLabel(i++, "%s: %s", 55098, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVVIDEO));
       SetControlLabel(i++, "%s: %s", 55099, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVAUDIO));
     }
-    if (CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")//CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")
       SetControlLabel(i++, "%s: %s", 55100, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_XYSUBFILTER));
     else
       SetControlLabel(i++, "%s: %s", 55101, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_XYVSFILTER));

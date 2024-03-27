@@ -51,6 +51,7 @@
 #include "settings/Settings.h"
 #include "settings/lib/Setting.h"
 #include "settings/lib/SettingsManager.h"
+#include "settings/SettingsComponent.h"
 #include "addons/Skin.h"
 #include "GraphFilters.h"
 #include "FGLoader.h"
@@ -134,7 +135,7 @@ void CGUIDialogSanear::InitializeSettings()
   int iValue;
 
   // BUTTON
-  AddButton(groupProperty, SANEAR_PROPERTYPAGE, 80013, 0);
+  AddButton(groupProperty, SANEAR_PROPERTYPAGE, 80013, SettingLevel::Basic);
 #if 0
   // DEVICES
   sValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);
@@ -208,38 +209,38 @@ void CGUIDialogSanear::OnSettingChanged(const std::shared_ptr<const CSetting>& s
 
   if (settingId == SANEAR_DEVICES)
   {
-    sValue = static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES, sValue);
+    sValue = std::static_pointer_cast<const CSettingString>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES, sValue);
   }
   if (settingId == SANEAR_EXCLUSIVE)
   {
-    bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE, bValue);
+    bValue = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetBool(CSettings::SETTING_DSPLAYER_SANEAREXCLUSIVE, bValue);
   }
   if (settingId == SANEAR_ALLOWBITSTREAM)
   {
-    bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
+    bValue = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
   }
   if (settingId == SANEAR_IGNORESYSCHANMIX)
   {
-    bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER, bValue);
+    bValue = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER, bValue);
   }
   if (settingId == SANEAR_CROSSFEED)
   {
-    bValue = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
+    bValue = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetBool(CSettings::SETTING_DSPLAYER_SANEARALLOWBITSTREAM, bValue);
   }
   if (settingId == SANEAR_CUTOFF)
   {
-    iValue = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, iValue);
+    iValue = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, iValue);
   }
   if (settingId == SANEAR_LEVEL)
   {
-    iValue = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
-    std::shared_ptr<CSetting> s::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, iValue);;
+    iValue = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, iValue);;
   }
 }
 
@@ -260,13 +261,14 @@ void CGUIDialogSanear::OnSettingAction(const std::shared_ptr<const CSetting>& se
   }
   else if (settingId == SANEAR_CMOY)
   {
-    m_settingsManager->SetInt(SANEAR_CUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_CMOY);
-    m_settingsManager->SetInt(SANEAR_LEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_CMOY);
+    
+    GetSettingsManager()->SetInt(SANEAR_CUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_CMOY);
+    GetSettingsManager()->SetInt(SANEAR_LEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_CMOY);
   }
   else if (settingId == SANEAR_JMEIER)
   {
-    m_settingsManager->SetInt(SANEAR_CUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_JMEIER);
-    m_settingsManager->SetInt(SANEAR_LEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_JMEIER);
+    GetSettingsManager()->SetInt(SANEAR_CUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_JMEIER);
+    GetSettingsManager()->SetInt(SANEAR_LEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_JMEIER);
   }
 }
 

@@ -404,7 +404,7 @@ void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(
     std::string strItem;
     std::string strLanguage;
 
-    if (!g_LangCodeExpander.Lookup(WToA(info.language), strLanguage))
+    if (!g_LangCodeExpander.Lookup(info.language, strLanguage))
       strLanguage = g_localizeStrings.Get(13205); // Unknown
 
     if (info.name.length() == 0)
@@ -416,7 +416,7 @@ void CGUIDialogSubtitleSettings::SubtitleStreamsOptionFiller(
 
 #if HAS_DS_PLAYER
     if (g_application.GetCurrentPlayer() == "DSPlayer")
-      strItem = WToA(info.name);
+      strItem = info.name;
 #endif
 
     strItem += StringUtils::Format(" ({}/{})", i + 1, subtitleStreamCount);

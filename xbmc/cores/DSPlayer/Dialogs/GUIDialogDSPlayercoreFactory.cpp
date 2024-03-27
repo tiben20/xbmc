@@ -44,7 +44,12 @@
 #include "PixelShaderList.h"
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "utils/DSFileUtils.h"
+#include "ServiceBroker.h"
+#include "application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 
+#include "guilib/GUIComponent.h"
 
 #define SETTING_RULE_SAVE                   "dsplayercore.save"
 #define SETTING_RULE_ADD                    "dsplayercore.add"
@@ -284,7 +289,7 @@ void CGUIDialogDSPlayercoreFactory::ShowDSPlayercoreFactory()
   int selected;
   int count = 0;
 
-  CGUIDialogSelect *pDlg = (CGUIDialogSelect *)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
+  CGUIDialogSelect *pDlg = (CGUIDialogSelect *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SELECT);
   if (!pDlg)
     return ;
 
@@ -342,7 +347,7 @@ void CGUIDialogDSPlayercoreFactory::ShowDSPlayercoreFactory()
   CGUIDialogDSManager::Get()->SetConfig(selected == count, selected);
 
   if (selected > -1) 
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_DSPLAYERCORE);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_DSPLAYERCORE);
 }
 
 

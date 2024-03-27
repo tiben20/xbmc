@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+
 #if HAS_DS_PLAYER
 #include "cores/DSPlayer/Dialogs/GUIDialogMadvrSettingsBase.h"
 #include "DSPropertyPage.h"
@@ -23,9 +24,9 @@ class CGUIDialogVideoSettings : public CGUIDialogMadvrSettingsBase
 class CGUIDialogVideoSettings : public CGUIDialogSettingsManualBase
 #endif
 
-struct IntegerSettingOption;
+//struct IntegerSettingOption;
 
-class CGUIDialogVideoSettings : public CGUIDialogSettingsManualBase
+//class CGUIDialogVideoSettings : public CGUIDialogSettingsManualBase
 {
 public:
   CGUIDialogVideoSettings();

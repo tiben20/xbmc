@@ -26,6 +26,8 @@
 #include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
 #include "Application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 #include "mvrInterfaces.h"
 
 CMadvrSharedRender::CMadvrSharedRender()

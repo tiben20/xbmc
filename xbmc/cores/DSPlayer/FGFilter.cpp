@@ -122,7 +122,7 @@ CFGFilterRegistry::CFGFilterRegistry(std::string DisplayName)
   CreateBindCtx(0, &pBC);
 
   ULONG chEaten;
-  if (S_OK != MkParseDisplayName(pBC, AToW(DisplayName), &chEaten, &m_pMoniker))
+  if (S_OK != MkParseDisplayName(pBC, AToW(DisplayName).c_str(), &chEaten, &m_pMoniker))
     return;
 
   IPropertyBag* pPB;
@@ -332,7 +332,7 @@ CFGFilterFile::CFGFilterFile(TiXmlElement *pFilter)
 
   std::string guid = "";
   XMLUtils::GetString(pFilter, "guid", guid);
-  const CLSID clsid = GUIDFromString(guid);
+  const CLSID clsid = GUIDFromString(AToW(guid));
 
   std::string osdname = "";
   XMLUtils::GetString(pFilter, "osdname", osdname);
@@ -343,7 +343,7 @@ CFGFilterFile::CFGFilterFile(TiXmlElement *pFilter)
   std::string strDmoGuid = "";
   if (XMLUtils::GetString(pFilter, "guid_category_dmo", strDmoGuid))
   {
-    const CLSID dmoclsid = GUIDFromString(strDmoGuid);
+    const CLSID dmoclsid = GUIDFromString(AToW(strDmoGuid));
     m_catDMO = dmoclsid;
   }
 
@@ -398,7 +398,7 @@ HRESULT CFGFilterFile::Create(IBaseFilter** ppBF)
   }
   else
   {
-    hr = LoadExternalFilter(m_path, m_clsid, ppBF);
+    hr = LoadExternalFilter(AToW(m_path), m_clsid, ppBF);
     if (FAILED(hr))
     {
       std::string guid;

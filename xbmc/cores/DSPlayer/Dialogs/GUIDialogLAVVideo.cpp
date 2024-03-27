@@ -165,7 +165,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   IBaseFilter *pBF;
   CGraphFilters::Get()->GetInternalFilter(CGraphFilters::INTERNAL_LAVVIDEO, &pBF);
   CGraphFilters::Get()->GetLavSettings(CGraphFilters::INTERNAL_LAVVIDEO, pBF);
-
+#if TODO
   StaticIntegerSettingOptions entries;
   CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -308,6 +308,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   // BUTTON RESET
   if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
     AddButton(groupReset, LAVVIDEO_RESET, 10041, 0);
+#endif
 }
 
 void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
@@ -322,14 +323,14 @@ void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>&
 
   if (settingId == LAVVIDEO_HWACCEL)
   {
-    lavSettings.video_dwHWAccel = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
-    std::shared_ptr<CSetting> * setting_index = m_settingsManager->GetSetting(LAVVIDEO_HWACCELDEVICES);
-    ((CSettingInt*)setting_index)->UpdateDynamicOptions();
-    static_cast<int>(static_cast<CSettingInt*>(setting_index)->SetValue(lavSettings.video_dwHWAccelDeviceIndex[lavSettings.video_dwHWAccel]));
+    lavSettings.video_dwHWAccel = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
+    std::shared_ptr<CSetting> setting_index = GetSettingsManager()->GetSetting(LAVVIDEO_HWACCELDEVICES);
+    std::static_pointer_cast<CSettingInt>(setting_index)->UpdateDynamicOptions();
+    std::static_pointer_cast<CSettingInt>(setting_index)->SetValue(lavSettings.video_dwHWAccelDeviceIndex[lavSettings.video_dwHWAccel]);
   }
   if (settingId == LAVVIDEO_HWACCELDEVICES)
   {
-    lavSettings.video_dwHWAccelDeviceIndex[lavSettings.video_dwHWAccel] = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwHWAccelDeviceIndex[lavSettings.video_dwHWAccel] = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   }
   if (settingId == LAVVIDEO_HWACCELRES)
   {
@@ -363,27 +364,27 @@ void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>&
   }
 
   if (settingId == LAVVIDEO_NUMTHREADS)
-    lavSettings.video_dwNumThreads = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwNumThreads = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVVIDEO_TRAYICON)
-    lavSettings.video_bTrayIcon = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.video_bTrayIcon = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVVIDEO_STREAMAR)
-    lavSettings.video_dwStreamAR = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.video_dwStreamAR = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVVIDEO_DEINTFILEDORDER)
-    lavSettings.video_dwDeintFieldOrder = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwDeintFieldOrder = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVVIDEO_DEINTMODE)
-    lavSettings.video_deintMode = (LAVDeintMode)static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_deintMode = (LAVDeintMode)std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVVIDEO_RGBRANGE)
-    lavSettings.video_dwRGBRange = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwRGBRange = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVVIDEO_DITHERMODE)
-    lavSettings.video_dwDitherMode = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwDitherMode = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVVIDEO_HWDEINTMODE)
-    lavSettings.video_dwHWDeintMode = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.video_dwHWDeintMode = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVVIDEO_HWDEINTOUT)
-    lavSettings.video_dwHWDeintOutput = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwHWDeintOutput = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
   if (settingId == LAVVIDEO_SWDEINTMODE)
-    lavSettings.video_dwSWDeintMode = static_cast<BOOL>(static_cast<const CSettingBool*>(setting)->GetValue());
+    lavSettings.video_dwSWDeintMode = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVVIDEO_SWDEINTOUT)
-    lavSettings.video_dwSWDeintOutput = static_cast<int>(static_cast<const CSettingInt*>(setting)->GetValue());
+    lavSettings.video_dwSWDeintOutput = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
 
   // Get current running filter
   IBaseFilter *pBF;
@@ -420,7 +421,7 @@ void CGUIDialogLAVVideo::OnSettingAction(const std::shared_ptr<const CSetting>& 
   }
 }
 
-void CGUIDialogLAVVideo::HWAccellIndexFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data)
+void CGUIDialogLAVVideo::HWAccellIndexFiller(const CSetting *setting, TranslatableStringSettingOptions &list, int &current, void *data)
 {
   CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
   CGraphFilters::Get()->GetHWDeviceList(lavSettings.video_dwHWAccel, list);

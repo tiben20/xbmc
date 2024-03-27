@@ -15,6 +15,8 @@
 #if HAS_DS_PLAYER
 #include "Application/Application.h"
 #endif
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 
 #include <DirectXMath.h>
 
@@ -48,7 +50,7 @@ void CGUITextureD3D::Begin(UTILS::COLOR::Color color)
 
 #if HAS_DS_PLAYER
   // Render count to detect when GUI it's active or deactive (useful for madVR latency mode)
-  g_application.m_pPlayer->IncRenderCount();
+  CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IncRenderCount();
 #endif
 
   texture->LoadToGPU();

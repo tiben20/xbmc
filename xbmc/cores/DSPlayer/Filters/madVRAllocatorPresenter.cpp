@@ -34,6 +34,8 @@
 #include "ServiceBroker.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 
 using namespace KODI::MESSAGING;
 
@@ -122,7 +124,7 @@ void CmadVRAllocatorPresenter::SetResolution() const
 {
   ULONGLONG frameRate;
   float fps;
-
+#if TODO
   if (Com::SmartQIPtr<IMadVRInfo> pInfo = m_pDXR)
   {
     pInfo->GetUlonglong("frameRate", &frameRate);
@@ -137,6 +139,7 @@ void CmadVRAllocatorPresenter::SetResolution() const
     bool bChanged = SetResolutionInternal(res);
     CLog::Log(LOGDEBUG, "%s change resolution %s", __FUNCTION__, bChanged ?  "<success>" : "<failed>");
   }
+#endif
 }
 
 void CmadVRAllocatorPresenter::ExclusiveCallback(LPVOID context, int event)
@@ -220,10 +223,14 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
 
 bool CmadVRAllocatorPresenter::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const
 {
+#if TODO
   if (Com::SmartQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR)
     return (pMVRSR->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret) != 0);
   else
     return false;
+#else
+  return false;
+#endif
 }
 
 void CmadVRAllocatorPresenter::DisplayChange(bool bExternalChange)

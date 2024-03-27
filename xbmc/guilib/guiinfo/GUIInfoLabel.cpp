@@ -18,6 +18,7 @@
 #include "guilib/LocalizeStrings.h"
 #include "utils/StringUtils.h"
 #include "utils/log.h"
+#include "GraphFilters.h"
 
 using namespace KODI::GUILIB::GUIINFO;
 

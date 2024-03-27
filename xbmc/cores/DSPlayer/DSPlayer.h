@@ -202,7 +202,7 @@ public:
 
   int  GetEditionsCount() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetEditionsCount() : 0; }
   int  GetEdition() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetEdition() : 0; }
-  void GetEditionInfo(int iEdition, std::wstring& strEditionName, REFERENCE_TIME* prt) override { if (CStreamsManager::Get()) CStreamsManager::Get()->GetEditionInfo(iEdition, strEditionName, prt); };
+  void GetEditionInfo(int iEdition, std::string& strEditionName, REFERENCE_TIME* prt) override { if (CStreamsManager::Get()) CStreamsManager::Get()->GetEditionInfo(iEdition, strEditionName, prt); };
   void SetEdition(int iEdition) override { if (CStreamsManager::Get()) CStreamsManager::Get()->SetEdition(iEdition); };
   bool IsMatroskaEditions() override { return (CStreamsManager::Get()) ? CStreamsManager::Get()->IsMatroskaEditions() : false; }
   void ShowEditionDlg(bool playStart) override;
@@ -245,7 +245,7 @@ public:
   static HWND m_hWnd;
   bool InitWindow(HWND& hWnd);
   void DeInitWindow();
-  std::wstring m_className;
+  std::string m_className;
   HINSTANCE m_hInstance;
   bool m_isMadvr;
 

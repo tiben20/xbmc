@@ -25,6 +25,8 @@
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "settings/AdvancedSettings.h"
 #include "Application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 
 CEvrSharedRender::CEvrSharedRender()
 {

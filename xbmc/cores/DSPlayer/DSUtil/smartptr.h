@@ -77,6 +77,7 @@ namespace Com
       return bResult;
   }
   
+
   inline __declspec(nothrow) IUnknown* __stdcall SmartPtrAssign(IUnknown** pp, IUnknown* lp)
   {
     if (pp == NULL)
@@ -183,7 +184,7 @@ namespace Com
     {
         if(*this!=lp)
         {
-        return static_cast<T*>(AtlComPtrAssign((IUnknown**)&m_ptr, lp));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
         }
         return *this;
     }
@@ -210,7 +211,7 @@ namespace Com
     // address-of operator
     T** operator&()
     {
-      ASSERT( m_ptr == NULL );
+      //ASSERT( m_ptr == NULL );
       return &m_ptr;
     }
 
@@ -460,9 +461,18 @@ namespace Com
     SmartQIPtr() throw()
     {
     }
+    SmartQIPtr(IUnknown* lp) throw()//ok
+    {
+      if (lp != NULL)
+      {
+        if (FAILED(lp->QueryInterface(*piid, (void**)&this->m_ptr)))
+          this->m_ptr = NULL;
+      }
+    }
     SmartQIPtr(decltype(__nullptr)) throw()
     {
     }
+
     SmartQIPtr(T* lp) throw() :
     SmartPtr<T>(lp)
     {
@@ -471,16 +481,6 @@ namespace Com
     SmartPtr<T>(lp.m_ptr)
     {
     }
-
-    SmartQIPtr(IUnknown* lp) throw()
-    {
-      if (lp != NULL)
-      {
-        if (FAILED(lp->QueryInterface(*piid, (void**)&this->m_ptr)))
-          this->m_ptr = NULL;
-      }
-    }
-
     T* operator=(T* lp) throw()
     {
       if(this->m_ptr != lp)

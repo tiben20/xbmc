@@ -15,6 +15,13 @@
 #include "rendering/dx/RenderContext.h"
 #include "utils/log.h"
 
+#include "ServiceBroker.h"
+#include "application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
+
+#include "guilib/GUIComponent.h"
+
 // stuff for freetype
 #include <ft2build.h>
 
@@ -87,7 +94,7 @@ void CGUIFontTTFDX::LastEnd()
 
 #if HAS_DS_PLAYER
   // Render count to detect when the GUI it's active or deactive (useful for madVR latency mode)
-  g_application.m_pPlayer->IncRenderCount();
+  CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IncRenderCount();
 #endif
 
   CreateStaticIndexBuffer();

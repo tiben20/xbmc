@@ -45,6 +45,8 @@
 #include "settings/SettingsComponent.h"
 #include "rendering/RenderSystem.h"
 #include "windowing/windows/WinSystemWin32DX.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 
 using namespace KODI::MESSAGING;
 

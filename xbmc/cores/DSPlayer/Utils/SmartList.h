@@ -18,7 +18,7 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-#if 0
+#if 1
 #ifndef SMARTLIST_H
 #define SMARTLIST_H
 
@@ -414,6 +414,12 @@ namespace Com
     }
 
   protected:
+    struct Node
+    {
+      Node* pNext;
+      Node* pPrev;
+      void* data;
+    };
     HRESULT InsertAfter(Ptr item, Node *pBefore)
     {
       // Do not allow NULL item pointers unless NULLABLE is true.

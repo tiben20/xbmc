@@ -36,6 +36,8 @@
 #include "MpConfig.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "Application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
 #include <algorithm>
 #include "DSPlayer.h"
 

@@ -217,7 +217,7 @@ public:
 
 #if HAS_DS_PLAYER
   void SetDSPlayerScalingMethod(EDSSCALINGMETHOD method);
-  EDSSCALINGMETHOD GetDSPlayerScalingMethod();
+  EDSSCALINGMETHOD GetDSPlayerScalingMethod() const;
   std::string m_SubtitleExtTrackName;
   bool m_SubtitleCached;
 #endif

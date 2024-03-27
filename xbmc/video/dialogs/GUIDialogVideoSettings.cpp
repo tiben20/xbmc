@@ -81,6 +81,7 @@ CGUIDialogVideoSettings::CGUIDialogVideoSettings()
 #else
     : CGUIDialogSettingsManualBase(WINDOW_DIALOG_VIDEO_OSD_SETTINGS, "DialogSettings.xml"),
 #endif
+  m_viewModeChanged(false)
 { 
 #if HAS_DS_PLAYER
   m_scalingMethod = 0;
@@ -95,7 +96,7 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
   if (setting == NULL)
     return;
 
-#if HAS_DS_PLAYER
+#if TODO//HAS_DS_PLAYER
   CGUIDialogMadvrSettingsBase::OnSettingChanged(setting);
 #else
   CGUIDialogSettingsManualBase::OnSettingChanged(setting);
@@ -104,6 +105,7 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
 
   auto& components = CServiceBroker::GetAppComponents();
   const auto appPlayer = components.GetComponent<CApplicationPlayer>();
+  CVideoSettings& videoSettings = CMediaSettings::GetInstance().GetDefaultVideoSettings();
 
   const std::string &settingId = setting->GetId();
   if (settingId == SETTING_VIDEO_INTERLACEMETHOD)
@@ -115,7 +117,7 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
   #if HAS_DS_PLAYER
   else if (settingId == VIDEO_SETTINGS_DS_STATS)
   {
-    m_dsStats = static_cast<DS_STATS>(static_cast<const CSettingInt*>(setting)->GetValue());
+    m_dsStats = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
     g_dsSettings.pRendererSettings->displayStats = (DS_STATS)m_dsStats;
   }
 #endif
@@ -124,7 +126,7 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
 #if HAS_DS_PLAYER
     if (g_application.GetCurrentPlayer() == "DSPlayer")
     { 
-      m_scalingMethod = static_cast<EDSSCALINGMETHOD>(static_cast<const CSettingInt*>(setting)->GetValue());
+      m_scalingMethod = static_cast<EINTERLACEMETHOD>(std::static_pointer_cast<const CSettingInt>(setting)->GetValue());
       videoSettings.SetDSPlayerScalingMethod((EDSSCALINGMETHOD)m_scalingMethod);
     }
     else
@@ -300,7 +302,7 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
 #if HAS_DS_PLAYER
   else if (settingId == VIDEO_SETTINGS_DS_FILTERS)
   {
-    CGUIDialogSelect *pDlg = (CGUIDialogSelect *)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
+    CGUIDialogSelect *pDlg = (CGUIDialogSelect *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SELECT);
       if (!pDlg)
         return;
     
@@ -544,25 +546,25 @@ void CGUIDialogVideoSettings::InitializeSettings()
     if (!m_bMadvr)
     {
       entries.clear();
-      entries.push_back(std::make_pair(55005, DS_SCALINGMETHOD_NEAREST_NEIGHBOR));
-      entries.push_back(std::make_pair(55006, DS_SCALINGMETHOD_BILINEAR));
-      entries.push_back(std::make_pair(55007, DS_SCALINGMETHOD_BILINEAR_2));
-      entries.push_back(std::make_pair(55008, DS_SCALINGMETHOD_BILINEAR_2_60));
-      entries.push_back(std::make_pair(55009, DS_SCALINGMETHOD_BILINEAR_2_75));
-      entries.push_back(std::make_pair(55010, DS_SCALINGMETHOD_BILINEAR_2_100));
+      entries.push_back(TranslatableIntegerSettingOption(55005, DS_SCALINGMETHOD_NEAREST_NEIGHBOR));
+      entries.push_back(TranslatableIntegerSettingOption(55006, DS_SCALINGMETHOD_BILINEAR));
+      entries.push_back(TranslatableIntegerSettingOption(55007, DS_SCALINGMETHOD_BILINEAR_2));
+      entries.push_back(TranslatableIntegerSettingOption(55008, DS_SCALINGMETHOD_BILINEAR_2_60));
+      entries.push_back(TranslatableIntegerSettingOption(55009, DS_SCALINGMETHOD_BILINEAR_2_75));
+      entries.push_back(TranslatableIntegerSettingOption(55010, DS_SCALINGMETHOD_BILINEAR_2_100));
 
       m_scalingMethod = videoSettings.GetDSPlayerScalingMethod();
-      AddSpinner(groupVideo, SETTING_VIDEO_SCALINGMETHOD, 16300, 0, static_cast<int>(m_scalingMethod), entries);
+      AddSpinner(groupVideo, SETTING_VIDEO_SCALINGMETHOD, 16300, SettingLevel::Basic, static_cast<int>(m_scalingMethod), entries);
 
       entries.clear();
-      entries.push_back(std::make_pair(55011, DS_STATS_NONE));
-      entries.push_back(std::make_pair(55012, DS_STATS_1));
-      entries.push_back(std::make_pair(55013, DS_STATS_2));
-      entries.push_back(std::make_pair(55014, DS_STATS_3));
-      AddSpinner(groupVideo, VIDEO_SETTINGS_DS_STATS, 55015, 0, static_cast<int>(m_dsStats), entries);
+      entries.push_back(TranslatableIntegerSettingOption(55011, DS_STATS_NONE));
+      entries.push_back(TranslatableIntegerSettingOption(55012, DS_STATS_1));
+      entries.push_back(TranslatableIntegerSettingOption(55013, DS_STATS_2));
+      entries.push_back(TranslatableIntegerSettingOption(55014, DS_STATS_3));
+      AddSpinner(groupVideo, VIDEO_SETTINGS_DS_STATS, 55015, SettingLevel::Basic, static_cast<int>(m_dsStats), entries);
      
     } 
-    AddButton(groupFilters, VIDEO_SETTINGS_DS_FILTERS, 55062, 0);
+    AddButton(groupFilters, VIDEO_SETTINGS_DS_FILTERS, 55062,SettingLevel::Basic);
   }
 #endif
 

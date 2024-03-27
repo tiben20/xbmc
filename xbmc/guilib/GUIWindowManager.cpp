@@ -1304,11 +1304,11 @@ void CGUIWindowManager::RenderPass() const
       // Don't show video settings dialog under madVR/lavvideo/lavaudio/lavsplitter settings
       if ((*it)->GetID() == WINDOW_DIALOG_VIDEO_OSD_SETTINGS)
       {
-        CGUIDialog* pDialogMadvr = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_MADVR);
-        CGUIDialog* pDialogLAVVideo = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_LAVVIDEO);
-        CGUIDialog* pDialogLAVAudio = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_LAVAUDIO);
-        CGUIDialog* pDialogLAVSplitter = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_LAVSPLITTER);
-        CGUIDialog* pDialogSanear = (CGUIDialog *)g_windowManager.GetWindow(WINDOW_DIALOG_SANEAR);
+        CGUIDialog* pDialogMadvr = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_MADVR);
+        CGUIDialog* pDialogLAVVideo = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_LAVVIDEO);
+        CGUIDialog* pDialogLAVAudio = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_LAVAUDIO);
+        CGUIDialog* pDialogLAVSplitter = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_LAVSPLITTER);
+        CGUIDialog* pDialogSanear = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SANEAR);
 
         if ((pDialogMadvr && pDialogMadvr->IsDialogRunning())
           || (pDialogLAVVideo && pDialogLAVVideo->IsDialogRunning())
@@ -1349,7 +1349,7 @@ bool CGUIWindowManager::Render()
   CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
 
 #if HAS_DS_PLAYER
-  g_application.m_pPlayer->RenderToTexture(RENDER_LAYER_UNDER);
+  CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->RenderToTexture(RENDER_LAYER_UNDER);
 #endif
 
   CDirtyRegionList dirtyRegions = m_tracker.GetDirtyRegions();

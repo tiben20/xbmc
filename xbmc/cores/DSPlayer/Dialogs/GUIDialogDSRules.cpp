@@ -47,6 +47,11 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "settings/dialogs/GUIDialogSettingsManualBase.h"
+#include "ServiceBroker.h"
+#include "application/Application.h"
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
+#include "guilib/GUIComponent.h"
 
 #define SETTING_RULE_SAVE                     "rule.save"
 #define SETTING_RULE_ADD                      "rule.add"
@@ -81,7 +86,7 @@ void CGUIDialogDSRules::OnDeinitWindow(int nextWindowID)
   ShowDSRulesList();
 }
 
-void CGUIDialogDSRules::Save()
+bool CGUIDialogDSRules::Save()
 {
 }
 
@@ -277,7 +282,7 @@ void CGUIDialogDSRules::InitializeSettings()
     m_dsmanager->InitConfig(m_ruleList, SPINNERATTRSHADER, "rules.shprepost2", 60023, "stage", "shader", m_dsmanager->ShadersScaleOptionFiller, 2, "shaders");
     m_dsmanager->InitConfig(m_ruleList, EDITATTRSHADER, "rules.shvideores2", 60019, "videoresolution", "shader", 0, 2, "shaders");
     m_dsmanager->InitConfig(m_ruleList, EDITATTRSHADER, "rules.shvideocodec2", 60020, "videocodec", "shader", 0, 2, "shaders");
-#ENDIF
+#endif
   }
 
   // Reset Button value
@@ -404,7 +409,7 @@ void CGUIDialogDSRules::OnSettingChanged(const std::shared_ptr<const CSetting>& 
       if (it->m_configType != BOOLATTR)
         it->m_value = std::static_pointer_cast<const CSettingString>(setting)->GetValue();
       else
-        it->SetBoolValue(std::static_pointer_cast<const CSettingBool>(setting)->GetValue()));
+        it->SetBoolValue(std::static_pointer_cast<const CSettingBool>(setting)->GetValue());
     }
   }
   HideUnused();
@@ -540,7 +545,7 @@ void CGUIDialogDSRules::ShowDSRulesList()
   int count = 0;
   int id = 0;
 
-  CGUIDialogSelect *pDlg = (CGUIDialogSelect *)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
+  CGUIDialogSelect *pDlg = (CGUIDialogSelect *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SELECT);
   if (!pDlg)
     return;
 
@@ -611,7 +616,7 @@ void CGUIDialogDSRules::ShowDSRulesList()
   CGUIDialogDSManager::Get()->SetConfig(selected == count, selectedId);
 
   if (selected > -1)
-    g_windowManager.ActivateWindow(WINDOW_DIALOG_DSRULES);
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_DSRULES);
 }
 
 

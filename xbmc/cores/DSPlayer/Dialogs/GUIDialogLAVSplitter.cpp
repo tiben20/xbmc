@@ -48,9 +48,6 @@
 #include "Filters/LAVSplitterSettings.h"
 #include "utils/CharsetConverter.h"
 #include "settings/MediaSettings.h"
-#include "settings/Settings.h"
-#include "settings/lib/Setting.h"
-#include "settings/lib/SettingsManager.h"
 #include "addons/Skin.h"
 #include "GraphFilters.h"
 #include "utils/CharsetConverter.h"
@@ -253,7 +250,7 @@ void CGUIDialogLAVSplitter::OnSettingChanged(const std::shared_ptr<const CSettin
     lavSettings.splitter_bTrayIcon = std::static_pointer_cast<const CSettingBool>(setting)->GetValue();
   if (settingId == LAVSPLITTER_PREFAUDIOLANG)
   { 
-    g_charsetConverter.utf8ToW(std::static_pointer_cast<const CSettingString>(setting)->GetValue(),strW,false);// static_cast<std::string>(static_cast<const CSettingString*>(setting)->GetValue()), strW, false);
+    g_charsetConverter.utf8ToW(std::static_pointer_cast<const CSettingString>(setting)->GetValue(),strW,false);
     lavSettings.splitter_prefAudioLangs = strW;
   }
   if (settingId == LAVSPLITTER_PREFSUBLANG)

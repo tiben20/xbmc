@@ -35,6 +35,7 @@
 #include <list>
 #include <tinyxml.h>
 #include "Utils/CharsetConverter.h"
+#include "dsUtil/dsutil.h"
 
 class CFGFilter
 {
@@ -53,10 +54,8 @@ public:
 
   CLSID GetCLSID() { return m_clsid; }
   std::string GetName() { return m_name; }
-  std::wstring GetNameW() { 
-    std::wstring nameW;
-    g_charsetConverter.utf8ToW(m_name, nameW);
-    return nameW; 
+  std::wstring GetNameW() {
+    return AToW(m_name);
   }
   Type GetType() const { return m_type; }
 
@@ -114,7 +113,7 @@ public:
 class CFGFilterFile : public CFGFilter
 {
 protected:
-  std::wstring m_path;
+  std::string m_path;
   std::string m_xFileType;
   std::string m_internalName;
   HINSTANCE m_hInst;
@@ -128,7 +127,7 @@ public:
   HRESULT Create(IBaseFilter** ppBF);
   std::string GetXFileType() { return m_xFileType; };
   std::string GetInternalName() { return m_internalName; };
-  std::wstring GetPath() { return m_path; }
+  std::string GetPath() { return m_path; }
 };
 
 interface IDsRenderer;
