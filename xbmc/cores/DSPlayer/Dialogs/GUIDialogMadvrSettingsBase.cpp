@@ -164,10 +164,12 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
     }
     else if (it.type.find("list_") != std::string::npos)
     {
+#if TODO
       if (!it.optionsInt.empty())
         setting = AddList(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asInteger(), it.optionsInt, it.label);
       else
         setting = AddList(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asString(), MadvrSettingsOptionsString, it.label);
+#endif
     }
 
     if (!it.dependencies.empty() && setting)

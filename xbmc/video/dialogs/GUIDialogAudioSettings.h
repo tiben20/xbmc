@@ -30,7 +30,9 @@ public:
   static std::string FormatDelay(float value, float interval);
   static std::string FormatDecibel(float value);
   static std::string FormatPercentAsDecibel(float value);
-
+#if HAS_DS_PLAYER
+  static void ShowAudioSelector();
+#endif
 protected:
   // implementations of ISettingCallback
   void OnSettingChanged(const std::shared_ptr<const CSetting>& setting) override;
@@ -77,6 +79,8 @@ protected:
 
   typedef std::vector<int> Features;
   Features m_audioCaps;
+  bool m_bIsDSPlayer;
+
 private:
   static std::string FormatFlags(StreamFlags flags);
 };

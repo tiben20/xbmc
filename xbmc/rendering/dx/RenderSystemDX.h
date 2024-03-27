@@ -97,6 +97,10 @@ protected:
   Microsoft::WRL::ComPtr<ID3D11BlendState> m_BlendDisableState;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RSScissorDisable;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RSScissorEnable;
+#if HAS_DS_PLAYER
+  Microsoft::WRL::ComPtr<IDXGISwapChain> m_pSwapChain;
+  bool                        m_bResizeRequred;
+#endif
   // stereo interlaced/checkerboard intermediate target
   CD3DTexture m_rightEyeTex;
 

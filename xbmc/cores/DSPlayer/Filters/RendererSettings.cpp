@@ -34,6 +34,9 @@
 #include "utils/SystemInfo.h"
 #include "PixelShaderList.h"
 #include "utils/StringUtils.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 using namespace XFILE;
 CDSSettings::CDSSettings(void)
@@ -44,7 +47,7 @@ CDSSettings::CDSSettings(void)
 
   m_pDwmIsCompositionEnabled = NULL;
   m_pDwmEnableComposition = NULL;
-  m_hDWMAPI = LoadLibrary("dwmapi.dll");
+  m_hDWMAPI = LoadLibrary(L"dwmapi.dll");
   if (m_hDWMAPI)
   {
     (FARPROC &)m_pDwmIsCompositionEnabled = GetProcAddress(m_hDWMAPI, "DwmIsCompositionEnabled");
@@ -85,7 +88,7 @@ CDSSettings::~CDSSettings(void)
 
 void CDSSettings::LoadConfig()
 {
-  std::string strDsConfigFile = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/renderersettings.xml");
+  std::string strDsConfigFile = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/renderersettings.xml");
   if (!CFile::Exists(strDsConfigFile))
   {
     CLog::Log(LOGINFO, "No renderersettings.xml to load (%s)", strDsConfigFile.c_str());

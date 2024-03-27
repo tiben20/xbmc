@@ -99,9 +99,11 @@ bool CPlayerController::OnAction(const CAction &action)
       case ACTION_CYCLE_SUBTITLE:
       {
 #if HAS_DS_PLAYER
-		  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_VIDEOSUBSEX))
+		  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_VIDEOSUBSEX))
 		  {
+#if TODO
 			  CGUIDialogAudioSubtitleSettings::ShowSubsSelector();
+#endif
 			  return true;
 		  }
 #endif
@@ -223,9 +225,9 @@ bool CPlayerController::OnAction(const CAction &action)
       case ACTION_AUDIO_NEXT_LANGUAGE:
       {
 #if HAS_DS_PLAYER
-		  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_VIDEOAUDIOEX))
+		  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_VIDEOAUDIOEX))
 		  {
-			  CGUIDialogAudioSubtitleSettings::ShowAudioSelector();
+			  CGUIDialogAudioSettings::ShowAudioSelector();
 			  return true;
 		  }
 #endif

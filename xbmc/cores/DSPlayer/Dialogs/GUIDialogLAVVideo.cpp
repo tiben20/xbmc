@@ -334,6 +334,7 @@ void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>&
   }
   if (settingId == LAVVIDEO_HWACCELRES)
   {
+#if TODO
     DWORD flags;
     std::vector<CVariant> values;
     values = CSettingUtils::GetList(static_cast<const CSettingList*>(setting));
@@ -343,6 +344,7 @@ void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>&
         flags |= itValue->asInteger();    
     }
     lavSettings.video_dwHWAccelResFlags = flags;
+
   }
   if (settingId == LAVVIDEO_HWACCELCODECS)
   {
@@ -361,6 +363,7 @@ void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>&
       for (std::vector<CVariant>::const_iterator itValue = values.begin(); itValue != values.end(); ++itValue)
         lavSettings.video_bHWFormats[itValue->asInteger()] = TRUE;
     }
+#endif
   }
 
   if (settingId == LAVVIDEO_NUMTHREADS)

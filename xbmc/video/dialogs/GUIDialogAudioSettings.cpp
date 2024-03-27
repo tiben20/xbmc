@@ -214,7 +214,7 @@ void CGUIDialogAudioSettings::InitializeSettings()
 {
   CGUIDialogSettingsManualBase::InitializeSettings();
 #if HAS_DS_PLAYER
-  m_bIsDSPlayer = (g_application.GetCurrentPlayer() == "DSPlayer");
+  m_bIsDSPlayer = (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer");
 #endif
 
   const std::shared_ptr<CSettingCategory> category = AddCategory("audiosubtitlesettings", -1);
@@ -389,7 +389,7 @@ void CGUIDialogAudioSettings::AudioStreamsOptionFiller(const SettingConstPtr& se
     strItem += FormatFlags(info.flags);
 	
 #if HAS_DS_PLAYER
-    if (g_application.GetCurrentPlayer() == "DSPlayer")
+    if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer")
       strItem = info.name;
 #endif
 
@@ -465,9 +465,10 @@ std::string CGUIDialogAudioSettings::FormatFlags(StreamFlags flags)
 }
 
 #if HAS_DS_PLAYER
-void CGUIDialogAudioSubtitleSettings::ShowAudioSelector()
+void CGUIDialogAudioSettings::ShowAudioSelector()
 {
-  int count = g_application.m_pPlayer->GetAudioStreamCount();
+#if TODO
+  int count = CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetAudioStreamCount();
 
   if (count <= 0)
   {
@@ -483,7 +484,7 @@ void CGUIDialogAudioSubtitleSettings::ShowAudioSelector()
   {
     std::string strName;
     SPlayerAudioStreamInfo audio;
-    g_application.m_pPlayer->GetAudioStreamInfo(i, audio);
+    CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetAudioStreamInfo(i, audio);
     strName = audio.name;
     if (strName.length() == 0)
       strName = "Unnamed";
@@ -507,54 +508,6 @@ void CGUIDialogAudioSubtitleSettings::ShowAudioSelector()
     CMediaSettings::GetInstance().GetCurrentVideoSettings().m_AudioStream = selected;
     g_application.m_pPlayer->SetAudioStream(selected);    // Set the audio stream to the one selected
   }
+#endif
 }
-
-void CGUIDialogAudioSubtitleSettings::ShowSubsSelector()
-{
-  int count = g_application.m_pPlayer->GetSubtitleCount();
-
-  if (count <= 0)
-  {
-    CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, g_localizeStrings.Get(462), g_localizeStrings.Get(55059), 2000, false, 300);
-    return;
-  }
-
-  CGUIDialogSelect *pDlg = (CGUIDialogSelect *)g_windowManager.GetWindow(WINDOW_DIALOG_SELECT);
-  if (!pDlg)
-    return;
-
-  for (int i = 0; i < count; ++i)
-  {
-    std::string strName;
-
-    SPlayerSubtitleStreamInfo subs;
-    g_application.m_pPlayer->GetSubtitleStreamInfo(i, subs);
-    strName = subs.name;
-    if (strName.length() == 0)
-      strName = "Unnamed";
-
-    strName += StringUtils::Format(" (%i/%i)", i + 1, count);
-    pDlg->Add(strName);
-  }
-
-  int selected = g_application.m_pPlayer->GetSubtitle();
-
-  if (selected < 0) selected = 0;
-
-  pDlg->SetHeading(462);
-  pDlg->SetSelected(selected);
-  pDlg->EnableButton(true, CMediaSettings::GetInstance().GetCurrentVideoSettings().m_SubtitleOn ? 55058 : 13397);
-  pDlg->Open();
-
-  selected = pDlg->GetSelectedItem();
-
-  if (selected != -1 && g_application.m_pPlayer->GetSubtitle() != selected)
-  {
-    g_application.m_pPlayer->SetSubtitle(selected);    // Set the subtitle stream to the one selected
-  }
-  else
-    if (pDlg->IsButtonPressed()) // Disable or enable subtitle stream.
-      g_application.OnAction(CAction(ACTION_SHOW_SUBTITLES));
-}
-
 #endif

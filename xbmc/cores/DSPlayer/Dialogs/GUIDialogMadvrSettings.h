@@ -37,7 +37,7 @@ protected:
   virtual bool AllowResettingSettings() const { return false; }
   virtual bool OnBack(int actionID);
   virtual void OnCancel();
-
+  virtual bool Save() { return true; }
   // specialization of CGUIDialogSettingsManualBase
   virtual void SetupView();
 

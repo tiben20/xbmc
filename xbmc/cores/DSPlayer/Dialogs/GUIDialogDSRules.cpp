@@ -88,6 +88,7 @@ void CGUIDialogDSRules::OnDeinitWindow(int nextWindowID)
 
 bool CGUIDialogDSRules::Save()
 {
+  return true;
 }
 
 void CGUIDialogDSRules::SetupView()

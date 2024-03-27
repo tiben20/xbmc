@@ -106,7 +106,6 @@ void CFocusThread::OnExit()
 
   SetEvent(m_hEvtInit);
   m_bStop = true;
-  m_threadID = 0;
   CLog::Log(LOGINFO, "thread end: CFocusThread::OnExit()");
 }
 

@@ -10,6 +10,7 @@
 
 #include "PlayListPlayer.h"
 #include "ServiceBroker.h"
+#include "settings/SettingsComponent.h"
 #include "cores/RetroPlayer/RetroPlayerUtils.h"
 #include "dialogs/GUIDialogFileBrowser.h"
 #include "guilib/LocalizeStrings.h"
@@ -395,20 +396,20 @@ void CMediaSettings::OnSettingAction(const std::shared_ptr<const CSetting>& sett
     CGraphFilters::Get()->ShowInternalPPage(CGraphFilters::INTERNAL_XYSUBFILTER, true);
   else if (settingId == CSettings::SETTING_DSPLAYER_DSAREARESET)
   {
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT, 0);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT, 0);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREATOP, 0);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM, 0);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT, 0);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT, 0);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_DSAREATOP, 0);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM, 0);
   }
   else if (settingId == CSettings::SETTING_DSPLAYER_SANEARCMOY)
   {
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_CMOY);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_CMOY);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_CMOY);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_CMOY);
   }
   else if (settingId == CSettings::SETTING_DSPLAYER_SANEARJMEIER)
   {
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_JMEIER);
-    CSettings::GetInstance().SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_JMEIER);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF, SaneAudioRenderer::ISettings::CROSSFEED_CUTOFF_FREQ_JMEIER);
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL, SaneAudioRenderer::ISettings::CROSSFEED_LEVEL_JMEIER);
   }
 #endif
   else if (settingId == CSettings::SETTING_VIDEOLIBRARY_IMPORT)

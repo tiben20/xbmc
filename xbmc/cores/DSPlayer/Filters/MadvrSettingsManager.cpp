@@ -28,6 +28,9 @@
 #include "Utils/Log.h"
 #include "Utils/StringUtils.h"
 #include "Application/Application.h"
+#include "settings/Settings.h"
+#include "settings/AdvancedSettings.h"
+#include "settings/SettingsComponent.h"
 
 // DSPLAYER DUMMY
 #define DSPROFILE                              "DSPlayer Profile"

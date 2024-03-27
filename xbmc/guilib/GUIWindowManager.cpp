@@ -1301,8 +1301,9 @@ void CGUIWindowManager::RenderPass() const
     if (window->IsDialogRunning())
     #if HAS_DS_PLAYER
     {
+      
       // Don't show video settings dialog under madVR/lavvideo/lavaudio/lavsplitter settings
-      if ((*it)->GetID() == WINDOW_DIALOG_VIDEO_OSD_SETTINGS)
+      if (window->GetID() == WINDOW_DIALOG_VIDEO_OSD_SETTINGS)
       {
         CGUIDialog* pDialogMadvr = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_MADVR);
         CGUIDialog* pDialogLAVVideo = (CGUIDialog *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_LAVVIDEO);

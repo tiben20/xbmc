@@ -164,7 +164,7 @@ public:
 class CDSSettings
 {
 public:
-  std::string    m_strD3DX9Version;
+  std::wstring    m_strD3DX9Version;
   HINSTANCE      m_hD3DX9Dll;
   int            m_nDXSdkRelease;
   std::wstring   D3D9RenderDevice;

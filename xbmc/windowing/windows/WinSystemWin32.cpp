@@ -915,7 +915,7 @@ bool CWinSystemWin32::ChangeResolution(const RESOLUTION_INFO& res, bool forceCha
   sDevMode.dmSize = sizeof(sDevMode);
 
 #if HAS_DS_PLAYER
-  if (g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
+  if (g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
     return true;
 #endif
 
