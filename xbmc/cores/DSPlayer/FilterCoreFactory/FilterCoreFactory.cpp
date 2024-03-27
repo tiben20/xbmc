@@ -25,6 +25,7 @@
 #include "DSPlayer.h"
 #include "filters/XBMCFileSource.h"
 #include "utils/URIUtils.h"
+#include "guilib/GUIComponent.h"
 
 InternalFilters internalFilters[] =
 {
@@ -246,14 +247,14 @@ CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, boo
   }
 
   std::vector<CFGFilterFile *>::const_iterator it = std::find_if(m_Filters.begin(),
-    m_Filters.end(), std::bind2nd(std::not_fn(CompareCFGFilterFileToString), filter));
+    m_Filters.end(), std::bind(std::not_fn(CompareCFGFilterFileToString), filter));
 
   if (it == m_Filters.end())
   {
     CLog::Log(LOGERROR, "%s Filter \"%s\" isn't loaded. Please check dsfilterconfig.xml", __FUNCTION__, filter.c_str());
     if (showError)
     {
-      CGUIDialogOK *dialog = (CGUIDialogOK *)g_windowManager.GetWindow(WINDOW_DIALOG_OK);
+      CGUIDialogOK *dialog = (CGUIDialogOK *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_OK);
       if (dialog)
       {
         dialog->SetHeading("Filter not found");

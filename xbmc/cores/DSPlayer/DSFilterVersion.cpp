@@ -111,7 +111,7 @@ void CDSFilterVersion::GetVersionByFilter(const std::string &type, bool bForceUp
   {
     std::string sPath = static_cast<CFGFilterFile *>(pFilter)->GetPath();
     FilterVersion filterVersion;
-    GetVersionByPath(sPath, filterVersion);
+    GetVersionByPath(AToW(sPath), filterVersion);
     m_FilterVersions[type] = filterVersion;
   }
 }

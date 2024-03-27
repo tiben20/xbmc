@@ -62,6 +62,7 @@
 
 #include "DSPlayer.h"
 #include "FilterCoreFactory/FilterCoreFactory.h"
+#include "guilib/GUIComponent.h"
 
 using namespace std;
 
@@ -864,7 +865,7 @@ HRESULT CFGManager::RecoverFromGraphError(const CFileItem& pFileItem)
   }
   if (videoError || audioError)
   {
-    CGUIDialogOK *dialog = (CGUIDialogOK *)g_windowManager.GetWindow(WINDOW_DIALOG_OK);
+    CGUIDialogOK *dialog = (CGUIDialogOK *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_OK);
     if (dialog)
     {
       std::string strError;

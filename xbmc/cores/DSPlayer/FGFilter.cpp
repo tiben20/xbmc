@@ -46,6 +46,7 @@
 #include "../../filesystem/SpecialProtocol.h "
 #include "cores/DSPlayer/DSPlayer.h"
 #include "Utils/DSFileUtils.h"
+#include "settings/SettingsComponent.h"
 
 #pragma comment(lib, "Dmoguids.lib")
 //
@@ -355,7 +356,8 @@ CFGFilterFile::CFGFilterFile(TiXmlElement *pFilter)
     if (!XFILE::CFile::Exists(m_path))
     {
       std::string path(m_path);
-      m_path = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/" + path);
+     
+      m_path = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/" + path);
       if (!XFILE::CFile::Exists(m_path))
       {
         m_path = StringUtils::Format("special://xbmc/system/players/dsplayer/%s", path.c_str());

@@ -681,26 +681,30 @@ void CGraphicContext::GetGUIScaling(const RESOLUTION_INFO &res, float &scaleX, f
 
 #if HAS_DS_PLAYER
     int iLeft, iTop, iRight, iBottom;
-    iLeft = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT);
-    iTop = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_DSAREATOP);
-    iRight = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT);
-    iBottom = CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM);
+    iLeft = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_DSAREALEFT);
+    iTop = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_DSAREATOP);
+    iRight = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_DSAREARIGHT);
+    iBottom = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_DSAREABOTTOM);
 
-    if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_DEFINEDSAREA) && (iLeft > 0 || iTop > 0 || iRight > 0 || iBottom > 0))
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_DEFINEDSAREA) && (iLeft > 0 || iTop > 0 || iRight > 0 || iBottom > 0))
     {
+      #if TODO
       g_guiSkinzoom = 0;
+#endif
       fToPosX = fToPosX + iLeft;
       fToPosY = fToPosY + iTop;
       fToWidth = fToWidth - iRight - iLeft;
       fToHeight = fToHeight - iBottom - iTop;
     }
 
-    if ((g_application.m_pPlayer->IsPlaying()
-      && g_application.m_pPlayer->GetCurrentPlayer() == "DSPlayer")
-      && CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_OSDINTOACTIVEAREA))
+    if ((CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IsPlaying()
+      && CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer")
+      && CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_OSDINTOACTIVEAREA))
     {
+#if TODO
       g_guiSkinzoom = 0;
-      activeRect = g_application.m_pPlayer->GetActiveVideoRect();
+#endif
+      activeRect = CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetActiveVideoRect();
 
       if (activeRect.x2 - activeRect.x1 > 0 || activeRect.y2 - activeRect.y1 > 0)
       {
@@ -741,12 +745,12 @@ void CGraphicContext::GetGUIScaling(const RESOLUTION_INFO &res, float &scaleX, f
   }
   
 #if HAS_DS_PLAYER
-  if (CSettings::GetInstance().GetBool(CSettings::SETTING_DSPLAYER_OSDINTOACTIVEAREA)
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_OSDINTOACTIVEAREA)
     && (m_oldDsActiveArea != activeRect))
   {
     m_oldDsActiveArea = activeRect;
     CGUIMessage msg(GUI_MSG_NOTIFY_ALL, 0, 0, GUI_MSG_WINDOW_RESIZE);
-    g_windowManager.SendThreadMessage(msg);
+    CServiceBroker::GetGUI()->GetWindowManager().SendThreadMessage(msg);
   }
 #endif
 }
@@ -1031,7 +1035,7 @@ const std::string& CGraphicContext::GetMediaDir() const
 void CGraphicContext::Flip(bool rendered, bool videoLayer)
 {
 #if HAS_DS_PLAYER   
-  if (!g_application.m_pPlayer->ReadyDS())
+  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS())
 #endif
   CServiceBroker::GetRenderSystem()->PresentRender(rendered, videoLayer);
 

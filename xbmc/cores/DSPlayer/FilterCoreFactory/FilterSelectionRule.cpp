@@ -28,6 +28,9 @@
 #include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/DSFileUtils.h"
+#include "ServiceBroker.h"
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 CFilterSelectionRule::CFilterSelectionRule(TiXmlElement* pRule, const std::string &nodeName)
 {
