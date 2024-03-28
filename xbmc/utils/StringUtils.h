@@ -81,6 +81,7 @@ public:
     // coverity[fun_call_w_exception : FALSE]
     return ::fmt::format(fmt, EnumToInt(std::forward<Args>(args))...);
   }
+
   template<typename... Args>
   static std::wstring Format(const std::wstring& fmt, Args&&... args)
   {

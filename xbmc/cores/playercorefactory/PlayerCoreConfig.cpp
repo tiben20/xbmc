@@ -70,7 +70,7 @@ std::shared_ptr<IPlayer> CPlayerCoreConfig::CreatePlayer(IPlayerCallback& callba
 #if HAS_DS_PLAYER
     else if (m_type.compare("dsplayer") == 0)
     {
-      pPlayer = new CDSPlayer(callback);
+    player = std::make_shared<CDSPlayer>(callback);
     }
 #endif
   else

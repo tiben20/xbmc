@@ -80,7 +80,7 @@ public:
   virtual CRect GetActiveVideoRect() { return CRect(0, 0, 0, 0); };
   virtual bool IsEnteringExclusive() { return false; };
   virtual void EnableExclusive(bool bEnable) {};
-  virtual void SetPixelShader() const {};
+  virtual void SetPixelShader() {};
   virtual void SetResolution() const  {};
   virtual void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) {};
   virtual bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const { return false; };

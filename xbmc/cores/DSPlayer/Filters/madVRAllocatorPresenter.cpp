@@ -459,7 +459,11 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
   }
 
   if (Com::SmartQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR)
-    VERIFY(SUCCEEDED(pMVRSR->DisableSubclassing()));
+  {
+    //VERIFY(SUCCEEDED(pMVRSR->DisableSubclassing()));
+    if (!SUCCEEDED(pMVRSR->DisableSubclassing()))
+      return E_FAIL;
+  }
 
   // resize madVR
   if (Com::SmartQIPtr<IVideoWindow> pVW = m_pDXR)
@@ -561,7 +565,7 @@ STDMETHODIMP_(bool) CmadVRAllocatorPresenter::Paint(bool fAll)
   return false;
 }
 
-void CmadVRAllocatorPresenter::SetPixelShader() const
+void CmadVRAllocatorPresenter::SetPixelShader()
 {
   g_dsSettings.pixelShaderList->UpdateActivatedList();
   m_shaderStage = 0;

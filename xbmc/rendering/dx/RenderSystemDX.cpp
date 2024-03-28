@@ -707,6 +707,20 @@ bool CRenderSystemDX::SupportsNPOT(bool dxt) const
 }
 
 #if HAS_DS_PLAYER
+
+inline void DXWait(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+{
+  ID3D11Query* wait = nullptr;
+  CD3D11_QUERY_DESC qd(D3D11_QUERY_EVENT);
+  if (SUCCEEDED(pDevice->CreateQuery(&qd, &wait)))
+  {
+    pContext->End(wait);
+    while (S_FALSE == pContext->GetData(wait, nullptr, 0, 0))
+      Sleep(1);
+  }
+  SAFE_RELEASE(wait);
+}
+
 void CRenderSystemDX::SetWindowedForMadvr()
 {
   if (!m_bRenderCreated)
@@ -723,9 +737,9 @@ void CRenderSystemDX::SetWindowedForMadvr()
     m_bResizeRequred = S_OK == hr;
 
     if (S_OK != hr)
-      CLog::Log(LOGERROR, "%s - Failed switch full screen state: %s.", __FUNCTION__, GetErrorDescription(hr).c_str());
+      CLog::Log(LOGERROR, "%s - Failed switch full screen state: %s.", __FUNCTION__, DX::GetErrorDescription(hr).c_str());
     // wait until switching screen state is done
-    DXWait(m_pD3DDev, m_pImdContext);
+        DXWait(DX::DeviceResources().GetD3DDevice(), DX::DeviceResources().GetD3DContext());
     return;
   }
 }
@@ -733,10 +747,12 @@ void CRenderSystemDX::SetWindowedForMadvr()
 void CRenderSystemDX::GetParamsForDSPlayer(bool &useWindowedDX, unsigned int &nBackBufferWidth, unsigned int &nBackBufferHeight, bool &bVSync, float &refreshRate, bool &interlaced)
 {
   useWindowedDX = m_UseWindowedDX_DSPlayer;
+#if TODO
   nBackBufferWidth = m_nBackBufferWidth;
   nBackBufferHeight = m_nBackBufferHeight;
   bVSync = m_bVSync;
   refreshRate = m_refreshRate;
   interlaced = m_interlaced;
+#endif
 }
 #endif

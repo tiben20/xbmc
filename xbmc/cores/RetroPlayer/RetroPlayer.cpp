@@ -380,12 +380,12 @@ bool CRetroPlayer::SeekTimeRelative(int64_t iTime)
   return true;
 }
 
-uint64_t CRetroPlayer::GetTime()
+int64_t CRetroPlayer::GetTime()
 {
   return m_playback->GetTimeMs();
 }
 
-uint64_t CRetroPlayer::GetTotalTime()
+int64_t CRetroPlayer::GetTotalTime()
 {
   return m_playback->GetTotalTimeMs();
 }

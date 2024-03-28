@@ -28,6 +28,8 @@
 #include "settings/Settings.h"
 #include "utils/log.h"
 #include "utils/DSFileUtils.h"
+#include "ServiceBroker.h"
+#include "settings/SettingsComponent.h"
 
 CShadersSelectionRule::CShadersSelectionRule(TiXmlElement* pRule)
   : m_shaderId(-1)

@@ -85,6 +85,7 @@ void CPixelShaderList::Load()
 
 bool CPixelShaderList::LoadXMLFile(const std::string& xmlFile)
 {
+#if TODO
   CLog::Log(LOGINFO, "Loading pixel shaders list from %s", xmlFile.c_str());
   if (!XFILE::CFile::Exists(xmlFile))
   {
@@ -128,6 +129,8 @@ bool CPixelShaderList::LoadXMLFile(const std::string& xmlFile)
   }
 
   return true;
+#endif
+  return true;
 }
 
 void CPixelShaderList::UpdateActivatedList()
@@ -145,6 +148,7 @@ void CPixelShaderList::UpdateActivatedList()
 
 void CPixelShaderList::EnableShader(const uint32_t id, const uint32_t stage, bool enabled /*= true*/)
 {
+#if TODO
   CSingleExit lock(m_accessLock);
 
   PixelShaderVector::iterator it = (std::find_if(m_pixelShaders.begin(), m_pixelShaders.end(), std::bind(std::not_fn(HasSameID),
@@ -157,6 +161,7 @@ void CPixelShaderList::EnableShader(const uint32_t id, const uint32_t stage, boo
   (*it)->SetEnabled(enabled);
   (*it)->SetStage(stage);
   UpdateActivatedList();
+#endif
 }
 
 void CPixelShaderList::DisableAll()

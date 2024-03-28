@@ -235,6 +235,7 @@ HRESULT CFilterCoreFactory::GetShaders(const CFileItem& pFileItem, std::vector<u
 
 CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, bool showError)
 {
+#if TODO
   std::string filter = _filter;
 
   // Right now we only have the rar source filter
@@ -269,6 +270,8 @@ CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, boo
   }
 
   return (*it);
+#endif
+  return NULL;
 }
 std::vector<CGlobalFilterSelectionRule *> CFilterCoreFactory::m_selecRules;
 std::vector<CFGFilterFile *> CFilterCoreFactory::m_Filters;

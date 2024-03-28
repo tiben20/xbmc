@@ -142,7 +142,7 @@ public:
   CRect GetActiveVideoRect() override { return m_activeVideoRect; };
   bool IsEnteringExclusive() override { return m_isEnteringExclusive; }
   void EnableExclusive(bool bEnable) override;
-  void SetPixelShader() const override;
+  void SetPixelShader() override;
   void SetResolution() const override;
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override;
   bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const override;

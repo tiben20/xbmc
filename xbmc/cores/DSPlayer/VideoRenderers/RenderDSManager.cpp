@@ -47,8 +47,10 @@
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
+#include <chrono>
 
 using namespace KODI::MESSAGING;
+using namespace std::chrono_literals;
 
 CRenderDSManager::CRenderDSManager(IRenderDSMsg *player) :
   m_pRenderer(nullptr),
@@ -120,7 +122,7 @@ bool CRenderDSManager::Configure(unsigned int width, unsigned int height, unsign
     m_bWaitingForRenderOnDS = true;
   }
 
-  if (!m_stateEvent.WaitMSec(1000))
+  if (!m_stateEvent.Wait(1000ms))
   {
     CLog::Log(LOGWARNING, "CRenderDSManager::Configure - timeout waiting for configure");
     return false;
@@ -138,6 +140,7 @@ bool CRenderDSManager::Configure(unsigned int width, unsigned int height, unsign
 
 bool CRenderDSManager::Configure()
 {
+#if TODO
   CSingleExit lock(m_statelock);
   CSingleExit lock3(m_datalock);
 
@@ -154,12 +157,13 @@ bool CRenderDSManager::Configure()
     if (!m_pRenderer)
       return false;
   }
-
-  bool result = m_pRenderer->Configure(m_width, m_height, m_dwidth, m_dheight, m_fps, m_flags,(ERenderFormat)0,0,0);
+  
+  
+  bool result = m_pRenderer->Configure(picture, m_fps, orientation);
   if (result)
   {
     CRenderInfo info = m_pRenderer->GetRenderInfo();
-    int renderbuffers = info.optimal_buffer_size;
+    int renderbuffers = info.max_buffer_size;
 
     m_pRenderer->Update();
     m_bTriggerUpdateResolution = true;
@@ -171,12 +175,16 @@ bool CRenderDSManager::Configure()
   m_stateEvent.Set();
   m_playerPort->VideoParamsChange();
   return result;
+#endif
+  return true;
 }
 
 void CRenderDSManager::Reset()
 {
+#if TODO
   if (m_pRenderer)
     m_pRenderer->Reset();
+#endif
 }
 
 bool CRenderDSManager::IsConfigured() const
@@ -208,13 +216,13 @@ void CRenderDSManager::FrameMove()
   UpdateResolution();
 
   {
-    CSingleExit lock(m_statelock);
+    std::unique_lock<CCriticalSection> lock(m_statelock);
 
     if (m_renderState == STATE_UNCONFIGURED)
       return;
     else if (m_renderState == STATE_CONFIGURING)
     {
-      lock.Leave();
+      lock.unlock();
       if (!Configure())
         return;
 
@@ -240,12 +248,13 @@ void CRenderDSManager::EndRender()
 
 void CRenderDSManager::PreInit()
 {
+#if TODO
   if (!g_application.IsCurrentThread())
   {
     CLog::Log(LOGERROR, "CRenderDSManager::UnInit - not called from render thread");
     return;
   }
-
+#endif
   CSingleExit lock(m_statelock);
 
   if (!m_pRenderer)
@@ -258,11 +267,13 @@ void CRenderDSManager::PreInit()
 
 void CRenderDSManager::UnInit()
 {
+#if TODO
   if (!g_application.IsCurrentThread())
   {
     CLog::Log(LOGERROR, "CRenderDSManager::UnInit - not called from render thread");
     return;
   }
+#endif
 
   CSingleExit lock(m_statelock);
 
@@ -277,7 +288,7 @@ bool CRenderDSManager::Flush()
 {
   if (!m_pRenderer)
     return true;
-
+#if TODO
   if (g_application.IsCurrentThread())
   {
     CLog::Log(LOGDEBUG, "%s - flushing renderer", __FUNCTION__);
@@ -290,7 +301,7 @@ bool CRenderDSManager::Flush()
 
     if (m_pRenderer)
     {
-      m_pRenderer->Flush();
+      m_pRenderer->Flush(true);
       m_debugRenderer.Flush();
       m_flushEvent.Set();
     }
@@ -307,11 +318,13 @@ bool CRenderDSManager::Flush()
     else
       return true;
   }
+#endif
   return true;
 }
 
 void CRenderDSManager::CreateRenderer()
 {
+#if TODO
   if (!m_pRenderer)
   {
     m_pRenderer = new CWinDsRenderer();
@@ -321,6 +334,7 @@ void CRenderDSManager::CreateRenderer()
     else
       CLog::Log(LOGERROR, "RenderDSManager::CreateRenderer: failed to create renderer");
   }
+#endif
 }
 
 void CRenderDSManager::DeleteRenderer()
@@ -349,10 +363,10 @@ RESOLUTION CRenderDSManager::GetResolution()
   CSingleExit lock(m_statelock);
   if (m_renderState == STATE_UNCONFIGURED)
     return res;
-
+#if TODO
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
     res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, CONF_FLAGS_STEREO_MODE_MASK(m_flags));
-
+#endif
   return res;
 }
 
@@ -375,7 +389,7 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
   {
       PresentSingle(clear, flags, alpha);
   }
-
+#if TODO
   if (gui)
   {
     if (!m_pRenderer->IsGuiLayer())
@@ -398,6 +412,7 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
       m_debugTimer.Set(1000);
     }
   }
+#endif
 }
 
 bool CRenderDSManager::IsGuiLayer()
@@ -432,11 +447,14 @@ bool CRenderDSManager::IsVideoLayer()
 /* simple present method */
 void CRenderDSManager::PresentSingle(bool clear, DWORD flags, DWORD alpha)
 {
+#if TODO
   m_pRenderer->RenderUpdate(clear, flags, alpha);
+#endif
 }
 
 void CRenderDSManager::UpdateDisplayLatency()
 {
+#if TODO
   float refresh = CServiceBroker::GetWinSystem()->GetGfxContext().GetFPS();
   if (CServiceBroker::GetWinSystem()->GetGfxContext().GetVideoResolution() == RES_WINDOW)
     refresh = 0; // No idea about refresh rate when windowed, just get the default latency
@@ -448,10 +466,12 @@ void CRenderDSManager::UpdateDisplayLatency()
   g_application.GetComponent<CApplicationPlayer>()->SetAVDelay(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_AudioDelay);
 
   CLog::Log(LOGDEBUG, "CRenderDSManager::UpdateDisplayLatency - Latency set to %1.0f msec", m_displayLatency * 1000.0f);
+#endif
 }
 
 void CRenderDSManager::UpdateResolution()
 {
+#if TODO
   if (m_bTriggerDisplayChange)
   {
     if (m_Resolution != RES_INVALID)
@@ -479,6 +499,7 @@ void CRenderDSManager::UpdateResolution()
     }
     m_playerPort->VideoParamsChange();
   }
+#endif
 }
 
 void CRenderDSManager::DisplayChange(bool bExternalChange)

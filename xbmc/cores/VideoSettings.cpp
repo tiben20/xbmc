@@ -59,7 +59,7 @@ void CVideoSettings::SetDSPlayerScalingMethod(EDSSCALINGMETHOD method)
 EDSSCALINGMETHOD CVideoSettings::GetDSPlayerScalingMethod() const
 {
   if (m_ScalingMethod > DS_SCALINGMETHOD_BILINEAR_2_100)
-    m_ScalingMethod = DS_SCALINGMETHOD_BILINEAR_2_100;
+    return DS_SCALINGMETHOD_BILINEAR_2_100;
   return (EDSSCALINGMETHOD) (m_ScalingMethod & 0xFFFF);
 }
 #endif

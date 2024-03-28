@@ -35,6 +35,7 @@
 #include "FileItem.h"
 #include "Application/Application.h"
 #include "utils/DSFileUtils.h"
+#include "settings/SettingsComponent.h"
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -85,11 +86,12 @@ void CMadvrSettings::InitSettings()
   // Check For madvrsettings.xml
 
   // UserData DSPlayer
-  if ( XFILE::CFile::Exists(CProfilesManager::GetInstance().GetUserDataItem("dsplayer/madvrsettings.xml"))
-    && XFILE::CFile::Exists(CProfilesManager::GetInstance().GetUserDataItem("dsplayer/strings.po")) )
+  
+  if ( XFILE::CFile::Exists(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/madvrsettings.xml"))
+    && XFILE::CFile::Exists(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/strings.po")) )
   { 
-    sMadvrSettingsXML = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/madvrsettings.xml");
-    m_FileStringPo = CProfilesManager::GetInstance().GetUserDataItem("dsplayer/strings.po");
+    sMadvrSettingsXML = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/madvrsettings.xml");
+    m_FileStringPo = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/strings.po");
     CLog::Log(LOGINFO, "%s loading madvrSettings.xml from appdata/kodi/userdata/dsplayer", __FUNCTION__);
   } 
   // Appdata addons/script.madvrsettings
@@ -325,7 +327,7 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
 
 void CMadvrSettings::StoreAtStartSettings()
 {
-  m_madvrJsonAtStart = CJSONVariantWriter::Write(m_db, true);
+  CJSONVariantWriter::Write(m_db, m_madvrJsonAtStart, true);
 }
 
 void CMadvrSettings::RestoreDefaultSettings()
@@ -335,13 +337,14 @@ void CMadvrSettings::RestoreDefaultSettings()
 
 void CMadvrSettings::RestoreAtStartSettings()
 {
-  m_db = CJSONVariantParser::Parse(reinterpret_cast<const unsigned char*>(m_madvrJsonAtStart.c_str()), m_madvrJsonAtStart.size());
+   CJSONVariantParser::Parse(m_madvrJsonAtStart.c_str(), m_db);
 }
 
 
 bool CMadvrSettings::SettingsChanged()
 {
-  std::string strJson = CJSONVariantWriter::Write(m_db, true);
+  std::string strJson;
+  CJSONVariantWriter::Write(m_db, strJson, true);
   return strJson != m_madvrJsonAtStart;
 }
 

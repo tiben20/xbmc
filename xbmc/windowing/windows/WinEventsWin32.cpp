@@ -499,16 +499,19 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         DX::Windowing()->ShowOSMouse(true);
       break;
     case WM_MOUSEMOVE:
+#if TODO
 #if HAS_DS_PLAYER
       if (g_application.GetCurrentPlayer() == "DSPlayer")
       {
-        if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
+        if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IsInMenu())
         {
           CDSPlayer::PostMessage(new CDSMsgInt(CDSMsg::PLAYER_DVD_MOUSE_MOVE, lParam), false);
           return(0);
         }
       }
 #endif
+#endif
+
       newEvent.type = XBMC_MOUSEMOTION;
       newEvent.motion.x = GET_X_LPARAM(lParam);
       newEvent.motion.y = GET_Y_LPARAM(lParam);
@@ -516,6 +519,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         appPort->OnEvent(newEvent);
       return(0);
     case WM_LBUTTONDOWN:
+#if TODO
 #if HAS_DS_PLAYER
       if (g_application.GetCurrentPlayer() == "DSPlayer")
       {
@@ -525,6 +529,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
           return(0);
         }
       }
+#endif
 #endif
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
@@ -682,8 +687,10 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       }
     return(0);
     case WM_SIZE:
+#if TODO
 #if HAS_DS_PLAYER
       PostMessage(CDSPlayer::GetDShWnd(), uMsg, wParam, lParam);
+#endif
 #endif
       if (wParam == SIZE_MINIMIZED)
       {
@@ -936,7 +943,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
   }
 #if HAS_DS_PLAYER
   LRESULT ret = 0;
-  return (g_application.m_pPlayer->ParentWindowProc(hWnd, uMsg, &wParam, &lParam, &ret)) ? ret : DefWindowProc(hWnd, uMsg, wParam, lParam);
+  return (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ParentWindowProc(hWnd, uMsg, &wParam, &lParam, &ret)) ? ret : DefWindowProc(hWnd, uMsg, wParam, lParam);
 #else
   return(DefWindowProc(hWnd, uMsg, wParam, lParam));
 #endif

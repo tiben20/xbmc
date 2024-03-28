@@ -304,8 +304,8 @@ static void LOGUDI(LPCTSTR prefix, const AMVAUncompDataInfo* p, int n)
     LOG(_T("%s[%d].dwUncompHeight = %d"), prefix, i, p[i].dwUncompHeight);
 
     std::wstring prefix2;
-    prefix2.Format(_T("%s[%d]"), prefix, i);
-    LOGPF(prefix2, &p[i].ddUncompPixelFormat, 1);
+    prefix2 = StringUtils::Format(_T("%s[%d]"), prefix, i);
+    LOGPF(prefix2.c_str(), &p[i].ddUncompPixelFormat, 1);
   }
 }
 
@@ -330,7 +330,7 @@ static void LogDXVA_PicParams_H264(DXVA_PicParams_H264* pPic)
 
   }
   bFirst = false;
-
+#if TODO
   strRes.AppendFormat(_T("%d,"), pPic->RefPicFlag);
   strRes.AppendFormat(_T("%d,"), pPic->wFrameWidthInMbsMinus1);
   strRes.AppendFormat(_T("%d,"), pPic->wFrameHeightInMbsMinus1);
@@ -418,8 +418,8 @@ static void LogDXVA_PicParams_H264(DXVA_PicParams_H264* pPic)
   //{
   //  fwrite (pPic, sizeof (DXVA_PicParams_H264), 1, hPict);
   //}
-
-  LOG_TOFILE(_T("picture.log"), strRes);
+#endif
+  LOG_TOFILE(_T("picture.log"), strRes.c_str());
 }
 
 static void LogH264SliceShort(DXVA_Slice_H264_Short* pSlice, int nCount)
@@ -430,20 +430,21 @@ static void LogH264SliceShort(DXVA_Slice_H264_Short* pSlice, int nCount)
   if (bFirstSlice)
   {
     strRes = _T("nCnt, BSNALunitDataLocation, SliceBytesInBuffer, wBadSliceChopping");
-    LOG_TOFILE(_T("sliceshort.log"), strRes);
-    strRes = "";
+    LOG_TOFILE(_T("sliceshort.log"), strRes.c_str());
+    strRes = L"";
     bFirstSlice = false;
   }
 
   for (int i = 0; i < nCount; i++)
   {
+#if TODO
     strRes.AppendFormat(_T("%d,"), i);
     strRes.AppendFormat(_T("%d,"), pSlice[i].BSNALunitDataLocation);
     strRes.AppendFormat(_T("%d,"), pSlice[i].SliceBytesInBuffer);
     strRes.AppendFormat(_T("%d"), pSlice[i].wBadSliceChopping);
-
-    LOG_TOFILE(_T("sliceshort.log"), strRes);
-    strRes = "";
+#endif
+    LOG_TOFILE(_T("sliceshort.log"), strRes.c_str());
+    strRes = L"";
   }
 }
 
@@ -464,9 +465,11 @@ static void LogH264SliceLong(DXVA_Slice_H264_Long* pSlice, int nCount)
     {
       for (int j = 0; j < 32; j++)
       {
+#if TODO
         strRes.AppendFormat(_T("R[%d][%d].AssociatedFlag,"), i, j);
         strRes.AppendFormat(_T("R[%d][%d].bPicEntry,"), i, j);
         strRes.AppendFormat(_T("R[%d][%d].Index7Bits,"), i, j);
+#endif
       }
     }
 
@@ -478,20 +481,23 @@ static void LogH264SliceLong(DXVA_Slice_H264_Long* pSlice, int nCount)
         {
           for (int d = 0; d < 2; d++)
           {
+#if TODO
             strRes.AppendFormat(_T("W[%d][%d][%d][%d],"), a, b, c, d);
+#endif
           }
         }
       }
     }
 
 
-    LOG_TOFILE(_T("slicelong.log"), strRes);
-    strRes = "";
+    LOG_TOFILE(_T("slicelong.log"), strRes.c_str());
+    strRes.clear();
   }
   bFirstSlice = false;
 
   for (int i = 0; i < nCount; i++)
   {
+#if TODO
     strRes.AppendFormat(_T("%d,"), i);
     strRes.AppendFormat(_T("%d,"), pSlice[i].BSNALunitDataLocation);
     strRes.AppendFormat(_T("%d,"), pSlice[i].SliceBytesInBuffer);
@@ -543,9 +549,9 @@ static void LogH264SliceLong(DXVA_Slice_H264_Long* pSlice, int nCount)
         }
       }
     }
-
-    LOG_TOFILE(_T("slicelong.log"), strRes);
-    strRes = "";
+#endif
+    LOG_TOFILE(_T("slicelong.log"), strRes.c_str());
+    strRes = L"";
   }
 }
 
@@ -557,7 +563,7 @@ static void LogDXVA_PictureParameters(DXVA_PictureParameters* pPic)
     LOG_TOFILE(_T("picture.log"), _T("wDecodedPictureIndex,wDeblockedPictureIndex,wForwardRefPictureIndex,wBackwardRefPictureIndex,wPicWidthInMBminus1,wPicHeightInMBminus1,bMacroblockWidthMinus1,bMacroblockHeightMinus1,bBlockWidthMinus1,bBlockHeightMinus1,bBPPminus1,bPicStructure,bSecondField,bPicIntra,bPicBackwardPrediction,bBidirectionalAveragingMode,bMVprecisionAndChromaRelation,bChromaFormat,bPicScanFixed,bPicScanMethod,bPicReadbackRequests,bRcontrol,bPicSpatialResid8,bPicOverflowBlocks,bPicExtrapolation,bPicDeblocked,bPicDeblockConfined,bPic4MVallowed,bPicOBMC,bPicBinPB,bMV_RPS,bReservedBits,wBitstreamFcodes,wBitstreamPCEelements,bBitstreamConcealmentNeed,bBitstreamConcealmentMethod"));
   bFirst = false;
 
-  strRes.Format(_T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"),
+  strRes = StringUtils::Format(_T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"),
     pPic->wDecodedPictureIndex,
     pPic->wDeblockedPictureIndex,
     pPic->wForwardRefPictureIndex,
@@ -573,7 +579,8 @@ static void LogDXVA_PictureParameters(DXVA_PictureParameters* pPic)
     pPic->bSecondField,
     pPic->bPicIntra,
     pPic->bPicBackwardPrediction);
-  strRes.AppendFormat(_T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"),
+  std::wstring strRes2;
+  strRes2 = StringUtils::Format(_T("%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"),
     pPic->bBidirectionalAveragingMode,
     pPic->bMVprecisionAndChromaRelation,
     pPic->bChromaFormat,
@@ -595,8 +602,9 @@ static void LogDXVA_PictureParameters(DXVA_PictureParameters* pPic)
     pPic->wBitstreamPCEelements,
     pPic->bBitstreamConcealmentNeed,
     pPic->bBitstreamConcealmentMethod);
+  strRes.append(strRes2.c_str());
 
-  LOG_TOFILE(_T("picture.log"), strRes);
+  LOG_TOFILE(_T("picture.log"), strRes.c_str());
 }
 #else
 inline static void LOG(...) { }

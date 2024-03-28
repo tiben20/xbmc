@@ -271,12 +271,12 @@ bool CDVDInputStreamNavigator::Open()
     m_dll.dvdnav_sector_search(m_dvdnav, 0, SEEK_SET);
 
     // first try title menu
-    if(m_dll.dvdnav_menu_call(m_dvdnav, DVD_MENU_Title) != DVDNAV_STATUS_OK)
+    if(m_dll.dvdnav_menu_call(m_dvdnav, _DVD_MENU_Title) != DVDNAV_STATUS_OK)
     {
       CLog::Log(LOGERROR, "Error on dvdnav_menu_call(Title): {}",
                 m_dll.dvdnav_err_to_string(m_dvdnav));
       // next try root menu
-      if(m_dll.dvdnav_menu_call(m_dvdnav, DVD_MENU_Root) != DVDNAV_STATUS_OK )
+      if(m_dll.dvdnav_menu_call(m_dvdnav, _DVD_MENU_Root) != DVDNAV_STATUS_OK )
         CLog::Log(LOGERROR, "Error on dvdnav_menu_call(Root): {}",
                   m_dll.dvdnav_err_to_string(m_dvdnav));
     }
@@ -832,7 +832,7 @@ bool CDVDInputStreamNavigator::OnMenu()
     return false;
   }
 
-  return m_dll.dvdnav_menu_call(m_dvdnav, DVD_MENU_Escape) == DVDNAV_STATUS_OK;
+  return m_dll.dvdnav_menu_call(m_dvdnav, _DVD_MENU_Escape) == DVDNAV_STATUS_OK;
 }
 
 void CDVDInputStreamNavigator::OnBack()

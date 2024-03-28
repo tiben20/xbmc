@@ -101,7 +101,7 @@ STDMETHODIMP_(HANDLE) CXBMCFileStream::GetFileHandle()
 
 STDMETHODIMP_(LPCTSTR) CXBMCFileStream::GetFileName()
 {
-	return m_strCurrentFile.c_str();
+	return AToW(m_strCurrentFile).c_str();
 }
 
 #endif

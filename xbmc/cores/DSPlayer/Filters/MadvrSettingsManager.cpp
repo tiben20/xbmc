@@ -31,6 +31,8 @@
 #include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
+#include "ServiceBroker.h"
+#include "application/ApplicationPlayer.h"
 
 // DSPLAYER DUMMY
 #define DSPROFILE                              "DSPlayer Profile"
@@ -63,7 +65,7 @@ CMadvrSettingsManager::CMadvrSettingsManager(IUnknown* pUnk)
 {
   m_pDXR = pUnk;
   m_bAllowChanges = true;
-  g_application.GetComponent<CApplicationPlayer>()->Register(this);
+  CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
 
   m_bDebug = CMediaSettings::GetInstance().GetCurrentMadvrSettings().m_bDebug;
 }
@@ -824,6 +826,7 @@ void CMadvrSettingsManager::UpdateSettings(const std::string &settingId, CSettin
 
 void CMadvrSettingsManager::AddDependencies(const std::string &xml, CSettingsManager *settingsManager, CSetting *setting)
 {
+#if TODO
   CXBMCTinyXML doc;
   if (!doc.Parse(xml, TIXML_ENCODING_UTF8))
     return;
@@ -845,6 +848,7 @@ void CMadvrSettingsManager::AddDependencies(const std::string &xml, CSettingsMan
     }
     setting->SetDependencies(settingDependencies);
   }
+#endif
 }
 
 float CMadvrSettingsManager::IntToFloat(int iValue, const std::string &format)

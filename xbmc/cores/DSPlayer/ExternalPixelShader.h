@@ -63,4 +63,6 @@ private:
   bool m_enabled;
 };
 
+#if TODO
 bool SortPixelShader(CExternalPixelShader* p1, CExternalPixelShader* p2);
+#endif

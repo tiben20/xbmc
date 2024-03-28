@@ -20,6 +20,7 @@
 
 #include <cstdlib>
 #include <limits>
+#include "URL.h"
 
 #if HAS_DS_PLAYER
 #include "Application/Application.h"

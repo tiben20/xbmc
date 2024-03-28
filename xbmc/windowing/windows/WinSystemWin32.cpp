@@ -35,6 +35,7 @@
 #if HAS_DS_PLAYER
 #include "Application/Application.h"
 #include "windowing/GraphicContext.h"
+#include "application/ApplicationPlayer.h"
 #endif
 
 #include "platform/win32/CharsetConverter.h"
@@ -915,7 +916,7 @@ bool CWinSystemWin32::ChangeResolution(const RESOLUTION_INFO& res, bool forceCha
   sDevMode.dmSize = sizeof(sDevMode);
 
 #if HAS_DS_PLAYER
-  if (g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
+  if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR) && CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
     return true;
 #endif
 
@@ -941,7 +942,7 @@ bool CWinSystemWin32::ChangeResolution(const RESOLUTION_INFO& res, bool forceCha
 
     // Windows 8 refresh rate workaround for 24.0, 48.0 and 60.0 Hz
 #if HAS_DS_PLAYER
-    if (CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin8) 
+    if (CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin8_1)
       && !CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10_1709) 
       && (res.fRefreshRate == 24.0 || res.fRefreshRate == 48.0 || res.fRefreshRate == 60.0))
 

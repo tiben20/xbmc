@@ -980,15 +980,13 @@ bool CSettingInt::FromString(const std::string &value)
     return false;
 
 #if HAS_DS_PLAYER
-  if (strValue == "true")
+  if (value == "true")
   {
-    value = 1;
     return true;
   }
-  if (strValue == "false")
+  if (value == "false")
   {
-    value = 0;
-    return true;
+    return false;
   }
 #endif
 

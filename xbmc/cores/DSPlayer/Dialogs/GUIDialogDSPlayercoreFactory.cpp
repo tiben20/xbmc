@@ -271,8 +271,7 @@ void CGUIDialogDSPlayercoreFactory::ActionInternal(const std::string &settingId)
 
     m_bEdited = false;
     m_dsmanager->SaveDsXML(PLAYERCOREFACTORY);
-
-    CPlayerCoreFactory::GetInstance().OnSettingsLoaded();
+    CServiceBroker::GetPlayerCoreFactory().OnSettingsLoaded();
 
     CGUIDialogDSPlayercoreFactory::Close();
   }

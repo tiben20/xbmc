@@ -118,8 +118,8 @@ private:
    */
   void PrintGameInfo(const CFileItem& file) const;
 
-  uint64_t GetTime();
-  uint64_t GetTotalTime();
+  int64_t GetTime();
+  int64_t GetTotalTime();
 
   // Construction parameters
   GAME::CGameServices& m_gameServices;

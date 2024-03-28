@@ -165,7 +165,7 @@ void CGUIDialogAudioSettings::OnSettingAction(const std::shared_ptr<const CSetti
   const std::string &settingId = setting->GetId();
   if (settingId == SETTING_AUDIO_MAKE_DEFAULT)
     Save();
-#if HAS_DS_PLAYER
+#if TODO
   else if (settingId == EDITONS_SETTINGS)
     g_application.m_pPlayer->ShowEditionDlg(false);
 #endif

@@ -34,13 +34,13 @@
 typedef enum {
   /* When used in VTS domain, DVD_MENU_Escape behaves like DVD_MENU_Root,
    * but from within a menu domain, DVD_MENU_Escape resumes playback. */
-  DVD_MENU_Escape     = 0,
-  DVD_MENU_Title      = 2,
-  DVD_MENU_Root       = 3,
-  DVD_MENU_Subpicture = 4,
-  DVD_MENU_Audio      = 5,
-  DVD_MENU_Angle      = 6,
-  DVD_MENU_Part       = 7
+  _DVD_MENU_Escape     = 0,
+  _DVD_MENU_Title      = 2,
+  _DVD_MENU_Root       = 3,
+  _DVD_MENU_Subpicture = 4,
+  _DVD_MENU_Audio      = 5,
+  _DVD_MENU_Angle      = 6,
+  _DVD_MENU_Part       = 7
 } DVDMenuID_t;
 
 /*
@@ -56,7 +56,7 @@ typedef enum
 /* Domain */
 typedef enum
 {
-  DVD_DOMAIN_FirstPlay = 1, /* First Play Domain */
+  _DVD_DOMAIN_FirstPlay = 1, /* First Play Domain */
   DVD_DOMAIN_VTSTitle = 2, /* Video Title Set Domain */
   DVD_DOMAIN_VMGM = 4, /* Video Manager Domain */
   DVD_DOMAIN_VTSMenu = 8 /* Video Title Set Menu Domain */

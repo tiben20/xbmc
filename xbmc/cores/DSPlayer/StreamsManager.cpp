@@ -52,7 +52,8 @@
 #include "application/Application.h"
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
-#include "threads/Event.h"
+#include "guilib/GUIComponent.h"
+#include "guilib/StereoscopicsManager.h"
 
 CDSStreamDetail::CDSStreamDetail()
   : IAMStreamSelect_Index(0), flags(0), pObj(NULL), pUnk(NULL), lcid(0),
@@ -480,7 +481,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
       pS.connected = true;
 
     if (!m_mkveditions)
-      MediaTypeToStreamDetail(mediaType, (CStreamDetail&)(*infos));
+      MediaTypeToStreamDetail(mediaType, (CDSStreamDetail&)(*infos));
 
     if (group == CStreamDetail::AUDIO)
     {
@@ -910,7 +911,7 @@ int CStreamsManager::AddSubtitle(const std::string& subFilePath)
   if (!m_bIsXYVSFilter)
     return -1;
 
-  std::string subFileW;
+  std::wstring subFileW;
   std::string subFile;
 
   subFile = CDSFile::SmbToUncPath(subFilePath);
@@ -1353,7 +1354,7 @@ void CStreamsManager::MediaTypeToStreamDetail(AM_MEDIA_TYPE *pMediaType, CDSStre
       infos.m_strStereoMode = fileItem.GetVideoInfoTag()->m_streamDetails.GetStereoMode();
     }
     if (infos.m_strStereoMode.empty())
-      infos.m_strStereoMode = CStereoscopicsManager::GetInstance().DetectStereoModeByString(g_application.CurrentFileItem().GetPath());
+      infos.m_strStereoMode = CServiceBroker::GetGUI()->GetStereoscopicsManager().DetectStereoModeByString(g_application.CurrentFileItem().GetPath());
 
     if (pMediaType->formattype == FORMAT_VideoInfo)
     {
@@ -1445,12 +1446,13 @@ void CStreamsManager::MediaTypeToStreamDetail(AM_MEDIA_TYPE *pMediaType, CDSStre
 
     infos.subtype = pMediaType->subtype;
   }
-
+#if TODO
   if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
     FormatStreamName(s);
   else
     FormatStreamNameBySplitter(s);
+#endif
 }
 
 int CStreamsManager::GetPictureWidth()
@@ -1564,7 +1566,7 @@ void CStreamsManager::FormatStreamName(CStreamDetail& s)
   if (pS.lcid)
   {
     wchar_t buffer[64];
-    std::string _name; int len = 0;
+    std::wstring _name; int len = 0;
     if (len = GetLocaleInfoW(pS.lcid, LOCALE_SLANGUAGE, buffer, 64))
     {
       _name = buffer;
@@ -1681,7 +1683,7 @@ void CSubtitleManager::Initialize()
   style.shadowDepthX = style.shadowDepthY = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.shadowdepth");
   style.outlineWidthX = style.outlineWidthY = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.outlinewidth");
 
-  std::string fontName;
+  std::wstring fontName;
   g_charsetConverter.utf8ToW(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString("subtitles.dsfont"), fontName);
   style.fontName = (wchar_t *)CoTaskMemAlloc(fontName.length() * sizeof(wchar_t) + 2);
   if (style.fontName)
@@ -1978,7 +1980,8 @@ int CSubtitleManager::AddSubtitle(const std::string& subFilePath)
   // Load subtitle file
   Com::SmartPtr<ISubStream> pSubStream;
 
-  std::string unicodePath; g_charsetConverter.utf8ToW(s->path, unicodePath);
+  std::wstring unicodePath; 
+  g_charsetConverter.utf8ToW(s->path, unicodePath);
 
   if (SUCCEEDED(m_pManager->LoadExternalSubtitle(unicodePath.c_str(), &pSubStream)))
   {
@@ -1987,7 +1990,7 @@ int CSubtitleManager::AddSubtitle(const std::string& subFilePath)
     wchar_t* title = NULL;
     if (SUCCEEDED(m_pManager->GetStreamTitle(pSubStream, &title)))
     {
-      g_charsetConverter.wToUTF8(std::string(title), s->displayname);
+      g_charsetConverter.wToUTF8(std::wstring(title), s->displayname);
       s->displayname += " [External]";
       CoTaskMemFree(title);
     }

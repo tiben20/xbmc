@@ -43,6 +43,7 @@
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "rendering/dx/rendercontext.h"
 
+
 CWinDsRenderer::CWinDsRenderer(): 
   m_bConfigured(false)
   , m_oldVideoRect(0, 0, 0, 0)
@@ -79,7 +80,7 @@ bool CWinDsRenderer::Configure(unsigned int width, unsigned int height, unsigned
   // calculate the input frame aspect ratio
   CalculateFrameAspectRatio(d_width, d_height);
 
-  SetViewMode(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ViewMode);
+  SetViewMode(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_ViewMode);
   ManageRenderArea();
 
   m_bConfigured = true;

@@ -310,7 +310,7 @@ bool CMediaSettings::Save(TiXmlNode *settings) const
 }
 
 #if HAS_DS_PLAYER
-void CMediaSettings::OnSettingChanged(const CSetting *setting)
+void CMediaSettings::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
 {
   if (setting == NULL)
     return;
@@ -326,7 +326,17 @@ void CMediaSettings::OnSettingChanged(const CSetting *setting)
     || settingId == CSettings::SETTING_DSPLAYER_SANEARLEVEL
     )
     CGraphFilters::Get()->SetSanearSettings();
+  if (setting->GetId() == CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS)
+    CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::VideoLibrary, "OnRefresh");
+}
+#else
+void CMediaSettings::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
+{
+  if (setting == nullptr)
+    return;
 
+  if (setting->GetId() == CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS)
+    CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::VideoLibrary, "OnRefresh");
 }
 #endif
 
@@ -428,15 +438,6 @@ void CMediaSettings::OnSettingAction(const std::shared_ptr<const CSetting>& sett
       videodatabase.Close();
     }
   }
-}
-
-void CMediaSettings::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)
-{
-  if (setting == nullptr)
-    return;
-
-  if (setting->GetId() == CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS)
-    CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::VideoLibrary, "OnRefresh");
 }
 
 int CMediaSettings::GetWatchedMode(const std::string &content) const
