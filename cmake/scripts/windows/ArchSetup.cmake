@@ -1,5 +1,5 @@
 # Minimum SDK version we support
-set(VS_MINIMUM_SDK_VERSION 10.0.14393.0)
+set(VS_MINIMUM_SDK_VERSION 10.0.18362.0)
 
 if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION VERSION_LESS VS_MINIMUM_SDK_VERSION)
   message(FATAL_ERROR "Detected Windows SDK version is ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}.\n"
@@ -105,8 +105,7 @@ foreach(_lib ${_nodefaultlibs_DEBUG})
 endforeach()
 
 # DELAYLOAD option
-set(_delayloadlibs zlib.dll libmariadb.dll libxslt.dll dnssd.dll dwmapi.dll sqlite3.dll
-                   d3dcompiler_47.dll)
+set(_delayloadlibs libmariadb.dll libxslt.dll dnssd.dll dwmapi.dll sqlite3.dll d3dcompiler_47.dll)
 foreach(_lib ${_delayloadlibs})
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DELAYLOAD:\"${_lib}\"")
 endforeach()
@@ -121,12 +120,4 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /DEBUG /OP
 
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-  # Generate a batch file that opens Visual Studio with the necessary env variables set.
-  file(WRITE ${CMAKE_BINARY_DIR}/kodi-sln.bat
-             "@echo off\n"
-             "set KODI_HOME=%~dp0\n"
-             "set PATH=%~dp0\\system\n"
-             "set PreferredToolArchitecture=x64\n"
-             "start %~dp0\\${PROJECT_NAME}.sln")
 endif()
