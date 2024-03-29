@@ -107,7 +107,7 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_isMadvr = (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
 
   if (InitWindow(m_hWnd))
-    CLog::Log(LOGDEBUG, "%s : Create DSPlayer window - hWnd: %i", __FUNCTION__, m_hWnd);
+    CLog::Log(LOGDEBUG, "%s : Create DSPlayer window - hWnd:", __FUNCTION__);
 
   /* Suspend AE temporarily so exclusive or hog-mode sinks */
   /* don't block DSPlayer access to audio device  */
@@ -170,7 +170,7 @@ CDSPlayer::~CDSPlayer()
   CLog::Log(LOGINFO, "%s DSPlayer is now closed", __FUNCTION__);
 }
 
-int CDSPlayer::GetSubtitleCount()
+int CDSPlayer::GetSubtitleCount() const
 {
   return (CStreamsManager::Get()) ? CStreamsManager::Get()->GetSubtitleCount() : 0;
 }

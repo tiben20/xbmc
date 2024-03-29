@@ -163,23 +163,23 @@ public:
   virtual bool HasID3() const { return false; }
   virtual bool IsPassthrough() const { return false;}
 #if HAS_DS_PLAYER
-  virtual bool CanSeek() const = 0;
-  virtual float GetPercentage() = 0;
-  virtual float GetCachePercentage() = 0;
-  virtual int  GetSubtitleCount() = 0;
-  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo& info) const =0;
+  virtual bool CanSeek() const { return false; };
+  virtual float GetPercentage() const { return 0.0; };
+  virtual float GetCachePercentage() const { return 0.0; };
+  virtual int  GetSubtitleCount() const { return 0; };
+  virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo& info) const { };
   virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) { };
   virtual bool IsRenderingVideoLayer() { return false; };
   virtual bool IsRenderingGuiLayer() { return false; };
   virtual bool Supports(EINTERLACEMETHOD method) { return false; };
   virtual bool Supports(ESCALINGMETHOD method) { return false; };
   virtual bool Supports(ERENDERFEATURE feature) { return false; }
-  virtual void SetPixelShader() const = 0;
-  virtual void SetResolution() const = 0;
-  virtual void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) = 0;
+  virtual void SetPixelShader() const{};
+  virtual void SetResolution() const {};
+  virtual void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) {};
   virtual int64_t GetTime() { return 0; }
   virtual int64_t GetTotalTime() { return 0; }
-  virtual float GetSpeed() = 0;
+  virtual float GetSpeed() { return 0; };
   virtual bool SupportsTempo() { return false; }
   virtual bool HasMenu() const { return false; };
   virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo& info) {};
@@ -189,7 +189,6 @@ public:
   virtual void Seek(bool bPlus = true, bool bLargeStep = false, bool bChapterOverride = false) = 0;
   virtual bool SeekScene(bool bPlus = true) {return false;}
   virtual void SeekPercentage(float fPercent = 0){}
-  virtual float GetCachePercentage() const { return 0; }
   virtual void SetMute(bool bOnOff){}
   virtual void SetVolume(float volume){}
   virtual void SetDynamicRangeCompression(long drc){}
@@ -199,7 +198,6 @@ public:
 
   virtual void SetSubTitleDelay(float fValue = 0.0f) {}
   virtual float GetSubTitleDelay()    { return 0.0f; }
-  virtual int GetSubtitleCount() const { return 0; }
   virtual int  GetSubtitle()          { return -1; }
   virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) const {}
   virtual void SetSubtitle(int iStream) {}

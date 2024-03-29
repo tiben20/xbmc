@@ -803,7 +803,7 @@ void CDisplaySettings::SettingOptionsResolutionsFiller(const SettingConstPtr& se
                                   ? " (HiDPI)"
                                   : "");
       list.emplace_back(resLabel, resolution->ResInfo_Index);
-
+       
       resolutionInfos.insert(std::make_pair((RESOLUTION)resolution->ResInfo_Index, CDisplaySettings::GetInstance().GetResolutionInfo(resolution->ResInfo_Index)));
     }
 

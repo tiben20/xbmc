@@ -2442,13 +2442,13 @@ void CDX9AllocatorPresenter::DrawStats()
 
     if (bDetailedStats > 1)
     {
-      strText = StringUtils::Format(L"Formats      : Surface %s    Backbuffer %s    Display %s     Device D3DDev", GetD3DFormatStr(m_SurfaceType), GetD3DFormatStr(D3DFMT_X8R8G8B8), GetD3DFormatStr(m_DisplayType));
+      strText = StringUtils::Format(L"Formats      : Surface %s    Backbuffer %s    Display %s     Device D3DDev", AToW(GetD3DFormatStr(m_SurfaceType)), AToW(GetD3DFormatStr(D3DFMT_X8R8G8B8)), AToW(GetD3DFormatStr(m_DisplayType)));
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
 
       if (m_bIsEVR)
       {
-        strText = StringUtils::Format(L"Refresh rate : %.05f Hz    SL: %4d     (%3d Hz)      Last Duration: %10.6f      Corrected Frame Time: %s", m_DetectedRefreshRate, int(m_DetectedScanlinesPerFrame + 0.5), m_RefreshRate, double(m_LastFrameDuration) / 10000.0, m_bCorrectedFrameTime ? "Yes" : "No");
+        strText = StringUtils::Format(L"Refresh rate : %.05f Hz    SL: %4d     (%3d Hz)      Last Duration: %10.6f      Corrected Frame Time: %s", m_DetectedRefreshRate, int(m_DetectedScanlinesPerFrame + 0.5), m_RefreshRate, double(m_LastFrameDuration) / 10000.0, m_bCorrectedFrameTime ? L"Yes" : L"No");
         DrawText(rc, strText, 1);
         OffsetRect(&rc, 0, TextHeight);
       }
@@ -2557,7 +2557,7 @@ void CDX9AllocatorPresenter::DrawStats()
       }
 
 
-      strText = StringUtils::Format(L"%-13s: %s", GetDXVAVersion(), GetDXVADecoderDescription());
+      strText = StringUtils::Format(L"%-13s: %s", GetDXVAVersion(), AToW(GetDXVADecoderDescription()));
       DrawText(rc, strText, 1);
       OffsetRect(&rc, 0, TextHeight);
 

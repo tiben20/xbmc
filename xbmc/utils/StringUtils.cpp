@@ -315,7 +315,7 @@ std::wstring StringUtils::FormatV(const wchar_t *fmt, va_list args)
       size *= 2;
 #else  // TARGET_WINDOWS
     va_copy(argCopy, args);
-    size = _vscwprintf(fmt, argCopy);
+    //size = _vscwprintf(fmt, argCopy);
     va_end(argCopy);
     if (size < 0)
       return L"";

@@ -104,8 +104,8 @@ public:
   virtual bool CanSeek() const  override { return g_dsGraph->CanSeek(); }
   virtual void Seek(bool bPlus, bool bLargeStep, bool bChapterOverride) override;
   virtual void SeekPercentage(float iPercent) override;
-  virtual float GetPercentage() override { return g_dsGraph->GetPercentage(); }
-  virtual float GetCachePercentage() override { return g_dsGraph->GetCachePercentage(); }
+  virtual float GetPercentage() const override { return g_dsGraph->GetPercentage(); }
+  virtual float GetCachePercentage() const override { return g_dsGraph->GetCachePercentage(); }
   virtual void SetVolume(float nVolume)  override { g_dsGraph->SetVolume(nVolume); }
   virtual void SetMute(bool bOnOff)  override { if (bOnOff) g_dsGraph->SetVolume(0.0f); }
   virtual void SetAVDelay(float fValue = 0.0f) override;
@@ -113,7 +113,7 @@ public:
 
   virtual void SetSubTitleDelay(float fValue = 0.0f) override;
   virtual float GetSubTitleDelay() override;
-  virtual int  GetSubtitleCount() override;
+  virtual int  GetSubtitleCount() const override;
   virtual int  GetSubtitle() override;
   virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) override;
   virtual void SetSubtitle(int iStream) override;

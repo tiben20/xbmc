@@ -1063,7 +1063,7 @@ HRESULT CEVRAllocatorPresenter::SetMediaType(IMFMediaType* pType)
 {
   HRESULT        hr;
   AM_MEDIA_TYPE*    pAMMedia = NULL;
-  std::string        strTemp;
+  std::wstring        strTemp;
   m_pMediaType = NULL;
   CheckPointer(pType, E_POINTER);
   CheckHR(pType->GetRepresentation(FORMAT_VideoInfo2, (void**)&pAMMedia));
@@ -1072,8 +1072,8 @@ HRESULT CEVRAllocatorPresenter::SetMediaType(IMFMediaType* pType)
   if (SUCCEEDED(hr))
   {
     m_pMediaType = pType;
-    g_charsetConverter.wToUTF8(GetMediaTypeName(pAMMedia->subtype), strTemp);
-    StringUtils::Replace(strTemp, "MEDIASUBTYPE_", "");
+    strTemp = GetMediaTypeName(pAMMedia->subtype);
+    StringUtils::Replace(strTemp, L"MEDIASUBTYPE_", L"");
     m_strStatsMsg[MSG_MIXEROUT] = StringUtils::Format(L"Mixer output : %s", strTemp.c_str());
   }
 
