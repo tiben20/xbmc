@@ -2,7 +2,7 @@
 #include "text.h"
 
 /*
-std::wstring Explode(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, int limit)
+CStdString Explode(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit)
 {
   sl.clear();
 
@@ -13,7 +13,7 @@ std::wstring Explode(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, i
 
   for(int i = 0, j = 0; (j = str.Find(sep, i)) >= 0; i = j+1)
   {
-    std::wstring tmp = str.Mid(i, j-i);
+    CStdString tmp = str.Mid(i, j-i);
     tmp.TrimLeft(sep); tmp.TrimRight(sep);
     tmp.TrimLeft(); tmp.TrimRight();
     sl.push_back(tmp);
@@ -21,7 +21,7 @@ std::wstring Explode(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, i
     {
       if(j+1 < str.GetLength()) 
       {
-        std::wstring tmp = str.Mid(j+1);
+        CStdString tmp = str.Mid(j+1);
         tmp.TrimLeft(sep); tmp.TrimRight(sep);
         tmp.TrimLeft(); tmp.TrimRight();
         sl.push_back(tmp);
@@ -40,7 +40,7 @@ std::wstring Explode(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, i
   return sl.GetHead();
 }
 
-std::wstring ExplodeMin(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, int limit)
+CStdString ExplodeMin(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit)
 {
   Explode(str, sl, sep, limit);
   POSITION pos = sl.GetHeadPosition();
@@ -50,14 +50,14 @@ std::wstring ExplodeMin(std::wstring str, std::list<std::wstring>& sl, TCHAR sep
     if(sl.GetNext(pos).IsEmpty())
       sl.RemoveAt(tmp);
   }
-  if(sl.IsEmpty()) sl.push_back(std::wstring()); // eh
+  if(sl.IsEmpty()) sl.push_back(CStdString()); // eh
 
   return sl.GetHead();
 }
 
-std::wstring Implode(std::list<std::wstring>& sl, TCHAR sep)
+CStdString Implode(std::list<CStdString>& sl, TCHAR sep)
 {
-  std::wstring ret;
+  CStdString ret;
   POSITION pos = sl.GetHeadPosition();
   while(pos)
   {
@@ -77,7 +77,7 @@ DWORD CharSetToCodePage(DWORD dwCharSet)
   return cs.ciACP;
 }
 
-std::string ConvertMBCS(std::string str, DWORD SrcCharSet, DWORD DstCharSet)
+CStdStringA ConvertMBCS(CStdStringA str, DWORD SrcCharSet, DWORD DstCharSet)
 {
   WCHAR* utf16 = new WCHAR[str.GetLength()+1];
   memset(utf16, 0, (str.GetLength()+1)*sizeof(WCHAR));
@@ -104,9 +104,9 @@ std::string ConvertMBCS(std::string str, DWORD SrcCharSet, DWORD DstCharSet)
   return str;
 }
 
-std::string UrlEncode(std::string str, bool fRaw)
+CStdStringA UrlEncode(CStdStringA str, bool fRaw)
 {
-  std::string urlstr;
+  CStdStringA urlstr;
 
   for(int i = 0; i < str.GetLength(); i++)
   {
@@ -114,13 +114,13 @@ std::string UrlEncode(std::string str, bool fRaw)
     if(fRaw && c == '+') urlstr += "%2B";
     else if(c > 0x20 && c < 0x7f && c != '&') urlstr += c;
     else if(c == 0x20) urlstr += fRaw ? ' ' : '+';
-    else {std::string tmp; tmp.Format("%%%02x", (BYTE)c); urlstr += tmp;}
+    else {CStdStringA tmp; tmp.Format("%%%02x", (BYTE)c); urlstr += tmp;}
   }
 
   return urlstr;
 }
 
-std::string UrlDecode(std::string str, bool fRaw)
+CStdStringA UrlDecode(CStdStringA str, bool fRaw)
 {
   str.Replace("&amp;", "&");
 
@@ -161,7 +161,7 @@ std::string UrlDecode(std::string str, bool fRaw)
   return str;
 }
 
-std::wstring ExtractTag(std::wstring tag, std::map<LPCTSTR, std::wstring>& attribs, bool& fClosing)
+CStdString ExtractTag(CStdString tag, std::map<LPCTSTR, CStdString>& attribs, bool& fClosing)
 {
   tag.Trim();
   attribs.clear();
@@ -171,19 +171,19 @@ std::wstring ExtractTag(std::wstring tag, std::map<LPCTSTR, std::wstring>& attri
 
   int i = tag.Find(' ');
   if(i < 0) i = tag.GetLength();
-  std::wstring type = tag.Left(i); type.MakeLower();
+  CStdString type = tag.Left(i); type.MakeLower();
   tag = tag.Mid(i).Trim();
 
   while((i = tag.Find('=')) > 0)
   {
-    std::wstring attrib = tag.Left(i).Trim(); attrib.MakeLower();
+    CStdString attrib = tag.Left(i).Trim(); attrib.MakeLower();
     tag = tag.Mid(i+1);
     for(i = 0; i < tag.GetLength() && _istspace(tag[i]); i++);
     tag = i < tag.GetLength() ? tag.Mid(i) : _T("");
     if(!tag.IsEmpty() && tag[0] == '\"') {tag = tag.Mid(1); i = tag.Find('\"');}
     else i = tag.Find(' ');
     if(i < 0) i = tag.GetLength();
-    std::wstring param = tag.Left(i).Trim();
+    CStdString param = tag.Left(i).Trim();
     if(!param.IsEmpty())
       attribs[attrib] = param;
     tag = i+1 < tag.GetLength() ? tag.Mid(i+1) : _T("");
@@ -192,30 +192,30 @@ std::wstring ExtractTag(std::wstring tag, std::map<LPCTSTR, std::wstring>& attri
   return(type);
 }
 
-std::list<std::wstring>& MakeLower(std::list<std::wstring>& sl)
+std::list<CStdString>& MakeLower(std::list<CStdString>& sl)
 {
-  for (std::list<std::wstring>::iterator it = sl.begin();
+  for (std::list<CStdString>::iterator it = sl.begin();
     it != sl.end(); ++it)
     it->MakeLower();
 
   return sl;
 }
 
-std::list<std::wstring>& MakeUpper(std::list<std::wstring>& sl)
+std::list<CStdString>& MakeUpper(std::list<CStdString>& sl)
 {
-  for (std::list<std::wstring>::iterator it = sl.begin();
+  for (std::list<CStdString>::iterator it = sl.begin();
     it != sl.end(); ++it)
     it->MakeUpper();
   return sl;
 }
 
-std::list<std::wstring>& RemoveStrings(std::list<std::wstring>& sl, int minlen, int maxlen)
+std::list<CStdString>& RemoveStrings(std::list<CStdString>& sl, int minlen, int maxlen)
 {
-  std::list<std::wstring>::iterator pos = sl.begin();
+  std::list<CStdString>::iterator pos = sl.begin();
   while(pos != sl.end())
   {
-    std::list<std::wstring>::iterator tmp = pos;
-    std::wstring& str = (*pos); pos++;
+    std::list<CStdString>::iterator tmp = pos;
+    CStdString& str = (*pos); pos++;
     int len = str.GetLength();
     if(len < minlen || len > maxlen) sl.erase(tmp);
   }

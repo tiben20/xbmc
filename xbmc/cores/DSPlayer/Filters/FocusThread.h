@@ -35,8 +35,9 @@ public:
     
     if (IsRunning())
     {
-
+#if TODO
       PostThreadMessage(GetCurrentNativeThreadID(), WM_QUIT, 0, 0);
+#endif
       //m_threadID = 0;
     }
     CThread::StopThread(bWait);

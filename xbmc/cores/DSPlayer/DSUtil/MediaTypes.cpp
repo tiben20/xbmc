@@ -321,18 +321,18 @@ VIH2 vih2s[] =
 
 int VIHSIZE = countof(vihs);
 
-std::wstring VIH2String(int i)
+CStdStringW VIH2String(int i)
 {
-  std::wstring ret = std::wstring(GuidNames[*vihs[i].subtype]);
+  CStdStringW ret = CStdStringW(GuidNames[*vihs[i].subtype]);
   if(!ret.Left(13).CompareNoCase(L"MEDIASUBTYPE_")) ret = ret.Mid(13);
   if(vihs[i].vih.bmiHeader.biCompression == 3) ret += L" BITF";
   if(*vihs[i].subtype == MEDIASUBTYPE_I420) ret = L"I420"; // FIXME
   return(ret);
 }
 
-std::wstring Subtype2String(const GUID& subtype)
+CStdStringW Subtype2String(const GUID& subtype)
 {
-  std::wstring ret = std::wstring(GuidNames[subtype]);
+  CStdStringW ret = CStdStringW(GuidNames[subtype]);
   if(!ret.Left(13).CompareNoCase(L"MEDIASUBTYPE_")) ret = ret.Mid(13);
   if(subtype == MEDIASUBTYPE_I420) ret = L"I420"; // FIXME
   return(ret);

@@ -1451,6 +1451,11 @@ float CAdvancedSettings::GetLatencyTweak(float refreshrate)
   return delay; // in milliseconds
 }
 
+std::string CAdvancedSettings::GetAuxDeviceName()
+{
+  return m_videoDefaultAuxDeviceName;
+}
+
 void CAdvancedSettings::SetDebugMode(bool debug)
 {
   if (debug)

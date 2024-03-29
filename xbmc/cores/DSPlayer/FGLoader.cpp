@@ -52,7 +52,7 @@
 #include "video/VideoInfoTag.h"
 #include "utils/URIUtils.h"
 #include "utils/DSFileUtils.h"
-#include "Filters/Sanear/Factory.h"
+//#include "Filters/Sanear/Factory.h"
 #include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
 #include "ServiceBroker.h"
@@ -355,7 +355,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
 
   //see if there a config first 
   const std::string renderer = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_AUDIORENDERER);
-
+#if TODO
   if (renderer == CGraphFilters::INTERNAL_SANEAR)
   {
     struct SaneAudioRendererFilter : CFGFilter {
@@ -390,7 +390,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
       CLog::Log(LOGERROR, "%s Failed to create the intenral audio renderer (%X)", __FUNCTION__, hr);
     }
   }
-  
+#endif
   if (renderer != CGraphFilters::INTERNAL_SANEAR || FAILED(hr))
   {
     for (std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin(); !renderer.empty() && (iter != deviceList.end()); ++iter)
@@ -756,8 +756,9 @@ HRESULT CFGLoader::InsertFilter(const std::string& filterName, SFilterInfos& f)
   return hr;
 }
 
-void CFGLoader::SettingOptionsDSVideoRendererFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CFGLoader::SettingOptionsDSVideoRendererFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
+#if TODO
   list.push_back(std::make_pair("Enhanced Video Renderer (EVR)", "EVR"));
   //todo dx11 
   //list.push_back(std::make_pair("Video Mixing Renderer 9 (VMR9)", "VMR9"));
@@ -777,15 +778,17 @@ void CFGLoader::SettingOptionsDSVideoRendererFiller(const CSetting *setting, std
     }
     ++iter;
   }
+#endif
 }
 
-void CFGLoader::SettingOptionsDSAudioRendererFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CFGLoader::SettingOptionsDSAudioRendererFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
+#if TODO
   list.push_back(std::make_pair("Internal Audio Renderer (Sanear)", CGraphFilters::INTERNAL_SANEAR));
   list.push_back(std::make_pair("System Default", "System Default"));
 
-  CAudioEnumerator p_dsound;
   std::vector<DSFilterInfo> deviceList;
+  CAudioEnumerator p_dsound;
   p_dsound.GetAudioRenderers(deviceList);
   std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin();
 
@@ -795,15 +798,18 @@ void CFGLoader::SettingOptionsDSAudioRendererFiller(const CSetting *setting, std
     list.push_back(std::make_pair(dev.lpstrName, dev.lpstrName));
     ++iter;
   }
+#endif
 }
 
-void CFGLoader::SettingOptionsSanearDevicesFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CFGLoader::SettingOptionsSanearDevicesFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
+#if TODO
   list.push_back(std::make_pair("System Default", "System Default"));
   for (const auto& device : GetDevices())
   {
     list.push_back(std::make_pair(device.first, device.second));
   }
+#endif
 }
 
 bool CFGLoader::LoadFilterCoreFactorySettings(const std::string& fileStr, ESettingsType type, bool clear, int iPriority)

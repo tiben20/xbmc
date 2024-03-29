@@ -116,7 +116,7 @@ public:
 
   struct PlaylistItem
   {
-    std::wstring        m_strFileName;
+    CStdString        m_strFileName;
     REFERENCE_TIME      m_rtIn;
     REFERENCE_TIME      m_rtOut;
 
@@ -140,8 +140,8 @@ public:
   int      GetStreamNumber()      { return int(m_Streams.size()); };
   Stream*    GetStreamByIndex(int nIndex){ return (unsigned(nIndex) < m_Streams.size()) ? &m_Streams[nIndex] : NULL; };
 
-  HRESULT    FindMainMovie(LPCTSTR strFolder, std::wstring& strPlaylistFile, std::list<std::wstring>& MainPlaylist);
-  HRESULT   ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration, std::list<std::wstring>& Playlist);
+  HRESULT    FindMainMovie(LPCTSTR strFolder, CStdString& strPlaylistFile, std::list<CStdString>& MainPlaylist);
+  HRESULT   ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration, std::list<CStdString>& Playlist);
 
 private :
   DWORD    SequenceInfo_start_address;

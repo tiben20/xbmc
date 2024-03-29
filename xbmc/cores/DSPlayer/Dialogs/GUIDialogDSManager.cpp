@@ -246,8 +246,9 @@ void CGUIDialogDSManager::GetFilterList(xmlType type, std::vector<DynamicStringS
   }
 }
 
-void CGUIDialogDSManager::AllFiltersConfigOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::AllFiltersConfigOptionFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
+#if TODO
   std::vector<DynamicStringSettingOption> listUserdata;
   std::vector<DynamicStringSettingOption> listHome;
   Get()->GetFilterList(FILTERSCONFIG, listUserdata);
@@ -261,6 +262,7 @@ void CGUIDialogDSManager::AllFiltersConfigOptionFiller(std::shared_ptr<const CSe
 
   std::sort(list.begin(), list.end(), compare_by_word);
   list.erase(unique(list.begin(), list.end()), list.end());
+#endif
 }
 
 void CGUIDialogDSManager::ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)

@@ -676,8 +676,8 @@ REFERENCE_TIME CSubPicQueue::UpdateQueue()
         }
         if (rtStop > rtNow)
           rtNow = rtStop;
-        m_rtQueueMin = min(m_rtQueueMin, rtStart);
-        m_rtQueueMax = max(m_rtQueueMax, rtStop);
+        m_rtQueueMin = std::min(m_rtQueueMin, rtStart);
+        m_rtQueueMax = std::max(m_rtQueueMax, rtStop);
       }
     }
   }
@@ -745,7 +745,7 @@ DWORD CSubPicQueue::ThreadProc()
 
         if(rtNow < rtStop)
         {
-          REFERENCE_TIME rtCurrent = max(rtNow, rtStart);
+          REFERENCE_TIME rtCurrent = std::max(rtNow, rtStart);
           bool bIsAnimated = pSubPicProvider->IsAnimated(pos) && !bDisableAnim;
           while (rtCurrent < rtStop)
           {
@@ -764,9 +764,9 @@ DWORD CSubPicQueue::ThreadProc()
             if (bIsAnimated)
             {
               if (rtCurrent < m_rtNow + rtTimePerFrame)
-                rtCurrent = min(m_rtNow + rtTimePerFrame, rtStop-1);
+                rtCurrent = std::min(m_rtNow + rtTimePerFrame, rtStop-1);
 
-              REFERENCE_TIME rtEndThis = min(rtCurrent + rtTimePerFrame, rtStop);
+              REFERENCE_TIME rtEndThis = std::min(rtCurrent + rtTimePerFrame, rtStop);
               hr = RenderTo(pStatic, rtCurrent, rtEndThis, fps, bIsAnimated);
               pStatic->SetSegmentStart(rtStart);
               pStatic->SetSegmentStop(rtStop);
@@ -1011,12 +1011,11 @@ ISubPicAllocatorPresenterImpl::ISubPicAllocatorPresenterImpl(HWND hWnd, HRESULT&
   , m_bPendingResetDevice(false)
 {
   std::wstring _pError;
-  _pError = "";
+  _pError = L"";
   if(!IsWindow(m_hWnd)) 
   {
     hr = E_INVALIDARG; 
-    if (_pError)
-      _pError += "Invalid window handle in ISubPicAllocatorPresenterImpl\n";
+    _pError += L"Invalid window handle in ISubPicAllocatorPresenterImpl\n";
     return;
   }
   GetWindowRect(m_hWnd, &m_WindowRect);

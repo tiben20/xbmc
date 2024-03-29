@@ -37,7 +37,7 @@ void CH264Nalu::SetBuffer(BYTE* pBuffer, int nSize, int nNALSize)
 
 bool CH264Nalu::MoveToNextStartcode()
 {
-  int    nBuffEnd = (m_nNextRTP > 0) ? min (m_nNextRTP, m_nSize-4) : m_nSize-4;
+  int    nBuffEnd = (m_nNextRTP > 0) ? std::min (m_nNextRTP, m_nSize-4) : m_nSize-4;
 
   for (int i=m_nCurPos; i<nBuffEnd; i++)
   {

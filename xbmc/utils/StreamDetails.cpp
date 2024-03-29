@@ -184,7 +184,9 @@ CStreamDetailEditon::CStreamDetailEditon():CStreamDetail(CStreamDetail::EDITION)
 }
 void CStreamDetailEditon::Archive(CArchive& ar)
 {
+#if TODO
   CStreamDetail::Archive(ar);
+#endif
   if (ar.IsStoring())
   {
     ar << m_strName;

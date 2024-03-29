@@ -1,5 +1,5 @@
 #pragma once
-
+#if TODO
 #include <dshow.h>
 #include <guiddef.h>
 
@@ -7,6 +7,7 @@
 
 namespace SaneAudioRenderer
 {
+
     class Factory final
     {
     public:
@@ -21,5 +22,8 @@ namespace SaneAudioRenderer
                                               ISettings* pSettings, IUnknown** ppOut);
 
         static const GUID& GetFilterGuid();
+
     };
+
 }
+#endif

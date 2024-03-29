@@ -53,8 +53,9 @@ CMadvrSettings::CMadvrSettings()
   m_madvrJsonAtStart = "";
   m_iSubSectionId = 0;
   m_bDebug = false;
-
+#if TODO
   InitSettings();
+#endif
 }
 
 void CMadvrSettings::UpdateSettings()

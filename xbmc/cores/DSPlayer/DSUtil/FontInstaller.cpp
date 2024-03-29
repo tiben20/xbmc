@@ -44,10 +44,10 @@ void CFontInstaller::UninstallFonts()
 
   if(pRemoveFontResourceEx)
   {
-    std::list<std::wstring>::iterator pos = m_files.begin();
+    std::list<CStdString>::iterator pos = m_files.begin();
     while(pos != m_files.end())
     {
-      std::wstring fn = (*pos); pos++;
+      CStdString fn = (*pos); pos++;
       pRemoveFontResourceEx(fn, FR_PRIVATE, 0);
       if(!DeleteFile(fn) && pMoveFileEx)
         pMoveFileEx(fn, NULL, MOVEFILE_DELAY_UNTIL_REBOOT);

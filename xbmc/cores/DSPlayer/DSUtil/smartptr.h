@@ -1,10 +1,6 @@
 #pragma once
 #ifndef _SMARTPTR_H
 #define _SMARTPTR_H
-#include "threads/CriticalSection.h"
-
-
-
 
 /*
  *      Copyright (C) 2005-2010 Team XBMC
@@ -77,7 +73,6 @@ namespace Com
       return bResult;
   }
   
-
   inline __declspec(nothrow) IUnknown* __stdcall SmartPtrAssign(IUnknown** pp, IUnknown* lp)
   {
     if (pp == NULL)
@@ -105,27 +100,13 @@ namespace Com
     return *pp;
   }
 
-  inline void SmartQIPtrAssign2(
-    _Inout_ IUnknown** pp,
-    _In_opt_ IUnknown* lp,
-    _In_ REFIID riid)
-  {
-    IUnknown* pTemp = *pp; // takes ownership
-
-    if (lp == NULL || FAILED(lp->QueryInterface(riid, (void**)pp)))
-      *pp = NULL;
-
-    if (pTemp)
-      pTemp->Release();
-  }
-
   // _NoAddRefOrRelease:
   // This is a version of our COM interface that dis-allows AddRef
   // and Release. All ref-counting should be done by the SmartPtr 
   // object, so we want to dis-allow calling AddRef or Release 
   // directly. The operator-> returns a _NoAddRefOrRelease pointer
   // instead of returning the raw COM pointer. (This behavior is the
-  // same as ATL's SmartPtr class.)
+  // same as ATL's CComPtr class.)
   template <class T>
   class _NoAddRefOrRelease : public T
   {
@@ -140,16 +121,15 @@ namespace Com
   protected:
 
     // Ctor
-    SmartPtrBase() throw()
+    SmartPtrBase() : m_ptr(NULL)
     {
-      m_ptr = NULL;
     }
 
     // Ctor
-    SmartPtrBase(T *ptr) throw()
+    SmartPtrBase(T *ptr)
     {
         m_ptr = ptr;
-        if (m_ptr != NULL)
+        if (m_ptr)
         {
             m_ptr->AddRef();
         }
@@ -164,16 +144,11 @@ namespace Com
             m_ptr->AddRef();
         }
     }
-    void Swap(SmartPtrBase& other)
-    {
-      T* pTemp = m_ptr;
-      m_ptr = other.m_ptr;
-      other.m_ptr = pTemp;
-    }
+    
   public:
     typedef T _PtrClass;
     // Dtor
-    ~SmartPtrBase() throw()
+    ~SmartPtrBase() 
     { 
         if (m_ptr)
         {
@@ -184,7 +159,7 @@ namespace Com
     {
         if(*this!=lp)
         {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
+        return static_cast<T*>(AtlComPtrAssign((IUnknown**)&m_ptr, lp));
         }
         return *this;
     }
@@ -211,7 +186,6 @@ namespace Com
     // address-of operator
     T** operator&()
     {
-      //ASSERT( m_ptr == NULL );
       return &m_ptr;
     }
 
@@ -384,7 +358,7 @@ namespace Com
     {
       if(*this!=lp)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
       }
       return *this;
     }
@@ -393,15 +367,15 @@ namespace Com
     {
       if( !AreComObjectsEqual(*this, lp) )
       {
-        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr, __uuidof(T)));
+        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp.m_ptr, __uuidof(T)));
       }
       return *this;
     }
     T* operator=(const SmartPtr<T>& lp) throw()
     {
-      if( !AreComObjectsEqual(this->m_ptr, lp.m_ptr) )
+      if( !AreComObjectsEqual(m_ptr, lp.m_ptr) )
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
       }
       return *this;
     }
@@ -427,7 +401,7 @@ namespace Com
     {
       if(*this!=lp)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
       }
       return *this;
     }
@@ -436,15 +410,15 @@ namespace Com
     {
       if( !AreComObjectsEqual(*this, lp) )
       {
-        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr, __uuidof(T)));
+        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp.m_ptr, __uuidof(T)));
       }
       return *this;
     }
     T* operator=(const SmartPtr<T>& lp) throw()
     {
-      if( !AreComObjectsEqual(this->m_ptr, lp.m_ptr) )
+      if( !AreComObjectsEqual(m_ptr, lp.m_ptr) )
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
       }
       return *this;
     }
@@ -461,93 +435,40 @@ namespace Com
     SmartQIPtr() throw()
     {
     }
-    SmartQIPtr(IUnknown* lp) throw()//ok
-    {
-      if (lp != NULL)
-      {
-        if (FAILED(lp->QueryInterface(*piid, (void**)&this->m_ptr)))
-          this->m_ptr = NULL;
-      }
-    }
-    SmartQIPtr(decltype(__nullptr)) throw()
-    {
-    }
-
     SmartQIPtr(T* lp) throw() :
     SmartPtr<T>(lp)
     {
     }
     SmartQIPtr(const SmartQIPtr<T, piid>& lp) throw() :
-    SmartPtr<T>(lp.m_ptr)
+    SmartPtr<T>(lp)
     {
+    }
+    SmartQIPtr(IUnknown* lp) throw()
+    {
+      if (lp != NULL)
+        lp->QueryInterface(*piid, (void **)&m_ptr);
     }
     T* operator=(T* lp) throw()
     {
-      if(this->m_ptr != lp)
+      if( m_ptr != lp)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
       }
       return *this;
     }
-
     T* operator=(const SmartQIPtr<T, piid>& lp) throw()
     {
-      if(this->m_ptr != lp.m_ptr)
+      if( m_ptr != lp.m_ptr)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
       }
       return *this;
     }
-
-    T* operator=(_Inout_opt_ IUnknown* lp) throw()
+    T* operator=(_In_opt_ IUnknown* lp) throw()
     {
-      if(this->m_ptr != lp)
+      if( m_ptr != lp)
       {
-        SmartQIPtrAssign2((IUnknown**)&this->m_ptr, lp, *piid);
-        //return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&this->m_ptr, lp, *piid));
-      }
-      return *this;
-    }
-  };
-
-  //Specialization to make it work
-  template<>
-  class SmartQIPtr<IUnknown, &IID_IUnknown> :
-    public SmartPtr<IUnknown>
-  {
-  public:
-    SmartQIPtr() throw()
-    {
-    }
-    SmartQIPtr(_Inout_opt_ IUnknown* lp) throw()
-    {
-      //Actually do a QI to get identity
-      if (lp != NULL)
-      {
-        if (FAILED(lp->QueryInterface(__uuidof(IUnknown), (void**)&this->m_ptr)))
-          this->m_ptr = NULL;
-      }
-    }
-    SmartQIPtr(_Inout_ const SmartQIPtr<IUnknown, &IID_IUnknown>& lp) throw() :
-      SmartPtr<IUnknown>(lp.m_ptr)
-    {
-    }
-
-    IUnknown* operator=(_Inout_opt_ IUnknown* lp) throw()
-    {
-      if (this->m_ptr != lp)
-      {
-        //Actually do a QI to get identity
-        SmartQIPtrAssign2((IUnknown**)&this->m_ptr, lp, __uuidof(IUnknown));
-      }
-      return *this;
-    }
-
-    IUnknown* operator=(_Inout_ const SmartQIPtr<IUnknown, &IID_IUnknown>& lp) throw()
-    {
-      if (this->m_ptr != lp.m_ptr)
-      {
-        SmartQIPtr(lp).Swap(*this);
+        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp, *piid));
       }
       return *this;
     }
@@ -592,8 +513,7 @@ namespace Com
           // If this assert fires, it means you attempted to assign one SmartAutoVectorPtr to another when they both contained 
           // a pointer to the same underlying vector. This means a bug in your code, since your vector will get 
           // double-deleted. 
-          assert(FALSE);
-          //ATLASSERT(FALSE);
+          ATLASSERT(FALSE);
 
           // For safety, we are going to detach the other SmartAutoVectorPtr to avoid a double-free. Your code still
           // has a bug, though.

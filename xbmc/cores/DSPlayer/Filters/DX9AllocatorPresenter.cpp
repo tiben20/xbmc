@@ -26,7 +26,7 @@
  */
 
 #if HAS_DS_PLAYER
-
+#include "d3d9.h"
 #include "DX9AllocatorPresenter.h"
 #include <initguid.h>
 #include "Subtitles/SubPic/DX9SubPic.h"

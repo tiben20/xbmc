@@ -110,7 +110,8 @@
 #include "SmartPtr.h"
 #include "strsafe.h"
 #include <assert.h>
-#include "Dsutil.h"
+#include "DSUtil.h"
+
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
 #endif

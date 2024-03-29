@@ -62,6 +62,7 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "cores/audioengine/engines/activeae/activeae.h"
+#include "DSUtil/DSUtil.h"
 
 enum
 {
@@ -863,7 +864,7 @@ std::string CDSGraph::GetGeneralInfo()
     if ((pBF == CGraphFilters::Get()->Subs.pBF) && CGraphFilters::Get()->Subs.osdname != "")
       info = CGraphFilters::Get()->Subs.osdname;
     else
-      g_charsetConverter.wToUTF8(GetFilterName(pBF), info);
+      g_charsetConverter.wToUTF8(GetFilterName(pBF).c_str(), info);
     if (!info.empty())
       generalInfo.empty() ? generalInfo += "" + info : generalInfo += ", " + info;
   }

@@ -80,10 +80,6 @@ public:
   bool SetPriority(const ThreadPriority& priority);
 
   static CThread* GetCurrentThread();
-  DWORD GetCurrentNativeThreadID() const
-  {
-    return (DWORD)m_thread->native_handle();
-  }
 
   virtual void OnException(){} // signal termination handler
 

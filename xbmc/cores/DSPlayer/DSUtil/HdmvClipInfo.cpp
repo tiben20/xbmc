@@ -255,14 +255,14 @@ LPCTSTR CHdmvClipInfo::Stream::Format()
 }
 
 
-HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration, std::list<std::wstring>& Playlist)
+HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration, std::list<CStdString>& Playlist)
 {
   DWORD        dwPos;
   DWORD        dwTemp;
   SHORT        nPlaylistItems;
   REFERENCE_TIME    rtIn, rtOut;
   BYTE        Buff[100];
-  std::wstring        strTemp;
+  CStdString        strTemp;
 
   //strTemp.Format(_T("%sPLAYLIST\\%s"), strPath, strFile);
   strTemp.Format(_T("%s"),strFile);
@@ -283,12 +283,12 @@ HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration,
     ReadDword();
     ReadShort();
     dwTemp       = ReadShort();
-    nPlaylistItems = min((SHORT)dwTemp, 5);  // Main movie should be more than 5 parts...
+    nPlaylistItems = std::min((SHORT)dwTemp, (SHORT)5);  // Main movie should be more than 5 parts...
     ReadShort();
 
     dwPos    += 10;
     rtDuration = 0;
-    for (int i=0; i<nPlaylistItems; i++)
+    for (int i=0; i<nPlaylistItems; i++) 
     {    
       SetFilePointer(m_hFile, dwPos, NULL, FILE_BEGIN);
       dwPos = dwPos + ReadShort() + 2;
@@ -319,15 +319,15 @@ HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration,
   return AmHresultFromWin32(GetLastError());
 }
 
-HRESULT CHdmvClipInfo::FindMainMovie(LPCTSTR strFolder, std::wstring& strPlaylistFile, std::list<std::wstring>& MainPlaylist)
+HRESULT CHdmvClipInfo::FindMainMovie(LPCTSTR strFolder, CStdString& strPlaylistFile, std::list<CStdString>& MainPlaylist)
 {
   HRESULT        hr    = E_FAIL;
   REFERENCE_TIME    rtMax  = 0;
   REFERENCE_TIME    rtCurrent;
-  std::wstring        strPath (strFolder);
-  std::wstring        strFilter;
-  std::wstring        strCurrentPlaylist;
-  std::list<std::wstring>  Playlist;
+  CStdString        strPath (strFolder);
+  CStdString        strFilter;
+  CStdString        strCurrentPlaylist;
+  std::list<CStdString>  Playlist;
   WIN32_FIND_DATA    fd = {0};
 
   strPath.Replace(_T("\\PLAYLIST\\"), _T("\\"));
@@ -345,7 +345,7 @@ HRESULT CHdmvClipInfo::FindMainMovie(LPCTSTR strFolder, std::wstring& strPlaylis
       Playlist.clear();
       
       // Main movie shouldn't have duplicate M2TS filename...
-      std::wstring newpath;
+      CStdString newpath;
       newpath = strPath;
       newpath.AppendFormat(_T("\\%s"),fd.cFileName);
       if (ReadPlaylist(newpath, rtCurrent, Playlist) == S_OK && rtCurrent > rtMax)

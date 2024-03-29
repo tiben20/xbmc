@@ -405,10 +405,10 @@ void CSettings::InitializeOptionFillers()
 #endif
   GetSettingsManager()->RegisterSettingOptionsFiller("charsets", CCharsetConverter::SettingOptionsCharsetsFiller);
 #if HAS_DS_PLAYER  
-  m_settingsManager->RegisterSettingOptionsFiller("dsvideorenderer", CFGLoader::SettingOptionsDSVideoRendererFiller);
-  m_settingsManager->RegisterSettingOptionsFiller("dsaudiorenderer", CFGLoader::SettingOptionsDSAudioRendererFiller);
-  m_settingsManager->RegisterSettingOptionsFiller("saneardevices", CFGLoader::SettingOptionsSanearDevicesFiller);
-  m_settingsManager->RegisterSettingOptionsFiller("dsextrafilter", CGUIDialogDSManager::AllFiltersConfigOptionFiller);
+  GetSettingsManager()->RegisterSettingOptionsFiller("dsvideorenderer", CFGLoader::SettingOptionsDSVideoRendererFiller);
+  GetSettingsManager()->RegisterSettingOptionsFiller("dsaudiorenderer", CFGLoader::SettingOptionsDSAudioRendererFiller);
+  GetSettingsManager()->RegisterSettingOptionsFiller("saneardevices", CFGLoader::SettingOptionsSanearDevicesFiller);
+  GetSettingsManager()->RegisterSettingOptionsFiller("dsextrafilter", CGUIDialogDSManager::AllFiltersConfigOptionFiller);
 #endif
   GetSettingsManager()->RegisterSettingOptionsFiller("fonts", GUIFontManager::SettingOptionsFontsFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller(

@@ -1,8 +1,8 @@
 #pragma once
 
-//extern std::wstring ExplodeMin(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, int limit = 0);
-//extern std::wstring Explode(std::wstring str, std::list<std::wstring>& sl, TCHAR sep, int limit = 0);
-//extern std::wstring Implode(std::list<std::wstring>& sl, TCHAR sep);
+//extern CStdString ExplodeMin(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit = 0);
+//extern CStdString Explode(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit = 0);
+//extern CStdString Implode(std::list<CStdString>& sl, TCHAR sep);
 
 template<class T, typename SEP>
 T Explode(T str, std::list<T>& sl, SEP sep, int limit = 0)
@@ -42,7 +42,7 @@ T ExplodeMin(T str, std::list<T>& sl, SEP sep, int limit = 0)
 
   return sl.GetHead();
 }
-/*
+
 template<class T, typename SEP>
 T Implode(std::list<T>& sl, SEP sep)
 {
@@ -55,13 +55,13 @@ T Implode(std::list<T>& sl, SEP sep)
   }
   return(ret);
 }
-*/
-extern std::wstring ExtractTag(std::wstring tag, std::map<std::wstring, std::wstring>& attribs, bool& fClosing);
-extern std::string ConvertMBCS(std::string str, DWORD SrcCharSet, DWORD DstCharSet);
-extern std::string UrlEncode(std::string str, bool fRaw = false);
-extern std::string UrlDecode(std::string str, bool fRaw = false);
+
+extern CStdString ExtractTag(CStdString tag, std::map<CStdString, CStdString>& attribs, bool& fClosing);
+extern CStdStringA ConvertMBCS(CStdStringA str, DWORD SrcCharSet, DWORD DstCharSet);
+extern CStdStringA UrlEncode(CStdStringA str, bool fRaw = false);
+extern CStdStringA UrlDecode(CStdStringA str, bool fRaw = false);
 extern DWORD CharSetToCodePage(DWORD dwCharSet);
-extern std::list<std::wstring>& MakeLower(std::list<std::wstring>& sl);
-extern std::list<std::wstring>& MakeUpper(std::list<std::wstring>& sl);
-extern std::list<std::wstring>& RemoveStrings(std::list<std::wstring>& sl, int minlen, int maxlen);
+extern std::list<CStdString>& MakeLower(std::list<CStdString>& sl);
+extern std::list<CStdString>& MakeUpper(std::list<CStdString>& sl);
+extern std::list<CStdString>& RemoveStrings(std::list<CStdString>& sl, int minlen, int maxlen);
 

@@ -72,6 +72,7 @@ CGraphFilters::~CGraphFilters()
 {
   if (m_isKodiRealFS)
   {
+    
     CServiceBroker::GetSettingsComponent()->GetSettings()->SetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN, false);
     m_isKodiRealFS = false;
   }
@@ -84,10 +85,11 @@ CGraphFilters* CGraphFilters::Get()
 
 void CGraphFilters::SetSanearSettings()
 {
+#if TODO
   if (!sanear)
     if (FAILED(SaneAudioRenderer::Factory::CreateSettings(&sanear)))
       return;
-
+#endif
   std::wstring adeviceW;
   std::string adevice = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);  
   if (adevice == "System Default")
@@ -302,12 +304,12 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
     }
     lavSettings.video_dwHWAccel = pLAVVideoSettings->GetHWAccel();
     for (int i = 0; i < HWAccel_NB; ++i) {
-
+#if TODO
       if ( i == HWAccel_D3D11)
         m_mapHWAccelDeviceInfo[i].emplace_back("Automatic (Native)", -1);
       else
         m_mapHWAccelDeviceInfo[i].emplace_back("Automatic", -1);
-
+#endif
       int iDevices;
       iDevices = pLAVVideoSettings->GetHWAccelNumDevices((LAVHWAccel)i);
       lavSettings.video_dwHWAccelDeviceIndex[(LAVHWAccel)i] = -1;
@@ -324,7 +326,10 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
             g_charsetConverter.wToUTF8(deviceInfo, sDeviceInfo);
             SysFreeString(deviceInfo);
           }
+
+#if TODO
           m_mapHWAccelDeviceInfo[i].emplace_back(sDeviceInfo, index);
+#endif
         }
       }
     }

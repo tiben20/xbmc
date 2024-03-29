@@ -56,7 +56,7 @@ private:
   ~CDSFilterVersion();
 
   static CDSFilterVersion* m_pSingleton;
-  void GetVersionByPath(const std::wstring &path, FilterVersion &filterVersion );
+  void GetVersionByPath(const CStdStringW &path, FilterVersion &filterVersion );
   void GetVersionByFilter(const std::string &type, bool bForceUpdate = false);
   std::wstring GetMadvrFilePath();
   std::map<std::string, FilterVersion> m_FilterVersions;

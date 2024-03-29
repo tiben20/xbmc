@@ -36,7 +36,6 @@ public:
     PROGRAMM
 #endif
   };
-
   explicit CStreamDetail(StreamType type) : m_eType(type), m_pParent(NULL) {}
   virtual ~CStreamDetail() = default;
   virtual bool IsWorseThan(const CStreamDetail &that) const = 0;

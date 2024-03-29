@@ -11,11 +11,11 @@ public:
   CMediaTypeEx();
   CMediaTypeEx(const CMediaType& mt) {CMediaType::operator = (mt);}
 
-  std::wstring ToString(IPin* pPin = NULL);
+  CStdStringW ToString(IPin* pPin = NULL);
 
-  static std::string GetVideoCodecName(const GUID& subtype, DWORD biCompression, DWORD *fourcc = NULL);
-  static std::string GetAudioCodecName(const GUID& subtype, WORD wFormatTag);
-  static std::string GetSubtitleCodecName(const GUID& subtype);
+  static CStdStringA GetVideoCodecName(const GUID& subtype, DWORD biCompression, DWORD *fourcc = NULL);
+  static CStdStringA GetAudioCodecName(const GUID& subtype, WORD wFormatTag);
+  static CStdStringA GetSubtitleCodecName(const GUID& subtype);
 
-  //void Dump(std::list<std::wstring>& sl);
+  //void Dump(std::list<CStdString>& sl);
 };

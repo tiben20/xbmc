@@ -91,7 +91,7 @@ public:
   void LoadDsXML(xmlType type, TiXmlElement* &pNode, bool forceCreate = false);
   void SaveDsXML(xmlType type);
   void GetPath(xmlType type, std::string &xmlFile, std::string &xmlNode, std::string &xmlRoot);
-  static void AllFiltersConfigOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void AllFiltersConfigOptionFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data);
   static void ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
   static void ShadersScaleOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
   static void DSFilterOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
