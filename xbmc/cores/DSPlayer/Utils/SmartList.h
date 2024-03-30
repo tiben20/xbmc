@@ -416,9 +416,20 @@ namespace Com
   protected:
     struct Node
     {
-      Node* pNext;
-      Node* pPrev;
-      void* data;
+      Node* prev;
+      Node* next;
+      T    item;
+
+      Node() : prev(NULL), next(NULL)
+      {
+      }
+
+      Node(T item) : prev(NULL), next(NULL)
+      {
+        this->item = item;
+      }
+
+      T Item() const { return item; }
     };
     HRESULT InsertAfter(Ptr item, Node *pBefore)
     {

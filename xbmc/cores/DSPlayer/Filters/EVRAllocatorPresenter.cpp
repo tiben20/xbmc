@@ -720,7 +720,7 @@ bool CEVRAllocatorPresenter::GetState(DWORD dwMilliSecsTimeout, FILTER_STATE *St
   if (m_bSignaledStarvation)
   {
     unsigned int nSamples = std::max<uint32_t>(m_nNbDXSurface / 2, 1U);
-    if ((m_ScheduledSamples.GetCount() < nSamples || m_LastSampleOffset < -m_rtTimePerFrame * 2) && !g_bNoDuration)
+    if ((m_ScheduledSamples.size() < nSamples || m_LastSampleOffset < -m_rtTimePerFrame * 2) && !g_bNoDuration)
     {
       *State = (FILTER_STATE)Paused;
       _ReturnValue = VFW_S_STATE_INTERMEDIATE;
@@ -1230,35 +1230,32 @@ bool CEVRAllocatorPresenter::GetImageFromMixer()
   LONGLONG llClockBefore = 0;
   LONGLONG llClockAfter = 0;
   LONGLONG llMixerLatency;
-  UINT dwSurface;
+  UINT32 dwSurface;
+  UINT32 nGroupId;
 
   bool bDoneSomething = false;
 
-  auto sampleHasCurrentGroupId = [this](IMFSample * pSample) {
-    UINT32 nGroupId;
-    return (SUCCEEDED(pSample->GetUINT32(GUID_GROUP_ID, &nGroupId)) && nGroupId == m_nCurrentGroupId);
-  };
-
   while (SUCCEEDED(hr)) {
-    Com::SmartPtr<IMFSample>    pSample;
-
+    Microsoft::WRL::ComPtr<IMFSample> pSample;
+    
     if (FAILED(GetFreeSample(&pSample))) {
+      m_bWaitingSample = true;
       break;
     }
 
     ZeroMemory(&dataBuffer, sizeof(dataBuffer));
-    dataBuffer.pSample = pSample;
+    dataBuffer.pSample = pSample.Get();
+    
     pSample->GetUINT32(GUID_SURFACE_INDEX, &dwSurface);
-    ASSERT(sampleHasCurrentGroupId(pSample));
-
+    pSample->GetUINT32(GUID_GROUP_ID, &nGroupId);
     {
       llClockBefore = CDSTimeUtils::GetPerfCounter();
       hr = m_pMixer->ProcessOutput(0, 1, &dataBuffer, &dwStatus);
       llClockAfter = CDSTimeUtils::GetPerfCounter();
     }
 
-    if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT) {
-      MoveToFreeList(pSample, false);
+    if (FAILED(hr)) {
+      MoveToFreeList(pSample.Get(), false);
       pSample = nullptr; // The sample should not be used after being queued
                          // Important: Release any events returned from the ProcessOutput method.
       SAFE_RELEASE(dataBuffer.pEvents);
@@ -1277,8 +1274,8 @@ bool CEVRAllocatorPresenter::GetImageFromMixer()
 
     TRACE_EVR("EVR: Get from Mixer : %u  (%I64d) (%I64d)\n", dwSurface, nsSampleTime, m_rtTimePerFrame ? nsSampleTime / m_rtTimePerFrame : 0);
 
-    if (SUCCEEDED(TrackSample(pSample))) {
-      MoveToScheduledList(pSample, false);
+    if (SUCCEEDED(TrackSample(pSample.Get()))) {
+      MoveToScheduledList(pSample.Get(), false);
       pSample = nullptr; // The sample should not be used after being queued
       bDoneSomething = true;
     }
@@ -1617,7 +1614,7 @@ STDMETHODIMP CEVRAllocatorPresenter::InitializeDevice(AM_MEDIA_TYPE*  pMediaType
 
   for (size_t i = 0; i < m_nNbDXSurface; i++)
   {
-    Com::SmartPtr<IMFSample>    pMFSample;
+    IMFSample*    pMFSample;
     hr = pfMFCreateVideoSampleFromSurface(m_pVideoSurface[i], &pMFSample);
 
     if (SUCCEEDED(hr))
@@ -1625,7 +1622,7 @@ STDMETHODIMP CEVRAllocatorPresenter::InitializeDevice(AM_MEDIA_TYPE*  pMediaType
       pMFSample->SetUINT32(GUID_GROUP_ID, m_nCurrentGroupId);
       pMFSample->SetUINT32(GUID_SURFACE_INDEX, i);
       CAutoLock sampleQueueLock(&m_SampleQueueLock);
-      m_FreeSamples.InsertBack(pMFSample);
+      m_FreeSamples.emplace_back(pMFSample);
       pMFSample = nullptr; // The sample should not be used after being queued
     }
     ASSERT(SUCCEEDED(hr));
@@ -2206,16 +2203,15 @@ void CEVRAllocatorPresenter::RenderThread()
 
   timeGetDevCaps(&tc, sizeof(TIMECAPS));
   DWORD dwResolution = std::min(std::max(tc.wPeriodMin, 0u), tc.wPeriodMax);
-  if (timeBeginPeriod(dwResolution) == 0)
+  if (timeBeginPeriod(dwResolution) == TIMERR_NOCANDO)
   {
-    //TODO before they were using VERIFY
-    ASSERT(0);
+    CLog::Log(LOGERROR, "CEVRAllocatorPresenter::RenderThread timeBeginPeriod TIMERR_NOCANDO");
   }
 
   auto checkPendingMediaFinished = [this]() {
     if (m_bPendingMediaFinished) {
       CAutoLock lock(&m_SampleQueueLock);
-      if (m_ScheduledSamples.IsEmpty()) {
+      if (m_ScheduledSamples.size() == 0) {
         m_bPendingMediaFinished = false;
         m_pSink->Notify(EC_COMPLETE, 0, 0);
       }
@@ -2274,7 +2270,7 @@ void CEVRAllocatorPresenter::RenderThread()
 
       //if (WaitForMultipleObjects (_countof(hEvtsBuff), hEvtsBuff, FALSE, INFINITE) == WAIT_OBJECT_0+2)
       {
-        Com::SmartPtr<IMFSample> pMFSample;
+        Microsoft::WRL::ComPtr<IMFSample> pMFSample;
         //LONGLONG llPerf2 = GetRenderersData()->GetPerfCounter();
         //UNREFERENCED_PARAMETER(llPerf2);
         int nSamplesLeft = 0;
@@ -2549,7 +2545,7 @@ void CEVRAllocatorPresenter::RenderThread()
             checkPendingMediaFinished();
           }
           else {
-            MoveToScheduledList(pMFSample, true);
+            MoveToScheduledList(pMFSample.Get(), true);
             pMFSample = nullptr; // The sample should not be used after being queued
           }
 
@@ -2607,13 +2603,13 @@ void CEVRAllocatorPresenter::AfterDeviceReset()
 
   for (size_t i = 0; i < m_nNbDXSurface; i++)
   {
-    Com::SmartPtr<IMFSample>  pMFSample;
+    Microsoft::WRL::ComPtr<IMFSample>  pMFSample;
     HRESULT hr = pfMFCreateVideoSampleFromSurface(m_pVideoSurface[i], &pMFSample);
 
     if (SUCCEEDED(hr))
     {
       pMFSample->SetUINT32(GUID_SURFACE_INDEX, i);
-      m_FreeSamples.InsertBack(pMFSample);
+      m_FreeSamples.emplace_back(pMFSample);
     }
     ASSERT(SUCCEEDED(hr));
   }
@@ -2634,8 +2630,8 @@ void CEVRAllocatorPresenter::RemoveAllSamples()
   CAutoLock sampleQueueLock(&m_SampleQueueLock);
 
   FlushSamples();
-  m_ScheduledSamples.Clear();
-  m_FreeSamples.Clear();
+  m_ScheduledSamples.clear();
+  m_FreeSamples.clear();
   m_LastScheduledSampleTime = -1;
   m_LastScheduledUncorrectedSampleTime = -1;
   m_nUsedBuffer = 0;
@@ -2648,11 +2644,11 @@ HRESULT CEVRAllocatorPresenter::GetFreeSample(IMFSample** ppSample)
   CAutoLock lock(&m_SampleQueueLock);
   HRESULT    hr = S_OK;
 
-  if (m_FreeSamples.GetCount() > 1)  // <= Cannot use first free buffer (can be currently displayed)
+  if (m_FreeSamples.size() > 1)  // <= Cannot use first free buffer (can be currently displayed)
   {
     InterlockedIncrement(&m_nUsedBuffer);
     //*ppSample = m_FreeSamples.RemoveHead().Detach();
-    m_FreeSamples.RemoveFront(ppSample);
+    *ppSample = m_FreeSamples.front().Detach(); m_FreeSamples.pop_front();
   }
   else
     hr = MF_E_SAMPLEALLOCATOR_EMPTY;
@@ -2665,15 +2661,14 @@ HRESULT CEVRAllocatorPresenter::GetScheduledSample(IMFSample** ppSample, int &_C
   CAutoLock lock(&m_SampleQueueLock);
   HRESULT    hr = S_OK;
 
-  _Count = m_ScheduledSamples.GetCount();
-  if (_Count > 0)
-  {
-    //*ppSample = m_ScheduledSamples.RemoveHead().Detach();
-    m_ScheduledSamples.RemoveFront(ppSample);
+  _Count = (int)m_ScheduledSamples.size();
+  if (_Count > 0) {
+    *ppSample = m_ScheduledSamples.front().Detach(); m_ScheduledSamples.pop_front();
     --_Count;
   }
-  else
+  else {
     hr = MF_E_SAMPLEALLOCATOR_EMPTY;
+  }
 
   return hr;
 }
@@ -2685,11 +2680,12 @@ void CEVRAllocatorPresenter::MoveToFreeList(IMFSample* pSample, bool bTail)
 
   m_nUsedBuffer--;
   if (bTail) {
-    m_FreeSamples.InsertBack(pSample);
+    m_FreeSamples.emplace_back(pSample);
   }
   else {
-    m_FreeSamples.InsertFront(pSample);
+    m_FreeSamples.emplace_front(pSample);
   }
+
 }
 
 
@@ -2715,7 +2711,7 @@ void CEVRAllocatorPresenter::MoveToScheduledList(IMFSample* pSample, bool _bSort
     }
     }*/
 
-    m_ScheduledSamples.InsertFront(pSample);
+    m_ScheduledSamples.emplace_front(pSample);
   }
   else {
     double ForceFPS = 0.0;
@@ -2920,7 +2916,7 @@ void CEVRAllocatorPresenter::MoveToScheduledList(IMFSample* pSample, bool _bSort
 #endif
     m_LastScheduledSampleTime = Time;
 
-    m_ScheduledSamples.InsertBack(pSample);
+    m_ScheduledSamples.emplace_back(pSample);
   }
 }
 
@@ -2931,7 +2927,7 @@ void CEVRAllocatorPresenter::FlushSamples()
   CAutoLock lock3(&m_RenderLock);
 
   m_pCurrentlyDisplayedSample = nullptr;
-  m_ScheduledSamples.Clear();
+  m_ScheduledSamples.clear();
 
   m_LastSampleOffset = 0;
   m_bLastSampleOffsetValid = false;

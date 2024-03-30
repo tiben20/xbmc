@@ -235,7 +235,7 @@ HRESULT CFilterCoreFactory::GetShaders(const CFileItem& pFileItem, std::vector<u
 
 CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, bool showError)
 {
-#if TODO
+
   std::string filter = _filter;
 
   // Right now we only have the rar source filter
@@ -247,12 +247,18 @@ CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, boo
     }
   }
 
-  std::vector<CFGFilterFile *>::const_iterator it = std::find_if(m_Filters.begin(),
-    m_Filters.end(), std::bind(std::not_fn(CompareCFGFilterFileToString), filter));
-
-  if (it == m_Filters.end())
+  for (std::vector<CFGFilterFile*>::const_iterator it = m_Filters.begin(); it != m_Filters.end(); it++)
   {
-    CLog::Log(LOGERROR, "%s Filter \"%s\" isn't loaded. Please check dsfilterconfig.xml", __FUNCTION__, filter.c_str());
+    if (CompareCFGFilterFileToString(*it, filter))
+    {
+      CLog::Log(LOGINFO, "{} Filter \"{}\" found", __FUNCTION__, filter.c_str());
+      return *it;
+      
+    }
+  }
+
+
+    CLog::Log(LOGERROR, "{} Filter \"{}\" isn't loaded. Please check dsfilterconfig.xml", __FUNCTION__, filter.c_str());
     if (showError)
     {
       CGUIDialogOK *dialog = (CGUIDialogOK *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_OK);
@@ -267,11 +273,7 @@ CFGFilter* CFilterCoreFactory::GetFilterFromName(const std::string& _filter, boo
 
     return NULL;
 
-  }
 
-  return (*it);
-#endif
-  return NULL;
 }
 std::vector<CGlobalFilterSelectionRule *> CFilterCoreFactory::m_selecRules;
 std::vector<CFGFilterFile *> CFilterCoreFactory::m_Filters;

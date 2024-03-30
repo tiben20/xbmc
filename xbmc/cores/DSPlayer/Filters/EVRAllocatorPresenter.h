@@ -220,8 +220,8 @@ private:
   CCritSec                 m_ImageProcessingLock;
   CCriticalSection         m_DisplaydSampleQueueLock;
 
-  VideoSampleList          m_FreeSamples;
-  VideoSampleList          m_ScheduledSamples;
+  std::deque<Microsoft::WRL::ComPtr<IMFSample>> m_FreeSamples;
+  std::deque<Microsoft::WRL::ComPtr<IMFSample>> m_ScheduledSamples;
 
   AsyncCallback<CEVRAllocatorPresenter> m_SampleFreeCallback;
   Com::SmartPtr<IMFSample> m_pCurrentlyDisplayedSample;

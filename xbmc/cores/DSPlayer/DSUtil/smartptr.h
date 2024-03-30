@@ -2,6 +2,9 @@
 #ifndef _SMARTPTR_H
 #define _SMARTPTR_H
 
+
+
+
 /*
  *      Copyright (C) 2005-2010 Team XBMC
  *      http://www.xbmc.org
@@ -26,10 +29,10 @@
 #ifndef SMARTASSUME
 #define SMARTASSUME(expr) do { _ASSERTE(expr); __analysis_assume(!!(expr)); } while(0)
 #endif
-// SmartPtr.h
-//
-// Defines a smart pointer class that does not depend on any ATL headers
-// From a Microsoft Sample
+ // SmartPtr.h
+ //
+ // Defines a smart pointer class that does not depend on any ATL headers
+ // From a Microsoft Sample
 #ifndef _GEOMETRYHELPER_H
 #include "Geometry.h"
 #endif
@@ -42,42 +45,42 @@ namespace Com
   ///////////////////////////////////////////////////////////////////////
 
   template <class T1, class T2>
-  bool AreComObjectsEqual(T1 *p1, T2 *p2)
+  bool AreComObjectsEqual(T1* p1, T2* p2)
   {
-      bool bResult = false;
-      if (p1 == NULL && p2 == NULL)
+    bool bResult = false;
+    if (p1 == NULL && p2 == NULL)
+    {
+      // Both are NULL
+      bResult = true;
+    }
+    else if (p1 == NULL || p2 == NULL)
+    {
+      // One is NULL and one is not
+      bResult = false;
+    }
+    else
+    {
+      // Both are not NULL. Compare IUnknowns.
+      IUnknown* pUnk1 = NULL;
+      IUnknown* pUnk2 = NULL;
+      if (SUCCEEDED(p1->QueryInterface(IID_IUnknown, (void**)&pUnk1)))
       {
-          // Both are NULL
-          bResult = true;
+        if (SUCCEEDED(p2->QueryInterface(IID_IUnknown, (void**)&pUnk2)))
+        {
+          bResult = (pUnk1 == pUnk2);
+          pUnk2->Release();
+        }
+        pUnk1->Release();
       }
-      else if (p1 == NULL || p2 == NULL)
-      {
-          // One is NULL and one is not
-          bResult = false;
-      }
-      else 
-      {
-          // Both are not NULL. Compare IUnknowns.
-          IUnknown *pUnk1 = NULL;
-          IUnknown *pUnk2 = NULL;
-          if (SUCCEEDED(p1->QueryInterface(IID_IUnknown, (void**)&pUnk1)))
-          {
-              if (SUCCEEDED(p2->QueryInterface(IID_IUnknown, (void**)&pUnk2)))
-              {
-                  bResult = (pUnk1 == pUnk2);
-                  pUnk2->Release();
-              }
-              pUnk1->Release();
-          }
-      }
-      return bResult;
+    }
+    return bResult;
   }
-  
+
   inline __declspec(nothrow) IUnknown* __stdcall SmartPtrAssign(IUnknown** pp, IUnknown* lp)
   {
     if (pp == NULL)
       return NULL;
-      
+
     if (lp != NULL)
       lp->AddRef();
     if (*pp)
@@ -111,8 +114,8 @@ namespace Com
   class _NoAddRefOrRelease : public T
   {
   private:
-      STDMETHOD_(ULONG, AddRef)() = 0;
-      STDMETHOD_(ULONG, Release)() = 0;
+    STDMETHOD_(ULONG, AddRef)() = 0;
+    STDMETHOD_(ULONG, Release)() = 0;
   };
 
   template <class T>
@@ -126,92 +129,93 @@ namespace Com
     }
 
     // Ctor
-    SmartPtrBase(T *ptr)
+    SmartPtrBase(T* ptr)
     {
-        m_ptr = ptr;
-        if (m_ptr)
-        {
-            m_ptr->AddRef();
-        }
+      m_ptr = ptr;
+      if (m_ptr)
+      {
+        m_ptr->AddRef();
+      }
     }
 
     // Copy ctor
     SmartPtrBase(const SmartPtrBase& sptr)
     {
-        m_ptr = sptr.m_ptr;
-        if (m_ptr)
-        {
-            m_ptr->AddRef();
-        }
+      m_ptr = sptr.m_ptr;
+      if (m_ptr)
+      {
+        m_ptr->AddRef();
+      }
     }
-    
+
   public:
     typedef T _PtrClass;
     // Dtor
-    ~SmartPtrBase() 
-    { 
-        if (m_ptr)
-        {
-            m_ptr->Release();
-        }
+    ~SmartPtrBase()
+    {
+      if (m_ptr)
+      {
+        m_ptr->Release();
+      }
     }
     T* operator=(_In_opt_ T* lp) throw()
     {
-        if(*this!=lp)
-        {
+      if (*this != lp)
+      {
         return static_cast<T*>(AtlComPtrAssign((IUnknown**)&m_ptr, lp));
-        }
-        return *this;
+      }
+      return *this;
     }
     // Assignment
     SmartPtrBase& operator=(const SmartPtrBase& sptr)
     {
-        
-        if (!AreComObjectsEqual(m_ptr, sptr.m_ptr))
-        {
-            if (m_ptr)
-            {
-                m_ptr->Release();
-            }
 
-            m_ptr = sptr.m_ptr;
-            if (m_ptr)
-            {
-                m_ptr->AddRef();
-            }
+      if (!AreComObjectsEqual(m_ptr, sptr.m_ptr))
+      {
+        if (m_ptr)
+        {
+          m_ptr->Release();
         }
-        return *this;
+
+        m_ptr = sptr.m_ptr;
+        if (m_ptr)
+        {
+          m_ptr->AddRef();
+        }
+      }
+      return *this;
     }
 
     // address-of operator
     T** operator&()
     {
+
       return &m_ptr;
     }
 
     // dereference operator
     _NoAddRefOrRelease<T>* operator->()
     {
-        return (_NoAddRefOrRelease<T>*)m_ptr;
+      return (_NoAddRefOrRelease<T>*)m_ptr;
     }
 
     // coerce to underlying pointer type.
-    operator T*()
+    operator T* ()
     {
-        return m_ptr;
+      return m_ptr;
     }
-    
+
     T& operator*() const
     {
-      ASSERT( m_ptr != NULL );
+      ASSERT(m_ptr != NULL);
       return *m_ptr;
     }
-    
+
     bool operator!()
     {
       return (m_ptr == NULL);
     }
-    
+
     bool operator<(T* pT)
     {
       return m_ptr < pT;
@@ -220,20 +224,20 @@ namespace Com
     // Templated version of QueryInterface
 
     template <class Q> // Q is another interface type
-    HRESULT QueryInterface(Q **ppQ)
+    HRESULT QueryInterface(Q** ppQ)
     {
       return m_ptr->QueryInterface(__uuidof(Q), (void**)ppQ);
     }
- 
-    HRESULT CreateInstance(REFCLSID clsid, LPUNKNOWN pUnkOuter = NULL,DWORD dwClsContext = CLSCTX_ALL)
+
+    HRESULT CreateInstance(REFCLSID clsid, LPUNKNOWN pUnkOuter = NULL, DWORD dwClsContext = CLSCTX_ALL)
     {
-    ASSERT(m_ptr == NULL);
-      return CoCreateInstance(clsid,pUnkOuter, dwClsContext, __uuidof(T),(void **)&m_ptr);
+      ASSERT(m_ptr == NULL);
+      return CoCreateInstance(clsid, pUnkOuter, dwClsContext, __uuidof(T), (void**)&m_ptr);
     }
     // safe Release() method
     ULONG Release()
     {
-      T *ptr = m_ptr;
+      T* ptr = m_ptr;
       ULONG result = 0;
       if (ptr)
       {
@@ -283,7 +287,7 @@ namespace Com
     }
 
     // Attach to an existing interface (does not AddRef)
-    void Attach(T* p) 
+    void Attach(T* p)
     {
       if (m_ptr)
       {
@@ -291,13 +295,13 @@ namespace Com
       }
       m_ptr = p;
     }
-        
+
     // Detach the interface (does not Release)
     T* Detach()
     {
-        T* p = m_ptr;
-        m_ptr = NULL;
-        return p;
+      T* p = m_ptr;
+      m_ptr = NULL;
+      return p;
     }
 
     HRESULT CoCreateInstance(REFCLSID rclsid, LPUNKNOWN pUnkOuter = NULL, DWORD dwClsContext = CLSCTX_ALL)
@@ -320,24 +324,24 @@ namespace Com
       ASSERT(pp != NULL);
       return m_ptr->QueryInterface(__uuidof(Q), (void**)pp);
     }
-    
+
     // equality operator
-    bool operator==(T *ptr) const
+    bool operator==(T* ptr) const
     {
       return m_ptr == ptr;
-        //return AreComObjectsEqual(m_ptr, ptr);
+      //return AreComObjectsEqual(m_ptr, ptr);
     }
 
     // inequality operator
-    bool operator!=(T *ptr) const
+    bool operator!=(T* ptr) const
     {
-        return !operator==(ptr);
+      return !operator==(ptr);
     }
 
   public:
-    T *m_ptr;
+    T* m_ptr;
   };
-  
+
   template <class T>
   class SmartPtr : public SmartPtrBase<T>
   {
@@ -356,7 +360,7 @@ namespace Com
     }
     T* operator=(T* lp) throw()
     {
-      if(*this!=lp)
+      if (*this != lp)
       {
         return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
       }
@@ -365,7 +369,7 @@ namespace Com
     template <typename Q>
     T* operator=(const SmartPtr<Q>& lp) throw()
     {
-      if( !AreComObjectsEqual(*this, lp) )
+      if (!AreComObjectsEqual(*this, lp))
       {
         return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp.m_ptr, __uuidof(T)));
       }
@@ -373,7 +377,7 @@ namespace Com
     }
     T* operator=(const SmartPtr<T>& lp) throw()
     {
-      if( !AreComObjectsEqual(m_ptr, lp.m_ptr) )
+      if (!AreComObjectsEqual(m_ptr, lp.m_ptr))
       {
         return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
       }
@@ -389,17 +393,17 @@ namespace Com
     {
     }
     SmartPtrForList(T* lp) throw() :
-    SmartPtr<T>(lp)
+      SmartPtr<T>(lp)
 
     {
     }
     SmartPtrForList(const SmartPtr<T>& lp) throw() :
-    SmartPtr<T>(lp)
+      SmartPtr<T>(lp)
     {
     }
     T* operator=(T* lp) throw()
     {
-      if(*this!=lp)
+      if (*this != lp)
       {
         return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
       }
@@ -408,7 +412,7 @@ namespace Com
     template <typename Q>
     T* operator=(const SmartPtr<Q>& lp) throw()
     {
-      if( !AreComObjectsEqual(*this, lp) )
+      if (!AreComObjectsEqual(*this, lp))
       {
         return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp.m_ptr, __uuidof(T)));
       }
@@ -416,7 +420,7 @@ namespace Com
     }
     T* operator=(const SmartPtr<T>& lp) throw()
     {
-      if( !AreComObjectsEqual(m_ptr, lp.m_ptr) )
+      if (!AreComObjectsEqual(m_ptr, lp.m_ptr))
       {
         return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
       }
@@ -436,21 +440,21 @@ namespace Com
     {
     }
     SmartQIPtr(T* lp) throw() :
-    SmartPtr<T>(lp)
+      SmartPtr<T>(lp)
     {
     }
     SmartQIPtr(const SmartQIPtr<T, piid>& lp) throw() :
-    SmartPtr<T>(lp)
+      SmartPtr<T>(lp)
     {
     }
     SmartQIPtr(IUnknown* lp) throw()
     {
       if (lp != NULL)
-        lp->QueryInterface(*piid, (void **)&m_ptr);
+        lp->QueryInterface(*piid, (void**)&m_ptr);
     }
     T* operator=(T* lp) throw()
     {
-      if( m_ptr != lp)
+      if (m_ptr != lp)
       {
         return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
       }
@@ -458,7 +462,7 @@ namespace Com
     }
     T* operator=(const SmartQIPtr<T, piid>& lp) throw()
     {
-      if( m_ptr != lp.m_ptr)
+      if (m_ptr != lp.m_ptr)
       {
         return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
       }
@@ -466,7 +470,7 @@ namespace Com
     }
     T* operator=(_In_opt_ IUnknown* lp) throw()
     {
-      if( m_ptr != lp)
+      if (m_ptr != lp)
       {
         return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp, *piid));
       }
@@ -479,15 +483,15 @@ namespace Com
   {
   public:
     SmartAutoVectorPtr() throw() :
-      m_p( NULL )
+      m_p(NULL)
     {
     }
-    SmartAutoVectorPtr( SmartAutoVectorPtr< T >& p ) throw()
+    SmartAutoVectorPtr(SmartAutoVectorPtr< T >& p) throw()
     {
       m_p = p.Detach();  // Transfer ownership
     }
-    explicit SmartAutoVectorPtr( T* p ) throw() :
-      m_p( p )
+    explicit SmartAutoVectorPtr(T* p) throw() :
+      m_p(p)
     {
     }
     ~SmartAutoVectorPtr() throw()
@@ -495,20 +499,20 @@ namespace Com
       Free();
     }
 
-    operator T*() const throw()
+    operator T* () const throw()
     {
-      return( m_p );
+      return(m_p);
     }
 
-    SmartAutoVectorPtr< T >& operator=( SmartAutoVectorPtr< T >& p ) throw()
+    SmartAutoVectorPtr< T >& operator=(SmartAutoVectorPtr< T >& p) throw()
     {
-      if(*this==p)
+      if (*this == p)
       {
-        if(m_p == NULL)
+        if (m_p == NULL)
         {
           // This branch means both two pointers are NULL, do nothing.
         }
-        else if(this!=&p)
+        else if (this != &p)
         {
           // If this assert fires, it means you attempted to assign one SmartAutoVectorPtr to another when they both contained 
           // a pointer to the same underlying vector. This means a bug in your code, since your vector will get 
@@ -530,9 +534,9 @@ namespace Com
       else
       {
         Free();
-        Attach( p.Detach() );  // Transfer ownership
+        Attach(p.Detach());  // Transfer ownership
       }
-      return( *this );
+      return(*this);
     }
 
     // basic comparison operators
@@ -543,25 +547,25 @@ namespace Com
 
     bool operator==(SmartAutoVectorPtr<T>& p) const
     {
-      return m_p==p.m_p;
+      return m_p == p.m_p;
     }
 
     // Allocate the vector
-    bool Allocate( size_t nElements ) throw()
+    bool Allocate(size_t nElements) throw()
     {
-      ASSERT( m_p == NULL );
+      ASSERT(m_p == NULL);
       m_p = new T[nElements];
-      if( m_p == NULL )
+      if (m_p == NULL)
       {
-        return( false );
+        return(false);
       }
 
-      return( true );
+      return(true);
     }
     // Attach to an existing pointer (takes ownership)
-    void Attach( T* p ) throw()
+    void Attach(T* p) throw()
     {
-      SMARTASSUME( m_p == NULL );
+      SMARTASSUME(m_p == NULL);
       m_p = p;
     }
     // Detach the pointer (releases ownership)
@@ -572,7 +576,7 @@ namespace Com
       p = m_p;
       m_p = NULL;
 
-      return( p );
+      return(p);
     }
     // Delete the vector pointed to, and set the pointer to NULL
     void Free() throw()
