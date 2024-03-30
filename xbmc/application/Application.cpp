@@ -172,7 +172,9 @@
 #ifndef TARGET_POSIX
 #include "platform/win32/threads/Win32Exception.h"
 #endif
-
+#ifdef HAS_DS_PLAYER
+#include "cores/DSPlayer/Filters/RendererSettings.h"
+#endif
 #include <cmath>
 #include <memory>
 #include <mutex>
@@ -340,6 +342,11 @@ bool CApplication::Create()
   profileManager->CreateProfileFolders();
 
   update_emu_environ();//apply the GUI settings
+
+#if HAS_DS_PLAYER // DSPlayer
+  g_dsSettings.Initialize();
+  g_dsSettings.LoadConfig();
+#endif
 
   // application inbound service
   m_pAppPort = std::make_shared<CAppInboundProtocol>(*this);

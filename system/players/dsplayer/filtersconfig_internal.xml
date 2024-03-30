@@ -1,0 +1,67 @@
+<filtersconfig>
+  <filters>
+    <filter name="lavvideo_internal" type="videodec">
+     <path>LAVFilters/LAVVideo.ax</path>
+     <guid>{EE30215D-164F-4A92-A4EB-9D4C13390F9F}</guid>
+     <osdname>(i) LAV Video</osdname>
+    </filter>
+    <filter name="lavaudio_internal" type="audiodec">
+     <path>LAVFilters/LAVAudio.ax</path>
+     <guid>{E8E73B6B-4CB3-44A4-BE99-4F7BCB96E491}</guid>
+     <osdname>(i) LAV Audio</osdname>
+    </filter>
+    <filter name="lavsource_internal" type="source">
+     <path>LAVFilters/LAVSplitter.ax</path>
+     <osdname>(i) LAV Splitter Source</osdname>
+     <guid>{B98D13E7-55DB-4385-A33D-09FD1BA26338}</guid>
+    </filter>
+    <filter name="lavsplitter_internal" type="splitter">
+     <path>LAVFilters/LAVSplitter.ax</path>
+     <osdname>(i) LAV Splitter</osdname>
+     <guid>{171252A0-8820-4AFE-9DF8-5C92B2D66B04}</guid>
+    </filter>
+    <filter name="xysubfilter_internal" type="subs">
+     <path>XySubFilter/XySubFilter.dll</path>
+     <osdname>(i) XySubFilter</osdname>
+     <guid>{2DFCB782-EC20-4A7C-B530-4577ADB33F21}</guid>
+    </filter>
+    <filter name="xyvsfilter_internal" type="subs">
+     <path>XyVSFilter/VSFilter.dll</path>
+      <guid>{9852A670-F845-491B-9BE6-EBD841B8A613}</guid>
+      <osdname>(i) XyVSFilter</osdname>
+    </filter>
+    <filter name="tsreader_internal" type="source">
+      <path>TsReader/TsReader.ax</path>
+      <guid>{B9559486-E1BB-45D3-A2A2-9A7AFE49B23F}</guid>
+      <issplitter>true</issplitter>
+      <osdname>(i) MediaPortal File Reader</osdname>
+    </filter>
+    <filter name="wmasfreader" type="source">
+      <guid>{187463A0-5BB7-11D3-ACBE-0080C75E246E}</guid>
+      <osdname>WM ASF Reader</osdname>
+    </filter>
+    <filter name="urlfilesource" type="source">
+      <guid>{E436EBB6-524F-11CE-9F53-0020AF0BA770}</guid>
+      <issplitter>false</issplitter>
+      <osdname>File Source (URL)</osdname>
+    </filter>
+    <filter name="avsource" type="source">
+      <path>AVSplitter.ax</path>
+      <guid>{D8980E15-E1F6-4916-A10F-D7EB4E9E10B8}</guid>
+      <osdname>AV Source</osdname>
+    </filter>
+    <filter name="dvdnavigator" type="source">
+      <guid>{9B8C4620-2C1A-11D0-8493-00A02438AD48}</guid>
+      <osdname>DVD Navigator</osdname>
+    </filter>
+    <filter name="oggsource" type="source">
+      <path>OggSplitter.ax</path>
+      <guid>{6D3688CE-3E9D-42F4-92CA-8A11119D25CD}</guid>
+      <osdname>Ogg Source</osdname>
+    </filter>
+    <filter name="realsource" type="source">
+      <guid>{765035B3-5944-4A94-806B-20EE3415F26F}</guid>
+      <osdname>RealAlternative Source</osdname>
+    </filter>
+  </filters>
+</filtersconfig>

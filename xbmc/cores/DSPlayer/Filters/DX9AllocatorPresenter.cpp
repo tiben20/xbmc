@@ -292,9 +292,9 @@ CDX9AllocatorPresenter::CDX9AllocatorPresenter(HWND hWnd, HRESULT& hr, bool bIsE
   m_DetectedScanlineTime = 0;
   m_DetectedScanlineTimePrim = 0;
   m_DetectedRefreshRate = 0;
-
   if (g_dsSettings.pRendererSettings == nullptr)
     g_dsSettings.pRendererSettings = new CEVRRendererSettings();
+
   if (g_dsSettings.pRendererSettings->disableDesktopComposition)
   {
     m_bDesktopCompositionDisabled = true;

@@ -56,6 +56,7 @@
               <option label="36035">1</option> <!-- ADJUST_REFRESHRATE_ALWAYS -->
               <option label="36036">2</option> <!-- ADJUST_REFRESHRATE_ON_STARTSTOP -->
               <option label="36050">3</option> <!-- ADJUST_REFRESHRATE_ON_START -->
+			  <option label="55071">4</option> <!-- ADJUST_REFRESHRATE_WITH_DSPLAYER -->
             </options>
           </constraints>
           <control type="list" format="string" />
@@ -867,6 +868,490 @@
           <control type="button" format="addon">
             <show more="true" details="true">installed</show>
           </control>
+        </setting>
+      </group>
+    </category>
+	<category id="dsplayer" label="55000" help="90025">
+      <group id="1" label="55000">
+        <setting id="dsplayer.defaultvideoplayer" type="boolean" label="55031" help="90000">
+          <level>0</level>
+          <default>true</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.playercore" type="action" parent="dsplayer.defaultvideoplayer" label="66001" help="90001">
+          <level>0</level>
+          <dependencies>
+            <dependency type="enable" setting="dsplayer.defaultvideoplayer" operator="is">true</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+      </group>
+      <group id="2" label="55095">
+        <setting id="dsplayer.videorenderer" type="string" label="55001" help="90002">
+          <level>0</level>
+          <default>madVR</default>
+          <constraints>
+            <options>dsvideorenderer</options>
+          </constraints>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.madvrsettingswithkodi" parent="dsplayer.videorenderer" type="integer" label="55064" help="90003">
+          <level>0</level>
+          <default>1</default> <!-- never -->
+          <constraints>
+            <options>
+              <option label="20420">0</option> <!-- never -->
+              <option label="55075">1</option> <!-- load by dsplayer db -->
+              <option label="55076">2</option> <!-- load by madvr profile -->
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.delaymadvrplayback" parent="dsplayer.videorenderer" type="boolean" label="55065" help="90004">
+          <level>0</level>
+          <default>true</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.exclusivemode" parent="dsplayer.videorenderer" type="boolean" label="55063" help="90005">
+          <level>0</level>
+          <default>false</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.exitmadvrfullscreen" parent="dsplayer.videorenderer" type="boolean" label="55074" help="90006">
+          <level>0</level>
+          <default>false</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="enable" setting="dsplayer.exclusivemode" operator="is">true</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.d3dpresentation" parent="dsplayer.videorenderer" type="integer" label="55103" help="90030">
+          <level>0</level>
+          <default>0</default> <!-- Direct3D 9 -->
+          <constraints>
+            <options>
+              <option label="55119">-1</option> <!-- madVR decide -->
+              <option label="55104">0</option> <!-- Direct3D 9 -->
+              <option label="55105">1</option> <!-- Direct3D 11 -->
+              <option label="55106">2</option> <!-- Direct3D 11 (no vsync) -->
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.numpresentwindowed" parent="dsplayer.videorenderer" type="integer" label="55107" help="90029">
+          <level>0</level>
+          <default>8</default> <!-- 8 frames -->
+          <constraints>
+            <options>
+              <option label="55119">-1</option> <!-- madVR decide -->
+              <option label="55109">1</option> <!-- 1 frame -->
+              <option label="55110">2</option> <!-- 2 frames -->
+              <option label="55111">3</option> <!-- 3 frames -->
+              <option label="55112">4</option> <!-- 4 frames -->
+              <option label="55113">6</option> <!-- 6 frames -->
+              <option label="55114">8</option> <!-- 8 frames -->
+              <option label="55115">10</option> <!-- 10 frames -->
+              <option label="55116">12</option> <!-- 12 frames -->
+              <option label="55117">14</option> <!-- 14 frames -->
+              <option label="55118">16</option> <!-- 16 frames -->
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.numpresentexclusive" parent="dsplayer.videorenderer" type="integer" label="55108" help="90029">
+          <level>0</level>
+          <default>8</default> <!-- 8 frames -->
+          <constraints>
+            <options>
+              <option label="55119">-1</option> <!-- madVR decide -->
+              <option label="55109">1</option> <!-- 1 frame -->
+              <option label="55110">2</option> <!-- 2 frames -->
+              <option label="55111">3</option> <!-- 3 frames -->
+              <option label="55112">4</option> <!-- 4 frames -->
+              <option label="55113">6</option> <!-- 6 frames -->
+              <option label="55114">8</option> <!-- 8 frames -->
+              <option label="55115">10</option> <!-- 10 frames -->
+              <option label="55116">12</option> <!-- 12 frames -->
+              <option label="55117">14</option> <!-- 14 frames -->
+              <option label="55118">16</option> <!-- 16 frames -->
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.audiorenderer" type="string" label="55003" help="90007">
+          <level>0</level>
+          <default>sanear_internal</default>
+          <constraints>
+            <options>dsaudiorenderer</options>
+          </constraints>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.saneardevices" parent="dsplayer.audiorenderer" type="string" label="55120" help="">
+          <level>0</level>
+          <default>System Default</default>
+          <constraints>
+            <options>saneardevices</options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.sanearexclusive" parent="dsplayer.audiorenderer" type="boolean" label="55121" help="">
+          <level>0</level>
+          <default>true</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.sanearallowbitstream" parent="dsplayer.audiorenderer" type="boolean" label="55122" help="">
+          <level>0</level>
+          <default>true</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+            <dependency type="enable" setting="dsplayer.sanearexclusive" operator="is">true</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.sanearignoresystemchannelmixer" parent="dsplayer.audiorenderer" type="boolean" label="55133" help="">
+          <level>0</level>
+          <default>true</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.sanearstereocrossfeed" parent="dsplayer.audiorenderer" type="boolean" label="55124" help="">
+          <level>0</level>
+          <default>false</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.sanearcmoy" parent="dsplayer.audiorenderer" type="action" label="55125" help="">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+            <dependency type="visible" setting="dsplayer.sanearstereocrossfeed" operator="is">true</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.sanearjmeier" parent="dsplayer.audiorenderer" type="action" label="55126" help="">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+            <dependency type="visible" setting="dsplayer.sanearstereocrossfeed" operator="is">true</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.sanearcutoff" parent="dsplayer.audiorenderer" type="integer" label="55127" help="">
+          <level>0</level>
+          <default>700</default>
+          <constraints>
+            <minimum >300</minimum>
+            <step>1</step>
+            <maximum>2000</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+            <dependency type="visible" setting="dsplayer.sanearstereocrossfeed" operator="is">true</dependency>
+          </dependencies>
+          <control type="spinner" format="string">
+            <formatlabel>55129</formatlabel>
+          </control>
+        </setting>
+        <setting id="dsplayer.sanearlevel" parent="dsplayer.audiorenderer" type="integer" label="55128" help="">
+          <level>0</level>
+          <default>60</default>
+          <constraints>
+            <minimum >10</minimum>
+            <step>1</step>
+            <maximum>150</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.audiorenderer" operator="is">sanear_internal</dependency>
+            <dependency type="visible" setting="dsplayer.sanearstereocrossfeed" operator="is">true</dependency>
+          </dependencies>
+          <control type="spinner" format="string">
+            <formatlabel>55130</formatlabel>
+          </control>
+        </setting>
+      </group>
+      <group id="3" label="55002">
+        <setting id="dsplayer.filtersmanagement" type="integer" label="55021" help="90008">
+          <level>0</level>
+          <default>0</default> <!-- internal lav filters -->
+          <constraints>
+            <options>
+              <option label="55081">0</option> <!-- internal lav filters -->
+              <option label="55082">1</option> <!-- internal media rules and filters configuration -->
+              <option label="55083">2</option> <!-- system filters ds merits -->
+            </options>
+          </constraints>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.rules" type="action" parent="dsplayer.filtersmanagement" label="60001" help="90019">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">1</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.filters" type="action" parent="dsplayer.filtersmanagement" label="65001" help="90020">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">1</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.lavsplitter" type="action" parent="dsplayer.filtersmanagement" label="55079" help="90014">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.lavvideo" type="action" parent="dsplayer.filtersmanagement" label="55077" help="90015">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.lavaudio" type="action" parent="dsplayer.filtersmanagement" label="55078" help="90016">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.xysubfilter" type="action" parent="dsplayer.filtersmanagement" label="55080" help="90017">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.xyvsfilter" type="action" parent="dsplayer.filtersmanagement" label="55080" help="90026">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">EVR</dependency>
+          </dependencies>
+          <control type="button" format="action" />
+        </setting>
+        <setting id="dsplayer.extrafilter0" type="string" parent="dsplayer.filtersmanagement" label="55084" help="90018">
+          <level>0</level>
+          <default>[null]</default>
+          <constraints>
+            <options>dsextrafilter</options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.extrafilter1" type="string" parent="dsplayer.filtersmanagement" label="55084" help="90018">
+          <level>0</level>
+          <default>[null]</default>
+          <constraints>
+            <options>dsextrafilter</options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible">
+              <and>
+                <condition on="setting" setting="dsplayer.filtersmanagement" operator="is">0</condition>
+                <condition on="setting" setting="dsplayer.extrafilter0" operator="!is">[null]</condition>
+              </and>
+            </dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.extrafilter2" type="string" parent="dsplayer.filtersmanagement" label="55084" help="90018">
+          <level>0</level>
+          <default>[null]</default>
+          <constraints>
+            <options>dsextrafilter</options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible">
+              <and>
+                <condition on="setting" setting="dsplayer.filtersmanagement" operator="is">0</condition>
+                <condition on="setting" setting="dsplayer.extrafilter0" operator="!is">[null]</condition>
+                <condition on="setting" setting="dsplayer.extrafilter1" operator="!is">[null]</condition>
+              </and>
+            </dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+      </group>
+      <group id="4" label="55073">
+        <setting id="dsplayer.prefaudiocodec" type="string" label="55096" help="90028">
+          <level>0</level>
+          <default></default>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string" />
+        </setting>
+        <setting id="dsplayer.exsubtitlelanguage" type="string" label="55085" help="36120">
+          <level>0</level>
+          <default>original</default>
+          <constraints>
+            <options>subtitlestreamlanguages</options>
+          </constraints>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.videoaudioexpandedselector" type="boolean" label="55060" help="90011">
+          <level>0</level>
+          <default>true</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.videosubsexpandedselector" type="boolean" label="55061" help="90012">
+          <level>0</level>
+          <default>true</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.showsplitterdetail" type="boolean" label="55066" help="90013">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
+      </group>
+      <group id="5">
+        <setting id="dsplayer.showbdtitlechoice" type="boolean" label="55030" help="90008">
+          <level>0</level>
+          <default>true</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.showbdtitlechoice" type="boolean" label="55032" help="90009">
+          <level>0</level>
+          <default>true</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.mintitlelength" type="integer" label="55022" help="90010">
+          <level>0</level>
+          <default>30</default>
+          <constraints>
+            <minimum>0</minimum>
+            <step>1</step>
+            <maximum>300</maximum>
+          </constraints>
+          <control type="spinner" format="integer" />
+        </setting>
+      </group>
+      <group id="6" label="631">
+        <setting id="dsplayer.osdintoactivearea" type="boolean" label="55091" help="">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.definedsarea" type="boolean" label="55086" help="">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
+        <setting id="dsplayer.copyactiverect" type="boolean" parent="dsplayer.definedsarea" label="55093" help="">
+          <level>0</level>
+          <default>false</default>
+          <control type="toggle" />
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.definedsarea" operator="is">true</dependency>
+            <dependency type="enable" setting="dsplayer.osdintoactivearea" operator="is">true</dependency>
+          </dependencies>
+        </setting>
+        <setting id="dsplayer.dsarealeft" type="integer" parent="dsplayer.definedsarea" label="55087" help="">
+          <level>0</level>
+          <default>0</default>
+          <constraints>
+            <minimum>0</minimum>
+            <step>1</step>
+            <maximum>300</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.definedsarea" operator="is">true</dependency>
+            <dependency type="enable" setting="dsplayer.copyactiverect" operator="is">false</dependency>
+          </dependencies>
+          <control type="spinner" format="string">
+            <formatlabel>55092</formatlabel>
+          </control>
+        </setting>
+        <setting id="dsplayer.dsareatop" type="integer" parent="dsplayer.definedsarea" label="55088" help="">
+          <level>0</level>
+          <default>0</default>
+          <constraints>
+            <minimum>0</minimum>
+            <step>1</step>
+            <maximum>300</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.definedsarea" operator="is">true</dependency>
+            <dependency type="enable" setting="dsplayer.copyactiverect" operator="is">false</dependency>
+          </dependencies>
+          <control type="spinner" format="string">
+            <formatlabel>55092</formatlabel>
+          </control>
+        </setting>
+        <setting id="dsplayer.dsarearight" type="integer" parent="dsplayer.definedsarea" label="55089" help="">
+          <level>0</level>
+          <default>0</default>
+          <constraints>
+            <minimum>0</minimum>
+            <step>1</step>
+            <maximum>300</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.definedsarea" operator="is">true</dependency>
+            <dependency type="enable" setting="dsplayer.copyactiverect" operator="is">false</dependency>
+          </dependencies>
+          <control type="spinner" format="string">
+            <formatlabel>55092</formatlabel>
+          </control>
+        </setting>
+        <setting id="dsplayer.dsareabottom" type="integer" parent="dsplayer.definedsarea" label="55090" help="">
+          <level>0</level>
+          <default>0</default>
+          <constraints>
+            <minimum>0</minimum>
+            <step>1</step>
+            <maximum>300</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.definedsarea" operator="is">true</dependency>
+            <dependency type="enable" setting="dsplayer.copyactiverect" operator="is">false</dependency>
+          </dependencies>
+          <control type="spinner" format="string">
+            <formatlabel>55092</formatlabel>
+          </control>
+        </setting>
+        <setting id="dsplayer.dsareareset" type="action" parent="dsplayer.definedsarea" label="55094" help="">
+          <level>0</level>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.definedsarea" operator="is">true</dependency>
+          </dependencies>
+          <control type="button" format="action" />
         </setting>
       </group>
     </category>

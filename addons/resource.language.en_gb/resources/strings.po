@@ -24311,3 +24311,1278 @@ msgid "50th Anniversary Edition"
 msgstr ""
 
 # 40000 to 40800 are reserved for Video Versions feature
+
+#. 55000-55100 reserved for DSPlayer
+msgctxt "#55000"
+msgid "DSPlayer"
+msgstr ""
+
+msgctxt "#55001"
+msgid "Video Renderer"
+msgstr ""
+
+msgctxt "#55002"
+msgid "Filters"
+msgstr ""
+
+msgctxt "#55003"
+msgid "Audio Renderer"
+msgstr ""
+
+msgctxt "#55004"
+msgid "Set all stable formats to libavcodec (ffdshow)"
+msgstr ""
+
+msgctxt "#55005"
+msgid "Nearest neighbor"
+msgstr ""
+
+msgctxt "#55006"
+msgid "Bilinear"
+msgstr ""
+
+msgctxt "#55007"
+msgid "Bilinear (PS 2.0)"
+msgstr ""
+
+msgctxt "#55008"
+msgid "Bicubic A=-0.60 (PS 2.0)"
+msgstr ""
+
+msgctxt "#55009"
+msgid "Bicubic A=-0.75 (PS 2.0)"
+msgstr ""
+
+msgctxt "#55010"
+msgid "Bicubic A=-1.00 (PS 2.0)"
+msgstr ""
+
+msgctxt "#55011"
+msgid "Stats hidden"
+msgstr ""
+
+msgctxt "#55012"
+msgid "Stats minimal"
+msgstr ""
+
+msgctxt "#55013"
+msgid "Stats medium"
+msgstr ""
+
+msgctxt "#55014"
+msgid "Stats large"
+msgstr ""
+
+msgctxt "#55015"
+msgid "Renderer stats"
+msgstr ""
+
+msgctxt "#55016"
+msgid "Shaders"
+msgstr ""
+
+msgctxt "#55017"
+msgid "Shaders list"
+msgstr ""
+
+msgctxt "#55018"
+msgid "There is no shader loaded"
+msgstr ""
+
+msgctxt "#55021"
+msgid "Filters management"
+msgstr ""
+
+msgctxt "#55022"
+msgid "Min. Blu-ray title length (min.)"
+msgstr ""
+
+msgctxt "#55023"
+msgid "Matroska Editions"
+msgstr ""
+
+msgctxt "#55024"
+msgid "Blu-ray Titles"
+msgstr ""
+
+msgctxt "#55025"
+msgid "Select Matroska Editions"
+msgstr ""
+
+msgctxt "#55026"
+msgid "Select Blu-ray Titles"
+msgstr ""
+
+msgctxt "#55027"
+msgid "Show all Blu-ray Titles"
+msgstr ""
+
+msgctxt "#55030"
+msgid "Auto start .bdmv in Blu-ray folders"
+msgstr ""
+
+msgctxt "#55031"
+msgid "Use as the default video player"
+msgstr ""
+
+msgctxt "#55032"
+msgid "Show Blu-ray titles and Matroska Editions choice dialog"
+msgstr ""
+
+#. 55050-55100 Directshow Subtitles 
+msgctxt "#55050"
+msgid "- Border line"
+msgstr ""
+
+msgctxt "#55051"
+msgid "Outline"
+msgstr ""
+
+msgctxt "#55052"
+msgid "Opaque"
+msgstr ""
+
+msgctxt "#55053"
+msgid "- Outline width"
+msgstr ""
+
+msgctxt "#55054"
+msgid "- Shadow depth"
+msgstr ""
+
+msgctxt "#55055"
+msgid "- Alpha"
+msgstr ""
+
+msgctxt "#55056"
+msgid "Font to use for text subtitles (dsplayer only) : %s"
+msgstr ""
+
+msgctxt "#55057"
+msgid "Choose a font"
+msgstr ""
+
+msgctxt "#55058"
+msgid "Disable subtitles"
+msgstr ""
+
+msgctxt "#55059"
+msgid "Subtitles not found"
+msgstr ""
+
+msgctxt "#55060"
+msgid "Use menu audio selector"
+msgstr ""
+
+msgctxt "#55061"
+msgid "Use menu subtitle selector"
+msgstr ""
+
+msgctxt "#55062"
+msgid "DSPlayer filters list..."
+msgstr ""
+
+msgctxt "#55063"
+msgid "Fullscreen exclusive mode"
+msgstr ""
+
+msgctxt "#55064"
+msgid "Manage settings with Kodi"
+msgstr ""
+
+msgctxt "#55065"
+msgid "Delay playback until render queue is full"
+msgstr ""
+
+msgctxt "#55066"
+msgid "Show stream details from selected splitter"
+msgstr ""
+
+msgctxt "#55067"
+msgid "Select last TV show on first entry"
+msgstr ""
+
+msgctxt "#55068"
+msgid "Last played TV show"
+msgstr ""
+
+msgctxt "#55069"
+msgid "Last watched TV show"
+msgstr ""
+
+msgctxt "#55070"
+msgid "Enable with player"
+msgstr ""
+
+msgctxt "#55071"
+msgid "DSPlayer"
+msgstr ""
+
+msgctxt "#55072"
+msgid "VideoPlayer"
+msgstr ""
+
+msgctxt "#55073"
+msgid "Extra Options"
+msgstr ""
+
+msgctxt "#55074"
+msgid "Force to exit from fullscreen before stop"
+msgstr ""
+
+msgctxt "#55075"
+msgid "Load and Save with DSPlayer database"
+msgstr ""
+
+msgctxt "#55076"
+msgid "Load from madVR active profile"
+msgstr ""
+
+msgctxt "#55077"
+msgid "Video decoder"
+msgstr ""
+
+msgctxt "#55078"
+msgid "Audio decoder"
+msgstr ""
+
+msgctxt "#55079"
+msgid "Splitter"
+msgstr ""
+
+msgctxt "#55080"
+msgid "Subtitle filter"
+msgstr ""
+
+msgctxt "#55081"
+msgid "Internal filters"
+msgstr ""
+
+msgctxt "#55082"
+msgid "Media rules and Filters configuration"
+msgstr ""
+
+msgctxt "#55083"
+msgid "System filters (DirectShow merits)"
+msgstr ""
+
+msgctxt "#55084"
+msgid "Extra external filter"
+msgstr ""
+
+msgctxt "#55085"
+msgid "Preferred external subtitle language"
+msgstr ""
+
+msgctxt "#55086"
+msgid "Define visible screen area"
+msgstr ""
+
+msgctxt "#55087"
+msgid "Left"
+msgstr ""
+
+msgctxt "#55088"
+msgid "Top"
+msgstr ""
+
+msgctxt "#55089"
+msgid "Right"
+msgstr ""
+
+msgctxt "#55090"
+msgid "Bottom"
+msgstr ""
+
+msgctxt "#55091"
+msgid "Move OSD into active video area"
+msgstr ""
+
+msgctxt "#55092"
+msgid "%i px"
+msgstr ""
+
+msgctxt "#55093"
+msgid "Copy from active video area"
+msgstr ""
+
+msgctxt "#55094"
+msgid "Reset to default values"
+msgstr ""
+
+msgctxt "#55095"
+msgid "Renderers"
+msgstr ""
+
+msgctxt "#55096"
+msgid "Preferred audio codec name"
+msgstr ""
+
+msgctxt "#55097"
+msgid "Internal LAV Splitter"
+msgstr ""
+
+msgctxt "#55098"
+msgid "Internal LAV Video"
+msgstr ""
+
+msgctxt "#55099"
+msgid "Internal LAV Audio"
+msgstr ""
+
+msgctxt "#55100"
+msgid "Internal XySubFilter"
+msgstr ""
+
+msgctxt "#55101"
+msgid "Internal xy-VSFilter"
+msgstr ""
+
+msgctxt "#55102"
+msgid "madshi Video Renderer"
+msgstr ""
+
+msgctxt "#55103"
+msgid "Direct3D presentation"
+msgstr ""
+
+msgctxt "#55104"
+msgid "Direct3D 9"
+msgstr ""
+
+msgctxt "#55105"
+msgid "Direct3D 11"
+msgstr ""
+
+msgctxt "#55106"
+msgid "Direct3D 11 (no vsync)"
+msgstr ""
+
+msgctxt "#55107"
+msgid "Pre-Rendered frames in windowed mode"
+msgstr ""
+
+msgctxt "#55108"
+msgid "Pre-Rendered frames in exclusive mode"
+msgstr ""
+
+msgctxt "#55109"
+msgid "1 frame"
+msgstr ""
+
+msgctxt "#55110"
+msgid "2 frames"
+msgstr ""
+
+msgctxt "#55111"
+msgid "3 frames"
+msgstr ""
+
+msgctxt "#55112"
+msgid "4 frames"
+msgstr ""
+
+msgctxt "#55113"
+msgid "6 frames"
+msgstr ""
+
+msgctxt "#55114"
+msgid "8 frames"
+msgstr ""
+
+msgctxt "#55115"
+msgid "10 frames"
+msgstr ""
+
+msgctxt "#55116"
+msgid "12 frames"
+msgstr ""
+
+msgctxt "#55117"
+msgid "14 frames"
+msgstr ""
+
+msgctxt "#55118"
+msgid "16 frames"
+msgstr ""
+
+msgctxt "#55119"
+msgid "(madVR tray icon setting)"
+msgstr ""
+
+msgctxt "#55120"
+msgid "Device"
+msgstr ""
+
+msgctxt "#55121"
+msgid "Exclusive mode"
+msgstr ""
+
+msgctxt "#55122"
+msgid "Allow bitstreaming"
+msgstr ""
+
+msgctxt "#55123"
+msgid "Internal Audio Renderer"
+msgstr ""
+
+msgctxt "#55124"
+msgid "Stereo Crossfeed (headphones)"
+msgstr ""
+
+msgctxt "#55125"
+msgid "C.Moy"
+msgstr ""
+
+msgctxt "#55126"
+msgid "J.Meier"
+msgstr ""
+
+msgctxt "#55127"
+msgid "Cut-off"
+msgstr ""
+
+msgctxt "#55128"
+msgid "Level"
+msgstr ""
+
+msgctxt "#55129"
+msgid "%i Hz"
+msgstr ""
+
+msgctxt "#55130"
+msgid "%i dB"
+msgstr ""
+
+msgctxt "#55131"
+msgid "Internal Sanear"
+msgstr ""
+
+msgctxt "#55132"
+msgid "Internal LAV Filters"
+msgstr ""
+
+msgctxt "#55133"
+msgid "Ignore System Channel Mixer"
+msgstr ""
+
+msgctxt "#60001"
+msgid "Media rules"
+msgstr ""
+
+msgctxt "#60002"
+msgid "Rule name"
+msgstr ""
+
+msgctxt "#60003"
+msgid "- File types"
+msgstr ""
+
+msgctxt "#60004"
+msgid "- File name"
+msgstr ""
+
+msgctxt "#60005"
+msgid "- Protocols"
+msgstr ""
+
+msgctxt "#60006"
+msgid "- Url"
+msgstr ""
+
+msgctxt "#60007"
+msgid "Source filter"
+msgstr ""
+
+msgctxt "#60008"
+msgid "Splitter filter"
+msgstr ""
+
+msgctxt "#60009"
+msgid "Video filter"
+msgstr ""
+
+msgctxt "#60010"
+msgid "Audio filter"
+msgstr ""
+
+msgctxt "#60011"
+msgid "Subs filter"
+msgstr ""
+
+msgctxt "#60012"
+msgid "Extra filter"
+msgstr ""
+
+msgctxt "#60013"
+msgid "Shader Id"
+msgstr ""
+
+msgctxt "#60014"
+msgid "Add new rule..."
+msgstr ""
+
+msgctxt "#60015"
+msgid "Add rule"
+msgstr ""
+
+msgctxt "#60016"
+msgid "Save rule changes"
+msgstr ""
+
+msgctxt "#60017"
+msgid "Delete rule"
+msgstr ""
+
+msgctxt "#60018"
+msgid "Are you sure to delete this rule?"
+msgstr ""
+
+msgctxt "#60019"
+msgid "- Video resolution"
+msgstr ""
+
+msgctxt "#60020"
+msgid "- Video codec"
+msgstr ""
+
+msgctxt "#60021"
+msgid "- Audio channels"
+msgstr ""
+
+msgctxt "#60022"
+msgid "- Audio codec"
+msgstr ""
+
+msgctxt "#60023"
+msgid "- Stage"
+msgstr ""
+
+msgctxt "#60024"
+msgid "Priority order"
+msgstr ""
+
+
+msgctxt "#61001"
+msgid "Save changes?"
+msgstr ""
+
+msgctxt "#61002"
+msgid "Do you want to save changes you made?"
+msgstr ""
+
+msgctxt "#65001"
+msgid "Filters configuration"
+msgstr ""
+
+msgctxt "#65002"
+msgid "Add new filter..."
+msgstr ""
+
+msgctxt "#65003"
+msgid "OSDName"
+msgstr ""
+
+msgctxt "#65004"
+msgid "Filter name"
+msgstr ""
+
+msgctxt "#65005"
+msgid "Filter type"
+msgstr ""
+
+msgctxt "#65006"
+msgid "Filter guid"
+msgstr ""
+
+msgctxt "#65007"
+msgid "Add filter"
+msgstr ""
+
+msgctxt "#65008"
+msgid "Save filter changes"
+msgstr ""
+
+msgctxt "#65009"
+msgid "Delete filter"
+msgstr ""
+
+msgctxt "#65010"
+msgid "System filters list"
+msgstr ""
+
+msgctxt "#65011"
+msgid "Are you sure to delete this filter?"
+msgstr ""
+
+msgctxt "#65012"
+msgid "Please fill out all required fields to add a new filter"
+msgstr ""
+
+msgctxt "#66001"
+msgid "VideoPlayer merits"
+msgstr ""
+
+msgctxt "#66002"
+msgid "Add new merits rule..."
+msgstr ""
+
+msgctxt "#66003"
+msgid "- Internet stream"
+msgstr ""
+
+msgctxt "#66004"
+msgid "- Remote"
+msgstr ""
+
+msgctxt "#66005"
+msgid "- Audio"
+msgstr ""
+
+msgctxt "#66006"
+msgid "- Video"
+msgstr ""
+
+msgctxt "#66007"
+msgid "- DVD"
+msgstr ""
+
+msgctxt "#66008"
+msgid "- DVD image"
+msgstr ""
+
+msgctxt "#66009"
+msgid "- DVD file"
+msgstr ""
+
+msgctxt "#66010"
+msgid "- Video aspect ratio"
+msgstr ""
+
+msgctxt "#66011"
+msgid "- Mimetypes"
+msgstr ""
+
+msgctxt "#70600"
+msgid "Save settings..."
+msgstr ""
+
+msgctxt "#70601"
+msgid "Save for SD videos"
+msgstr ""
+
+msgctxt "#70602"
+msgid "Save for 720p videos"
+msgstr ""
+
+msgctxt "#70603"
+msgid "Save for 1080p videos"
+msgstr ""
+
+msgctxt "#70604"
+msgid "Save for 2160p videos"
+msgstr ""
+
+msgctxt "#70605"
+msgid "Save for \"%s\" episodes"
+msgstr ""
+
+msgctxt "#70606"
+msgid "Save for all videos"
+msgstr ""
+
+msgctxt "#70607"
+msgid "Reset to default all stored settings"
+msgstr ""
+
+msgctxt "#70608"
+msgid "Save in user settings (#1)"
+msgstr ""
+
+msgctxt "#70609"
+msgid "Save in user settings (#2)"
+msgstr ""
+
+msgctxt "#70610"
+msgid "Save in user settings (#3)"
+msgstr ""
+
+msgctxt "#70611"
+msgid "Load settings..."
+msgstr ""
+
+msgctxt "#70612"
+msgid "Load from SD video settings"
+msgstr ""
+
+msgctxt "#70613"
+msgid "Load from 720p video settings"
+msgstr ""
+
+msgctxt "#70614"
+msgid "Load from 1080p video settings"
+msgstr ""
+
+msgctxt "#70615"
+msgid "Load from 2160p video settings"
+msgstr ""
+
+msgctxt "#70616"
+msgid "Load from user settings (#1)"
+msgstr ""
+
+msgctxt "#70617"
+msgid "Load from user settings (#2)"
+msgstr ""
+
+msgctxt "#70618"
+msgid "Load from user settings (#3)"
+msgstr ""
+
+msgctxt "#70619"
+msgid "Load from default settings"
+msgstr ""
+
+msgctxt "#70620"
+msgid "Restore original settings for this video"
+msgstr ""
+
+msgctxt "#80001"
+msgid "Enable system tray icon"
+msgstr ""
+
+msgctxt "#80002"
+msgid "Use stream aspect ratio"
+msgstr ""
+
+msgctxt "#80003"
+msgid "Thread for multi-threading"
+msgstr ""
+
+msgctxt "#80004"
+msgid "RGB output levels (for YUV -> RGB conversion)"
+msgstr ""
+
+msgctxt "#80005"
+msgid "Hardware decoder to use"
+msgstr ""
+
+msgctxt "#80006"
+msgid "Hardware/GPU deinterlacing (CUVID/QS only)"
+msgstr ""
+
+msgctxt "#80007"
+msgid "Output mode"
+msgstr ""
+
+msgctxt "#80008"
+msgid ""
+msgstr ""
+
+msgctxt "#80009"
+msgid "Field order"
+msgstr ""
+
+msgctxt "#80010"
+msgid "Deinterlacing mode"
+msgstr ""
+
+msgctxt "#80011"
+msgid "Software deinterlacing"
+msgstr ""
+
+msgctxt "#80012"
+msgid "Dithering mode"
+msgstr ""
+
+msgctxt "#80013"
+msgid "Open property page"
+msgstr ""
+
+msgctxt "#80014"
+msgid "Device to use"
+msgstr ""
+
+msgctxt "#80015"
+msgid "Resolutions"
+msgstr ""
+
+msgctxt "#80016"
+msgid "Codecs"
+msgstr ""
+
+msgctxt "#80100"
+msgid "Auto"
+msgstr ""
+
+msgctxt "#80101"
+msgid "1"
+msgstr ""
+
+msgctxt "#80102"
+msgid "2"
+msgstr ""
+
+msgctxt "#80103"
+msgid "3"
+msgstr ""
+
+msgctxt "#80104"
+msgid "4"
+msgstr ""
+
+msgctxt "#80105"
+msgid "5"
+msgstr ""
+
+msgctxt "#80106"
+msgid "6"
+msgstr ""
+
+msgctxt "#80107"
+msgid "7"
+msgstr ""
+
+msgctxt "#80108"
+msgid "8"
+msgstr ""
+
+msgctxt "#80109"
+msgid "9"
+msgstr ""
+
+msgctxt "#80110"
+msgid "10"
+msgstr ""
+
+msgctxt "#80111"
+msgid "11"
+msgstr ""
+
+msgctxt "#80112"
+msgid "12"
+msgstr ""
+
+msgctxt "#80113"
+msgid "13"
+msgstr ""
+
+msgctxt "#80114"
+msgid "14"
+msgstr ""
+
+msgctxt "#80115"
+msgid "15"
+msgstr ""
+
+msgctxt "#80116"
+msgid "16"
+msgstr ""
+
+msgctxt "#80200"
+msgid "None"
+msgstr ""
+
+msgctxt "#80201"
+msgid "NVIDIA CUVID"
+msgstr ""
+
+msgctxt "#80202"
+msgid "Intel QuickSync"
+msgstr ""
+
+msgctxt "#80203"
+msgid "DXVA2 (copy-back)"
+msgstr ""
+
+msgctxt "#80204"
+msgid "DXVA2 (native)"
+msgstr ""
+
+msgctxt "#80205"
+msgid "Top-Field first"
+msgstr ""
+
+msgctxt "#80206"
+msgid "Bottom-Field first"
+msgstr ""
+
+msgctxt "#80207"
+msgid "Aggressive"
+msgstr ""
+
+msgctxt "#80208"
+msgid "Force"
+msgstr ""
+
+msgctxt "#80209"
+msgid "Disabled (progressive)"
+msgstr ""
+
+msgctxt "#80210"
+msgid "25p/30p (Film)"
+msgstr ""
+
+msgctxt "#80211"
+msgid "50p/60p (Video)"
+msgstr ""
+
+msgctxt "#80212"
+msgid "Ordered Dithering"
+msgstr ""
+
+msgctxt "#80213"
+msgid "Random Dithering"
+msgstr ""
+
+msgctxt "#80214"
+msgid "TV (16/235)"
+msgstr ""
+
+msgctxt "#80215"
+msgid "PC (0-255)"
+msgstr ""
+
+msgctxt "#80216"
+msgid "Untouched (as input)"
+msgstr ""
+
+msgctxt "#80217"
+msgid "YADIF"
+msgstr ""
+
+msgctxt "#80218"
+msgid "Weston Three Field (simple)"
+msgstr ""
+
+msgctxt "#80219"
+msgid "Weston Three Field (complex)"
+msgstr ""
+
+msgctxt "#80220"
+msgid "No software deinterlacing"
+msgstr ""
+
+msgctxt "#80221"
+msgid "D3D11"
+msgstr ""
+
+msgctxt "#81001"
+msgid "Dynamic range compression (AC3, EAC3)"
+msgstr ""
+
+msgctxt "#81002"
+msgid "Level"
+msgstr ""
+
+msgctxt "#81003"
+msgid "Bitstreaming Dolby Digital (AC-3)"
+msgstr ""
+
+msgctxt "#81004"
+msgid "Bitstreaming Dolby Digital Plus (E-AC3)"
+msgstr ""
+
+msgctxt "#81005"
+msgid "Bitstreaming Dolby TrueHD"
+msgstr ""
+
+msgctxt "#81006"
+msgid "Bitstreaming DTS"
+msgstr ""
+
+msgctxt "#81007"
+msgid "Bitstreaming DTS-HD"
+msgstr ""
+
+msgctxt "#81008"
+msgid "Use DTS-HD framing for all DTS types"
+msgstr ""
+
+msgctxt "#81009"
+msgid "Auto A/V sync correction"
+msgstr ""
+
+msgctxt "#81010"
+msgid "Convert output to standard channel layouts"
+msgstr ""
+
+msgctxt "#81011"
+msgid "Expand mono to stereo"
+msgstr ""
+
+msgctxt "#81012"
+msgid "Expand 6.1 to 7.1"
+msgstr ""
+
+msgctxt "#81013"
+msgid "Enable mixing"
+msgstr ""
+
+msgctxt "#81014"
+msgid "Output speaker configuration"
+msgstr "
+
+msgctxt "#81015"
+msgid "Mono"
+msgstr "
+
+msgctxt "#81016"
+msgid "Stereo"
+msgstr "
+
+msgctxt "#81017"
+msgid "4.0"
+msgstr "
+
+msgctxt "#81018"
+msgid "5.1"
+msgstr "
+
+msgctxt "#81019"
+msgid "6.1"
+msgstr "
+
+msgctxt "#81020"
+msgid "7.1"
+msgstr "
+
+msgctxt "#81021"
+msgid "Center mix level"
+msgstr ""
+
+msgctxt "#81022"
+msgid "Surround mix level"
+msgstr ""
+
+msgctxt "#81023"
+msgid "LFE mix level"
+msgstr ""
+
+msgctxt "#81024"
+msgid "Don't mix stereo sources"
+msgstr ""
+
+msgctxt "#81025"
+msgid "Normalize matrix"
+msgstr ""
+
+msgctxt "#81026"
+msgid "Clipping protection"
+msgstr ""
+
+msgctxt "#81027"
+msgid "Matrix Encoding"
+msgstr ""
+
+msgctxt "#81028"
+msgid "None"
+msgstr ""
+
+msgctxt "#81029"
+msgid "Dolby Pro Logic"
+msgstr ""
+
+msgctxt "#81030"
+msgid "Dolby Pro Logic II"
+msgstr ""
+
+msgctxt "#81031"
+msgid "Use Legacy 5.1 channel layout"
+msgstr ""
+
+msgctxt "#82001"
+msgid "Preferred audio language"
+msgstr ""
+
+msgctxt "#82002"
+msgid "Preferred subtitles language"
+msgstr ""
+
+msgctxt "#82003"
+msgid "Subtitle selection mode"
+msgstr ""
+
+msgctxt "#82004"
+msgid "No subtitles"
+msgstr ""
+
+msgctxt "#82005"
+msgid "Only forced subtitles"
+msgstr ""
+
+msgctxt "#82006"
+msgid "Default"
+msgstr ""
+
+msgctxt "#82007"
+msgid "Advanced"
+msgstr ""
+
+msgctxt "#82008"
+msgid "BluRay (PGS) enable automatic forced subtitle"
+msgstr ""
+
+msgctxt "#82009"
+msgid "BluRay (PGS) deliver only forced subtitles"
+msgstr ""
+
+msgctxt "#82010"
+msgid "Enable VC-1 timestamp correction"
+msgstr ""
+
+msgctxt "#82011"
+msgid "Load matroska segments from external files"
+msgstr ""
+
+msgctxt "#82012"
+msgid "Demux sub-stream separately"
+msgstr ""
+
+msgctxt "#82013"
+msgid "Remove audio decoder on audio stream switch"
+msgstr ""
+
+msgctxt "#82014"
+msgid "Prefer audio stream with the hightest quality"
+msgstr ""
+
+msgctxt "#82015"
+msgid "Prefer audio stream for the hearing/visually impaired"
+msgstr ""
+
+msgctxt "#82016"
+msgid "Preferred subtitles language (advanced)"
+msgstr ""
+
+msgctxt "#90000"
+msgid "DSPlayer is set as default player for all media. Unchecking this box, DSPlayer can be accessed from the Context Menu (C) through Play using -> DSPlayer."
+msgstr ""
+
+msgctxt "#90001"
+msgid "This menu allows rules to be created governing what media should be played by VideoPlayer."
+msgstr ""
+
+msgctxt "#90002"
+msgid "DSPlayer uses the madshi Video Renderer (madVR). madVR must be installed manually before playback."
+msgstr ""
+
+msgctxt "#90003"
+msgid "These settings determine the way madVR settings are managed: [CR][Never] The Kodi madVR GUI is disabled. [CR][Load and Save with DSPlayer database] madVR settings are configurable in OSD Video Settings. Global profiles will be loaded and saved in the DSPlayer database. [CR][Load from madVR active profile] madVR settings are configurable in OSD Video Settings. Settings profiles are loaded externally from madVR."
+msgstr ""
+
+msgctxt "#90004"
+msgid "Delay the start of video playback until the amount frames set in the pre-buffer are rendered. This can improve the stability of the Kodi refresh rate change mechanism when interacting with madVR."
+msgstr ""
+
+msgctxt "#90005"
+msgid "Enable madVRs fullscreen exclusive mode, which takes full control of the display during playback making it impossible to take screen captures or steal focus away from the player. This may reduce screen tearing and improve player stability slightly but can cause compatibility issues with some graphics cards."
+msgstr ""
+
+msgctxt "#90006"
+msgid "This setting should only be used if experiencing problems during playback stop. Black screens and failure to return to the Kodi menu can often be countered by forcing madVR to exit fullscreen before stopping."
+msgstr ""
+
+msgctxt "#90007"
+msgid "The choice of audio renderer in this menu overrides the same setting in System -> Audio output. DSPlayer is compatible with any DirectShow audio renderer."
+msgstr ""
+
+msgctxt "#90008"
+msgid "Defines the source of audio & video filters: [CR][Internal filters] Internal LAV Filters and XySubFilter with preconfigured media rules for all compatible media. [CR][Media rules and Filters configuration] Media rules are used to provide instruction on what combination of filters and shaders are used when a media file is played. [CR][System filters (DirectShow merits)] DSPlayer will rely on the default system directshow merits when selecting filters."
+msgstr ""
+
+msgctxt "#90009"
+msgid "Allows a selection of the video stream for Blu-ray folder structures (BDMV). Also, some MKV files contain multi-chapter list support. LAV Filters supports multiple chapter lists through Matroska Editions."
+msgstr ""
+
+msgctxt "#90010"
+msgid "Sets the minimum title length for a video stream to appear in the list of selectable titles when playing Blu-ray folder structures (BDMV)."
+msgstr ""
+
+msgctxt "#90011"
+msgid "Adds an option in the Audio Settings menu during playback allowing the selection of an audio stream for the current playing video."
+msgstr ""
+
+msgctxt "#90012"
+msgid "Adds an option in the Audio Settings menu during playback allowing the selection of a subtitle stream for the current playing video."
+msgstr ""
+
+msgctxt "#90013"
+msgid "Stream details from LAV Splitter provides more accurate and detailed information about the audio stream including the codec, channel layout and bitrate. This information is provided by DSPlayer by default. DSPlayer is localized for the selected language, but may lack information such as the codec and bitrate. This setting also impacts the information displayed when pressing O (codec info)."
+msgstr ""
+
+msgctxt "#90014"
+msgid "Configure the Internal filter LAV Splitter."
+msgstr ""
+
+msgctxt "#90015"
+msgid "Configure the Internal decoder LAV Video."
+msgstr ""
+
+msgctxt "#90016"
+msgid "Configure the Internal decoder LAV Audio."
+msgstr ""
+
+msgctxt "#90017"
+msgid "Configure the Internal filter XySubFilter."
+msgstr ""
+
+msgctxt "#90018"
+msgid "Add an extra external filter to the configuration. The Extra filter will be applied to all media based on its defined type."
+msgstr ""
+
+msgctxt "#90019"
+msgid "Media rules are used to provide instruction on what combination of filters and shaders are used when a media file is played. Using any combination of custom filters requires the creation of player rules from this menu. "
+msgstr ""
+
+msgctxt "#90020"
+msgid "Filters configuration provides a master list of all filters available to DSPlayer. External filters are added from this menu."
+msgstr ""
+
+msgctxt "#90021"
+msgid "Disable Kodi Fullscreen-mode."
+msgstr ""
+
+msgctxt "#90022"
+msgid "System > Video output > Use fullscreen window [checked]"
+msgstr ""
+
+msgctxt "#90023"
+msgid "madVR not installed."
+msgstr ""
+
+msgctxt "#90024"
+msgid "Download and install madVR from http://madshi.net/madVR.zip"
+msgstr ""
+
+msgctxt "#90025"
+msgid "This category contains settings governing how DSPlayer is configured."
+msgstr ""
+
+msgctxt "#90026"
+msgid "Configure the Internal filter xy-VSFilter."
+msgstr ""
+
+msgctxt "#90027"
+msgid ""
+msgstr ""
+
+msgctxt "#90028"
+msgid "Force to select the preferred audio track that will match the priority codec string defined in the option (ex. dts|ac3) and the language GUI defined in Kodi."
+msgstr ""
+
+msgctxt "#90029"
+msgid "The present queue, a final buffer in DirectX, after madVR sends completed frames to Windows."
+msgstr ""
+
+msgctxt "#90030"
+msgid "Select the Direct3D presentation method to use, Direct3d 11 is required for >8 bit output, with Direct3D 11 (no vsync) madVR only presents new frames when needed, relying on D3D11 to repeat frames for each VSync, this may improve performance but may also cause presentation glitches."
+msgstr ""
+
+msgctxt "#909001"
+msgid "Rus"
+msgstr ""
+
+msgctxt "#909002"
+msgid "IP"
+msgstr ""
