@@ -117,7 +117,7 @@ CFGLoader::~CFGLoader()
   CFilterCoreFactory::Destroy();
   SAFE_DELETE(m_pFGF);
 
-  CLog::Log(LOGDEBUG, "%s Ressources released", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} Ressources released", __FUNCTION__);
 }
 
 HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& filterName)
@@ -128,20 +128,20 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
   /* XBMC SOURCE FILTER  */
   /*if (CUtil::IsInArchive(pFileItem.GetPath()))
   {
-  CLog::Log(LOGINFO,"%s File \"%s\" need a custom source filter", __FUNCTION__, pFileItem.GetPath().c_str());
+  CLog::Log(LOGINFO,"{} File \"{}\" need a custom source filter", __FUNCTION__, pFileItem.GetPath().c_str());
   CXBMCAsyncStream* pXBMCStream = new CXBMCAsyncStream(pFileItem.GetPath(), &CGraphFilters::Get()->Source.pBF, &hr);
   if (SUCCEEDED(hr))
   {
   hr = g_dsGraph->pFilterGraph->AddFilter(CGraphFilters::Get()->Source.pBF, L"XBMC Source Filter");
   if (FAILED(hr))
   {
-  CLog::Log(LOGERROR, "%s Failed to add xbmc source filter to the graph", __FUNCTION__);
+  CLog::Log(LOGERROR, "{} Failed to add xbmc source filter to the graph", __FUNCTION__);
   return hr;
   }
   CGraphFilters::Get()->Source.osdname = "XBMC File Source";
   CGraphFilters::Get()->Source.pData = (void *) pXBMCStream;
   CGraphFilters::Get()->Source.isinternal = true;
-  CLog::Log(LOGINFO, "%s Successfully added xbmc source filter to the graph", __FUNCTION__);
+  CLog::Log(LOGINFO, "{} Successfully added xbmc source filter to the graph", __FUNCTION__);
   }
   return hr;
   }*/
@@ -173,7 +173,7 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
 
     hr = CGraphFilters::Get()->DVD.dvdControl->SetDVDDirectory(dirW.c_str());
     if (FAILED(hr))
-      CLog::Log(LOGERROR, "%s Failed loading dvd directory.", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Failed loading dvd directory.", __FUNCTION__);
 
     CGraphFilters::Get()->DVD.dvdControl->SetOption(DVD_ResetOnStop, FALSE);
     CGraphFilters::Get()->DVD.dvdControl->SetOption(DVD_HMSF_TimeCodeEvents, TRUE);
@@ -202,7 +202,7 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
       if (FAILED(hr))
       {
         g_dsGraph->pFilterGraph->RemoveFilter(CGraphFilters::Get()->Source.pBF);
-        CLog::Log(LOGERROR, "%s Failed to add url source filter to the graph.", __FUNCTION__);
+        CLog::Log(LOGERROR, "{} Failed to add url source filter to the graph.", __FUNCTION__);
         CGraphFilters::Get()->Source.pBF = NULL;
         return E_FAIL;
       }
@@ -252,10 +252,10 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
     Com::SmartQIPtr<IFileSourceFilter> pFS = infos.pBF;
 
     if (SUCCEEDED(pFS->Load(strFileW.c_str(), NULL)))
-      CLog::Log(LOGINFO, "%s Successfully loaded file in the splitter/source", __FUNCTION__);
+      CLog::Log(LOGINFO, "{} Successfully loaded file in the splitter/source", __FUNCTION__);
     else
     {
-      CLog::Log(LOGERROR, "%s Failed to load file in the splitter/source", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Failed to load file in the splitter/source", __FUNCTION__);
 
       if (infos.isinternal)
         delete infos.pData;
@@ -264,7 +264,7 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
     }
   }
   catch (...) {
-    CLog::Log(LOGERROR, "%s An exception has been thrown by the codec...", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} An exception has been thrown by the codec...", __FUNCTION__);
 
     if (infos.isinternal)
       delete infos.pData;
@@ -279,7 +279,7 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
 
   if (isSplitterToo)
   {
-    CLog::Log(LOGDEBUG, "%s The source filter is also a splitter.", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} The source filter is also a splitter.", __FUNCTION__);
     CGraphFilters::Get()->Splitter = infos;
   }
   else {
@@ -310,7 +310,7 @@ void CFGLoader::ParseStreamingType(CFileItem& pFileItem, IBaseFilter* pBF)
 
       std::string str;
       g_charsetConverter.wToUTF8(GetMediaTypeName(pMT->subtype), str);
-      CLog::Log(LOGDEBUG, __FUNCTION__" Streaming output pin media tpye: %s", str.c_str());
+      CLog::Log(LOGDEBUG, __FUNCTION__" Streaming output pin media tpye: {}", str.c_str());
       guid = pMT->subtype;
     }
     EndEnumMediaTypes(pMT);
@@ -326,9 +326,9 @@ HRESULT CFGLoader::InsertSplitter(const CFileItem& pFileItem, const std::string&
   if (SUCCEEDED(hr))
   {
     if (SUCCEEDED(hr = ConnectFilters(g_dsGraph->pFilterGraph, CGraphFilters::Get()->Source.pBF, CGraphFilters::Get()->Splitter.pBF)))
-      CLog::Log(LOGINFO, "%s Successfully connected the source to the splitter", __FUNCTION__);
+      CLog::Log(LOGINFO, "{} Successfully connected the source to the splitter", __FUNCTION__);
     else
-      CLog::Log(LOGERROR, "%s Failed to connect the source to the splitter", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Failed to connect the source to the splitter", __FUNCTION__);
   }
 
   return hr;
@@ -344,7 +344,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
     if (SUCCEEDED(InsertFilter(filterName, CGraphFilters::Get()->AudioRenderer)))
       return S_OK;
     else
-      CLog::Log(LOGERROR, "%s Failed to insert custom audio renderer, fallback to default one", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Failed to insert custom audio renderer, fallback to default one", __FUNCTION__);
   }
 
   std::vector<DSFilterInfo> deviceList;
@@ -383,20 +383,22 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
       END_PERFORMANCE_COUNTER("Added internal sanear audio renderer to the graph");
 
       CGraphFilters::Get()->AudioRenderer.internalFilter = true;
-      CLog::Log(LOGINFO, "%s Successfully added internal sanear audio renderer to the graph", __FUNCTION__);
+      CLog::Log(LOGINFO, "{} Successfully added internal sanear audio renderer to the graph", __FUNCTION__);
     } 
     else
     {
-      CLog::Log(LOGERROR, "%s Failed to create the intenral audio renderer (%X)", __FUNCTION__, hr);
+      CLog::Log(LOGERROR, "{} Failed to create the intenral audio renderer (%X)", __FUNCTION__, hr);
     }
   }
 #endif
+  //TODO fix if config not there
   if (renderer != CGraphFilters::INTERNAL_SANEAR || FAILED(hr))
   {
-    for (std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin(); !renderer.empty() && (iter != deviceList.end()); ++iter)
+    //for (std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin(); !renderer.empty() && (iter != deviceList.end()); ++iter)
+    for (std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin(); (iter != deviceList.end()); ++iter)
     {
       DSFilterInfo dev = *iter;
-      if (StringUtils::EqualsNoCase(renderer, dev.lpstrName))
+      if (StringUtils::EqualsNoCase("Default DirectSound Device", dev.lpstrName))//renderer
       {
         sAudioRenderName = dev.lpstrName;
         sAudioRenderDisplayName = dev.lpstrDisplayName;
@@ -409,7 +411,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
 
         if (FAILED(hr))
         {
-          CLog::Log(LOGERROR, "%s Failed to create the audio renderer (%X)", __FUNCTION__, hr);
+          CLog::Log(LOGERROR, "{} Failed to create the audio renderer (%X)", __FUNCTION__, hr);
           return hr;
         }
 
@@ -424,9 +426,9 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
     }  
     
   if (SUCCEEDED(hr))
-    CLog::Log(LOGINFO, "%s Successfully added \"%s\" - DiplayName: %s to the graph", __FUNCTION__, sAudioRenderName.c_str(), sAudioRenderDisplayName.c_str());
+    CLog::Log(LOGINFO, "{} Successfully added \"{}\" - DiplayName: {} to the graph", __FUNCTION__, sAudioRenderName.c_str(), sAudioRenderDisplayName.c_str());
   else
-    CLog::Log(LOGINFO, "%s Failed to add \"%s\" to the graph (result: %X)", __FUNCTION__, sAudioRenderName.c_str(), hr);
+    CLog::Log(LOGINFO, "{} Failed to add \"{}\" to the graph (result: %X)", __FUNCTION__, sAudioRenderName.c_str(), hr);
   }
 
   return hr;
@@ -455,7 +457,7 @@ HRESULT CFGLoader::InsertVideoRenderer()
   hr = m_pFGF->Create(&CGraphFilters::Get()->VideoRenderer.pBF);
   if (FAILED(hr))
   {
-    CLog::Log(LOGERROR, "%s Failed to create allocator presenter (hr = %X)", __FUNCTION__, hr);
+    CLog::Log(LOGERROR, "{} Failed to create allocator presenter (hr = %X)", __FUNCTION__, hr);
     return hr;
   }
   hr = g_dsGraph->pFilterGraph->AddFilter(CGraphFilters::Get()->VideoRenderer.pBF, m_pFGF->GetNameW().c_str());
@@ -465,10 +467,10 @@ HRESULT CFGLoader::InsertVideoRenderer()
 
   if (SUCCEEDED(hr))
   {
-    CLog::Log(LOGDEBUG, "%s Allocator presenter successfully added to the graph (Renderer: %s)", __FUNCTION__, CGraphFilters::Get()->VideoRenderer.osdname.c_str());
+    CLog::Log(LOGDEBUG, "{} Allocator presenter successfully added to the graph (Renderer: {})", __FUNCTION__, CGraphFilters::Get()->VideoRenderer.osdname.c_str());
   }
   else {
-    CLog::Log(LOGERROR, "%s Failed to add allocator presenter to the graph (hr = %X)", __FUNCTION__, hr);
+    CLog::Log(LOGERROR, "{} Failed to add allocator presenter to the graph (hr = %X)", __FUNCTION__, hr);
   }
 
   return hr;
@@ -481,7 +483,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
   if (!pFileItem.IsInternetStream() && !CFilterCoreFactory::SomethingMatch(pFileItem))
   {
 
-    CLog::Log(LOGERROR, "%s Extension \"%s\" not found. Please check mediasconfig.xml",
+    CLog::Log(LOGERROR, "{} Extension \"{}\" not found. Please check mediasconfig.xml",
       __FUNCTION__, CURL(pFileItem.GetPath()).GetFileType().c_str());
     CGUIDialogOK *dialog = (CGUIDialogOK *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_OK);
     if (dialog)
@@ -512,7 +514,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MYVIDEOS_EXTRACTFLAGS) &&
     pFileItem.HasVideoInfoTag() && !pFileItem.GetVideoInfoTag()->HasStreamDetails())
   {
-    CLog::Log(LOGDEBUG, "%s - trying to extract filestream details from video file %s", __FUNCTION__, CURL::GetRedacted(pFileItem.GetPath()).c_str());
+    CLog::Log(LOGDEBUG, "{} - trying to extract filestream details from video file {}", __FUNCTION__, CURL::GetRedacted(pFileItem.GetPath()).c_str());
     hasStreamDetails = CDVDFileInfo::GetFileStreamDetails(&pFileItem);
   }
   else
@@ -654,7 +656,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
       END_PERFORMANCE_COUNTER("Loading shaders");
     }
 
-    CLog::Log(LOGDEBUG, "%s All filters added to the graph", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} All filters added to the graph", __FUNCTION__);
 
     // If we have add our own informations, clear it to prevent xbmc to save it to the database
     if (!hasStreamDetails) {
@@ -698,6 +700,8 @@ HRESULT CFGLoader::LoadConfig(FILTERSMAN_TYPE filterManager)
   {
     LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/filtersconfig_internal.xml", FILTERS, true);
     LoadFilterCoreFactorySettings(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/filtersconfig.xml"), FILTERS, false);
+    //added here dont know why we use filtersman_type its never used
+    LoadFilterCoreFactorySettings(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/mediasconfig.xml"), MEDIAS, false);
     LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/filtersconfig.xml", FILTERS, false);
     LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/mediasconfig_internal.xml", MEDIAS, false);
   }
@@ -737,20 +741,20 @@ HRESULT CFGLoader::InsertFilter(const std::string& filterName, SFilterInfos& f)
     f.osdname = filter->GetName();
     if (filter->GetType() == CFGFilter::INTERNAL)
     {
-      CLog::Log(LOGDEBUG, "%s Using an internal filter", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} Using an internal filter", __FUNCTION__);
       f.isinternal = true;
       f.pData = filter;
     }
     if (SUCCEEDED(hr = g_dsGraph->pFilterGraph->AddFilter(f.pBF, filter->GetNameW().c_str())))
-      CLog::Log(LOGINFO, "%s Successfully added \"%s\" to the graph", __FUNCTION__, f.osdname.c_str());
+      CLog::Log(LOGINFO, "{} Successfully added \"{}\" to the graph", __FUNCTION__, f.osdname.c_str());
     else
-      CLog::Log(LOGERROR, "%s Failed to add \"%s\" to the graph", __FUNCTION__, f.osdname.c_str());
+      CLog::Log(LOGERROR, "{} Failed to add \"{}\" to the graph", __FUNCTION__, f.osdname.c_str());
 
     f.guid = filter->GetCLSID();
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Failed to create filter \"%s\"", __FUNCTION__, filterName.c_str());
+    CLog::Log(LOGERROR, "{} Failed to create filter \"{}\"", __FUNCTION__, filterName.c_str());
   }
 
   return hr;
@@ -819,17 +823,17 @@ bool CFGLoader::LoadFilterCoreFactorySettings(const std::string& fileStr, ESetti
     CFilterCoreFactory::Destroy();
   }
 
-  CLog::Log(LOGINFO, "Loading filter core factory settings from %s (%s configuration).", fileStr.c_str(), (type == MEDIAS) ? "medias" : "filters");
+  CLog::Log(LOGINFO, "Loading filter core factory settings from {} ({} configuration).", fileStr.c_str(), (type == MEDIAS) ? "medias" : "filters");
   if (!XFILE::CFile::Exists(fileStr))
   { // tell the user it doesn't exist
-    CLog::Log(LOGINFO, "%s does not exist. Skipping.", fileStr.c_str());
+    CLog::Log(LOGINFO, "{} does not exist. Skipping.", fileStr.c_str());
     return false;
   }
 
   CXBMCTinyXML filterCoreFactoryXML;
   if (!filterCoreFactoryXML.LoadFile(fileStr))
   {
-    CLog::Log(LOGERROR, "Error loading %s, Line %d (%s)", fileStr.c_str(), filterCoreFactoryXML.ErrorRow(), filterCoreFactoryXML.ErrorDesc());
+    CLog::Log(LOGERROR, "Error loading {}, Line %d ({})", fileStr.c_str(), filterCoreFactoryXML.ErrorRow(), filterCoreFactoryXML.ErrorDesc());
     return false;
   }
 

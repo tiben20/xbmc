@@ -107,7 +107,7 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_isMadvr = (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
 
   if (InitWindow(m_hWnd))
-    CLog::Log(LOGDEBUG, "%s : Create DSPlayer window - hWnd:", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} : Create DSPlayer window - hWnd:", __FUNCTION__);
 
   /* Suspend AE temporarily so exclusive or hog-mode sinks */
   /* don't block DSPlayer access to audio device  */
@@ -148,7 +148,7 @@ CDSPlayer::~CDSPlayer()
     CloseFile();
 
   UnloadExternalObjects();
-  CLog::Log(LOGDEBUG, "%s External objects unloaded", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} External objects unloaded", __FUNCTION__);
 
   // Restore DVD Player time base clock
   m_pClock.SetTimeBase(DVD_TIME_BASE);
@@ -167,7 +167,7 @@ CDSPlayer::~CDSPlayer()
 
   SetVisibleScreenArea(m_lastActiveVideoRect);
 
-  CLog::Log(LOGINFO, "%s DSPlayer is now closed", __FUNCTION__);
+  CLog::Log(LOGINFO, "{} DSPlayer is now closed", __FUNCTION__);
 }
 
 int CDSPlayer::GetSubtitleCount() const
@@ -218,7 +218,7 @@ bool CDSPlayer::OpenFileInternal(const CFileItem& file)
   m_processInfo->ResetAudioCodecInfo();
   try
   {
-    CLog::Log(LOGINFO, "%s - DSPlayer: Opening: %s", __FUNCTION__, CURL::GetRedacted(file.GetPath()).c_str());
+    CLog::Log(LOGINFO, "{} - DSPlayer: Opening: {}", __FUNCTION__, CURL::GetRedacted(file.GetPath()).c_str());
     if (PlayerState != DSPLAYER_CLOSED)
       CloseFile();
 
@@ -241,7 +241,7 @@ bool CDSPlayer::OpenFileInternal(const CFileItem& file)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s - Exception thrown on open", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - Exception thrown on open", __FUNCTION__);
     return false;
   }
 }
@@ -259,7 +259,7 @@ void CDSPlayer::LoadVideoSettings(const CFileItem& file)
 
   if (!fileItem.HasVideoInfoTag() || !fileItem.GetVideoInfoTag()->HasStreamDetails())
   {
-    CLog::Log(LOGDEBUG, "%s - trying to extract filestream details from video file %s", __FUNCTION__, sUrl.c_str());
+    CLog::Log(LOGDEBUG, "{} - trying to extract filestream details from video file {}", __FUNCTION__, sUrl.c_str());
     CDVDFileInfo::GetFileStreamDetails(&fileItem);
   }
 
@@ -272,27 +272,27 @@ void CDSPlayer::LoadVideoSettings(const CFileItem& file)
   // Load stored files settings
   if (dsdbs.GetVideoSettings(fileItem.GetPath().c_str(), madvrSettings))
   {
-    CLog::Log(LOGDEBUG, "Loaded madVR for file settings for %s", sUrl.c_str());
+    CLog::Log(LOGDEBUG, "Loaded madVR for file settings for {}", sUrl.c_str());
   }
   // if not present Load stored TvShowName settings
   else if (dsdbs.GetTvShowSettings(madvrSettings.m_TvShowName, madvrSettings))
   {
-    CLog::Log(LOGDEBUG, "Loaded madVR for tvshow %s settings for %s", madvrSettings.m_TvShowName.c_str(), sUrl.c_str());
+    CLog::Log(LOGDEBUG, "Loaded madVR for tvshow {} settings for {}", madvrSettings.m_TvShowName.c_str(), sUrl.c_str());
   }
   // if not present Load stored Resolution settings
   else if (dsdbs.GetResSettings(madvrSettings.m_Resolution, madvrSettings))
   {
-    CLog::Log(LOGDEBUG, "Loaded madVR for resolution %ip settings for %s", madvrSettings.m_Resolution, sUrl.c_str());
+    CLog::Log(LOGDEBUG, "Loaded madVR for resolution %ip settings for {}", madvrSettings.m_Resolution, sUrl.c_str());
   }
   // if not present Load stored for all setting
   else if (dsdbs.GetResSettings(MADVR_RES_ALL, madvrSettings))
   {
-    CLog::Log(LOGDEBUG, "Loaded madVR for all settings for %s", sUrl.c_str());
+    CLog::Log(LOGDEBUG, "Loaded madVR for all settings for {}", sUrl.c_str());
   }
   // restore default settings
   else
   {
-    CLog::Log(LOGDEBUG, "Restored madVR default settings for %s", sUrl.c_str());
+    CLog::Log(LOGDEBUG, "Restored madVR default settings for {}", sUrl.c_str());
     madvrSettings.RestoreDefaultSettings();
   }
 
@@ -315,7 +315,7 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
 {
   if (m_isMadvr && !CDSFilterVersion::Get()->IsRegisteredFilter(MADVR_FILTERSTR))
   {
-    CLog::Log(LOGDEBUG, "%s - madVR it's not installed on the system pls download it before to use it with DSPlayer", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} - madVR it's not installed on the system pls download it before to use it with DSPlayer", __FUNCTION__);
 
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error, g_localizeStrings.Get(90023), g_localizeStrings.Get(90024), 6000L, false);
     return false;
@@ -332,7 +332,7 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
 
   CGraphFilters::Get()->SetAuxAudioDelay();
 
-  CLog::Log(LOGINFO, "%s - DSPlayer: Opening: %s", __FUNCTION__, CURL::GetRedacted(file.GetPath()).c_str());
+  CLog::Log(LOGINFO, "{} - DSPlayer: Opening: {}", __FUNCTION__, CURL::GetRedacted(file.GetPath()).c_str());
 
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) == KODIGUI_LOAD_DSPLAYER)
     LoadVideoSettings(file);
@@ -415,7 +415,7 @@ bool CDSPlayer::CloseFile(bool reopen)
 
   m_renderManager.UnInit();
 
-  CLog::Log(LOGDEBUG, "%s File closed", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} File closed", __FUNCTION__);
   return true;
 }
 
@@ -459,7 +459,7 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
   if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   { 
-    label = StringUtils::Format("%s - (%s, %d Hz, %i Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
+    label = StringUtils::Format("{} - ({}, %d Hz, %i Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
     info.name = label;
   }
   else
@@ -548,12 +548,12 @@ bool CDSPlayer::InitWindow(HWND &hWnd)
 {
   m_hInstance = (HINSTANCE)GetModuleHandle(NULL);
   if (m_hInstance == NULL)
-    CLog::Log(LOGDEBUG, "%s : GetModuleHandle failed with %d", __FUNCTION__, GetLastError());
+    CLog::Log(LOGDEBUG, "{} : GetModuleHandle failed with %d", __FUNCTION__, GetLastError());
 
   RESOLUTION_INFO res = CDisplaySettings::GetInstance().GetCurrentResolutionInfo();
   int nWidth = res.iWidth;
   int nHeight = res.iHeight;
-  m_className = "Kodi:DSPlayer";
+  m_className = L"Kodi:DSPlayer";
 
   // Register the windows class
   WNDCLASS wndClass;
@@ -567,21 +567,21 @@ bool CDSPlayer::InitWindow(HWND &hWnd)
   wndClass.hCursor = NULL;
   wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
   wndClass.lpszMenuName = NULL;
-  wndClass.lpszClassName = AToW(m_className).c_str();
+  wndClass.lpszClassName = m_className.c_str();
 
   if (!RegisterClass(&wndClass))
   {
-    CLog::Log(LOGERROR, "%s : RegisterClass failed with %d", __FUNCTION__, GetLastError());
+    CLog::Log(LOGERROR, "{} : RegisterClass failed with %d", __FUNCTION__, GetLastError());
     return false;
   }
 
-  hWnd = CreateWindow(AToW(m_className).c_str(), AToW(m_className).c_str(),
+  hWnd = CreateWindow(m_className.c_str(), m_className.c_str(),
     WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
     0, 0, nWidth, nHeight, 
     g_hWnd, NULL, m_hInstance, NULL);
   if (hWnd == NULL)
   {
-    CLog::Log(LOGERROR, "%s : CreateWindow failed with %d", __FUNCTION__, GetLastError());
+    CLog::Log(LOGERROR, "{} : CreateWindow failed with %d", __FUNCTION__, GetLastError());
     return false;
   }
 
@@ -682,7 +682,7 @@ void CDSPlayer::OnExit()
 void CDSPlayer::Process()
 {
   HRESULT hr = E_FAIL;
-  CLog::Log(LOGINFO, "%s - Creating DS Graph", __FUNCTION__);
+  CLog::Log(LOGINFO, "{} - Creating DS Graph", __FUNCTION__);
 
   // Set the selected video renderer
   SetCurrentVideoRenderer(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER));
@@ -692,7 +692,7 @@ void CDSPlayer::Process()
 
   if (FAILED(hr))
   {
-    CLog::Log(LOGERROR, "%s - Failed creating DS Graph", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - Failed creating DS Graph", __FUNCTION__);
     PlayerState = DSPLAYER_ERROR;
     return;
   }
@@ -755,7 +755,7 @@ void CDSPlayer::HandleMessages()
     if (msg.message == WM_GRAPHMESSAGE)
     {
       CDSMsg* pMsg = reinterpret_cast<CDSMsg *>(msg.lParam);
-      CLog::Log(LOGDEBUG, "%s Message received : %d on thread 0x%X", __FUNCTION__, pMsg->GetMessageType(), m_threadID);
+      CLog::Log(LOGDEBUG, "{} Message received : %d on thread 0x%X", __FUNCTION__, pMsg->GetMessageType(), m_threadID);
 
       if (CDSPlayer::PlayerState == DSPLAYER_CLOSED || CDSPlayer::PlayerState == DSPLAYER_LOADING)
       {
@@ -1052,7 +1052,7 @@ bool CDSPlayer::OnAction(const CAction &action)
       }
       else
       {
-        CLog::Log(LOGWARNING, "%s - failed to switch channel. playback stopped", __FUNCTION__);
+        CLog::Log(LOGWARNING, "{} - failed to switch channel. playback stopped", __FUNCTION__);
         CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       }
       return true;
@@ -1072,7 +1072,7 @@ bool CDSPlayer::OnAction(const CAction &action)
       }
       else
       {
-        CLog::Log(LOGWARNING, "%s - failed to switch channel. playback stopped", __FUNCTION__);
+        CLog::Log(LOGWARNING, "{} - failed to switch channel. playback stopped", __FUNCTION__);
         CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       }
       return true;
@@ -1092,7 +1092,7 @@ bool CDSPlayer::OnAction(const CAction &action)
       }
       else
       {
-        CLog::Log(LOGWARNING, "%s - failed to switch channel. playback stopped", __FUNCTION__);
+        CLog::Log(LOGWARNING, "{} - failed to switch channel. playback stopped", __FUNCTION__);
         CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       }
       return true;
@@ -1408,7 +1408,7 @@ void CDSPlayer::UpdateProcessInfo(int index)
   std::string info;
 
   //Renderers in dsplayer
-  info = StringUtils::Format("%s, %s", CGraphFilters::Get()->VideoRenderer.osdname.c_str(), CGraphFilters::Get()->AudioRenderer.osdname.c_str());
+  info = StringUtils::Format("{}, {}", CGraphFilters::Get()->VideoRenderer.osdname.c_str(), CGraphFilters::Get()->AudioRenderer.osdname.c_str());
   m_processInfo->SetVideoPixelFormat(info);
   //filters in dsplayer
   m_processInfo->SetVideoDeintMethod(g_dsGraph->GetGeneralInfo());
@@ -1416,9 +1416,9 @@ void CDSPlayer::UpdateProcessInfo(int index)
   //AUDIO
 
   //add visible track number
-  info = StringUtils::Format("%i %s", CStreamsManager::Get() ? CStreamsManager::Get()->GetChannels(index) : 0, g_localizeStrings.Get(14301).c_str());
+  info = StringUtils::Format("%i {}", CStreamsManager::Get() ? CStreamsManager::Get()->GetChannels(index) : 0, g_localizeStrings.Get(14301).c_str());
   if (GetAudioStreamCount() > 1)
-    info = StringUtils::Format("(%i/%i) %s ", index + 1, GetAudioStreamCount(), info.c_str());
+    info = StringUtils::Format("(%i/%i) {} ", index + 1, GetAudioStreamCount(), info.c_str());
   m_processInfo->SetAudioChannels(info);
 
   m_processInfo->SetAudioBitsPerSample(CStreamsManager::Get() ? CStreamsManager::Get()->GetBitsPerSample(index) : 0);
@@ -1456,7 +1456,7 @@ void CDSPlayer::SetAudioCodeDelayInfo(int index)
 
   std::string info;
   int iAudioDelay = CStreamsManager::Get() ? CStreamsManager::Get()->GetLastAVDelay() : 0;
-  info = StringUtils::Format("%s, %ims delay", CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioCodecDisplayName(index).c_str() : "", iAudioDelay);
+  info = StringUtils::Format("{}, %ims delay", CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioCodecDisplayName(index).c_str() : "", iAudioDelay);
 
   m_processInfo->SetAudioDecoderName(info);
 
@@ -1702,7 +1702,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
       CEdition edition;
       if (db.GetResumeEdition(m_currentFileItem.GetPath(), edition))
       {
-        CLog::Log(LOGDEBUG, "%s select bookmark, edition with idx %i selected", __FUNCTION__, edition.editionNumber);
+        CLog::Log(LOGDEBUG, "{} select bookmark, edition with idx %i selected", __FUNCTION__, edition.editionNumber);
         SetEdition(edition.editionNumber);
         return;
       }
@@ -1725,7 +1725,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
 
     dialog->SetHeading(IsMatroskaEditions() ? 55025 : 55026);
 
-    CLog::Log(LOGDEBUG, "%s Edition count - %i", __FUNCTION__, count);
+    CLog::Log(LOGDEBUG, "{} Edition count - %i", __FUNCTION__, count);
     int selected = GetEdition();
     for (UINT i = 0; i < count; i++)
     {
@@ -1763,7 +1763,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
         continue;
       }
       UINT idx = editionOptions[selected];
-      CLog::Log(LOGDEBUG, "%s edition with idx %i selected", __FUNCTION__, idx);
+      CLog::Log(LOGDEBUG, "{} edition with idx %i selected", __FUNCTION__, idx);
       SetEdition(idx);
       break;
     }

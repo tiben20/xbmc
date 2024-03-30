@@ -89,7 +89,7 @@ CFGManager::~CFGManager()
 
   m_pUnkInner = NULL;
 
-  CLog::Log(LOGDEBUG, "%s Resources released", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} Resources released", __FUNCTION__);
 }
 
 HRESULT CFGManager::QueryInterface(const IID &iid, void** ppv)
@@ -232,7 +232,7 @@ STDMETHODIMP CFGManager::ConnectDirect(IPin* pPinOut, IPin* pPinIn, const AM_MED
   g_charsetConverter.wToUTF8(GetFilterName(pBF), filterNameIn);
   g_charsetConverter.wToUTF8(GetPinName(pPinIn), pinNameIn);
 
-  CLog::Log(LOGDEBUG, "%s: %s connecting %s.%s.Type:%s pin to %s.%s", __FUNCTION__,
+  CLog::Log(LOGDEBUG, "{}: {} connecting {}.{}.Type:{} pin to {}.{}", __FUNCTION__,
     (SUCCEEDED(hr) ? "Succeeded" : "Failed"),
     filterNameOut.c_str(),
     pinNameOut.c_str(),
@@ -349,11 +349,11 @@ HRESULT CFGManager::RenderFileXbmc(const CFileItem& pFileItem)
   START_PERFORMANCE_COUNTER
     if (FAILED(m_CfgLoader->LoadFilterRules(pFileItem)))
     {
-    CLog::Log(LOGERROR, "%s Failed to load filters rules", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Failed to load filters rules", __FUNCTION__);
     return E_FAIL;
     }
     else
-      CLog::Log(LOGDEBUG, "%s Successfully loaded filters rules", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} Successfully loaded filters rules", __FUNCTION__);
   END_PERFORMANCE_COUNTER("Loading filters rules");
 
   START_PERFORMANCE_COUNTER
@@ -618,7 +618,7 @@ STDMETHODIMP CFGManager::GetDeadEnd(int iIndex, std::list<std::wstring>& path, s
   {
     p = *it;
     std::wstring str;
-    str = StringUtils::Format(L"%s::%s", p.filter.c_str(), p.pin.c_str());
+    str = StringUtils::Format(L"{}::{}", p.filter.c_str(), p.pin.c_str());
     path.push_back(str);
   }
 
@@ -639,7 +639,7 @@ void CFGManager::LogFilterGraph(void)
   BeginEnumFilters(g_dsGraph->pFilterGraph, pEF, pBF)
   {
     g_charsetConverter.wToUTF8(GetFilterName(pBF), buffer);
-    CLog::Log(LOGDEBUG, "%s", buffer.c_str());
+    CLog::Log(LOGDEBUG, "{}", buffer.c_str());
   }
   EndEnumFilters
     CLog::Log(LOGDEBUG, "End of filters listing");
@@ -817,7 +817,7 @@ HRESULT CFGManager::RecoverFromGraphError(const CFileItem& pFileItem)
           hr = ConnectFilter(CGraphFilters::Get()->Splitter.pBF, NULL);
           if (SUCCEEDED(hr))
           {
-            CLog::Log(LOGINFO, "%s Rendering fails when using DXVA renderer. \"%s\" renderer used instead.", __FUNCTION__, CGraphFilters::Get()->Video.osdname.c_str());
+            CLog::Log(LOGINFO, "{} Rendering fails when using DXVA renderer. \"{}\" renderer used instead.", __FUNCTION__, CGraphFilters::Get()->Video.osdname.c_str());
             videoError = false;
           }
         }
@@ -854,7 +854,7 @@ HRESULT CFGManager::RecoverFromGraphError(const CFileItem& pFileItem)
       Com::SmartPtr<IPin> pPinV = GetFirstPin(pBFV, PINDIR_INPUT);
       if (IsPinConnected(pPinV))
       {
-        CLog::Log(LOGINFO, "%s There were some errors in your rendering chain. Filters have been changed.", __FUNCTION__);
+        CLog::Log(LOGINFO, "{} There were some errors in your rendering chain. Filters have been changed.", __FUNCTION__);
       }
       else
         videoError = true;
@@ -877,7 +877,7 @@ HRESULT CFGManager::RecoverFromGraphError(const CFileItem& pFileItem)
       else if (audioError)
         strError = std::string("Error in the audio rendering chain.");
 
-      CLog::Log(LOGERROR, "%s Audio / Video error \n %s \n Ensure that the audio/video stream is supported by your selected decoder and ensure that the decoder is properly configured.", __FUNCTION__, strError.c_str());
+      CLog::Log(LOGERROR, "{} Audio / Video error \n {} \n Ensure that the audio/video stream is supported by your selected decoder and ensure that the decoder is properly configured.", __FUNCTION__, strError.c_str());
       dialog->SetHeading("Audio / Video error");
       dialog->SetLine(0, strError.c_str());
       dialog->SetLine(1, "more details or see XBMC Wiki - 'DSPlayer codecs'");

@@ -245,7 +245,7 @@ public:
   static HWND m_hWnd;
   bool InitWindow(HWND& hWnd);
   void DeInitWindow();
-  std::string m_className;
+  std::wstring m_className;
   HINSTANCE m_hInstance;
   bool m_isMadvr;
 

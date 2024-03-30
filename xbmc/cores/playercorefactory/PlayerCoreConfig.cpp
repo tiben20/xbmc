@@ -43,8 +43,14 @@ CPlayerCoreConfig::CPlayerCoreConfig(std::string name,
 std::shared_ptr<IPlayer> CPlayerCoreConfig::CreatePlayer(IPlayerCallback& callback) const
 {
   std::shared_ptr<IPlayer> player;
-
+  //temporary before fixing playercorefactory
+#if HAS_DS_PLAYER
   if (m_type.compare("video") == 0)
+  {
+    player = std::make_shared<CDSPlayer>(callback);
+  }
+#endif
+  else if (m_type.compare("video") == 0)
   {
     player = std::make_shared<CVideoPlayer>(callback);
   }
@@ -66,12 +72,6 @@ std::shared_ptr<IPlayer> CPlayerCoreConfig::CreatePlayer(IPlayerCallback& callba
   {
     player = std::make_shared<UPNP::CUPnPPlayer>(callback, m_id.c_str());
   }
-#endif
-#if HAS_DS_PLAYER
-    else if (m_type.compare("dsplayer") == 0)
-    {
-    player = std::make_shared<CDSPlayer>(callback);
-    }
 #endif
   else
     return nullptr;
