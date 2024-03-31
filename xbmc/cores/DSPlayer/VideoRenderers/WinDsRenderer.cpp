@@ -42,7 +42,7 @@
 #include "cores/dsplayer/IDSPlayer.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "rendering/dx/rendercontext.h"
-
+#include "cores/videoplayer/videorenderers/RenderFactory.h"
 
 CWinDsRenderer::CWinDsRenderer(): 
   m_bConfigured(false)
@@ -55,11 +55,66 @@ CWinDsRenderer::~CWinDsRenderer()
   UnInit();
 }
 
+CBaseRenderer* CWinDsRenderer::Create(CVideoBuffer* buffer)
+{
+  return new CWinDsRenderer();
+}
+
+bool CWinDsRenderer::Register()
+{
+  VIDEOPLAYER::CRendererFactory::RegisterRenderer("default", Create);
+  return true;
+}
+
 void CWinDsRenderer::SetupScreenshot()
 {
   // When taking a screenshot, the CDX9AllocatorPreenter::Paint() method is called, but never CDX9AllocatorPresenter::OnAfterPresent().
   // The D3D device is always locked. Setting bPaintAll to false fixes that.
   CDX9AllocatorPresenter::bPaintAll = false;
+}
+
+bool CWinDsRenderer::Configure(const VideoPicture& picture, float fps, unsigned int orientation)
+{
+  m_sourceWidth = picture.iWidth;
+  m_sourceHeight = picture.iHeight;
+  m_renderOrientation = orientation;
+  m_fps = fps;
+  m_iFlags = GetFlagsChromaPosition(picture.chroma_position)
+    | GetFlagsColorMatrix(picture.color_space, picture.iWidth, picture.iHeight)
+    | GetFlagsColorPrimaries(picture.color_primaries)
+    | GetFlagsStereoMode(picture.stereoMode);
+  m_format = picture.videoBuffer->GetFormat();
+
+  // calculate the input frame aspect ratio
+  CalculateFrameAspectRatio(picture.iDisplayWidth, picture.iDisplayHeight);
+  SetViewMode(m_videoSettings.m_ViewMode);
+  ManageRenderArea();
+
+  m_bConfigured = true;
+  return true;
+}
+
+void CWinDsRenderer::AddVideoPicture(const VideoPicture& picture, int index)
+{
+}
+
+void CWinDsRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
+{
+}
+
+bool CWinDsRenderer::RenderCapture(int index, CRenderCapture* capture)
+{
+  return false;
+}
+
+bool CWinDsRenderer::Supports(ESCALINGMETHOD method) const
+{
+  return false;
+}
+
+bool CWinDsRenderer::ConfigChanged(const VideoPicture& picture)
+{
+  return false;
 }
 
 bool CWinDsRenderer::Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags, AVPixelFormat format, unsigned extended_format, unsigned int orientation)

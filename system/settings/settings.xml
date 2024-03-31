@@ -889,7 +889,7 @@
       <group id="2" label="55095">
         <setting id="dsplayer.videorenderer" type="string" label="55001" help="90002">
           <level>0</level>
-          <default>madVR</default>
+          <default>EVR</default>
           <constraints>
             <options>dsvideorenderer</options>
           </constraints>

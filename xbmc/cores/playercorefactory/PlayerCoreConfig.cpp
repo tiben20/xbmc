@@ -19,7 +19,7 @@
 #include "utils/StringUtils.h"
 #include "utils/XBMCTinyXML.h"
 #include "utils/log.h"
-
+#include "settings/SettingsComponent.h"
 #include <utility>
 
 CPlayerCoreConfig::CPlayerCoreConfig(std::string name,
@@ -45,8 +45,8 @@ std::shared_ptr<IPlayer> CPlayerCoreConfig::CreatePlayer(IPlayerCallback& callba
   std::shared_ptr<IPlayer> player;
   //temporary before fixing playercorefactory
 #if HAS_DS_PLAYER
-  if (m_type.compare("video") == 0)
-  {
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_DEFAULTVIDEOPLAYER))
+  { 
     player = std::make_shared<CDSPlayer>(callback);
   }
 #endif

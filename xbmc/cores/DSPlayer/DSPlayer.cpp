@@ -684,6 +684,7 @@ void CDSPlayer::Process()
   HRESULT hr = E_FAIL;
   CLog::Log(LOGINFO, "{} - Creating DS Graph", __FUNCTION__);
 
+  CServiceBroker::GetWinSystem()->RegisterRenderLoop(this);
   // Set the selected video renderer
   SetCurrentVideoRenderer(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER));
 

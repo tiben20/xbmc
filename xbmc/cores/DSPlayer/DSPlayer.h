@@ -89,7 +89,7 @@ protected:
   void Process();
 };
 
-class CDSPlayer : public IPlayer, public CThread, public IDispResource, public IRenderDSMsg
+class CDSPlayer : public IPlayer, public CThread, public IDispResource, public IRenderDSMsg, public IRenderLoop
 {
 public:
   // IPlayer
