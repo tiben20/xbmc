@@ -75,6 +75,7 @@ void CWinDsRenderer::SetupScreenshot()
 
 bool CWinDsRenderer::Configure(const VideoPicture& picture, float fps, unsigned int orientation)
 {
+  /*
   m_sourceWidth = picture.iWidth;
   m_sourceHeight = picture.iHeight;
   m_renderOrientation = orientation;
@@ -89,7 +90,7 @@ bool CWinDsRenderer::Configure(const VideoPicture& picture, float fps, unsigned 
   CalculateFrameAspectRatio(picture.iDisplayWidth, picture.iDisplayHeight);
   SetViewMode(m_videoSettings.m_ViewMode);
   ManageRenderArea();
-
+  */
   m_bConfigured = true;
   return true;
 }

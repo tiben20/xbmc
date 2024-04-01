@@ -438,20 +438,20 @@ HRESULT CFGLoader::InsertVideoRenderer()
 {
   HRESULT hr = S_OK;
 
-  std::string videoRender;
+  CStdStringA videoRender;
   videoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER);
   if (videoRender.length() == 0)
-    videoRender = "EVR";
+    videoRender = "evr";
 
-  if (videoRender == "EVR")
+  if (videoRender.ToLower() == "evr")
   { 
     m_pFGF = new CFGFilterVideoRenderer(CLSID_EVRAllocatorPresenter, "Kodi EVR");
   }
-  if (videoRender == "VMR9")
+  if (videoRender.ToLower() == "vmr9")
   { 
     m_pFGF = new CFGFilterVideoRenderer(CLSID_VMR9AllocatorPresenter, "Kodi VMR9");
   }
-  if (videoRender == "madVR")
+  if (videoRender.ToLower() == "madvr")
   {
     m_pFGF = new CFGFilterVideoRenderer(CLSID_madVRAllocatorPresenter, "Kodi madVR");
   }

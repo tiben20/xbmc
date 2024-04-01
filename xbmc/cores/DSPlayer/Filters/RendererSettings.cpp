@@ -57,19 +57,19 @@ CDSSettings::CDSSettings(void)
 
 void CDSSettings::Initialize()
 {
-  std::string videoRender;
+  CStdStringA videoRender;
   videoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER);
 
-  if (videoRender == "EVR")
+  if (videoRender.ToLower() == "evr")
   {
     isEVR = true;
     pRendererSettings = new CEVRRendererSettings();
   }
 
-  if (videoRender == "VMR9")
+  if (videoRender.ToLower() == "vmr9")
     pRendererSettings = new CVMR9RendererSettings();
 
-  if (videoRender == "madVR")
+  if (videoRender.ToLower() == "madvr")
     pRendererSettings = new CMADVRRendererSettings();
 
   // Create the pixel shader list

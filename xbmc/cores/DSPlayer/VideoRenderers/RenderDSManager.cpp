@@ -140,6 +140,7 @@ bool CRenderDSManager::Configure(unsigned int width, unsigned int height, unsign
 
 bool CRenderDSManager::Configure()
 {
+
   // lock all interfaces
   std::unique_lock<CCriticalSection> lock(m_statelock);
   std::unique_lock<CCriticalSection> lock2(m_datalock);
@@ -155,110 +156,17 @@ bool CRenderDSManager::Configure()
     if (!m_pRenderer)
       return false;
   }
-
-  m_pRenderer->SetVideoSettings(m_playerPort->GetVideoSettings());
-  bool result = m_pRenderer->Configure(*m_pConfigPicture, m_fps, m_orientation);
-  if (result)
-  {
-    CRenderInfo info = m_pRenderer->GetRenderInfo();
-    int renderbuffers = info.max_buffer_size;
-    m_QueueSize = renderbuffers;
-    if (m_NumberBuffers > 0)
-      m_QueueSize = std::min(m_NumberBuffers, renderbuffers);
-
-    if (m_QueueSize < 2)
-    {
-      m_QueueSize = 2;
-      CLog::Log(LOGWARNING, "CRenderManager::Configure - queue size too small ({}, {}, {})",
-        m_QueueSize, renderbuffers, m_NumberBuffers);
-    }
-
-    m_pRenderer->SetBufferSize(m_QueueSize);
-    m_pRenderer->Update();
-
-    m_playerPort->UpdateRenderInfo(info);
-    m_playerPort->UpdateGuiRender(true);
-    m_playerPort->UpdateVideoRender(!m_pRenderer->IsGuiLayer());
-
-    m_queued.clear();
-    m_discard.clear();
-    m_free.clear();
-    m_presentsource = 0;
-    m_presentsourcePast = -1;
-    for (int i = 1; i < m_QueueSize; i++)
-      m_free.push_back(i);
-
-    m_bRenderGUI = true;
-    m_bTriggerUpdateResolution = true;
-    m_presentstep = PRESENT_IDLE;
-    m_presentpts = DVD_NOPTS_VALUE;
-    m_lateframes = -1;
-    m_presentevent.notifyAll();
-    m_renderedOverlay = false;
-    m_renderDebug = false;
-    m_clockSync.Reset();
-    m_dvdClock.SetVsyncAdjust(0);
-    m_overlays.Reset();
-    m_overlays.SetStereoMode(m_stereomode);
-
-    m_renderState = STATE_CONFIGURED;
-
-    CLog::Log(LOGDEBUG, "CRenderManager::Configure - {}", m_QueueSize);
-}
-  else
-    m_renderState = STATE_UNCONFIGURED;
-
-  m_pConfigPicture.reset();
-
-  m_stateEvent.Set();
-  m_playerPort->VideoParamsChange();
-  return result;
-
-#if TODO
-  CSingleExit lock(m_statelock);
-  CSingleExit lock3(m_datalock);
-
-  /*
-  if (m_pRenderer && m_pRenderer->GetRenderFormat() != m_format)
-  {
-    DeleteRenderer();
-  }
-  */
-
-  if(!m_pRenderer)
-  {
-    CreateRenderer();
-    if (!m_pRenderer)
-      return false;
-  }
   
-  
-  bool result = m_pRenderer->Configure(picture, m_fps, orientation);
-  if (result)
-  {
-    CRenderInfo info = m_pRenderer->GetRenderInfo();
-    int renderbuffers = info.max_buffer_size;
-
-    m_pRenderer->Update();
-    m_bTriggerUpdateResolution = true;
     m_renderState = STATE_CONFIGURED;
-  }
-  else
-    m_renderState = STATE_UNCONFIGURED;
-
-  m_stateEvent.Set();
-  m_playerPort->VideoParamsChange();
-  return result;
-#endif
-  return true;
+    return true;
 }
 
 void CRenderDSManager::Reset()
 {
-#if TODO
+
   if (m_pRenderer)
-    m_pRenderer->Reset();
-#endif
+    (reinterpret_cast<CWinDsRenderer*>(m_pRenderer))->Reset();
+
 }
 
 bool CRenderDSManager::IsConfigured() const
