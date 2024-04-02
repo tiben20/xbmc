@@ -76,6 +76,8 @@
 #include "application/ApplicationPlayer.h"
 #include "application/AppInboundProtocol.h"
 
+#include "processthreadsapi.h"
+
 using namespace PVR;
 using namespace std;
 using namespace KODI::MESSAGING;
@@ -653,6 +655,7 @@ LRESULT CALLBACK CDSPlayer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 //CThread
 void CDSPlayer::OnStartup()
 {
+  m_threadID = GetThreadId(CThread::GetCurrentNativeThreadId());
   //is this necessary m_threadID = CThread::GetCurrentThreadId();
 }
 
@@ -750,13 +753,14 @@ void CDSPlayer::Process()
 
 void CDSPlayer::HandleMessages()
 {
+  //std::shared_ptr<CDs> pMsg = nullptr;
   MSG msg;
   while (GetMessage(&msg, NULL, 0, 0) != 0)
   {
     if (msg.message == WM_GRAPHMESSAGE)
     {
       CDSMsg* pMsg = reinterpret_cast<CDSMsg *>(msg.lParam);
-      CLog::Log(LOGDEBUG, "{} Message received : %d on thread 0x%X", __FUNCTION__, pMsg->GetMessageType(), m_threadID);
+      CLog::Log(LOGDEBUG, "{} Message received : {} on thread 0x{}", __FUNCTION__, pMsg->GetMessageType(), m_threadID);
 
       if (CDSPlayer::PlayerState == DSPLAYER_CLOSED || CDSPlayer::PlayerState == DSPLAYER_LOADING)
       {

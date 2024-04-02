@@ -2174,7 +2174,7 @@ public:
 			UINT nId = LOWORD(reinterpret_cast<unsigned long>(pT));
 			if (!LoadString(nId))
 			{
-				TRACE(_T("Can't load string %u\n"), SSRES(pT));
+				//TRACE(_T("Can't load string %u\n"), SSRES(pT));
 			}
 			bLoaded = true;
 		}

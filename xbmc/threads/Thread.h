@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 
+
 enum class ThreadPriority
 {
   LOWEST,
@@ -70,6 +71,11 @@ public:
   inline static const std::thread::id GetCurrentThreadId()
   {
     return std::this_thread::get_id();
+  }
+
+  inline static const std::thread::native_handle_type GetCurrentNativeThreadId()
+  {
+    return GetCurrentThread()->m_thread->native_handle();
   }
 
   /*!
