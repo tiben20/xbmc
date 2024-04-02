@@ -143,7 +143,7 @@ public:
   bool IsEnteringExclusive() override { return m_isEnteringExclusive; }
   void EnableExclusive(bool bEnable) override;
   void SetPixelShader() override;
-  void SetResolution() const override;
+  void SetResolution() override;
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override;
   bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const override;
   void DisplayChange(bool bExternalChange) override;

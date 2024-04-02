@@ -363,9 +363,13 @@ bool CPlayerCoreFactory::LoadConfiguration(const std::string &file, bool clear)
     auto VideoPlayer = std::make_unique<CPlayerCoreConfig>("VideoPlayer", "video", nullptr);
     VideoPlayer->m_bPlaysAudio = true;
     VideoPlayer->m_bPlaysVideo = true;
+    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_DEFAULTVIDEOPLAYER))
+    {
+      VideoPlayer->m_name = "DSPlayer";
+    }
     m_vecPlayerConfigs.emplace_back(std::move(VideoPlayer));
-
-    auto DSPLayer = std::make_unique<CPlayerCoreConfig>("DSPLayer", "video", nullptr);
+    
+    auto DSPLayer = std::make_unique<CPlayerCoreConfig>("DSPlayer", "video", nullptr);
     DSPLayer->m_bPlaysAudio = true;
     DSPLayer->m_bPlaysVideo = true;
     m_vecPlayerConfigs.emplace_back(std::move(DSPLayer));

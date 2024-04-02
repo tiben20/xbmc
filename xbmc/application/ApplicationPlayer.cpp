@@ -807,34 +807,32 @@ void CApplicationPlayer::EnableExclusive(bool bEnable)
 
 void CApplicationPlayer::SetPixelShader() const
 {
-#if TODO
+
   std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
     player->SetPixelShader();
   }
-#endif
+
 }
 
 void CApplicationPlayer::SetResolution() const
 {
-#if TODO
   std::shared_ptr<const IPlayer> player = GetInternal();
   if (player)
   {
     player->SetResolution();
   }
-#endif
 }
 
 void CApplicationPlayer::SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect)
 {
-  std::shared_ptr<const IPlayer> player = GetInternal();
+  std::shared_ptr<IPlayer> player = GetInternal();
   if (player)
   {
-#if TODO
+
     player->SetPosition(sourceRect, videoRect, viewRect);
-#endif
+
   }
 }
 

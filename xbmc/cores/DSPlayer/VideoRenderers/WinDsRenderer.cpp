@@ -101,6 +101,23 @@ void CWinDsRenderer::AddVideoPicture(const VideoPicture& picture, int index)
 
 void CWinDsRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
 {
+  CRenderSystemDX* renderSystem = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
+  if (clear)
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(m_clearColour);
+
+  if (alpha < 255)
+    renderSystem->SetAlphaBlendEnable(true);
+  else
+    renderSystem->SetAlphaBlendEnable(false);
+
+  if (!m_bConfigured)
+    return;
+  
+  //do we need lock CSingleLock lock(g_graphicsContext);
+  //std::unique_lock<CCriticalSection>
+  ManageRenderArea();
+
+  Render(flags);
 }
 
 bool CWinDsRenderer::RenderCapture(int index, CRenderCapture* capture)

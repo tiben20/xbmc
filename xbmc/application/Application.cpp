@@ -814,6 +814,10 @@ void CApplication::Render()
   if (!CServiceBroker::GetRenderSystem()->BeginRender())
     return;
 
+#if HAS_DS_PLAYER
+  appPlayer->BeginRender();
+#endif
+
   // render gui layer
   if (appPower->GetRenderGUI() && !m_skipGuiRender)
   {
@@ -840,9 +844,20 @@ void CApplication::Render()
   }
 
   // render video layer
-  CServiceBroker::GetGUI()->GetWindowManager().RenderEx();
+  
+
+  // render video layer
+#ifdef HAS_DS_PLAYER   
+  if (!appPlayer->ReadyDS())
+#endif
+    CServiceBroker::GetGUI()->GetWindowManager().RenderEx();
 
   CServiceBroker::GetRenderSystem()->EndRender();
+#ifdef HAS_DS_PLAYER
+  appPlayer->EndRender();
+#endif
+
+  
 
   // reset our info cache - we do this at the end of Render so that it is
   // fresh for the next process(), or after a windowclose animation (where process()

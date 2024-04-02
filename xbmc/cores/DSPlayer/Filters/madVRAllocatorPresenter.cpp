@@ -120,11 +120,12 @@ STDMETHODIMP CmadVRAllocatorPresenter::NonDelegatingQueryInterface(REFIID riid, 
   return __super::NonDelegatingQueryInterface(riid, ppv);
 }
 
-void CmadVRAllocatorPresenter::SetResolution() const
+void CmadVRAllocatorPresenter::SetResolution()
 {
   ULONGLONG frameRate;
   float fps;
-#if TODO
+
+
   if (Com::SmartQIPtr<IMadVRInfo> pInfo = m_pDXR)
   {
     pInfo->GetUlonglong("frameRate", &frameRate);
@@ -135,11 +136,11 @@ void CmadVRAllocatorPresenter::SetResolution() const
 
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot())
   {
-    RESOLUTION res = CResolutionUtils::ChooseBestResolution(fps, nativeVideoSize.cx, false);   
+    RESOLUTION res = CResolutionUtils::ChooseBestResolution(fps, nativeVideoSize.cx, nativeVideoSize.cy, false);
     bool bChanged = SetResolutionInternal(res);
     CLog::Log(LOGDEBUG, "%s change resolution %s", __FUNCTION__, bChanged ?  "<success>" : "<failed>");
   }
-#endif
+
 }
 
 void CmadVRAllocatorPresenter::ExclusiveCallback(LPVOID context, int event)

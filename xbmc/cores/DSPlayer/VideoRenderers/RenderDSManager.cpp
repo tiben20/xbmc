@@ -145,11 +145,6 @@ bool CRenderDSManager::Configure()
   std::unique_lock<CCriticalSection> lock(m_statelock);
   std::unique_lock<CCriticalSection> lock2(m_datalock);
 
-  if (m_pRenderer)
-  {
-    DeleteRenderer();
-  }
-
   if (!m_pRenderer)
   {
     CreateRenderer();
@@ -157,8 +152,22 @@ bool CRenderDSManager::Configure()
       return false;
   }
   
+  bool result = (reinterpret_cast<CWinDsRenderer*>(m_pRenderer))->Configure(m_width, m_height, m_dwidth, m_dheight, m_fps, m_flags, (AVPixelFormat)0, 0, 0);
+  if (result)
+  {
+    CRenderInfo info = m_pRenderer->GetRenderInfo();
+    int renderbuffers = info.max_buffer_size;
+
+    m_pRenderer->Update();
+    m_bTriggerUpdateResolution = true;
     m_renderState = STATE_CONFIGURED;
-    return true;
+  }
+  else
+    m_renderState = STATE_UNCONFIGURED;
+
+  m_stateEvent.Set();
+  m_playerPort->VideoParamsChange();
+  return result;
 }
 
 void CRenderDSManager::Reset()
@@ -431,9 +440,9 @@ bool CRenderDSManager::IsVideoLayer()
 /* simple present method */
 void CRenderDSManager::PresentSingle(bool clear, DWORD flags, DWORD alpha)
 {
-#if TODO
-  m_pRenderer->RenderUpdate(clear, flags, alpha);
-#endif
+
+  m_pRenderer->RenderUpdate(0,0,clear, flags, alpha);
+
 }
 
 void CRenderDSManager::UpdateDisplayLatency()

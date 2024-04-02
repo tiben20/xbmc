@@ -49,6 +49,7 @@
 
 #include <Shlobj.h>
 #include <dbt.h>
+#include "cores/DSPlayer/dsplayer.h"
 
 HWND g_hWnd = nullptr;
 
@@ -499,7 +500,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         DX::Windowing()->ShowOSMouse(true);
       break;
     case WM_MOUSEMOVE:
-#if TODO
+
 #if HAS_DS_PLAYER
       if (g_application.GetCurrentPlayer() == "DSPlayer")
       {
@@ -510,7 +511,6 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         }
       }
 #endif
-#endif
 
       newEvent.type = XBMC_MOUSEMOTION;
       newEvent.motion.x = GET_X_LPARAM(lParam);
@@ -519,17 +519,15 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
         appPort->OnEvent(newEvent);
       return(0);
     case WM_LBUTTONDOWN:
-#if TODO
 #if HAS_DS_PLAYER
       if (g_application.GetCurrentPlayer() == "DSPlayer")
       {
-        if (g_application.m_pPlayer && g_application.m_pPlayer->IsInMenu())
+        if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->IsInMenu())
         {
           CDSPlayer::PostMessage(new CDSMsgInt(CDSMsg::PLAYER_DVD_MOUSE_CLICK, lParam), false);
           return(0);
         }
       }
-#endif
 #endif
     case WM_MBUTTONDOWN:
     case WM_RBUTTONDOWN:
