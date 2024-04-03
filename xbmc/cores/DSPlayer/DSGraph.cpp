@@ -63,6 +63,7 @@
 #include "settings/SettingsComponent.h"
 #include "cores/audioengine/engines/activeae/activeae.h"
 #include "DSUtil/DSUtil.h"
+#include "guilib/GUIComponent.h"
 
 enum
 {
@@ -249,12 +250,12 @@ void CDSGraph::CloseFile()
 void CDSGraph::UpdateTime()
 {
   // Not sure if it's needed
-  /*if (m_threadID != GetCurrentThreadId())
-  {
-  PostMessage( new CDSMsg(CDSMsg::PLAYER_UPDATE_TIME));
-  return;
-  }*/
-
+  //if (m_threadID != GetCurrentThreadId())
+  //{
+  //  CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_UPDATE_TIME));
+    //return;
+  //}
+  
   CSingleExit lock(m_ObjectLock);
 
   if (!m_pMediaSeeking)
@@ -290,7 +291,10 @@ void CDSGraph::UpdateTime()
   m_State.isPVR = false;
 
   if (SUCCEEDED(m_pMediaSeeking->GetPositions(&Position, NULL)))
+  {
     m_State.time = Position;
+    
+  }
 
   // Update total time of video.
   // Duration time may increase during playback of in-progress recordings
@@ -324,6 +328,7 @@ void CDSGraph::UpdateTime()
   }
 
   CChaptersManager::Get()->UpdateChapters(m_State.time);
+  
 }
 
 void CDSGraph::UpdateDvdState()
@@ -737,10 +742,10 @@ void CDSGraph::Seek(uint64_t position, uint32_t flags /*= AM_SEEKING_AbsolutePos
     if (position > endOfTimeShiftFile)
       position = endOfTimeShiftFile;
   }
-
-  if (showPopup)
-    g_infoManager.SetDisplayAfterSeek(100000);
 #endif
+  if (showPopup)
+    CDataCacheCore::GetInstance().SeekFinished(100000);
+
   if (!m_pMediaSeeking)
     return;
 
@@ -759,8 +764,10 @@ void CDSGraph::Seek(uint64_t position, uint32_t flags /*= AM_SEEKING_AbsolutePos
   int iTime = DS_TIME_TO_MSEC(position);
   int seekOffset = (int)(iTime - DS_TIME_TO_MSEC(GetTime()));
   m_callback.OnPlayBackSeek(iTime, seekOffset);
+  if (showPopup)
+    CDataCacheCore::GetInstance().SeekFinished(0);
   //if (showPopup)
-  //  g_infoManager.SetDisplayAfterSeek();
+  //  CServiceBroker::GetGUI()->GetInfoManager().SetDisplayAfterSeek();
 }
 
 void CDSGraph::Seek(bool bPlus, bool bLargeStep)

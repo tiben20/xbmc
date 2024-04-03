@@ -138,7 +138,7 @@ public:
 
   virtual void SeekTime(__int64 iTime = 0) override;
   virtual bool SeekTimeRelative(__int64 iTime) override;
-  virtual __int64 GetTime() override { std::unique_lock<CCriticalSection> lock(m_StateSection); return llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTime())); }
+  virtual __int64 GetTime() override;
   virtual __int64 GetTotalTime() override { std::unique_lock<CCriticalSection> lock(m_StateSection); return llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTotalTime())); }
   virtual void SetSpeed(float iSpeed) override;
   virtual float GetSpeed() override;

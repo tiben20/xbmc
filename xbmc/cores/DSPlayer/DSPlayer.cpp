@@ -133,6 +133,7 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_pClock.SetTimeBase((int64_t)DS_TIME_BASE);
 
   m_processInfo = CProcessInfo::CreateInstance();
+  m_processInfo->SetDataCache(&CServiceBroker::GetDataCacheCore());
   CServiceBroker::GetWinSystem()->Register(this);
 }
 
@@ -748,7 +749,13 @@ void CDSPlayer::Process()
   }
 
   while (!m_bStop && PlayerState != DSPLAYER_CLOSED && PlayerState != DSPLAYER_LOADING)
+  {
     HandleMessages();
+    PostMessage(new CDSMsg(CDSMsg::PLAYER_PAUSE));
+    
+
+  }
+
 }
 
 void CDSPlayer::HandleMessages()
@@ -814,6 +821,8 @@ void CDSPlayer::HandleMessages()
       else if (pMsg->IsType(CDSMsg::PLAYER_UPDATE_TIME))
       {
         g_dsGraph->UpdateTime();
+        m_processInfo->SetPlayTimes(0, g_dsGraph->GetTime(), 0, g_dsGraph->GetTotalTime());
+        
       }
 
       /*DVD COMMANDS*/
@@ -1225,6 +1234,14 @@ bool CDSPlayer::SeekTimeRelative(__int64 iTime)
   return true;
 }
 
+__int64 CDSPlayer::GetTime()
+{
+   std::unique_lock<CCriticalSection> lock(m_StateSection); 
+   __int64 tmm;
+   tmm = llrint(DS_TIME_TO_MSEC(g_dsGraph->GetTime()));
+  return tmm;
+}
+
 void CDSPlayer::UpdateApplication()
 {
 #if TODO
@@ -1335,6 +1352,7 @@ bool CDSPlayer::ShowPVRChannelInfo()
 void CDSPlayer::FrameMove()
 {
   m_renderManager.FrameMove();
+  m_processInfo->SetPlayTimes(0, DS_TIME_TO_MSEC(g_dsGraph->GetTime()), 0, DS_TIME_TO_MSEC(g_dsGraph->GetTotalTime()));
 }
 
 void CDSPlayer::Render(bool clear, uint32_t alpha, bool gui)
@@ -1407,6 +1425,7 @@ void CDSPlayer::OnResetDisplay()
 
 void CDSPlayer::UpdateProcessInfo(int index)
 {
+//TODO HAD TIMING FOR THE GUI
   if (index == CURRENT_STREAM)
     index = g_application.GetComponent<CApplicationPlayer>()->GetAudioStream();
 
@@ -1858,7 +1877,7 @@ void CGraphManagementThread::Process()
     // Update displayed time
     g_dsGraph->UpdateTime();
     CThread::Sleep(250ms);
-
+    
     if (CDSPlayer::PlayerState == DSPLAYER_CLOSED)
       break;
   }
