@@ -670,6 +670,7 @@ void CDSPlayer::OnExit()
   m_hReadyEvent.Set();
   m_bStop = true;
   m_threadID = 0;
+  CServiceBroker::GetWinSystem()->UnregisterRenderLoop(this);
 #if TODO//identify its not in xbmc core anymore
   if (m_PlayerOptions.identify == false)
   {
