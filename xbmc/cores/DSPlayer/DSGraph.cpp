@@ -70,9 +70,6 @@ enum
   WM_GRAPHNOTIFY = WM_APP + 1,
 };
 
-
-/*#include "utils/win32exception.h"*/
-#include "Filters/EVRAllocatorPresenter.h"
 #include "FGManager2.h"
 
 using namespace std;
@@ -299,19 +296,6 @@ void CDSGraph::UpdateTime()
   // Update total time of video.
   // Duration time may increase during playback of in-progress recordings
   UpdateTotalTime();
-
-  /*
-  TODO EVR STATS
-  if ((CGraphFilters::Get()->VideoRenderer.pQualProp) && m_iCurrentFrameRefreshCycle <= 0 && !g_application.GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR))
-  {
-    //this is too slow if we are doing it on every UpdateTime
-    int avgRate;
-    CGraphFilters::Get()->VideoRenderer.pQualProp->get_AvgFrameRate(&avgRate);
-    m_pStrCurrentFrameRate.Format(" | Real FPS: %4.2f", (float)avgRate / 100);
-    m_iCurrentFrameRefreshCycle = 5;
-  }
-  m_iCurrentFrameRefreshCycle--;
-  */
 
   //On dvd playback the current time is received in the handlegraphevent
   if (m_VideoInfo.isDVD)

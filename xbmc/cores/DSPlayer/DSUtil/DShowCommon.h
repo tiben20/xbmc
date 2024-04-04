@@ -2482,67 +2482,6 @@ inline void _DeleteMediaType(AM_MEDIA_TYPE *pmt)
 #endif
 
 
-
-#ifdef __IVMRWindowlessControl9_FWD_DEFINED__
-
-// AddVMR9Filter
-inline HRESULT AddVMR9Filter(
-    IGraphBuilder *pGraph,  // Pointer to the Filter Graph Manager
-    HWND hwndVideo,         // Handle to the application's video window.
-    DWORD cMaxStreams,      // Maximum number of video streams.
-    IVMRWindowlessControl9 **ppWindowless   // Optional. 
-    )
-{
-    if (pGraph == NULL)
-    {
-        return E_POINTER;
-    }
-    if (hwndVideo == NULL)
-    {
-        return E_INVALIDARG;
-    }
-    if (cMaxStreams < 1)
-    {
-        return E_INVALIDARG;
-    }
-    // ppWindowless can be NULL
-
-    HRESULT hr = S_OK;
-
-    IBaseFilter *pVMR = NULL;
-    IVMRFilterConfig9 *pConfig = NULL;;
-    IVMRWindowlessControl9 *pWindowless = NULL;
-
-    CHECK_HR(hr = AddFilterByCLSID(pGraph, CLSID_VideoMixingRenderer9, &pVMR, L"Video Mixing Renderer 9"));
-
-    CHECK_HR(hr = pVMR->QueryInterface(IID_IVMRFilterConfig9, (LPVOID *)&pConfig));
-
-    CHECK_HR(hr = pConfig->SetNumberOfStreams(cMaxStreams));
-
-    CHECK_HR(hr = pConfig->SetRenderingMode(VMR9Mode_Windowless));
-
-    CHECK_HR(hr = pVMR->QueryInterface(IID_IVMRWindowlessControl9, (LPVOID *)&pWindowless));
-
-    CHECK_HR(hr = pWindowless->SetVideoClippingWindow(hwndVideo));
-
-    CHECK_HR(hr = pWindowless->SetAspectRatioMode(VMR9ARMode_LetterBox));
-
-    if (ppWindowless)
-    {
-        *ppWindowless = pWindowless;
-        (*ppWindowless)->AddRef();
-    }
-
-done:
-    SAFE_RELEASE(pVMR);
-    SAFE_RELEASE(pConfig);
-    SAFE_RELEASE(pWindowless);
-    return hr;
-}
-
-#endif // __IVMRWindowlessControl9_FWD_DEFINED__
-
-
 // RenderFileToVideoRenderer:
 // Renders a media file to an existing video renderer in the graph. 
 // NOTE: The caller must add the video renderer to the graph before calling this method.

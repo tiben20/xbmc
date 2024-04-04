@@ -32,7 +32,6 @@
 #include "FileSystem/File.h"
 #include "utils/MathUtils.h"
 #include "StreamsManager.h"
-#include "Filters\DX9AllocatorPresenter.h"
 #include "settings/DisplaySettings.h"
 #include "settings/MediaSettings.h"
 #include "windowing/GraphicContext.h"
@@ -68,9 +67,6 @@ bool CWinDsRenderer::Register()
 
 void CWinDsRenderer::SetupScreenshot()
 {
-  // When taking a screenshot, the CDX9AllocatorPreenter::Paint() method is called, but never CDX9AllocatorPresenter::OnAfterPresent().
-  // The D3D device is always locked. Setting bPaintAll to false fixes that.
-  CDX9AllocatorPresenter::bPaintAll = false;
 }
 
 bool CWinDsRenderer::Configure(const VideoPicture& picture, float fps, unsigned int orientation)

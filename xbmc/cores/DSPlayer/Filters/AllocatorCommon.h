@@ -34,19 +34,11 @@
 #include "streams.h"
 #include <d3d9.h>
 #include <d3dx9.h>
-#include <Vmr9.h>
 #include "Subtitles/subpic/ISubPic.h"
 #include "Subtitles/subpic/DX9SubPic.h"
 #include "PixelShaderCompiler.h"
 #include "DSGraph.h"
 #include "cores/VideoPlayer/VideoRenderers/RenderFlags.h"
-
-// {4E4834FA-22C2-40e2-9446-F77DD05D245E}
-DEFINE_GUID(CLSID_VMR9AllocatorPresenter,
-  0x4e4834fa, 0x22c2, 0x40e2, 0x94, 0x46, 0xf7, 0x7d, 0xd0, 0x5d, 0x24, 0x5e);
-
-DEFINE_GUID(CLSID_EVRAllocatorPresenter,
-  0x7612b889, 0xe070, 0x4bcc, 0xb8, 0x8, 0x91, 0xcb, 0x79, 0x41, 0x74, 0xab);
 
 // {C7ED3100-9002-4595-9DCA-B30B30413429}
 DEFINE_GUID(CLSID_madVRAllocatorPresenter,
@@ -55,10 +47,7 @@ DEFINE_GUID(CLSID_madVRAllocatorPresenter,
 extern CCritSec g_ffdshowReceive;
 extern bool queue_ffdshow_support;
 
-extern bool IsVMR9InGraph(IFilterGraph* pFG);
 extern std::string GetWindowsErrorMessage(HRESULT _Error, HMODULE _Module);
 extern const char *GetD3DFormatStr(D3DFORMAT Format);
 
-extern HRESULT CreateAP9(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP);
-extern HRESULT CreateEVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP);
 extern HRESULT CreateMadVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP);

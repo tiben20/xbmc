@@ -40,10 +40,6 @@
 #include "utils/SystemInfo.h" //g_sysinfo
 #include "settings/Settings.h"//g_guiSettings
 
-
-#include "filters/VMR9AllocatorPresenter.h"
-#include "filters/EVRAllocatorPresenter.h"
-
 #include <initguid.h>
 #include "moreuuids.h"
 #include <dmodshow.h>

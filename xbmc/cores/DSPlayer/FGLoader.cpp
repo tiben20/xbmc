@@ -42,8 +42,6 @@
 #include "utils/SystemInfo.h"
 
 #include "filters/XBMCFileSource.h"
-#include "filters/VMR9AllocatorPresenter.h"
-#include "filters/EVRAllocatorPresenter.h"
 #include "Filters/madVRAllocatorPresenter.h"
 
 #include "Utils/AudioEnumerator.h"
@@ -443,14 +441,6 @@ HRESULT CFGLoader::InsertVideoRenderer()
   if (videoRender.length() == 0)
     videoRender = "evr";
 
-  if (videoRender.ToLower() == "evr")
-  { 
-    m_pFGF = new CFGFilterVideoRenderer(CLSID_EVRAllocatorPresenter, "Kodi EVR");
-  }
-  if (videoRender.ToLower() == "vmr9")
-  { 
-    m_pFGF = new CFGFilterVideoRenderer(CLSID_VMR9AllocatorPresenter, "Kodi VMR9");
-  }
   if (videoRender.ToLower() == "madvr")
   {
     m_pFGF = new CFGFilterVideoRenderer(CLSID_madVRAllocatorPresenter, "Kodi madVR");
@@ -554,8 +544,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
 
     if (SUCCEEDED(CFilterCoreFactory::GetSubsFilter(pFileItem, filter, CGraphFilters::Get()->IsUsingDXVADecoder())))
     {
-      if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_FILTERSMANAGEMENT) == INTERNALFILTERS 
-        && CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "EVR"
+      if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_FILTERSMANAGEMENT) == INTERNALFILTERS
         && filter == CGraphFilters::INTERNAL_XYSUBFILTER)
         filter = CGraphFilters::INTERNAL_XYVSFILTER;
 

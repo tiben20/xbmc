@@ -306,10 +306,6 @@ void CDSPlayer::LoadVideoSettings(const CFileItem& file)
 
 void CDSPlayer::SetCurrentVideoRenderer(const std::string &videoRenderer)
 {
-  if (videoRenderer == "EVR")
-    m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_EVR;
-  if (videoRenderer == "VMR9")
-    m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_VMR9;
   if (videoRenderer == "madVR")
     m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_MADVR;
 }
@@ -376,12 +372,6 @@ bool CDSPlayer::CloseFile(bool reopen)
     g_dsGraph->QueueStop();
     return false;
   }
-
-  //todo evrfullscreen
-  /*
-  if (UsingDS(DIRECTSHOW_RENDERER_EVR))
-  PostMessage(new CDSMsgBool(CDSMsg::RESET_DEVICE, true), false);
-  */
 
   // zoom
   if (m_pAllocatorCallback)
@@ -657,7 +647,6 @@ LRESULT CALLBACK CDSPlayer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 void CDSPlayer::OnStartup()
 {
   m_threadID = GetThreadId(CThread::GetCurrentNativeThreadId());
-  //is this necessary m_threadID = CThread::GetCurrentThreadId();
 }
 
 void CDSPlayer::OnExit()

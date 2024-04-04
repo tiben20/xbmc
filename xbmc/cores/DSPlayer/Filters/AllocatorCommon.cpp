@@ -29,80 +29,8 @@
 
 #include "DSUtil/DSUtil.h"
 #include "AllocatorCommon.h"
-#include "VMR9AllocatorPresenter.h"
-#include "EVRAllocatorPresenter.h"
 #include "madVRAllocatorPresenter.h"
 #include "utils/log.h"
-
-bool IsVMR9InGraph(IFilterGraph* pFG)
-{
-  BeginEnumFilters(pFG, pEF, pBF)
-    if (Com::SmartQIPtr<IVMRWindowlessControl9>(pBF)) return(true);
-  EndEnumFilters
-    return(false);
-}
-
-//
-
-HRESULT CreateAP9(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP)
-{
-  CheckPointer(ppAP, E_POINTER);
-
-  *ppAP = NULL;
-
-  HRESULT hr = E_FAIL;
-  std::string Error;
-  if (clsid == CLSID_VMR9AllocatorPresenter && !(*ppAP = DNew CVMR9AllocatorPresenter(hWnd, hr, Error)))
-    return E_OUTOFMEMORY;
-
-  if (*ppAP == NULL)
-    return E_FAIL;
-
-  (*ppAP)->AddRef();
-
-  if (FAILED(hr))
-  {
-    Error += "\n";
-    Error += GetWindowsErrorMessage(hr, NULL);
-
-    CLog::Log(LOGERROR, "%s %s", __FUNCTION__, Error.c_str());
-    (*ppAP)->Release();
-    *ppAP = NULL;
-  }
-  else if (!Error.empty())
-  {
-    CLog::Log(LOGWARNING, "%s %s", __FUNCTION__, Error.c_str());
-  }
-
-  return hr;
-}
-
-HRESULT CreateEVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP)
-{
-  HRESULT    hr = E_FAIL;
-  if (clsid == CLSID_EVRAllocatorPresenter)
-  {
-    std::string Error;
-    *ppAP = DNew CEVRAllocatorPresenter(hWnd, hr, Error);
-    (*ppAP)->AddRef();
-
-    if (FAILED(hr))
-    {
-      Error += "\n";
-      Error += GetWindowsErrorMessage(hr, NULL);
-      CLog::Log(LOGERROR, "%s %s", __FUNCTION__, Error.c_str());
-      (*ppAP)->Release();
-      *ppAP = NULL;
-    }
-    else if (!Error.empty())
-    {
-      CLog::Log(LOGWARNING, "%s %s", __FUNCTION__, Error.c_str());
-    }
-  }
-
-  return hr;
-}
-
 
 HRESULT CreateMadVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP)
 {
