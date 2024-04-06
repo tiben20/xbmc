@@ -306,7 +306,8 @@ void CDSPlayer::LoadVideoSettings(const CFileItem& file)
 
 void CDSPlayer::SetCurrentVideoRenderer(const std::string &videoRenderer)
 {
-  if (videoRenderer == "madVR")
+  
+  if (StringUtils::ToLower(videoRenderer) == "madvr")
     m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_MADVR;
 }
 

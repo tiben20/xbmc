@@ -71,23 +71,27 @@ void CWinDsRenderer::SetupScreenshot()
 
 bool CWinDsRenderer::Configure(const VideoPicture& picture, float fps, unsigned int orientation)
 {
-  /*
-  m_sourceWidth = picture.iWidth;
-  m_sourceHeight = picture.iHeight;
-  m_renderOrientation = orientation;
+  /*if (m_sourceWidth != width
+    || m_sourceHeight != height)
+  {
+    m_sourceWidth = width;
+    m_sourceHeight = height;
+    // need to recreate textures
+  }
+
   m_fps = fps;
-  m_iFlags = GetFlagsChromaPosition(picture.chroma_position)
-    | GetFlagsColorMatrix(picture.color_space, picture.iWidth, picture.iHeight)
-    | GetFlagsColorPrimaries(picture.color_primaries)
-    | GetFlagsStereoMode(picture.stereoMode);
-  m_format = picture.videoBuffer->GetFormat();
+  m_iFlags = flags;
+  m_flags = flags;
+  m_format = format;
 
   // calculate the input frame aspect ratio
-  CalculateFrameAspectRatio(picture.iDisplayWidth, picture.iDisplayHeight);
-  SetViewMode(m_videoSettings.m_ViewMode);
+  CalculateFrameAspectRatio(d_width, d_height);
+
+  SetViewMode(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ViewMode);
   ManageRenderArea();
   */
   m_bConfigured = true;
+
   return true;
 }
 
