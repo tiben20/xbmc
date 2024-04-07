@@ -48,7 +48,7 @@ public:
 class MOD_PNGIMAGE
 {
 public:
-  std::wstring	filename;
+  CStdString	filename;
   int		width;
   int		height;
 
@@ -150,7 +150,7 @@ public:
   COLORREF colors[4]; // usually: {primary, secondary, outline/background, shadow}
   BYTE  alpha[4];
   int    charSet;
-  std::wstring fontName;
+  CStdStringW fontName;
   double  fontSize; // height
   double  fontScaleX, fontScaleY; // percent
   double  fontSpacing; // +/- pixels
@@ -199,11 +199,11 @@ public:
   friend LOGFONTA& operator <<= (LOGFONTA& lfa, STSStyle& s);
   friend LOGFONTW& operator <<= (LOGFONTW& lfw, STSStyle& s);
 
-  friend std::wstring& operator <<= (std::wstring& style, STSStyle& s);
-  friend STSStyle& operator <<= (STSStyle& s, std::wstring& style);
+  friend CStdString& operator <<= (CStdString& style, STSStyle& s);
+  friend STSStyle& operator <<= (STSStyle& s, CStdString& style);
 };
 
-class CSTSStyleMap : public std::map<std::wstring, STSStyle*>
+class CSTSStyleMap : public std::map<CStdString, STSStyle*>
 {
 public:
   CSTSStyleMap() {}
@@ -213,9 +213,9 @@ public:
 
 typedef struct 
 {
-  std::wstring str;
+  CStdStringW str;
   bool fUnicode;
-  std::wstring style, actor, effect;
+  CStdString style, actor, effect;
   Com::SmartRect marginRect;
   int layer;
   int start, end;
@@ -246,12 +246,12 @@ protected:
   virtual void OnChanged() {}
 
 public:
-  std::wstring m_name;
+  CStdString m_name;
   LCID m_lcid;
   exttype m_exttype;
   tmode m_mode;
   CTextFile::enc m_encoding;
-  std::wstring m_path;
+  CStdString m_path;
 
   Com::SmartSize m_dstScreenSize;
   int m_defaultWrapStyle;
@@ -294,22 +294,22 @@ public:
 
   void Append(CSimpleTextSubtitle& sts, int timeoff = -1);
 
-  bool Open(std::wstring fn, int CharSet, std::wstring name = _T(""));
-  bool Open(CTextFile* f, int CharSet, std::wstring name); 
-  bool Open(BYTE* data, int len, int CharSet, std::wstring name); 
-  bool SaveAs(std::wstring fn, exttype et, double fps = -1, CTextFile::enc = CTextFile::ASCII);
+  bool Open(CStdString fn, int CharSet, CStdString name = _T(""));
+  bool Open(CTextFile* f, int CharSet, CStdString name); 
+  bool Open(BYTE* data, int len, int CharSet, CStdString name); 
+  bool SaveAs(CStdString fn, exttype et, double fps = -1, CTextFile::enc = CTextFile::ASCII);
 
 #ifdef _VSMOD // load embedded images
-	bool LoadUUEFile(CTextFile* file, std::wstring m_fn);
-	bool LoadEfile(std::wstring& img, std::wstring m_fn);
+	bool LoadUUEFile(CTextFile* file, CStdString m_fn);
+	bool LoadEfile(CStdString& img, CStdString m_fn);
 
     void MakeIndex(int SizeOfSegment);
 #endif
-  void Add(std::wstring str, bool fUnicode, int start, int end, std::wstring style = _T("Default"), std::wstring actor = _T(""), std::wstring effect = _T(""), Com::SmartRect marginRect = Com::SmartRect(0,0,0,0), int layer = 0, int readorder = -1);
+  void Add(CStdStringW str, bool fUnicode, int start, int end, CStdString style = _T("Default"), CStdString actor = _T(""), CStdString effect = _T(""), Com::SmartRect marginRect = Com::SmartRect(0,0,0,0), int layer = 0, int readorder = -1);
 
   STSStyle* CreateDefaultStyle(int CharSet);
   void ChangeUnknownStylesToDefault();
-  void AddStyle(std::wstring name, STSStyle* style); // style will be stored and freed in Empty() later
+  void AddStyle(CStdString name, STSStyle* style); // style will be stored and freed in Empty() later
   bool CopyStyles(const CSTSStyleMap& styles, bool fAppend = false);
 
   bool SetDefaultStyle(STSStyle& s);
@@ -333,9 +333,9 @@ public:
   bool IsEntryUnicode(int i);
   void ConvertUnicode(int i, bool fUnicode);
 
-  std::string GetStrA(int i, bool fSSA = false);
-  std::wstring GetStrW(int i, bool fSSA = false);
-  std::wstring GetStrWA(int i, bool fSSA = false);
+  CStdStringA GetStrA(int i, bool fSSA = false);
+  CStdStringW GetStrW(int i, bool fSSA = false);
+  CStdStringW GetStrWA(int i, bool fSSA = false);
 
 #ifdef UNICODE
 #define GetStr GetStrW
@@ -343,15 +343,15 @@ public:
 #define GetStr GetStrA
 #endif
 
-  void SetStr(int i, std::string str, bool fUnicode /* ignored */);
-  void SetStr(int i, std::wstring str, bool fUnicode);
+  void SetStr(int i, CStdStringA str, bool fUnicode /* ignored */);
+  void SetStr(int i, CStdStringW str, bool fUnicode);
 };
 
 extern BYTE CharSetList[];
 extern TCHAR* CharSetNames[];
 extern int CharSetLen;
 
-class CHtmlColorMap : public std::map<std::wstring, DWORD> {public: CHtmlColorMap();};
+class CHtmlColorMap : public std::map<CStdString, DWORD> {public: CHtmlColorMap();};
 extern CHtmlColorMap g_colors;
 
 

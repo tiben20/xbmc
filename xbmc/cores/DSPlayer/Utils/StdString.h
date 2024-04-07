@@ -3685,6 +3685,16 @@ public:
 		return TrimLeft().TrimRight();
 	}
 
+	MYTYPE& Trim(CT tTrim)
+	{
+		return TrimLeft(tTrim).TrimRight(tTrim);
+	}
+
+	MYTYPE& Trim(PCMYSTR szTrimChars)
+	{
+		return TrimLeft(szTrimChars).TrimRight(szTrimChars);
+	}
+
 	MYTYPE& TrimLeft()
 	{
 		this->erase(this->begin(),
@@ -3743,6 +3753,26 @@ public:
 			this->assign(mt.c_str(), mt.size());
 	}
 
+//copied from:
+//http://oopweb.com/CPP/Documents/CPPHOWTO/Volume/C++Programming-HOWTO-7.html
+	void Tokenize(const MYTYPE& delimiters, std::vector<MYTYPE>& tokens)
+	{
+		// Skip delimiters at beginning
+		std::string::size_type lastPos = find_first_not_of(delimiters, 0);
+		// Find first "non-delimiter".
+		std::string::size_type pos = find_first_of(delimiters, 0);
+
+		while (std::string::npos != pos || std::string::npos != lastPos)
+		{
+			//Found a token, add it to the vector
+			tokens.push_back(this->substr(lastPos, pos - lastPos));
+			//Skip delimiters.  Note the "not_of"
+			lastPos = find_first_not_of(delimiters, pos);
+			//Find next "non-delimiter"
+			pos = find_first_of(delimiters, lastPos);
+		}
+	}//Tokenize
+
 	// I have intentionally not implemented the following CString
 	// functions.   You cannot make them work without taking advantage
 	// of implementation specific behavior.  However if you absolutely
@@ -3754,6 +3784,12 @@ public:
 
 	// Array-indexing operators.  Required because we defined an implicit cast
 	// to operator const CT* (Thanks to Julian Selman for pointing this out)
+
+	
+	CT& operator[](size_t nIdx)
+	{
+		return static_cast<MYBASE*>(this)->operator[](static_cast<MYSIZE>(nIdx));
+	}
 
 	CT& operator[](int nIdx)
 	{

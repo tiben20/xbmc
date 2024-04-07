@@ -1,0 +1,1045 @@
+# Kodi Media Center language file
+msgid ""
+msgstr ""
+"Project-Id-Version: KODI Main\n"
+"Report-Msgid-Bugs-To: http://trac.kodi.tv/\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Kodi Translation Team\n"
+"Language-Team: English (United Kingdom) (http://www.transifex.com/projects/p/kodi-main/language/en_GB/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_GB\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#1069999"
+msgid "Write all madVR settings in debug log"
+msgstr ""
+
+msgctxt "#1070000"
+msgid "Scaling algorithms..."
+msgstr ""
+
+msgctxt "#1070001"
+msgid "Nearest Neighbor"
+msgstr ""
+
+msgctxt "#1070002"
+msgid "Bilinear"
+msgstr ""
+
+msgctxt "#1070003"
+msgid "DXVA2"
+msgstr ""
+
+msgctxt "#1070004"
+msgid "Mitchel-Netravali"
+msgstr ""
+
+msgctxt "#1070005"
+msgid "Bicubic (sharpness 50) (Catmul-Rom)"
+msgstr ""
+
+msgctxt "#1070006"
+msgid "Bicubic (sharpness 50)"
+msgstr ""
+
+msgctxt "#1070007"
+msgid "Bicubic (sharpness 60)"
+msgstr ""
+
+msgctxt "#1070008"
+msgid "Bicubic (sharpness 75)"
+msgstr ""
+
+msgctxt "#1070009"
+msgid "Bicubic (sharpness 100)"
+msgstr ""
+
+msgctxt "#1070010"
+msgid "SoftCubic (softness 50)"
+msgstr ""
+
+msgctxt "#1070011"
+msgid "SoftCubic (softness 60)"
+msgstr ""
+
+msgctxt "#1070012"
+msgid "SoftCubic (softness 70)"
+msgstr ""
+
+msgctxt "#1070013"
+msgid "SoftCubic (softness 80)"
+msgstr ""
+
+msgctxt "#1070014"
+msgid "SoftCubic (softness 100)"
+msgstr ""
+
+msgctxt "#1070015"
+msgid "Lanczos (3 taps)"
+msgstr ""
+
+msgctxt "#1070016"
+msgid "Lanczos (4 taps)"
+msgstr ""
+
+msgctxt "#1070017"
+msgid "Lanczos (8 taps)"
+msgstr ""
+
+msgctxt "#1070018"
+msgid "Spline (3 taps)"
+msgstr ""
+
+msgctxt "#1070019"
+msgid "Spline (4 taps)"
+msgstr ""
+
+msgctxt "#1070020"
+msgid "Jinc"
+msgstr ""
+
+msgctxt "#1070021"
+msgid "Jinc (4 taps)"
+msgstr ""
+
+msgctxt "#1070022"
+msgid "Jinc (8 taps)"
+msgstr ""
+
+msgctxt "#1070023"
+msgid "NNEDI3 (16 neurons)"
+msgstr ""
+
+msgctxt "#1070024"
+msgid "NNEDI3 (32 neurons)"
+msgstr ""
+
+msgctxt "#1070025"
+msgid "NNEDI3 (64 neurons)"
+msgstr ""
+
+msgctxt "#1070026"
+msgid "NNEDI3 (128 neurons)"
+msgstr ""
+
+msgctxt "#1070027"
+msgid "NNEDI3 (256 neurons)"
+msgstr ""
+
+msgctxt "#1070028"
+msgid "Chroma upscaling"
+msgstr ""
+
+msgctxt "#1070029"
+msgid "Image upscaling"
+msgstr ""
+
+msgctxt "#1070030"
+msgid "Image downscaling"
+msgstr ""
+
+msgctxt "#1070031"
+msgid "anti-ringing filter"
+msgstr ""
+
+msgctxt "#1070032"
+msgid "scale in linear light"
+msgstr ""
+
+msgctxt "#1070033"
+msgid "Bilateral (Old)"
+msgstr ""
+
+msgctxt "#1070034"
+msgid "Super-Xbr (sharpness 25)"
+msgstr ""
+
+msgctxt "#1070035"
+msgid "Super-Xbr (sharpness 50)"
+msgstr ""
+
+msgctxt "#1070036"
+msgid "Super-Xbr (sharpness 75)"
+msgstr ""
+
+msgctxt "#1070037"
+msgid "Super-Xbr (sharpness 100)"
+msgstr 
+
+msgctxt "#1070038"
+msgid "Super-Xbr (sharpness 125)"
+msgstr ""
+
+msgctxt "#1070039"
+msgid "Super-Xbr (sharpness 150)"
+msgstr 
+
+msgctxt "#1070040"
+msgid "Nedi"
+msgstr ""
+
+msgctxt "#1070041"
+msgid "super-res filter"
+msgstr ""
+
+msgctxt "#1070042"
+msgid "Reconstruction (soft)"
+msgstr ""
+
+msgctxt "#1070043"
+msgid "Reconstruction (sharp)"
+msgstr ""
+
+msgctxt "#1070044"
+msgid "Reconstruction (placebo)"
+msgstr 
+
+msgctxt "#1070045"
+msgid "Reconstruction (sharp AR)"
+msgstr ""
+
+msgctxt "#1070046"
+msgid "Reconstruction (placebo AR)"
+msgstr ""
+
+msgctxt "#1070047"
+msgid "Bicubic (sharpness 150)"
+msgstr ""
+
+msgctxt "#1070048"
+msgid "SSIM 1D (strength 25)"
+msgstr ""
+
+msgctxt "#1070049"
+msgid "scale in sigmoidal light"
+msgstr ""
+
+msgctxt "#1070050"
+msgid "Bicubic (sharpness 125)"
+msgstr ""
+
+msgctxt "#1070051"
+msgid "SSIM 1D (strength 50)"
+msgstr ""
+
+msgctxt "#1070052"
+msgid "SSIM 1D (strength 75)"
+msgstr ""
+
+msgctxt "#1070053"
+msgid "SSIM 1D (strength 100)"
+msgstr ""
+
+msgctxt "#1070054"
+msgid "SSIM 2D (strength 25)"
+msgstr ""
+
+msgctxt "#1070055"
+msgid "SSIM 2D (strength 50)"
+msgstr ""
+
+msgctxt "#1070056"
+msgid "SSIM 2D (strength 75)"
+msgstr ""
+
+msgctxt "#1070057"
+msgid "SSIM 2D (strength 100)"
+msgstr ""
+
+msgctxt "#1070058"
+msgid "Super-Xbr (anti-bloating 25)"
+msgstr ""
+
+msgctxt "#1070059"
+msgid "Super-Xbr (anti-bloating 50)"
+msgstr ""
+
+msgctxt "#1070060"
+msgid "Super-Xbr (anti-bloating 75)"
+msgstr ""
+
+msgctxt "#1070061"
+msgid "Super-Xbr (anti-bloating 100)"
+msgstr ""
+
+msgctxt "#1070062"
+msgid "Bilateral (Soft)"
+msgstr ""
+
+msgctxt "#1070063"
+msgid "Bilateral (Sharp)"
+msgstr ""
+
+msgctxt "#1070064"
+msgid "NNEDI3"
+msgstr ""
+
+msgctxt "#1070065"
+msgid "NGU"
+msgstr ""
+
+msgctxt "#1070066"
+msgid "NGU (Low)"
+msgstr ""
+
+msgctxt "#1070067"
+msgid "NGU (Medium)"
+msgstr ""
+
+msgctxt "#1070068"
+msgid "NGU (High)"
+msgstr ""
+
+msgctxt "#1070069"
+msgid "NGU (Very High)"
+msgstr ""
+
+msgctxt "#1070070"
+msgid "luma doubling"
+msgstr ""
+
+msgctxt "#1070071"
+msgid "chroma quality"
+msgstr ""
+
+msgctxt "#1070072"
+msgid "downscale quality"
+msgstr "
+
+msgctxt "#1070073"
+msgid "activate"
+msgstr "
+
+msgctxt "#1070074"
+msgid "only if it's useful"
+msgstr "
+
+msgctxt "#1070075"
+msgid "luma quality"
+msgstr "
+
+msgctxt "#1070100"
+msgid "Double Luma resolution"
+msgstr ""
+
+msgctxt "#1070101"
+msgid "Double Chroma resolution"
+msgstr ""
+
+msgctxt "#1070102"
+msgid "Quadruple Luma resolution"
+msgstr ""
+
+msgctxt "#1070103"
+msgid "Quadruple Chroma resolution"
+msgstr ""
+
+msgctxt "#1070104"
+msgid "use (16 Neurons)"
+msgstr ""
+
+msgctxt "#1070105"
+msgid "use (32 Neurons)"
+msgstr ""
+
+msgctxt "#1070106"
+msgid "use (64 Neurons)"
+msgstr ""
+
+msgctxt "#1070107"
+msgid "use (128 Neurons)"
+msgstr ""
+
+msgctxt "#1070108"
+msgid "use (256 Neurons)"
+msgstr ""
+
+msgctxt "#1070109"
+msgid "only if scaling factor is 2.0x (or bigger)"
+msgstr ""
+
+msgctxt "#1070110"
+msgid "only if scaling factor is 1.5x (or bigger)"
+msgstr ""
+
+msgctxt "#1070111"
+msgid "only if scaling factor is 1.2x (or bigger)"
+msgstr ""
+
+msgctxt "#1070112"
+msgid "only if upscaling is needed"
+msgstr ""
+
+msgctxt "#1070113"
+msgid "only if scaling factor is 4.0x (or bigger)"
+msgstr ""
+
+msgctxt "#1070114"
+msgid "only if scaling factor is 3.0x (or bigger)"
+msgstr ""
+
+msgctxt "#1070115"
+msgid "only if scaling factor is 2.4x (or bigger)"
+msgstr ""
+
+msgctxt "#1070116"
+msgid "scaling condition"
+msgstr ""
+
+msgctxt "#1070117"
+msgid "(disabled)"
+msgstr ""
+
+msgctxt "#1070118"
+msgid "Fine Sharp (image enhancement)"
+msgstr ""
+
+msgctxt "#1070119"
+msgid "Luma Sharpen (image enhancement)"
+msgstr ""
+
+msgctxt "#1070120"
+msgid "Adaptive Sharpen (image enhancement)"
+msgstr ""
+
+msgctxt "#1070121"
+msgid "Super Resolution (up refinement)"
+msgstr ""
+
+msgctxt "#1070122"
+msgid "strength"
+msgstr ""
+
+msgctxt "#1070123"
+msgid "Fine Sharp (up refinement)"
+msgstr ""
+
+msgctxt "#1070124"
+msgid "Luma Sharpen (up refinement)"
+msgstr ""
+
+msgctxt "#1070125"
+msgid "Adaptive Sharpen (up refinement)"
+msgstr ""
+
+msgctxt "#1070126"
+msgid "Refine image (2x upscaling step)"
+msgstr ""
+
+msgctxt "#1070127"
+msgid "apply super-res first"
+msgstr ""
+
+msgctxt "#1070128"
+msgid "- clamp"
+msgstr ""
+
+msgctxt "#1070129"
+msgid "- radius"
+msgstr ""
+
+msgctxt "#1070130"
+msgid "- passes"
+msgstr ""
+
+msgctxt "#1070131"
+msgid "- softness"
+msgstr ""
+
+msgctxt "#1070132"
+msgid "- sharpness"
+msgstr ""
+
+msgctxt "#1070133"
+msgid "use linear light"
+msgstr ""
+
+msgctxt "#1070134"
+msgid "Sharpen Edges (image enhancement)"
+msgstr ""
+
+msgctxt "#1070135"
+msgid "Crispen Edges (image enhancement)"
+msgstr ""
+
+msgctxt "#1070136"
+msgid "Thin Edges (image enhancement)"
+msgstr ""
+
+msgctxt "#1070137"
+msgid "Enhace Detail (image enhancement)"
+msgstr ""
+
+msgctxt "#1070138"
+msgid "Sharpen Edges (up refinement)"
+msgstr ""
+
+msgctxt "#1070139"
+msgid "Crispen Edges (up refinement)"
+msgstr ""
+
+msgctxt "#1070140"
+msgid "Thin Edges (up refinement)"
+msgstr ""
+
+msgctxt "#1070141"
+msgid "Enhance Detail (up refinement)"
+msgstr ""
+
+msgctxt "#1070142"
+msgid "Sharpen anti-ringing (up refinement)"
+msgstr ""
+
+msgctxt "#1070143"
+msgid "Sharpen anti-ringing (image enhancement)"
+msgstr ""
+
+msgctxt "#1070144"
+msgid "always - 2x supersampling"
+msgstr ""
+
+msgctxt "#1070145"
+msgid "relaxed"
+msgstr ""
+
+msgctxt "#1070146"
+msgid "strict (soft)"
+msgstr ""
+
+msgctxt "#1070147"
+msgid "anti-bloating filter"
+msgstr ""
+
+msgctxt "#1070148"
+msgid "25%"
+msgstr ""
+
+msgctxt "#1070149"
+msgid "50%"
+msgstr ""
+
+msgctxt "#1070150"
+msgid "75%"
+msgstr ""
+
+msgctxt "#1070151"
+msgid "100%"
+msgstr ""
+
+msgctxt "#1070152"
+msgid "125%"
+msgstr ""
+
+msgctxt "#1070153"
+msgid "150%"
+msgstr ""
+
+msgctxt "#1070154"
+msgid "Sharpen anti-bloating (up refinement)"
+msgstr ""
+
+msgctxt "#1070155"
+msgid "Sharpen anti-bloating (image enhancement)"
+msgstr ""
+
+msgctxt "#1070156"
+msgid "16 neurons"
+msgstr ""
+
+msgctxt "#1070157"
+msgid "32 neurons"
+msgstr ""
+
+msgctxt "#1070158"
+msgid "64 neurons"
+msgstr ""
+
+msgctxt "#1070159"
+msgid "128 neurons"
+msgstr ""
+
+msgctxt "#1070160"
+msgid "256 neurons"
+msgstr ""
+
+msgctxt "#1070161"
+msgid "16 neurons, 4x: 16 neurons"
+msgstr ""
+
+msgctxt "#1070162"
+msgid "32 neurons, 4x: 16 neurons"
+msgstr ""
+
+msgctxt "#1070163"
+msgid "64 neurons, 4x: 16 neurons"
+msgstr ""
+
+msgctxt "#1070164"
+msgid "64 neurons, 4x: 32 neurons"
+msgstr ""
+
+msgctxt "#1070165"
+msgid "128 neurons, 4x: 16 neurons"
+msgstr ""
+
+msgctxt "#1070166"
+msgid "128 neurons, 4x: 32 neurons"
+msgstr ""
+
+msgctxt "#1070167"
+msgid "256 neurons, 4x: 16 neurons"
+msgstr ""
+
+msgctxt "#1070168"
+msgid "256 neurons, 4x: 32 neurons"
+msgstr ""
+
+msgctxt "#1070169"
+msgid "256 neurons, 4x: 64 neurons"
+msgstr ""
+
+msgctxt "#1070170"
+msgid "automatic"
+msgstr ""
+
+msgctxt "#1070171"
+msgid "low"
+msgstr ""
+
+msgctxt "#1070172"
+msgid "medium"
+msgstr ""
+
+msgctxt "#1070173"
+msgid "normal"
+msgstr ""
+
+msgctxt "#1070174"
+msgid "high"
+msgstr ""
+
+msgctxt "#1070175"
+msgid "very high"
+msgstr ""
+
+msgctxt "#1070176"
+msgid "Soften Edges (up refinement)"
+msgstr ""
+
+msgctxt "#1070177"
+msgid "Add Grain (up refinement)"
+msgstr ""
+
+msgctxt "#1070200"
+msgid "Deinterlace auto-activation"
+msgstr ""
+
+msgctxt "#1070201"
+msgid "Deinterlace detection type"
+msgstr ""
+
+msgctxt "#1070202"
+msgid "(auto-detection)"
+msgstr ""
+
+msgctxt "#1070203"
+msgid "force film mode"
+msgstr ""
+
+msgctxt "#1070204"
+msgid "force video mode"
+msgstr ""
+
+msgctxt "#1070205"
+msgid "if doubt, active"
+msgstr ""
+
+msgctxt "#1070206"
+msgid "if doubt, deactive"
+msgstr ""
+
+msgctxt "#1070206"
+msgid "force video mode"
+msgstr ""
+
+msgctxt "#1070207"
+msgid "Deinterlace only pixels in the frame center"
+msgstr ""
+
+msgctxt "#1070208"
+msgid "Disable scaling if image size changes by only"
+msgstr ""
+
+msgctxt "#1070209"
+msgid "1 lines or less"
+msgstr ""
+
+msgctxt "#1070210"
+msgid "2 lines or less"
+msgstr ""
+
+msgctxt "#1070211"
+msgid "3 lines or less"
+msgstr ""
+
+msgctxt "#1070212"
+msgid "5 lines or less"
+msgstr ""
+
+msgctxt "#1070213"
+msgid "7 lines or less"
+msgstr ""
+
+msgctxt "#1070214"
+msgid "10 lines or less"
+msgstr ""
+
+msgctxt "#1070215"
+msgid "15 lines or less"
+msgstr ""
+
+msgctxt "#1070216"
+msgid "25 lines or less"
+msgstr ""
+
+msgctxt "#1070217"
+msgid "Move subtitles"
+msgstr ""
+
+msgctxt "#1070218"
+msgid "to bottom of the screen/window"
+msgstr ""
+
+msgctxt "#1070219"
+msgid "into active area"
+msgstr ""
+
+msgctxt "#1070220"
+msgid "Auto detect hard coded black bars"
+msgstr ""
+
+msgctxt "#1070221"
+msgid "If black bars change"
+msgstr ""
+
+msgctxt "#1070222"
+msgid "doesn't lose any image content"
+msgstr ""
+
+msgctxt "#1070223"
+msgid "reduces black bar size by 25%"
+msgstr ""
+
+msgctxt "#1070224"
+msgid "reduces black bar size by 50%"
+msgstr ""
+
+msgctxt "#1070225"
+msgid "reduces black bar size by 75%"
+msgstr ""
+
+msgctxt "#1070226"
+msgid "doesn't show any black bars"
+msgstr ""
+
+msgctxt "#1070227"
+msgid "If black bars change quickly"
+msgstr ""
+
+msgctxt "#1070228"
+msgid "don't switch more than once every 2 secs"
+msgstr ""
+
+msgctxt "#1070229"
+msgid "don't switch more than once every 5 secs"
+msgstr ""
+
+msgctxt "#1070230"
+msgid "don't switch more than once every 15 secs"
+msgstr ""
+
+msgctxt "#1070231"
+msgid "don't switch more than once every 45 secs"
+msgstr ""
+
+msgctxt "#1070232"
+msgid "Always shift the image"
+msgstr ""
+
+msgctxt "#1070233"
+msgid "to the top of the screen"
+msgstr ""
+
+msgctxt "#1070234"
+msgid "to the bottom of the screen"
+msgstr ""
+
+msgctxt "#1070235"
+msgid "Keep bars with subs visible"
+msgstr ""
+
+msgctxt "#1070236"
+msgid "for 5 seconds"
+msgstr ""
+
+msgctxt "#1070237"
+msgid "for 15 seconds"
+msgstr ""
+
+msgctxt "#1070238"
+msgid "for 45 seconds"
+msgstr ""
+
+msgctxt "#1070239"
+msgid "for 3 minutes"
+msgstr ""
+
+msgctxt "#1070240"
+msgid "for 10 minutes"
+msgstr ""
+
+msgctxt "#1070241"
+msgid "for 30 minutes"
+msgstr ""
+
+msgctxt "#1070242"
+msgid "for 90 minutes"
+msgstr ""
+
+msgctxt "#1070243"
+msgid "forever"
+msgstr ""
+
+msgctxt "#1070244"
+msgid "Cleanup image borders by cropping"
+msgstr ""
+
+msgctxt "#1070245"
+msgid "1 line from the all black bars borders"
+msgstr ""
+
+msgctxt "#1070246"
+msgid "2 lines from the all black bars borders"
+msgstr ""
+
+msgctxt "#1070247"
+msgid "3 lines from the all black bars borders"
+msgstr ""
+
+msgctxt "#1070248"
+msgid "4 lines from the all black bars borders"
+msgstr ""
+
+msgctxt "#1070249"
+msgid "5 lines from the all black bars borders"
+msgstr ""
+
+msgctxt "#1070250"
+msgid "7 lines from the all black bars borders"
+msgstr ""
+
+msgctxt "#1070251"
+msgid "1 line from the all 4 image borders"
+msgstr ""
+
+msgctxt "#1070252"
+msgid "2 lines from the all 4 image borders"
+msgstr ""
+
+msgctxt "#1070253"
+msgid "3 lines from the all 4 image borders"
+msgstr ""
+
+msgctxt "#1070254"
+msgid "4 lines from the all 4 image borders"
+msgstr ""
+
+msgctxt "#1070255"
+msgid "5 lines from the all 4 image borders"
+msgstr ""
+
+msgctxt "#1070256"
+msgid "7 lines from the all 4 image borders"
+
+msgctxt "#1070257"
+msgid "If there are big black bars"
+msgstr ""
+
+msgctxt "#1070258"
+msgid "reduce bar size by 25%"
+msgstr ""
+
+msgctxt "#1070259"
+msgid "reduce bar size by 50%"
+msgstr ""
+
+msgctxt "#1070260"
+msgid "reduce bar size by 75%"
+msgstr ""
+
+msgctxt "#1070261"
+msgid "reduce bar size completely"
+msgstr ""
+
+msgctxt "#1070262"
+msgid "Zoom small back bars away"
+msgstr ""
+
+msgctxt "#1070263"
+msgid "Crop Black Bars"
+msgstr ""
+
+msgctxt "#1070264"
+msgid "Zoom Control..."
+msgstr ""
+
+msgctxt "#1070300"
+msgid "Smooth motion"
+msgstr ""
+
+msgctxt "#1070301"
+msgid "avoid judder"
+msgstr ""
+
+msgctxt "#1070302"
+msgid "almost always"
+msgstr ""
+
+msgctxt "#1070303"
+msgid "always"
+msgstr ""
+
+msgctxt "#1070400"
+msgid "Dithering"
+msgstr ""
+
+msgctxt "#1070401"
+msgid "random dithering"
+msgstr ""
+
+msgctxt "#1070402"
+msgid "ordered dithering"
+msgstr ""
+
+msgctxt "#1070403"
+msgid "error diffusion 1 (no patterns) (dx11)"
+msgstr ""
+
+msgctxt "#1070404"
+msgid "error diffusion 2 (mild patterns) (dx11)"
+msgstr ""
+
+msgctxt "#1070405"
+msgid "use colored noise"
+msgstr ""
+
+msgctxt "#1070406"
+msgid "change dither for every frame"
+msgstr ""
+
+msgctxt "#1070500"
+msgid "Reduce banding artifacts"
+msgstr ""
+
+msgctxt "#1070501"
+msgid "default debanding strength"
+msgstr ""
+
+msgctxt "#1070502"
+msgid "strength during fade in/out"
+msgstr ""
+
+msgctxt "#1070503"
+msgid "low"
+msgstr ""
+
+msgctxt "#1070504"
+msgid "medium"
+msgstr ""
+
+msgctxt "#1070505"
+msgid "high"
+msgstr ""
+
+msgctxt "#1071000"
+msgid "Processing..."
+msgstr ""
+
+msgctxt "#1071001"
+msgid "Reduce ringing artifacts"
+msgstr ""
+
+msgctxt "#1071002"
+msgid "Reduce dark halos around bright edges"
+msgstr ""
+
+msgctxt "#1072000"
+msgid "Rendering..."
+msgstr ""
+
+msgctxt "#1073000"
+msgid "Image enhancements..."
+msgstr ""
+
+msgctxt "#1074000"
+msgid "Upscaling refinement..."
+msgstr ""
+
+msgctxt "#1075000"
+msgid "Trade quality for performance..."
+msgstr ""
+
+msgctxt "#1075001"
+msgid "Optimize subtitle quality for perfomance instead of quality"
+msgstr ""
+
+msgctxt "#1075002"
+msgid "Use DXVA chroma upscaling when doing native DXVA decoding"
+msgstr ""
+
+msgctxt "#1075003"
+msgid "Use DXVA chroma upscaling when doing DXVA deinterlacing"
+msgstr ""
+
+msgctxt "#1075004"
+msgid "Store custom pixel shader results in 16bit buffer instead of 32bit"
+msgstr ""
+
+msgctxt "#1075005"
+msgid "Don't use linear light for dithering"
+msgstr ""
+
+msgctxt "#1075006"
+msgid "Don't analyze gradient angles for debanding"
+msgstr ""
+
+msgctxt "#1075007"
+msgid "Don't rerender frames when fade in/out is detected"
+msgstr ""
+
+msgctxt "#1075008"
+msgid "Scale chroma separately, if saves perfomance"
+msgstr ""
+
+msgctxt "#1075009"
+msgid "Lose BTB and WTW if it improves performance"
+msgstr ""
+
+msgctxt "#1075010"
+msgid "Don't use linear light for smooth motion frame blending"
+msgstr ""
+
+msgctxt "#1075011"
+msgid "Use 10bit chroma buffer instead of 16bit"
+msgstr ""
+
+msgctxt "#1075012"
+msgid "Use 10bit image buffer instead of 16bit"
+msgstr ""
+
+msgctxt "#1075013"
+msgid "Run custom pixel shaders in video levels instead of PC levels"
+msgstr ""

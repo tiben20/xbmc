@@ -192,9 +192,9 @@ int find_lang(unsigned short id)
   return(id == lang_tbl[lo].id ? lo : 0);
 }
 
-std::wstring FindLangFromId(WORD id)
+CStdString FindLangFromId(WORD id)
 {
-  return std::wstring(lang_tbl[find_lang(id)].lang_long);
+  return CStdString(lang_tbl[find_lang(id)].lang_long);
 }
 
 //
@@ -278,19 +278,19 @@ bool CVobSubFile::Copy(CVobSubFile& vsf)
 
 //
 
-void CVobSubFile::TrimExtension(std::wstring& fn)
+void CVobSubFile::TrimExtension(CStdString& fn)
 {
   int i = fn.ReverseFind('.');
   if(i > 0)
   {
-    std::wstring ext = fn.Mid(i).MakeLower();
+    CStdString ext = fn.Mid(i).ToLower();
     if(ext == _T(".ifo") || ext == _T(".idx") || ext == _T(".sub")
     || ext == _T(".sst") || ext == _T(".son") || ext == _T(".rar"))
       fn = fn.Left(i);
   }
 }
 
-bool CVobSubFile::Open(std::wstring fn)
+bool CVobSubFile::Open(CStdString fn)
 {
   TrimExtension(fn);
 
@@ -346,7 +346,7 @@ bool CVobSubFile::Open(std::wstring fn)
   return(false);
 }
 
-bool CVobSubFile::Save(std::wstring fn, SubFormat sf)
+bool CVobSubFile::Save(CStdString fn, SubFormat sf)
 {
   TrimExtension(fn);
 
@@ -384,7 +384,7 @@ void CVobSubFile::Close()
 
 //
 
-bool CVobSubFile::ReadIdx(std::wstring fn, int& ver)
+bool CVobSubFile::ReadIdx(CStdString fn, int& ver)
 {
   CWebTextFile f;
   if(!f.Open(fn))
@@ -395,7 +395,7 @@ bool CVobSubFile::ReadIdx(std::wstring fn, int& ver)
   int id = -1, delay = 0, vobid = -1, cellid = -1;
   __int64 celltimestamp = 0;
 
-  std::wstring str;
+  CStdString str;
   for(int line = 0; !fError && f.ReadString(str); line++)
   {
     str.Trim();
@@ -437,7 +437,7 @@ bool CVobSubFile::ReadIdx(std::wstring fn, int& ver)
     int i = str.Find(':');
     if(i <= 0) continue;
 
-    std::wstring entry = str.Left(i).MakeLower();
+    CStdString entry = str.Left(i).ToLower();
 
     str = str.Mid(i+1);
     str.Trim();
@@ -490,9 +490,9 @@ bool CVobSubFile::ReadIdx(std::wstring fn, int& ver)
       str.MakeLower();
 
       int j = 0;
-      std::vector<std::wstring> tokens;
+      std::vector<CStdString> tokens;
       str.Tokenize(_T(" "), tokens);
-      std::wstring token = tokens[0];
+      CStdString token = tokens[0];
       for(int i = 1; j < 3 && !fError && i < tokens.size(); token = tokens[i++], j++)
       {
         if(j == 0)
@@ -659,7 +659,7 @@ bool CVobSubFile::ReadIdx(std::wstring fn, int& ver)
   return(!fError);
 }
 
-bool CVobSubFile::ReadSub(std::wstring fn)
+bool CVobSubFile::ReadSub(CStdString fn)
 {
   ATL::CFile f;
   if(! f.Open(fn, ATL::CFile::modeRead|ATL::CFile::typeBinary|ATL::CFile::shareDenyNone))
@@ -695,7 +695,7 @@ static int PASCAL MyProcessDataProc(unsigned char* Addr, int Size)
   return(1);
 }
 
-bool CVobSubFile::ReadRar(std::wstring fn)
+bool CVobSubFile::ReadRar(CStdString fn)
 {
 #ifdef _WIN64
 	HMODULE h = LoadLibrary(_T("unrar64.dll"));
@@ -746,9 +746,9 @@ bool CVobSubFile::ReadRar(std::wstring fn)
   while(ReadHeaderEx(hrar, &HeaderDataEx) == 0)
   {
 #ifdef UNICODE
-    std::wstring subfn(HeaderDataEx.FileNameW);
+    CStdString subfn(HeaderDataEx.FileNameW);
 #else
-    std::wstring subfn(HeaderDataEx.FileName);
+    CStdString subfn(HeaderDataEx.FileName);
 #endif
 
     if(!subfn.Right(4).CompareNoCase(_T(".sub")))
@@ -799,7 +799,7 @@ bool CVobSubFile::ReadRar(std::wstring fn)
   f.read((char *)&((BYTE*)&var)[1], 1); \
   f.read((char *)&((BYTE*)&var)[0], 1); \
 
-bool CVobSubFile::ReadIfo(std::wstring fn)
+bool CVobSubFile::ReadIfo(CStdString fn)
 {
   std::ifstream f;
   f.open(fn, std::ios_base::in | std::ios_base::binary);
@@ -841,13 +841,13 @@ bool CVobSubFile::ReadIfo(std::wstring fn)
   return(true);
 }
 
-bool CVobSubFile::WriteIdx(std::wstring fn)
+bool CVobSubFile::WriteIdx(CStdString fn)
 {
   CTextFile f;
   if(!f.Save(fn, CTextFile::ASCII))
     return(false);
 
-  std::wstring str;
+  CStdString str;
   str.Format(_T("# VobSub index file, v%d (do not modify this line!)\n"), VOBSUBIDXVER);
 
   f.WriteString(str);
@@ -1003,7 +1003,7 @@ bool CVobSubFile::WriteIdx(std::wstring fn)
   return(true);
 }
 
-bool CVobSubFile::WriteSub(std::wstring fn)
+bool CVobSubFile::WriteSub(CStdString fn)
 {
   ATL::CFile f;
   if(!f.Open(fn, ATL::CFile::modeCreate | ATL::CFile::modeWrite | ATL::CFile::typeBinary | ATL::CFile::shareDenyWrite))
@@ -1274,7 +1274,7 @@ STDMETHODIMP CVobSubFile::GetStreamInfo(int iStream, WCHAR** ppName, LCID* pLCID
       if(!(*ppName = (WCHAR*)CoTaskMemAlloc((sl.alt.GetLength()+1)*sizeof(WCHAR))))
         return E_OUTOFMEMORY;
 
-      wcscpy(*ppName, std::wstring(sl.alt));
+      wcscpy(*ppName, CStdStringW(sl.alt));
     }
 
     if(pLCID)
@@ -1560,7 +1560,7 @@ HRESULT CVobSubSettings::Render(SubPicDesc& spd, RECT& bbox)
 CRenderedTextSubtitle rts(NULL);
 rts.CreateDefaultStyle(DEFAULT_CHARSET);
 rts.m_dstScreenSize.SetSize(m_size.cx, m_size.cy);
-std::wstring assstr;
+CStdStringW assstr;
 m_img.Polygonize(assstr, false);
 REFERENCE_TIME rtStart = 10000i64*m_img.start, rtStop = 10000i64*(m_img.start+m_img.delay);
 rts.Add(assstr, true, rtStart, rtStop);
@@ -1573,7 +1573,7 @@ rts.Render(spd, (rtStart+rtStop)/2, 25, r);
 
 /////////////////////////////////////////////////////////
 
-static bool CompressFile(std::wstring fn)
+static bool CompressFile(CStdString fn)
 {
   if(GetVersion() < 0)
     return(false);
@@ -1592,12 +1592,12 @@ static bool CompressFile(std::wstring fn)
   return(!!b);
 }
 
-bool CVobSubFile::SaveVobSub(std::wstring fn)
+bool CVobSubFile::SaveVobSub(CStdString fn)
 {
   return WriteIdx(fn + _T(".idx")) && WriteSub(fn + _T(".sub"));
 }
 
-bool CVobSubFile::SaveWinSubMux(std::wstring fn)
+bool CVobSubFile::SaveWinSubMux(CStdString fn)
 {
   TrimExtension(fn);
 
@@ -1684,10 +1684,10 @@ bool CVobSubFile::SaveWinSubMux(std::wstring fn)
     if(t2 <= 0) continue;
     if(t1 < 0) t1 = 0;
 
-    std::wstring bmpfn;
+    CStdString bmpfn;
     bmpfn.Format(_T("%s_%06d.bmp"), fn, i+1);
 
-    std::wstring str;
+    CStdString str;
     str.Format(_T("%s\t%02d:%02d:%02d:%02d %02d:%02d:%02d:%02d\t%03d %03d %03d %03d %d %d %d %d\n"), 
       bmpfn,
       t1/1000/60/60, (t1/1000/60)%60, (t1/1000)%60, (t1%1000)/10,
@@ -1729,7 +1729,7 @@ bool CVobSubFile::SaveWinSubMux(std::wstring fn)
   return(true);
 }
 
-bool CVobSubFile::SaveScenarist(std::wstring fn)
+bool CVobSubFile::SaveScenarist(CStdString fn)
 {
   TrimExtension(fn);
 
@@ -1740,18 +1740,18 @@ bool CVobSubFile::SaveScenarist(std::wstring fn)
   m_img.Invalidate();
 
   fn.Replace('\\', '/');
-  std::wstring title = fn.Mid(fn.ReverseFind('/')+1);
+  CStdString title = fn.Mid(fn.ReverseFind('/')+1);
 
   TCHAR buff[MAX_PATH], * pFilePart = buff;
   if(GetFullPathName(fn, MAX_PATH, buff, &pFilePart) == 0)
     return(false);
 
-  std::wstring fullpath = std::wstring(buff).Left(pFilePart - buff);
+  CStdString fullpath = CStdString(buff).Left(pFilePart - buff);
   fullpath.TrimRight(_T("\\/"));
   if(fullpath.IsEmpty())
     return(false);
 
-  std::wstring str, str2;
+  CStdString str, str2;
   str += _T("st_format\t2\n");
   str += _T("Display_Start\t%s\n");
   str += _T("TV_Type\t\t%s\n");
@@ -1877,7 +1877,7 @@ bool CVobSubFile::SaveScenarist(std::wstring fn)
       }
     }
 
-    std::wstring bmpfn;
+    CStdString bmpfn;
     bmpfn.Format(_T("%s_%04d.bmp"), fn, i+1);
     title = bmpfn.Mid(bmpfn.ReverseFind('/')+1);
 
@@ -1962,7 +1962,7 @@ bool CVobSubFile::SaveScenarist(std::wstring fn)
   return(true);
 }
 
-bool CVobSubFile::SaveMaestro(std::wstring fn)
+bool CVobSubFile::SaveMaestro(CStdString fn)
 {
   TrimExtension(fn);
 
@@ -1973,18 +1973,18 @@ bool CVobSubFile::SaveMaestro(std::wstring fn)
   m_img.Invalidate();
 
   fn.Replace('\\', '/');
-  std::wstring title = fn.Mid(fn.ReverseFind('/')+1);
+  CStdString title = fn.Mid(fn.ReverseFind('/')+1);
 
   TCHAR buff[MAX_PATH], * pFilePart = buff;
   if(GetFullPathName(fn, MAX_PATH, buff, &pFilePart) == 0)
     return(false);
 
-  std::wstring fullpath = std::wstring(buff).Left(pFilePart - buff);
+  CStdString fullpath = CStdString(buff).Left(pFilePart - buff);
   fullpath.TrimRight(_T("\\/"));
   if(fullpath.IsEmpty())
     return(false);
 
-  std::wstring str, str2;
+  CStdString str, str2;
   str += _T("st_format\t2\n");
   str += _T("Display_Start\t%s\n");
   str += _T("TV_Type\t\t%s\n");
@@ -2102,7 +2102,7 @@ bool CVobSubFile::SaveMaestro(std::wstring fn)
       }
     }
 
-    std::wstring bmpfn;
+    CStdString bmpfn;
     bmpfn.Format(_T("%s_%04d.bmp"), fn, i+1);
     title = bmpfn.Mid(bmpfn.ReverseFind('/')+1);
 
@@ -2204,21 +2204,21 @@ CVobSubStream::~CVobSubStream()
 {
 }
 
-void CVobSubStream::Open(std::wstring name, BYTE* pData, int len)
+void CVobSubStream::Open(CStdString name, BYTE* pData, int len)
 {
   CAutoLock cAutoLock(&m_csSubPics);
 
   m_name = name;
 
-  std::list<std::wstring> lines;
-  Explode(std::wstring(std::string((CHAR*)pData, len)), lines, '\n');
+  std::list<CStdString> lines;
+  Explode(CStdString(CStdStringA((CHAR*)pData, len)), lines, '\n');
   while(lines.size())
   {
-    std::list<std::wstring> sl;
+    std::list<CStdString> sl;
     Explode(lines.front(), sl, ':', 2); lines.pop_front();
     if(sl.size() != 2) continue;
-    std::wstring key = sl.front();
-    std::wstring value = sl.back();
+    CStdString key = sl.front();
+    CStdString value = sl.back();
     if(key == _T("size"))
       _stscanf(value, _T("%dx%d"), &m_size.cx, &m_size.cy);
     else if(key == _T("org"))
@@ -2240,7 +2240,7 @@ void CVobSubStream::Open(std::wstring name, BYTE* pData, int len)
       if(sl.size() == 3)
       {
         m_fAlign = sl.front() == _T("ON"); sl.pop_front();
-        std::wstring hor = sl.front(), ver = sl.back();
+        CStdString hor = sl.front(), ver = sl.back();
         m_alignhor = hor == _T("LEFT") ? 0 : hor == _T("CENTER") ? 1 : hor == _T("RIGHT") ? 2 : 1;
         m_alignver = ver == _T("TOP") ? 0 : ver == _T("CENTER") ? 1 : ver == _T("BOTTOM") ? 2 : 2;
       }
@@ -2266,7 +2266,7 @@ void CVobSubStream::Open(std::wstring name, BYTE* pData, int len)
       if(sl.size() == 3)
       {
         sl.pop_front();
-        std::list<std::wstring> tridx, colors;
+        std::list<CStdString> tridx, colors;
         Explode(sl.front(), tridx, ':', 2); sl.pop_front();
         if(tridx.front() == _T("tridx"))
         {
@@ -2429,7 +2429,7 @@ STDMETHODIMP CVobSubStream::GetStreamInfo(int i, WCHAR** ppName, LCID* pLCID)
   {
     if(!(*ppName = (WCHAR*)CoTaskMemAlloc((m_name.GetLength()+1)*sizeof(WCHAR))))
       return E_OUTOFMEMORY;
-    wcscpy(*ppName, std::wstring(m_name));
+    wcscpy(*ppName, CStdStringW(m_name));
   }
 
   if(pLCID)

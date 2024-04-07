@@ -40,7 +40,7 @@ namespace ssf
   {
   }
 
-  bool CRenderer::Open(std::wstring fn, std::wstring name)
+  bool CRenderer::Open(CStdString fn, CStdString name)
   {
     m_fn.Empty();
     m_name.Empty();
@@ -49,7 +49,7 @@ namespace ssf
 
     if(name.IsEmpty())
     {
-      std::wstring str = fn;
+      CStdString str = fn;
       str.Replace('\\', '/');
       name = str.Left(str.ReverseFind('.'));
       name = name.Mid(name.ReverseFind('/')+1);
@@ -73,7 +73,7 @@ namespace ssf
     return false;  
   }
 
-  bool CRenderer::Open(InputStream& s, std::wstring name)
+  bool CRenderer::Open(InputStream& s, CStdString name)
   {
     m_fn.Empty();
     m_name.Empty();
@@ -212,7 +212,7 @@ namespace ssf
       if(!(*ppName = (WCHAR*)CoTaskMemAlloc((m_name.GetLength()+1)*sizeof(WCHAR))))
         return E_OUTOFMEMORY;
 
-      wcscpy(*ppName, std::wstring(m_name));
+      wcscpy(*ppName, CStdStringW(m_name));
     }
 
     if(pLCID)

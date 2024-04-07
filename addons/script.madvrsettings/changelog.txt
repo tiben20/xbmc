@@ -1,0 +1,21 @@
+﻿v 1.0.6
+- support madVR v0.92.9 and above
+
+v 1.0.5
+- support madVR v0.92.8 and above
+
+v 1.0.4
+- support madVR v0.92.7 and above
+
+v 1.0.3
+- support madVR v0.92.5 and above
+
+v 1.0.2
+- support madVR v0.91.8 and above
+
+v 1.0.1
+- support madVR v0.91.7 and above
+
+v 1.0.0
+- support madVR v0.91.4 and above
+- support madVR v0.91.3

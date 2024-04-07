@@ -134,7 +134,7 @@ STDMETHODIMP CRenderedHdmvSubtitle::GetStreamInfo(int iStream, WCHAR** ppName, L
     if(!(*ppName = (WCHAR*)CoTaskMemAlloc((m_name.GetLength()+1)*sizeof(WCHAR))))
       return E_OUTOFMEMORY;
 
-    wcscpy_s (*ppName, m_name.GetLength()+1, std::wstring(m_name));
+    wcscpy_s (*ppName, m_name.GetLength()+1, CStdStringW(m_name));
   }
 
   if(pLCID)
@@ -291,7 +291,7 @@ STDMETHODIMP CRenderedHdmvSubtitleFile::GetStreamInfo(int iStream, WCHAR** ppNam
     if(!(*ppName = (WCHAR*)CoTaskMemAlloc((m_name.GetLength()+1)*sizeof(WCHAR))))
       return E_OUTOFMEMORY;
 
-    wcscpy_s (*ppName, m_name.GetLength()+1, std::wstring(m_name));
+    wcscpy_s (*ppName, m_name.GetLength()+1, CStdStringW(m_name));
   }
 
   if(pLCID)
@@ -391,7 +391,7 @@ HRESULT CRenderedHdmvSubtitleFile::ParseData( REFERENCE_TIME rtFrom, REFERENCE_T
   return S_OK;
 }
 
-bool CRenderedHdmvSubtitleFile::Open(std::wstring fn)
+bool CRenderedHdmvSubtitleFile::Open(CStdString fn)
 {
   ATL::CFile f;
   if(! f.Open(fn, ATL::CFile::modeRead|ATL::CFile::typeBinary|ATL::CFile::shareDenyNone))

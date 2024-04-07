@@ -50,7 +50,7 @@ class CWord : public Rasterizer
   bool CreateOpaqueBox();
 
 protected:
-  std::wstring m_str;
+  CStdStringW m_str;
 
   virtual bool CreatePath() = 0;
 
@@ -65,7 +65,7 @@ public:
 
   int m_width, m_ascent, m_descent;
 
-  CWord(STSStyle& style, std::wstring str, int ktype, int kstart, int kend); // str[0] = 0 -> m_fLineBreak = true (in this case we only need and use the height of m_font from the whole class)
+  CWord(STSStyle& style, CStdStringW str, int ktype, int kstart, int kend); // str[0] = 0 -> m_fLineBreak = true (in this case we only need and use the height of m_font from the whole class)
   virtual ~CWord();
 
   virtual CWord* Copy() = 0;
@@ -80,7 +80,7 @@ protected:
   virtual bool CreatePath();
 
 public:
-  CText(STSStyle& style, std::wstring str, int ktype, int kstart, int kend);
+  CText(STSStyle& style, CStdStringW str, int ktype, int kstart, int kend);
 
   virtual CWord* Copy();
   virtual bool Append(CWord* w);
@@ -88,8 +88,8 @@ public:
 
 class CPolygon : public CWord
 {
-  bool GetLONG(std::wstring& str, LONG& ret);
-  bool GetPOINT(std::wstring& str, POINT& ret);
+  bool GetLONG(CStdStringW& str, LONG& ret);
+  bool GetPOINT(CStdStringW& str, POINT& ret);
   bool ParseStr();
 
 protected:
@@ -102,7 +102,7 @@ protected:
   virtual bool CreatePath();
 
 public:
-  CPolygon(STSStyle& style, std::wstring str, int ktype, int kstart, int kend, double scalex, double scaley, int baseline);
+  CPolygon(STSStyle& style, CStdStringW str, int ktype, int kstart, int kend, double scalex, double scaley, int baseline);
   virtual ~CPolygon();
 
   virtual CWord* Copy();
@@ -116,7 +116,7 @@ private:
   virtual bool Append(CWord* w);
 
 public:
-  CClipper(std::wstring str, Com::SmartSize size, double scalex, double scaley, bool inverse);
+  CClipper(CStdStringW str, Com::SmartSize size, double scalex, double scaley, bool inverse);
   virtual ~CClipper();
 
   Com::SmartSize m_size;
@@ -242,11 +242,11 @@ CRenderedTextSubtitle : public CSimpleTextSubtitle, public ISubPicProviderImpl, 
   STSStyle *m_pStyleOverride; // the app can decide to use this style instead of a built-in one
   bool m_doOverrideStyle;
 
-  void ParseEffect(CSubtitle* sub, std::wstring str);
-  void ParseString(CSubtitle* sub, std::wstring str, STSStyle& style);
-  void ParsePolygon(CSubtitle* sub, std::wstring str, STSStyle& style);
-  bool ParseSSATag(CSubtitle* sub, std::wstring str, STSStyle& style, STSStyle& org, bool fAnimate = false);
-  bool ParseHtmlTag(CSubtitle* sub, std::wstring str, STSStyle& style, STSStyle& org);
+  void ParseEffect(CSubtitle* sub, CStdString str);
+  void ParseString(CSubtitle* sub, CStdStringW str, STSStyle& style);
+  void ParsePolygon(CSubtitle* sub, CStdStringW str, STSStyle& style);
+  bool ParseSSATag(CSubtitle* sub, CStdStringW str, STSStyle& style, STSStyle& org, bool fAnimate = false);
+  bool ParseHtmlTag(CSubtitle* sub, CStdStringW str, STSStyle& style, STSStyle& org);
 
   double CalcAnimation(double dst, double src, bool fAnimate);
 

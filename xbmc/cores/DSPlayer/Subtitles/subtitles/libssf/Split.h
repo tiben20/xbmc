@@ -23,15 +23,15 @@
 
 namespace ssf
 {
-  class Split : public std::vector<std::wstring>
+  class Split : public std::vector<CStdStringW>
   {
   public:
     enum SplitType {Min, Def, Max};
     Split();
-    Split(LPCWSTR sep, std::wstring str, size_t limit = 0, SplitType type = Def);
-    Split(WCHAR sep, std::wstring str, size_t limit = 0, SplitType type = Def);
+    Split(LPCWSTR sep, CStdStringW str, size_t limit = 0, SplitType type = Def);
+    Split(WCHAR sep, CStdStringW str, size_t limit = 0, SplitType type = Def);
     operator size_t() {return size();}
-    void DoSplit(LPCWSTR sep, std::wstring str, size_t limit, SplitType type);
+    void DoSplit(LPCWSTR sep, CStdStringW str, size_t limit, SplitType type);
     int GetAtInt(size_t i);
     float GetAtFloat(size_t i);
   };

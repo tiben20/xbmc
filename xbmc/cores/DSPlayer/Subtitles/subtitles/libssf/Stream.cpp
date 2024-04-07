@@ -42,7 +42,7 @@ namespace ssf
     va_list args;
     va_start(args, fmt);
     int len = _vsctprintf(fmt, args) + 1;
-    std::wstring str;
+    CStdString str;
     if(len > 0) _vstprintf_s(str.GetBufferSetLength(len), len, fmt, args);
     va_end(args);
 
@@ -236,7 +236,7 @@ namespace ssf
 
   // WCharInputStream
   
-  WCharInputStream::WCharInputStream(std::wstring str)
+  WCharInputStream::WCharInputStream(CStdStringW str)
     : m_str(str)
     , m_pos(0)
   {
@@ -316,7 +316,7 @@ namespace ssf
 
   void OutputStream::PutString(LPCWSTR fmt, ...)
   {
-    std::wstring str;
+    CStdStringW str;
 
     va_list args;
     va_start(args, fmt);

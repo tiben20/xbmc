@@ -62,8 +62,8 @@ namespace ssf
     while(s.SkipWhiteSpace(L";") != '}' && s.PeekChar() != Stream::EOS)
     {
       NodePriority priority = PNormal;
-      std::list<std::wstring> types;
-      std::wstring name;
+      std::list<CStdStringW> types;
+      CStdStringW name;
 
       int c = s.SkipWhiteSpace();
 
@@ -111,11 +111,11 @@ namespace ssf
     s.GetChar();
   }
 
-  void File::ParseTypes(InputStream& s, std::list<std::wstring>& types)
+  void File::ParseTypes(InputStream& s, std::list<CStdStringW>& types)
   {
     types.clear();
 
-    std::wstring str;
+    CStdStringW str;
 
     for(int c = s.SkipWhiteSpace(); iswcsym(c) || c == '.' || c == '@'; c = s.PeekChar())
     {
@@ -124,7 +124,7 @@ namespace ssf
       if(c == '.') 
       {
         if(str.empty()) s.ThrowError(_T("'type' cannot be an empty string"));
-        if(!iswcsym(s.PeekChar())) s.ThrowError(_T("unexpected dot after type '%s'"), std::wstring(str));
+        if(!iswcsym(s.PeekChar())) s.ThrowError(_T("unexpected dot after type '%s'"), CStdString(str));
 
         types.push_back(str);
         str.Empty();
@@ -144,7 +144,7 @@ namespace ssf
     }
   }
 
-  void File::ParseName(InputStream& s, std::wstring& name)
+  void File::ParseName(InputStream& s, CStdStringW& name)
   {
     name.Empty();
 
@@ -157,7 +157,7 @@ namespace ssf
 
   void File::ParseQuotedString(InputStream& s, Definition* pDef)
   {
-    std::wstring v;
+    CStdStringW v;
 
     int quote = s.SkipWhiteSpace();
     if(quote != '"' && quote != '\'') s.ThrowError(_T("expected qouted string"));
@@ -178,7 +178,7 @@ namespace ssf
 
   void File::ParseNumber(InputStream& s, Definition* pDef)
   {
-    std::wstring v, u;
+    CStdStringW v, u;
 
     for(int c = s.SkipWhiteSpace(); iswxdigit(c) || wcschr(L"+-.x:", c); c = s.PeekChar())
     {
@@ -206,7 +206,7 @@ namespace ssf
 
   void File::ParseBlock(InputStream& s, Definition* pDef)
   {
-    std::wstring v;
+    CStdStringW v;
 
     int c = s.SkipWhiteSpace(L":=");
     if(c != '{') s.ThrowError(_T("expected '{'"));
@@ -243,15 +243,15 @@ namespace ssf
       }
       else if(iswcsym(c))
       {
-        std::wstring str;
+        CStdStringW str;
         ParseName(s, str);
 
         // TODO: allow spec references: parent.<type>, self.<type>, child.<type>
 
         Definition* pDef = GetDefByName(str);
-        if(!pDef) s.ThrowError(_T("cannot find definition of '%s'"), std::wstring(str));
+        if(!pDef) s.ThrowError(_T("cannot find definition of '%s'"), CStdString(str));
 
-        if(!pParentDef->IsVisible(pDef)) s.ThrowError(_T("cannot access '%s' from here"), std::wstring(str));
+        if(!pParentDef->IsVisible(pDef)) s.ThrowError(_T("cannot access '%s' from here"), CStdString(str));
 
         pParentDef->push_back(pDef);
       }

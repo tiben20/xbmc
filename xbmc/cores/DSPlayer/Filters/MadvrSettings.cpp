@@ -56,6 +56,7 @@ CMadvrSettings::CMadvrSettings()
 #if TODO
   InitSettings();
 #endif
+
 }
 
 void CMadvrSettings::UpdateSettings()

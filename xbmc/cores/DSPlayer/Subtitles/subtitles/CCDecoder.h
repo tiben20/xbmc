@@ -26,7 +26,7 @@
 class CCDecoder
 {
   CSimpleTextSubtitle m_sts;
-  std::wstring m_fn, m_rawfn;
+  CStdString m_fn, m_rawfn;
   __int64 m_time;
   bool m_fEndOfCaption;
   WCHAR m_buff[16][33], m_disp[16][33];
@@ -38,7 +38,7 @@ class CCDecoder
   void PutChar(WCHAR c);
 
 public:
-  CCDecoder(std::wstring fn = _T(""), std::wstring rawfn = _T(""));
+  CCDecoder(CStdString fn = _T(""), CStdString rawfn = _T(""));
   virtual ~CCDecoder();
   void DecodeCC(BYTE* buff, int len, __int64 time);
   void ExtractCC(BYTE* buff, int len, __int64 time);

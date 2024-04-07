@@ -121,7 +121,7 @@ bool CTextFile::IsUnicode()
 
 // CFile
 
-std::wstring CTextFile::GetFilePath() const
+CStdString CTextFile::GetFilePath() const
 {
   // to avoid a CException coming from CTime
   return m_strFileName; // __super::GetFilePath();
@@ -159,9 +159,9 @@ ULONGLONG CTextFile::Seek(LONGLONG lOff, UINT nFrom)
   return(pos);
 }
 
-void CTextFile::WriteString(LPCSTR lpsz/*std::string str*/)
+void CTextFile::WriteString(LPCSTR lpsz/*CStdStringA str*/)
 {
-  std::string str(lpsz);
+  CStdStringA str(lpsz);
 
   if(m_encoding == ASCII)
   {
@@ -186,9 +186,9 @@ void CTextFile::WriteString(LPCSTR lpsz/*std::string str*/)
   }
 }
 
-void CTextFile::WriteString(LPCWSTR lpsz/*std::wstring str*/)
+void CTextFile::WriteString(LPCWSTR lpsz/*CStdStringW str*/)
 {
-  std::wstring str(lpsz);
+  CStdStringW str(lpsz);
 
   if(m_encoding == ASCII)
   {
@@ -197,7 +197,7 @@ void CTextFile::WriteString(LPCWSTR lpsz/*std::wstring str*/)
   else if(m_encoding == ANSI)
   {
     str.Replace(L"\n", L"\r\n");
-    std::string stra = std::string(std::wstring(str)); // TODO: codepage
+    CStdStringA stra = CStdStringA(CStdString(str)); // TODO: codepage
     Write((LPCSTR)stra, stra.GetLength());
   }
   else if(m_encoding == UTF8)
@@ -205,7 +205,7 @@ void CTextFile::WriteString(LPCWSTR lpsz/*std::wstring str*/)
     str.Replace(L"\n", L"\r\n");
     for(size_t i = 0; i < (size_t)str.GetLength(); i++)
     {
-      DWORD c = (WORD)str[i];
+      DWORD c = (WORD)str.at(i);
 
       if(0 <= c && c < 0x80) // 0xxxxxxx
       {
@@ -240,12 +240,12 @@ void CTextFile::WriteString(LPCWSTR lpsz/*std::wstring str*/)
   {
     str.Replace(L"\n", L"\r\n");
     for(size_t i = 0; i < (size_t)str.GetLength(); i++)
-      str.SetAt(i, ((str[i]>>8)&0x00ff)|((str[i]<<8)&0xff00));
+      str.SetAt(i, ((str.at(i) >> 8) & 0x00ff) | ((str.at(i) << 8) & 0xff00));
     Write((LPCWSTR)str, str.GetLength()*2);
   }
 }
 
-BOOL CTextFile::ReadString(std::string& str)
+BOOL CTextFile::ReadString(CStdStringA& str)
 {
   bool fEOF = true;
 
@@ -253,7 +253,7 @@ BOOL CTextFile::ReadString(std::string& str)
 
   if(m_encoding == ASCII)
   {
-    std::wstring s;
+    CStdString s;
     fEOF = !__super::ReadString(s);
     str = TToA(s);
   }
@@ -323,7 +323,7 @@ BOOL CTextFile::ReadString(std::string& str)
   return(!fEOF);
 }
 
-BOOL CTextFile::ReadString(std::wstring& str)
+BOOL CTextFile::ReadString(CStdStringW& str)
 {
   bool fEOF = true;
 
@@ -331,13 +331,13 @@ BOOL CTextFile::ReadString(std::wstring& str)
 
   if(m_encoding == ASCII)
   {
-    std::wstring s;
+    CStdString s;
     fEOF = !__super::ReadString(s);
     str = TToW(s);
   }
   else if(m_encoding == ANSI)
   {
-    std::string stra;
+    CStdStringA stra;
     char c;
     while(Read(&c, sizeof(c)) == sizeof(c))
     {
@@ -346,7 +346,7 @@ BOOL CTextFile::ReadString(std::wstring& str)
       if(c == '\n') break;
       stra += c;
     }
-    str = std::wstring(std::wstring(stra)); // TODO: codepage
+    str = CStdStringW(CStdString(stra)); // TODO: codepage
   }
   else if(m_encoding == UTF8)
   {
@@ -416,7 +416,7 @@ CWebTextFile::CWebTextFile(LONGLONG llMaxSize)
 
 bool CWebTextFile::Open(LPCTSTR lpszFileName)
 {
-  std::wstring fn(lpszFileName);
+  CStdString fn(lpszFileName);
 
   if(fn.Find(_T("http://")) != 0)
     return __super::Open(lpszFileName);
@@ -427,8 +427,8 @@ bool CWebTextFile::Open(LPCTSTR lpszFileName)
   /* URL; Download the File
   m_downloadEvent.Reset();
 
-  std::string url(lpszFileName);
-  std::wstring dlTo = "special://temps/" + url.Mid(url.ReverseFind('/') + 1);
+  CStdStringA url(lpszFileName);
+  CStdString dlTo = "special://temps/" + url.Mid(url.ReverseFind('/') + 1);
   m_dlTicket = g_DownloadManager.RequestFile(url, dlTo, this);
 
   // Wait for the download to be complete
@@ -457,7 +457,7 @@ void CWebTextFile::Close()
 }
 
 /*
-void CWebTextFile::OnFileComplete( TICKET aTicket, std::string& aFilePath, INT aByteRxCount, Result aResult )
+void CWebTextFile::OnFileComplete( TICKET aTicket, CStdStringA& aFilePath, INT aByteRxCount, Result aResult )
 {
   if (aTicket.dwItemId == m_dlTicket.dwItemId && aTicket.wQueueId == m_dlTicket.wQueueId)
   {
@@ -468,25 +468,25 @@ void CWebTextFile::OnFileComplete( TICKET aTicket, std::string& aFilePath, INT a
 */
 ///////////////////////////////////////////////////////////////
 
-std::wstring AToT(std::string str)
+CStdString AToT(CStdStringA str)
 {
-  std::wstring ret;
+  CStdString ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (TCHAR)(BYTE)str[i];
   return(ret);
 }
 
-std::wstring WToT(std::wstring str)
+CStdString WToT(CStdStringW str)
 {
-  std::wstring ret;
+  CStdString ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (TCHAR)(WORD)str[i];
   return(ret);
 }
 
-std::string TToA(std::wstring str)
+CStdStringA TToA(CStdString str)
 {
-  std::string ret;
+  CStdStringA ret;
 #ifdef UNICODE
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (CHAR)(BYTE)str[i];
@@ -496,9 +496,9 @@ std::string TToA(std::wstring str)
   return(ret);
 }
 
-std::wstring TToW(std::wstring str)
+CStdStringW TToW(CStdString str)
 {
-  std::wstring ret;
+  CStdStringW ret;
 #ifdef UNICODE
   ret = str;
 #else

@@ -676,8 +676,8 @@ REFERENCE_TIME CSubPicQueue::UpdateQueue()
         }
         if (rtStop > rtNow)
           rtNow = rtStop;
-        m_rtQueueMin = std::min(m_rtQueueMin, rtStart);
-        m_rtQueueMax = std::max(m_rtQueueMax, rtStop);
+        m_rtQueueMin = std::min<REFERENCE_TIME>(m_rtQueueMin, rtStart);
+        m_rtQueueMax = std::max<REFERENCE_TIME>(m_rtQueueMax, rtStop);
       }
     }
   }
@@ -745,7 +745,7 @@ DWORD CSubPicQueue::ThreadProc()
 
         if(rtNow < rtStop)
         {
-          REFERENCE_TIME rtCurrent = std::max(rtNow, rtStart);
+          REFERENCE_TIME rtCurrent = std::max<REFERENCE_TIME>(rtNow, rtStart);
           bool bIsAnimated = pSubPicProvider->IsAnimated(pos) && !bDisableAnim;
           while (rtCurrent < rtStop)
           {
@@ -764,9 +764,9 @@ DWORD CSubPicQueue::ThreadProc()
             if (bIsAnimated)
             {
               if (rtCurrent < m_rtNow + rtTimePerFrame)
-                rtCurrent = std::min(m_rtNow + rtTimePerFrame, rtStop-1);
+                rtCurrent = std::min<REFERENCE_TIME>(m_rtNow + rtTimePerFrame, rtStop-1);
 
-              REFERENCE_TIME rtEndThis = std::min(rtCurrent + rtTimePerFrame, rtStop);
+              REFERENCE_TIME rtEndThis = std::min<REFERENCE_TIME>(rtCurrent + rtTimePerFrame, rtStop);
               hr = RenderTo(pStatic, rtCurrent, rtEndThis, fps, bIsAnimated);
               pStatic->SetSegmentStart(rtStart);
               pStatic->SetSegmentStop(rtStop);

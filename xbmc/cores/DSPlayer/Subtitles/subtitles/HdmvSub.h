@@ -45,7 +45,7 @@ public:
     HDMV_SUB2           = 0x82
   };
 
-  static std::wstring SegmentToString(HDMV_SEGMENT_TYPE segType)
+  static CStdStringW SegmentToString(HDMV_SEGMENT_TYPE segType)
   {
     switch (segType)
     {

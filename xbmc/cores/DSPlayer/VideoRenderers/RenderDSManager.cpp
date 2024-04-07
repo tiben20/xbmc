@@ -382,12 +382,13 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
   {
       PresentSingle(clear, flags, alpha);
   }
-#if TODO
+
   if (gui)
   {
     if (!m_pRenderer->IsGuiLayer())
-      m_pRenderer->Update();
-
+      m_pRenderer->Update(); 
+  }
+#if TODO
     CRect src, dst, view;
     m_pRenderer->GetVideoRect(src, dst, view);
 

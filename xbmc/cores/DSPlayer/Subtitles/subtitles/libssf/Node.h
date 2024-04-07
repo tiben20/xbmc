@@ -40,16 +40,16 @@ namespace ssf
     Node* m_parent;
     std::list<Node*> m_nodes;
     StringMapW<Node*> m_name2node;
-    std::wstring m_type, m_name;
+    CStdStringW m_type, m_name;
     NodePriority m_priority;
     bool m_predefined;
 
-    Node(NodeFactory* pnf, std::wstring name);
+    Node(NodeFactory* pnf, CStdStringW name);
     virtual ~Node() {}
 
     bool IsNameUnknown();
     bool IsTypeUnknown();
-    bool IsType(std::wstring type);
+    bool IsType(CStdStringW type);
 
     virtual void push_back(Node* pNode);
     virtual void GetChildDefs(std::list<Definition*>& l, LPCWSTR type = NULL, bool fFirst = true);
@@ -59,7 +59,7 @@ namespace ssf
   class Reference : public Node
   {
   public:
-    Reference(NodeFactory* pnf, std::wstring name);
+    Reference(NodeFactory* pnf, CStdStringW name);
     virtual ~Reference();
 
     void GetChildDefs(std::list<Definition*>& l, LPCWSTR type = NULL, bool fFirst = true);
@@ -69,7 +69,7 @@ namespace ssf
   class Definition : public Node
   {
   public:
-    template<typename T> struct Number {T value; int sign; std::wstring unit;};
+    template<typename T> struct Number {T value; int sign; CStdStringW unit;};
     struct Time {Number<float> start, stop;};
 
     enum status_t {node, string, number, boolean, block};
@@ -77,9 +77,9 @@ namespace ssf
   private:
     status_t m_status;
     bool m_autotype;
-    std::wstring m_value, m_unit;
+    CStdStringW m_value, m_unit;
     Number<float> m_num;
-    std::wstring m_num_string;
+    CStdStringW m_num_string;
 
     StringMapW<Definition*> m_type2def;
     void RemoveFromCache(LPCWSTR type = NULL);
@@ -88,7 +88,7 @@ namespace ssf
     void GetAsNumber(Number<T>& n, StringMapW<T>* n2n = NULL);
 
   public:
-    Definition(NodeFactory* pnf, std::wstring name);
+    Definition(NodeFactory* pnf, CStdStringW name);
     virtual ~Definition();
 
     bool IsVisible(Definition* pDef);
@@ -100,10 +100,10 @@ namespace ssf
 
     bool IsValue(status_t s = (status_t)0);
 
-    void SetAsValue(status_t s, std::wstring v, std::wstring u = L"");
-    void SetAsNumber(std::wstring v, std::wstring u = L"");
+    void SetAsValue(status_t s, CStdStringW v, CStdStringW u = L"");
+    void SetAsNumber(CStdStringW v, CStdStringW u = L"");
 
-    void GetAsString(std::wstring& str);
+    void GetAsString(CStdStringW& str);
     void GetAsNumber(Number<int>& n, StringMapW<int>* n2n = NULL);
     void GetAsNumber(Number<DWORD>& n, StringMapW<DWORD>* n2n = NULL);
     void GetAsNumber(Number<float>& n, StringMapW<float>* n2n = NULL);
@@ -113,11 +113,11 @@ namespace ssf
     bool GetAsTime(Time& t, StringMapW<float>& offset, StringMapW<float>* n2n = NULL, int default_id = 0);
 
     operator LPCWSTR();
-    //operator std::wstring();
+    //operator CStdStringW();
     operator float();
     operator bool();
 
-    Definition* SetChildAsValue(std::wstring path, status_t s, std::wstring v, std::wstring u = L"");
-    Definition* SetChildAsNumber(std::wstring path, std::wstring v, std::wstring u = L"");
+    Definition* SetChildAsValue(CStdStringW path, status_t s, CStdStringW v, CStdStringW u = L"");
+    Definition* SetChildAsNumber(CStdStringW path, CStdStringW v, CStdStringW u = L"");
   };
 }

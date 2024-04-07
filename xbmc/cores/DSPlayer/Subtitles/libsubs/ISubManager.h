@@ -1,6 +1,7 @@
 #pragma once
 
 #include "initguid.h"
+//#include "system.h"
 
 
 struct SSubStyle 

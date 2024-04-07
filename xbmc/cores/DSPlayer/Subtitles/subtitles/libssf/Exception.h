@@ -25,11 +25,11 @@ namespace ssf
 {
   class Exception
   {
-    std::wstring m_msg;
+    CStdString m_msg;
 
   public:
     Exception(LPCTSTR fmt, ...);
     
-    std::wstring ToString() const {return m_msg;}
+    CStdString ToString() const {return m_msg;}
   };
 }

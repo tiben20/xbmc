@@ -24,7 +24,7 @@
 
 namespace ssf
 {
-  FontWrapper::FontWrapper(HDC hDC, HFONT hFont, const std::wstring& key)
+  FontWrapper::FontWrapper(HDC hDC, HFONT hFont, const CStdStringW& key)
     : m_hFont(hFont)
     , m_key(key)
   {

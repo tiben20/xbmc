@@ -38,7 +38,7 @@ CSubManager::CSubManager(IDirect3DDevice9* d3DDev, SIZE size, SSubSettings setti
     if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) == D3DPTEXTURECAPS_POW2)
     {
       m_settings.forcePowerOfTwoTextures = true;
-      g_log->Log(LOGNOTICE, "%s Forced usage of power of two textures.", __FUNCTION__);
+      //g_log->Log(LOGNOTICE, "%s Forced usage of power of two textures.", __FUNCTION__);
     }
   }
 
@@ -262,7 +262,7 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
         continue;
       
       Com::SmartQIPtr<IBaseFilter> pTPTF = new CTextPassThruFilter(this);
-      std::wstring name = L"Kodi Subtitles Pass Thru";
+      CStdStringW name = L"Kodi Subtitles Pass Thru";
       if(FAILED(pGB->AddFilter(pTPTF, name)))
         continue;
 
@@ -301,7 +301,7 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
   return E_FAIL;
 }
 
-std::wstring GetExtension(std::wstring&  filename)
+CStdString GetExtension(CStdString&  filename)
 {
   const size_t i = filename.rfind('.');
   return filename.substr(i+1, filename.size());
@@ -312,7 +312,7 @@ HRESULT CSubManager::LoadExternalSubtitle( const wchar_t* subPath, ISubStream** 
   if (!pSubPic)
     return E_POINTER;
 
-  std::wstring path(subPath);
+  CStdStringW path(subPath);
   *pSubPic = NULL;
   try
   {
@@ -320,22 +320,22 @@ HRESULT CSubManager::LoadExternalSubtitle( const wchar_t* subPath, ISubStream** 
 
     if(!pSubStream)
     {
-      std::unique_ptr<CVobSubFile> pVSF(new CVobSubFile(&m_csSubLock));
-      if(std::wstring(GetExtension(path).MakeLower()) == _T("idx") && pVSF.get() && pVSF->Open(path) && pVSF->GetStreamCount() > 0)
+      std::auto_ptr<CVobSubFile> pVSF(new CVobSubFile(&m_csSubLock));
+      if(CStdString(GetExtension(path).ToLower()) == _T("idx") && pVSF.get() && pVSF->Open(path) && pVSF->GetStreamCount() > 0)
         pSubStream = pVSF.release();
     }
 
     if (!pSubStream)
     {
-      std::unique_ptr<CRenderedHdmvSubtitleFile> pPGS(new CRenderedHdmvSubtitleFile(&m_csSubLock, ST_HDMV));
-      if ((std::wstring(GetExtension(path).MakeLower()) == _T("pgs") || std::wstring(GetExtension(path).MakeLower()) == _T("sup"))
+      std::auto_ptr<CRenderedHdmvSubtitleFile> pPGS(new CRenderedHdmvSubtitleFile(&m_csSubLock, ST_HDMV));
+      if ((CStdString(GetExtension(path).ToLower()) == _T("pgs") || CStdString(GetExtension(path).ToLower()) == _T("sup"))
         && pPGS.get() && pPGS->Open(path))
         pSubStream = pPGS.release();
     }
 
     if(!pSubStream)
     {
-      std::unique_ptr<CRenderedTextSubtitle> pRTS(new CRenderedTextSubtitle(&m_csSubLock));
+      std::auto_ptr<CRenderedTextSubtitle> pRTS(new CRenderedTextSubtitle(&m_csSubLock));
       if(pRTS.get() && pRTS->Open(path, DEFAULT_CHARSET) && pRTS->GetStreamCount() > 0) {
         ApplyStyleSubStream(pRTS.get());
         pSubStream = pRTS.release();
@@ -389,7 +389,7 @@ HRESULT CSubManager::GetStreamTitle(ISubStream* pSubStream, wchar_t **subTitle)
 {
   if (! pSubStream || !subTitle) return E_POINTER;
 
-  std::wstring title = "";
+  CStdStringW title = "";
   *subTitle = NULL;
 
   CLSID clsid; pSubStream->GetClassID(&clsid);

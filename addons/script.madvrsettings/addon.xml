@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="script.madvrsettings" name="madVR Settings" version="1.0.6" provider-name="Team Kodi DSPlayer">
+	<extension point="xbmc.python.pluginsource" library="default.py">
+		<provides>executable</provides>
+	</extension>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en">madVR Settings</summary>
+		<description lang="en">auto-update madVR OSD Settings</description>
+	</extension>
+</addon>

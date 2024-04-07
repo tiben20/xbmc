@@ -937,7 +937,7 @@
         </setting>
         <setting id="dsplayer.d3dpresentation" parent="dsplayer.videorenderer" type="integer" label="55103" help="90030">
           <level>0</level>
-          <default>0</default> <!-- Direct3D 9 -->
+          <default>2</default> <!-- Direct3D 9 -->
           <constraints>
             <options>
               <option label="55119">-1</option> <!-- madVR decide -->

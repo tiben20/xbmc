@@ -208,7 +208,7 @@ private:
   int          m_nBufferWritePos;
   BYTE*        m_pBuffer;
   std::list<DVB_PAGE*>      m_Pages;
-  std::unique_ptr<DVB_PAGE>   m_pCurrentPage;
+  std::auto_ptr<DVB_PAGE>   m_pCurrentPage;
   DVB_DISPLAY               m_Display;
   REFERENCE_TIME            m_rtStart;
   REFERENCE_TIME            m_rtStop;
@@ -219,7 +219,7 @@ private:
   DVB_CLUT*           FindClut(DVB_PAGE* pPage, BYTE bClutId);
   CompositionObject*  FindObject(DVB_PAGE* pPage, SHORT sObjectId);
 
-  HRESULT        ParsePage(CGolombBuffer& gb, WORD wSegLength, std::unique_ptr<DVB_PAGE>& pPage);
+  HRESULT        ParsePage(CGolombBuffer& gb, WORD wSegLength, std::auto_ptr<DVB_PAGE>& pPage);
   HRESULT        ParseDisplay(CGolombBuffer& gb, WORD wSegLength);
   HRESULT        ParseRegion(CGolombBuffer& gb, WORD wSegLength);
   HRESULT        ParseClut(CGolombBuffer& gb, WORD wSegLength);

@@ -23,9 +23,9 @@
 #include "stdafx.h"
 #include "BaseSub.h"
 
-std::wstring ReftimeToString(const REFERENCE_TIME& rtVal)
+CStdStringW ReftimeToString(const REFERENCE_TIME& rtVal)
 {
-  std::wstring strTemp;
+  CStdStringW strTemp;
   
   LONGLONG  llTotalMs  = (rtVal / 10000);
   int       lHour      = (int)(llTotalMs  / (1000*60*60));

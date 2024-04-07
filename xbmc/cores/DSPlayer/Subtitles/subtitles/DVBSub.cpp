@@ -247,7 +247,7 @@ HRESULT CDVBSub::ParseSample (IMediaSample* pSample)
         {
         case PAGE :
           {
-            std::unique_ptr<DVB_PAGE>  pPage;
+            std::auto_ptr<DVB_PAGE>  pPage;
             ParsePage(gb, wSegLength, pPage);
 
             if (pPage->PageState == DPS_ACQUISITION)
@@ -412,7 +412,7 @@ void CDVBSub::Reset()
 
 }
 
-HRESULT CDVBSub::ParsePage(CGolombBuffer& gb, WORD wSegLength, std::unique_ptr<DVB_PAGE>& pPage)
+HRESULT CDVBSub::ParsePage(CGolombBuffer& gb, WORD wSegLength, std::auto_ptr<DVB_PAGE>& pPage)
 {
   HRESULT    hr    = S_OK;
   WORD    wEnd  = (WORD)gb.GetPos() + wSegLength;

@@ -45,7 +45,7 @@
 #endif
 
 #define WIN32_LEAN_AND_MEAN    // Exclude rarely-used stuff from Windows headers
-#define _ATL_std::wstring_EXPLICIT_CONSTRUCTORS  // some std::wstring constructors will be explicit
+#define _ATL_CStdString_EXPLICIT_CONSTRUCTORS  // some CStdString constructors will be explicit
 
 #ifndef VC_EXTRALEAN
 #define VC_EXTRALEAN    // Exclude rarely-used stuff from Windows headers

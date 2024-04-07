@@ -108,7 +108,7 @@ namespace ssf
 
       StringMapW<float> offset;
       Definition& block = (*pDef)[L"@"];
-      Parse(WCharInputStream((std::wstring)block), style, at, offset, dynamic_cast<Reference*>(block.m_parent));
+      Parse(WCharInputStream((CStdStringW)block), style, at, offset, dynamic_cast<Reference*>(block.m_parent));
 
       // TODO: trimming should be done by the renderer later, after breaking the words into lines
 
@@ -185,7 +185,7 @@ namespace ssf
 
     if(clip.IsValue(Definition::string))
     {
-      std::wstring str = clip;
+      CStdStringW str = clip;
 
       if(str == L"frame") style.placement.clip = frame;
       // else ?
@@ -301,7 +301,7 @@ namespace ssf
 
         if((*pDef)[L"loop"].IsValue()) t *= (float)(*pDef)[L"loop"];
 
-        std::wstring direction = (*pDef)[L"direction"].IsValue() ? (*pDef)[L"direction"] : L"fw";
+        CStdStringW direction = (*pDef)[L"direction"].IsValue() ? (*pDef)[L"direction"] : L"fw";
         if(direction == L"fwbw" || direction == L"bwfw") t *= 2;
 
         float n;
@@ -362,7 +362,7 @@ namespace ssf
     {
       if(n2n && def.IsValue(Definition::string))
       {
-        StringMapW<T>::iterator it = n2n->find((std::wstring) def);
+        StringMapW<T>::iterator it = n2n->find((CStdStringW) def);
         if(it != n2n->end())
         {
           value = it->second;
@@ -385,7 +385,7 @@ namespace ssf
     {
       if(n2n && def.IsValue(Definition::string))
       {
-        StringMap<float, std::wstring>::iterator it = n2n->find(std::wstring(def));
+        StringMap<float, CStdStringW>::iterator it = n2n->find(CStdStringW(def));
         if (it != n2n->end())
         {
           value += (it->second - value) * t;
@@ -614,7 +614,7 @@ namespace ssf
 
     for(size_t i = 0, n = sa; i < n; i++)
     {
-      std::wstring str = sa[i];
+      CStdStringW str = sa[i];
 
       if(!str.empty())
       {
@@ -664,15 +664,15 @@ namespace ssf
     return *this;
   }
 
-  std::wstring Path::ToString()
+  CStdStringW Path::ToString()
   {
-    std::wstring ret;
+    CStdStringW ret;
 
     for(size_t i = 0, j = size(); i < j; i++)
     {
       const Point& p = at(i);
 
-      std::wstring str;
+      CStdStringW str;
       str.Format(L"%f %f ", p.x, p.y);
       ret += str;
     }

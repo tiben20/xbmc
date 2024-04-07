@@ -1,0 +1,11 @@
+<versions>
+  <version id="0913" min="0.0.0.0" max="0.91.3.0" />
+  <version id="0914" min="0.91.4.0" max="0.91.5.0" />
+  <version id="0917" min="0.91.6.0" max="0.91.7.0" />
+  <version id="0918" min="0.91.8.0" max="0.92.4.0" />
+  <version id="0925" min="0.92.5.0" max="0.92.6.0" />
+  <version id="0927" min="0.92.7.0" max="0.92.7.0" />
+  <version id="0928" min="0.92.8.0" max="0.92.8.0" />
+  <version id="0929" min="0.92.9.0" max="10.0.0.0" />
+</versions>
+

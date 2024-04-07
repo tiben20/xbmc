@@ -33,10 +33,10 @@ namespace ssf
   struct Align {float v, h;};
   struct Angle {float x, y, z;};
   struct Color {float a, r, g, b; operator DWORD(); void operator = (DWORD c);};
-  struct Frame {std::wstring reference; Size resolution;};
-  struct Direction {std::wstring primary, secondary;};
+  struct Frame {CStdStringW reference; Size resolution;};
+  struct Direction {CStdStringW primary, secondary;};
   struct Time {float start, stop;};
-  struct Background {Color color; float size, blur; std::wstring type;};
+  struct Background {Color color; float size, blur; CStdStringW type;};
   struct Shadow {Color color; float depth, angle, blur;};
 
   class Path : public std::vector<Point>
@@ -47,7 +47,7 @@ namespace ssf
     Path& operator = (const Path& path) {assign(path.begin(), path.end()); return *this;} 
     Path(LPCWSTR str) {*this = str;} 
     Path& operator = (LPCWSTR str);
-    std::wstring ToString();
+    CStdStringW ToString();
   };
 
   struct Placement 
@@ -63,7 +63,7 @@ namespace ssf
 
   struct Font
   {
-    std::wstring face;
+    CStdStringW face;
     float size, weight;
     Color color;
     bool underline, strikethrough, italic;
@@ -83,7 +83,7 @@ namespace ssf
 
   struct Style
   {
-    std::wstring linebreak;
+    CStdStringW linebreak;
     Placement placement;
     Font font;
     Background background;
@@ -97,7 +97,7 @@ namespace ssf
   {
     enum {SP = 0x20, NBSP = 0xa0, LSEP = 0x0a};
     Style style;
-    std::wstring str;
+    CStdStringW str;
   };
 
   class Subtitle
@@ -121,11 +121,11 @@ namespace ssf
     void AddText(Text& t);
 
   public:
-    std::wstring m_name;
+    CStdStringW m_name;
     bool m_animated;
     Frame m_frame;
     Direction m_direction;
-    std::wstring m_wrap;
+    CStdStringW m_wrap;
     float m_layer;
     Time m_time;
     std::list<Text> m_text;
