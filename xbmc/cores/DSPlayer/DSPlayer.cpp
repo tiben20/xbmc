@@ -285,7 +285,7 @@ void CDSPlayer::LoadVideoSettings(const CFileItem& file)
   // if not present Load stored Resolution settings
   else if (dsdbs.GetResSettings(madvrSettings.m_Resolution, madvrSettings))
   {
-    CLog::Log(LOGDEBUG, "Loaded madVR for resolution %ip settings for {}", madvrSettings.m_Resolution, sUrl.c_str());
+    CLog::Log(LOGDEBUG, "Loaded madVR for resolution {}p settings for {}", madvrSettings.m_Resolution, sUrl.c_str());
   }
   // if not present Load stored for all setting
   else if (dsdbs.GetResSettings(MADVR_RES_ALL, madvrSettings))
@@ -453,7 +453,7 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
   if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   { 
-    label = StringUtils::Format("{} - ({}, %d Hz, %i Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
+    label = StringUtils::Format("{} - ({}, %d Hz, {} Channels)", strStreamName.c_str(), codecname.c_str(), info.samplerate, info.channels);
     info.name = label;
   }
   else
@@ -1185,12 +1185,12 @@ void CDSPlayer::LoadMadvrSettings(int id)
     if (id < MADVR_RES_SD)
     {
       dspdb.GetUserSettings(id, madvrSettings);
-      sId = StringUtils::Format("User settings #%i", id);
+      sId = StringUtils::Format("User settings #{}", id);
     }
     else
     {
       dspdb.GetResSettings(id, madvrSettings);
-      sId = StringUtils::Format("Resolution settings %ip", id);
+      sId = StringUtils::Format("Resolution settings {}p", id);
       if (id == MADVR_RES_SD)
         sId = StringUtils::Format("Resolution settings SD", id);
     }
@@ -1431,9 +1431,9 @@ void CDSPlayer::UpdateProcessInfo(int index)
   //AUDIO
 
   //add visible track number
-  info = StringUtils::Format("%i {}", CStreamsManager::Get() ? CStreamsManager::Get()->GetChannels(index) : 0, g_localizeStrings.Get(14301).c_str());
+  info = StringUtils::Format("{} {}", CStreamsManager::Get() ? CStreamsManager::Get()->GetChannels(index) : 0, g_localizeStrings.Get(14301).c_str());
   if (GetAudioStreamCount() > 1)
-    info = StringUtils::Format("(%i/%i) {} ", index + 1, GetAudioStreamCount(), info.c_str());
+    info = StringUtils::Format("({}/{}) {} ", index + 1, GetAudioStreamCount(), info.c_str());
   m_processInfo->SetAudioChannels(info);
 
   m_processInfo->SetAudioBitsPerSample(CStreamsManager::Get() ? CStreamsManager::Get()->GetBitsPerSample(index) : 0);
@@ -1471,7 +1471,7 @@ void CDSPlayer::SetAudioCodeDelayInfo(int index)
 
   std::string info;
   int iAudioDelay = CStreamsManager::Get() ? CStreamsManager::Get()->GetLastAVDelay() : 0;
-  info = StringUtils::Format("{}, %ims delay", CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioCodecDisplayName(index).c_str() : "", iAudioDelay);
+  info = StringUtils::Format("{}, {}ms delay", CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioCodecDisplayName(index).c_str() : "", iAudioDelay);
 
   m_processInfo->SetAudioDecoderName(info);
 
@@ -1718,7 +1718,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
       CEdition edition;
       if (db.GetResumeEdition(m_currentFileItem.GetPath(), edition))
       {
-        CLog::Log(LOGDEBUG, "{} select bookmark, edition with idx %i selected", __FUNCTION__, edition.editionNumber);
+        CLog::Log(LOGDEBUG, "{} select bookmark, edition with idx {} selected", __FUNCTION__, edition.editionNumber);
         SetEdition(edition.editionNumber);
         return;
       }
@@ -1741,7 +1741,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
 
     dialog->SetHeading(IsMatroskaEditions() ? 55025 : 55026);
 
-    CLog::Log(LOGDEBUG, "{} Edition count - %i", __FUNCTION__, count);
+    CLog::Log(LOGDEBUG, "{} Edition count - {}", __FUNCTION__, count);
     int selected = GetEdition();
     for (UINT i = 0; i < count; i++)
     {
@@ -1779,7 +1779,7 @@ void CDSPlayer::ShowEditionDlg(bool playStart)
         continue;
       }
       UINT idx = editionOptions[selected];
-      CLog::Log(LOGDEBUG, "{} edition with idx %i selected", __FUNCTION__, idx);
+      CLog::Log(LOGDEBUG, "{} edition with idx {} selected", __FUNCTION__, idx);
       SetEdition(idx);
       break;
     }

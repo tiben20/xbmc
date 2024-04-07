@@ -128,7 +128,7 @@
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\Release\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</OutDir>
+    <OutDir>..\..\..\..\..\debug</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
