@@ -113,6 +113,7 @@ public:
   // ISubPicAllocator
   STDMETHODIMP ChangeDevice(IUnknown* pDev);
   STDMETHODIMP SetMaxTextureSize(SIZE MaxTextureSize);
+  STDMETHODIMP_(void) SetInverseAlpha(bool bInverted) {};
 };
 
 interface __declspec(uuid("CD6D2AA5-20D3-4ebe-A8A9-34D3B00CC253"))

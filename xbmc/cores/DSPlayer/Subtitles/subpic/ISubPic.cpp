@@ -211,6 +211,11 @@ STDMETHODIMP ISubPicImpl::SetVirtualTextureSize (const SIZE pSize, const POINT p
   return S_OK;
 }
 
+STDMETHODIMP_(void) ISubPicImpl::SetInverseAlpha(bool bInverted)
+{
+  m_bInvAlpha = bInverted;
+}
+
 //
 // ISubPicAllocatorImpl
 //

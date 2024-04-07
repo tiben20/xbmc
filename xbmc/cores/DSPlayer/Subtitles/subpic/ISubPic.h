@@ -80,6 +80,8 @@ ISubPic : public IUnknown
   STDMETHOD_(REFERENCE_TIME, GetSegmentStop) () PURE;
   STDMETHOD_(void, SetSegmentStart) (REFERENCE_TIME rtStart) PURE;
   STDMETHOD_(void, SetSegmentStop) (REFERENCE_TIME rtStop) PURE;
+
+  STDMETHOD_(void, SetInverseAlpha)(bool bInverted) PURE;
 };
 
 class ISubPicImpl : public CUnknown, public ISubPic
@@ -94,7 +96,7 @@ protected:
   Com::SmartRect  m_vidrect;
   Com::SmartSize  m_VirtualTextureSize;
   Com::SmartPoint  m_VirtualTextureTopLeft;
-
+  bool  m_bInvAlpha = false;
 /*
 
                           Texture
@@ -162,6 +164,7 @@ public:
   STDMETHODIMP_(void) SetSegmentStart(REFERENCE_TIME rtStart);
   STDMETHODIMP_(void) SetSegmentStop(REFERENCE_TIME rtStop);
 
+  STDMETHODIMP_(void) SetInverseAlpha(bool bInverted);
 };
 
 //
@@ -181,6 +184,8 @@ ISubPicAllocator : public IUnknown
 
   STDMETHOD (ChangeDevice) (IUnknown* pDev) PURE;
   STDMETHOD (SetMaxTextureSize) (SIZE MaxTextureSize) PURE;
+
+  STDMETHOD_(void, SetInverseAlpha)(bool bInverted) PURE;
 };
 
 
@@ -194,6 +199,7 @@ private:
   virtual void FreeTextures() = 0;
 
 protected:
+  bool  m_bInvAlpha = false;
   bool m_fPow2Textures;
   Com::SmartPtr<ISubPic> m_pStatic;
   Com::SmartSize m_cursize;
@@ -213,6 +219,7 @@ public:
   STDMETHODIMP_(bool) IsDynamicWriteOnly();
   STDMETHODIMP ChangeDevice(IUnknown* pDev);
   STDMETHODIMP SetMaxTextureSize(SIZE MaxTextureSize) { return E_NOTIMPL; };
+
 };
 
 //
