@@ -431,10 +431,10 @@ void CDSPlayer::GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) c
     info.stereoMode = "";
 }
 
-void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
+void CDSPlayer::GetAudioStreamInfo(int index, AudioStreamInfo& info) const
 {
   if (index == CURRENT_STREAM)
-    index = GetAudioStream();
+    index = CStreamsManager::Get() ? CStreamsManager::Get()->GetAudioStream() : 0;
 
   CSingleExit lock(m_StateSection);
 
@@ -443,7 +443,7 @@ void CDSPlayer::GetAudioStreamInfo(int index, SPlayerAudioStreamInfo &info)
   std::string codecname;
 
   info.bitrate = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetBitsPerSample(index) : 0;
-  info.audioCodecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecName(index) : "";
+  info.codecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetAudioCodecName(index) : "";
   if (CStreamsManager::Get()) CStreamsManager::Get()->GetAudioStreamName(index, strStreamName);
   info.language = strStreamName;
   info.channels = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetChannels(index) : 0;

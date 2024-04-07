@@ -146,7 +146,7 @@ public:
   virtual bool OnAction(const CAction& action) override;
   virtual bool HasMenu() const override { return g_dsGraph->IsDvd(); };
   bool IsInMenu() const override { return g_dsGraph->IsInMenu(); };
-  virtual void GetAudioStreamInfo(int index, SPlayerAudioStreamInfo& info) override;
+  void GetAudioStreamInfo(int index, AudioStreamInfo& info) const override;
 #if TODO
   virtual bool SwitchChannel(const PVR::CPVRChannelPtr& channel) override;
 #endif

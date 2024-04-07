@@ -219,7 +219,7 @@ public:
   virtual void AddSubtitle(const std::string& strSubPath) {}
 
   virtual int GetAudioStreamCount() const { return 0; }
-  virtual int  GetAudioStream()       { return -1; }
+  virtual int  GetAudioStream()     { return -1; }
   virtual void SetAudioStream(int iStream) {}
   virtual void GetAudioStreamInfo(int index, AudioStreamInfo& info) const {}
 
