@@ -64,6 +64,7 @@ set(SYSTEM_DEFINES -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DHAS_DX -D__STDC_CONSTANT_M
 
 # Additional SYSTEM_DEFINES
 list(APPEND SYSTEM_DEFINES -DHAS_WIN32_NETWORK -DHAS_FILESYSTEM_SMB)
+list(APPEND SYSTEM_DEFINES -DHAS_DS_PLAYER=1 -DSS_NO_LOCALEEE)
 
 # The /MP option enables /FS by default.
 if(CMAKE_GENERATOR MATCHES "Visual Studio")
@@ -73,7 +74,7 @@ if(CMAKE_GENERATOR MATCHES "Visual Studio")
     set(MP_FLAG "/MP")
   endif()
 
-  set(CMAKE_CXX_FLAGS "/permissive- ${MP_FLAG} ${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${MP_FLAG} ${CMAKE_CXX_FLAGS}")
 endif()
 
 # Google Test needs to use shared version of runtime libraries
@@ -82,7 +83,7 @@ set(gtest_force_shared_crt ON CACHE STRING "" FORCE)
 
 # -------- Linker options ---------
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 
 # For #pragma comment(lib X)
 # TODO: It would certainly be better to handle these libraries via CMake modules.
@@ -91,7 +92,7 @@ link_directories(${DEPENDS_PATH}/lib)
 # Additional libraries
 list(APPEND DEPLIBS bcrypt.lib d3d11.lib DInput8.lib DSound.lib winmm.lib Mpr.lib Iphlpapi.lib WS2_32.lib
                     PowrProf.lib setupapi.lib Shlwapi.lib dwmapi.lib dxguid.lib DelayImp.lib version.lib
-                    crypt32.lib)
+                    crypt32.lib Comctl32.lib)
 
 # NODEFAULTLIB option
 set(_nodefaultlibs_RELEASE libcmt)

@@ -326,7 +326,7 @@ STDMETHODIMP CDX11SubPic::AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget)
 // CDX11SubPicAllocator
 //
 
-CDX11SubPicAllocator::CDX11SubPicAllocator(ID3D11Device* pDevice, SIZE maxsize)
+CDX11SubPicAllocator::CDX11SubPicAllocator(ID3D11Device1* pDevice, SIZE maxsize)
 	: ISubPicAllocatorImpl(maxsize, true,true)
 	, m_pDevice(pDevice)
 	, m_maxsize(maxsize)
@@ -595,11 +595,11 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 
 	UINT Stride = sizeof(VERTEX);
 	UINT Offset = 0;
-	pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer.m_ptr, &Stride, &Offset);
+	pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
 	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	pDeviceContext->PSSetSamplers(0, 1, &(stretching ? m_pSamplerLinear.m_ptr : m_pSamplerPoint.m_ptr));
-	pDeviceContext->PSSetShaderResources(0, 1, &m_pOutputShaderResource.m_ptr);
+	pDeviceContext->PSSetSamplers(0, 1, &(stretching ? m_pSamplerLinear : m_pSamplerPoint));
+	pDeviceContext->PSSetShaderResources(0, 1, &m_pOutputShaderResource);
 
 	pDeviceContext->OMSetBlendState(m_pAlphaBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 

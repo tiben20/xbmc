@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <Unknwn.h>
 
 // {4158A22B-6553-45D0-8069-24716F8FF171}
 DEFINE_GUID(IID_ILAVAudioSettings, 

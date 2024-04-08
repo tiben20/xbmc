@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <d3d9.h>
+#include <d3d11.h>
 #include "libsubs.h"
 #include "..\subtitles\RTS.h"
 #include "SubManager.h"
@@ -46,9 +47,43 @@ BOOL LoadSubtitles(IDirect3DDevice9* d3DDev, SIZE size, const wchar_t* fn, IGrap
 
 ILog* g_log = NULL;
 
+bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
+{
+  if (!logger)
+    return false;
+  if (!pManager)
+    logger->Log(LOGERROR, "CreateSubtitleManager pManager is null");
+  if (!pDevice)
+    logger->Log(LOGERROR, "CreateSubtitleManager ID3D11Device is null");
+  if (!pManager || !pDevice)
+    return false;
+
+  *pManager = NULL;
+  g_log = logger;
+
+  HRESULT hr = S_OK;
+  //TODO d3d11
+  //*pManager = new CSubManager(d3DDev, size, settings, hr);
+  if (FAILED(hr))
+  {
+    delete* pManager;
+    *pManager = NULL;
+    logger->Log(LOGERROR, "Failed to create subtitles manager (hr: %X)", hr);
+    return false;
+  }
+
+  return true;
+}
+
 bool CreateSubtitleManager(IDirect3DDevice9* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
 {
-  if (! pManager || !d3DDev || !logger)
+  if (!logger)
+    return false;
+  if (!pManager)
+    logger->Log(LOGERROR, "CreateSubtitleManager pManager is null");
+  if (!d3DDev)
+    logger->Log(LOGERROR, "CreateSubtitleManager d3DDev is null");
+  if (!pManager || !d3DDev)
     return false;
 
   *pManager = NULL;

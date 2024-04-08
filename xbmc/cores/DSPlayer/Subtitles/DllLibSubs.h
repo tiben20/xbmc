@@ -40,6 +40,7 @@ class DllLibSubsInterface
 public:
   virtual ~DllLibSubsInterface() {}
   virtual bool CreateSubtitleManager(IDirect3DDevice9* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager) = 0;
+  virtual bool CreateD3D11SubtitleManager(ID3D11Device1* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager) = 0;
   virtual bool DeleteSubtitleManager(ISubManager * pManager) = 0;
 };
 
@@ -49,6 +50,7 @@ class DllLibSubs : public DllDynamic, DllLibSubsInterface
 {
   DECLARE_DLL_WRAPPER(DllLibSubs, "libsubs.dll")
   
+  DEFINE_METHOD5(bool,CreateD3D11SubtitleManager,(ID3D11Device1* p1, SIZE p2, ILog * p3, SSubSettings p4, ISubManager** p5)) ///< Caller take ownership of ISubManager
   /** @brief Create the Subtitle Manager from libsubs.dll
    * @param[in] p1 Pointer to the Direct3D9 Device
    * @param[in] p2 Size of the current rendering area
@@ -68,6 +70,7 @@ class DllLibSubs : public DllDynamic, DllLibSubsInterface
   
   BEGIN_METHOD_RESOLVE()
     RESOLVE_METHOD(CreateSubtitleManager)
+    RESOLVE_METHOD(CreateD3D11SubtitleManager)
     RESOLVE_METHOD(DeleteSubtitleManager)
   END_METHOD_RESOLVE()
 };

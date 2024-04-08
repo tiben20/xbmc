@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <Unknwn.h>
 
 // {FA40D6E9-4D38-4761-ADD2-71A9EC5FD32F}
 DEFINE_GUID(IID_ILAVVideoSettings, 

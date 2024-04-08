@@ -27,19 +27,18 @@
 
 void ILogImpl::Log(int loglevel, const char *format, ...)
 {
-  assert(0);
-#if TODO
-  std::wstring msg;
+
+  CStdStringA msg;
 
   va_list va;
   va_start(va, format);
 
-  msg.FormatV(format, va);
+  msg.Format(format, va);
 
   va_end(va);
   
   CLog::Log(loglevel, msg.c_str());
-#endif
+
 }
 
 #endif

@@ -21,6 +21,7 @@
 
 #include "isubpic.h"
 #include <d3d11.h>
+#include <d3d11_1.h>
 #include <deque>
 // CDX11SubPic
 
@@ -86,7 +87,7 @@ public:
 
 	void GetStats(int& _nFree, int& _nAlloc);
 
-	CDX11SubPicAllocator(ID3D11Device* pDevice, SIZE maxsize);
+	CDX11SubPicAllocator(ID3D11Device1* pDevice, SIZE maxsize);
 	~CDX11SubPicAllocator();
 	void ClearCache();
 

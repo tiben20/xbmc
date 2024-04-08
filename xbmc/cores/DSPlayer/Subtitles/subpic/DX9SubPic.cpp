@@ -58,7 +58,7 @@ CDX9SubPic::~CDX9SubPic()
           break;
         }
       }
-      m_pSurface.m_ptr->AddRef();
+      //m_pSurface->AddRef();
       m_pAllocator->m_FreeSurfaces.push_back(m_pSurface);
     }
   }

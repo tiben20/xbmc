@@ -2,9 +2,6 @@ set(SOURCES AllocatorCommon.cpp
             asyncio.cpp
             asyncrdr.cpp
             BaseSharedRender.cpp
-            DX9AllocatorPresenter.cpp
-            EVRAllocatorPresenter.cpp
-            EvrSharedRender.cpp
             FocusThread.cpp
             LavSettings.cpp
             madVRAllocatorPresenter.cpp
@@ -12,7 +9,6 @@ set(SOURCES AllocatorCommon.cpp
             MadvrSettingsManager.cpp
             MadvrSharedRender.cpp
             RendererSettings.cpp
-            VMR9AllocatorPresenter.cpp
             XBMCFileReader.cpp
             XBMCFileSource.cpp)
 
@@ -21,9 +17,6 @@ set(HEADERS AllocatorCommon.h
             asyncio.h
             asyncrdr.h
             BaseSharedRender.h
-            DX9AllocatorPresenter.h
-            EVRAllocatorPresenter.h
-            EvrSharedRender.h
             ffdshow_constants.h
             FocusThread.h
             IDirectVobSub.h
@@ -46,7 +39,6 @@ set(HEADERS AllocatorCommon.h
             MadvrSharedRender.h
             mvrInterfaces.h
             RendererSettings.h
-            VMR9AllocatorPresenter.h
             XBMCFileReader.h
             XBMCFileSource.h)
 

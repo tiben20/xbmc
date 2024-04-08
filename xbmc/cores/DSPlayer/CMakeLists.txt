@@ -5,7 +5,6 @@ set(SOURCES ChaptersManager.cpp
             DSPlayer.cpp
             DSPlayerDatabase.cpp
             DSPropertyPage.cpp
-
             ExternalPixelShader.cpp
             FGFilter.cpp
             FGLoader.cpp
@@ -27,7 +26,6 @@ set(HEADERS ChaptersManager.h
             DSPlayer.h
             DSPlayerDatabase.h
             DSPropertyPage.h
- 
             ExternalPixelShader.h
             FGFilter.h
             FGLoader.h

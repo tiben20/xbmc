@@ -241,7 +241,7 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
   TiXmlElement *pSetting = pNode->ToElement();
 
   MadvrListSettings setting;
-  CVariant default;
+  CVariant pDefault;
 
   setting.group = iGroupId;
 
@@ -268,7 +268,7 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
     CLog::Log(LOGERROR, "%s missing attritube (label) for setting name=%s", __FUNCTION__, setting.name.c_str());
 
   // GET DEFAULT VALUE
-  if (!GetVariant(pSetting, "default", setting.type, &default))
+  if (!GetVariant(pSetting, "default", setting.type, &pDefault))
     CLog::Log(LOGERROR, "%s missing attritube (default) for setting name=%s", __FUNCTION__, setting.name.c_str());
 
   // GET DEPENDENCIES
@@ -321,7 +321,7 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
   }
 
    // ADD DATABASE
-  m_db[setting.name] = default;
+  m_db[setting.name] = pDefault;
 
   // ADD GUI
   m_gui[iSectionId].emplace_back(std::move(setting));

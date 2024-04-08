@@ -29,6 +29,7 @@
 #include "vd.h"
 #include "text.h"
 #include "utils\StdString.h"
+#pragma comment( lib, "strmbasd.lib" )
 
 #define SAFE_DELETE(p)        { delete (p); p = nullptr;  }
 

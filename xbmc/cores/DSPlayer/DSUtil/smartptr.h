@@ -121,8 +121,7 @@ namespace Com
   template <class T>
   class SmartPtrBase
   {
-  protected:
-
+  public:
     // Ctor
     SmartPtrBase() : m_ptr(NULL)
     {
@@ -337,9 +336,9 @@ namespace Com
     {
       return !operator==(ptr);
     }
-
-  public:
+protected:
     T* m_ptr;
+
   };
 
   template <class T>
@@ -362,7 +361,8 @@ namespace Com
     {
       if (*this != lp)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
+        
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp));
       }
       return *this;
     }
@@ -371,15 +371,15 @@ namespace Com
     {
       if (!AreComObjectsEqual(*this, lp))
       {
-        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp.m_ptr, __uuidof(T)));
+        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr, __uuidof(T)));
       }
       return *this;
     }
     T* operator=(const SmartPtr<T>& lp) throw()
     {
-      if (!AreComObjectsEqual(m_ptr, lp.m_ptr))
+      if (!AreComObjectsEqual(this->m_ptr, lp.m_ptr))
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr));
       }
       return *this;
     }
@@ -405,7 +405,7 @@ namespace Com
     {
       if (*this != lp)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp));
       }
       return *this;
     }
@@ -414,15 +414,15 @@ namespace Com
     {
       if (!AreComObjectsEqual(*this, lp))
       {
-        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp.m_ptr, __uuidof(T)));
+        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr, __uuidof(T)));
       }
       return *this;
     }
     T* operator=(const SmartPtr<T>& lp) throw()
     {
-      if (!AreComObjectsEqual(m_ptr, lp.m_ptr))
+      if (!AreComObjectsEqual(this->m_ptr, lp.m_ptr))
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr));
       }
       return *this;
     }
@@ -450,29 +450,29 @@ namespace Com
     SmartQIPtr(IUnknown* lp) throw()
     {
       if (lp != NULL)
-        lp->QueryInterface(*piid, (void**)&m_ptr);
+        lp->QueryInterface(*piid, (void**)&this->m_ptr);
     }
     T* operator=(T* lp) throw()
     {
-      if (m_ptr != lp)
+      if (this->m_ptr != lp)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp));
       }
       return *this;
     }
     T* operator=(const SmartQIPtr<T, piid>& lp) throw()
     {
-      if (m_ptr != lp.m_ptr)
+      if (this->m_ptr != lp.m_ptr)
       {
-        return static_cast<T*>(SmartPtrAssign((IUnknown**)&m_ptr, lp.m_ptr));
+        return static_cast<T*>(SmartPtrAssign((IUnknown**)&this->m_ptr, lp.m_ptr));
       }
       return *this;
     }
     T* operator=(_In_opt_ IUnknown* lp) throw()
     {
-      if (m_ptr != lp)
+      if (this->m_ptr != lp)
       {
-        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&m_ptr, lp, *piid));
+        return static_cast<T*>(SmartQIPtrAssign((IUnknown**)&this->m_ptr, lp, *piid));
       }
       return *this;
     }
@@ -517,7 +517,7 @@ namespace Com
           // If this assert fires, it means you attempted to assign one SmartAutoVectorPtr to another when they both contained 
           // a pointer to the same underlying vector. This means a bug in your code, since your vector will get 
           // double-deleted. 
-          ATLASSERT(FALSE);
+          //ATLASSERT(FALSE);
 
           // For safety, we are going to detach the other SmartAutoVectorPtr to avoid a double-free. Your code still
           // has a bug, though.

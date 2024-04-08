@@ -1,4 +1,7 @@
 #pragma once
+#include <list>
+#include <map>
+#include "..\utils\StdString.h"
 
 //extern CStdString ExplodeMin(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit = 0);
 //extern CStdString Explode(CStdString str, std::list<CStdString>& sl, TCHAR sep, int limit = 0);
@@ -47,12 +50,13 @@ template<class T, typename SEP>
 T Implode(std::list<T>& sl, SEP sep)
 {
   T ret;
-  std::list<T>::iterator it = sl.begin();
-  for(; it != sl.end(); ++it)
-  {
-    ret += *it;
-    if (it != sl.end()) ret += sep;
-  }
+  
+  //std::list<T>::iterator it = sl.begin();
+  //for(; it != sl.end(); ++it)
+  //{
+  //  ret += *it;
+  //  if (it != sl.end()) ret += sep;
+  //}
   return(ret);
 }
 
