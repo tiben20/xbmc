@@ -83,7 +83,7 @@ set(gtest_force_shared_crt ON CACHE STRING "" FORCE)
 
 # -------- Linker options ---------
 
-set(CMAKE_EXE_LINKER_FLAGS " ${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
 
 # For #pragma comment(lib X)
 # TODO: It would certainly be better to handle these libraries via CMake modules.

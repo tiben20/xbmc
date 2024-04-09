@@ -1,0 +1,10 @@
+xbmc/cores/DSPlayer                                cores/DSPlayer
+xbmc/cores/DSPlayer/Dialogs                        cores/DSPlayer/Dialogs
+xbmc/cores/DSPlayer/DSUtil                         cores/DSPlayer/DSUtil
+xbmc/cores/DSPlayer/FilterCoreFactory              cores/DSPlayer/FilterCoreFactory
+xbmc/cores/DSPlayer/Filters                        cores/DSPlayer/Filters
+xbmc/cores/DSPlayer/Filters/Sanear                 cores/DSPlayer/Filters/Sanear
+xbmc/cores/DSPlayer/PVR                            cores/DSPlayer/PVR
+xbmc/cores/DSPlayer/Subtitles/subpic               cores/DSPlayer/Subtitles/subpic
+xbmc/cores/DSPlayer/Utils                          cores/DSPlayer/Utils
+xbmc/cores/DSPlayer/VideoRenderers                 cores/DSPlayer/VideoRenderers
