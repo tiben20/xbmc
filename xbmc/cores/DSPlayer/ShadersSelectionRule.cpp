@@ -64,7 +64,7 @@ void CShadersSelectionRule::Initialize(TiXmlElement* pRule)
 
   if (m_bStreamDetails && !CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MYVIDEOS_EXTRACTFLAGS))
   {
-    CLog::Log(LOGWARNING, "CFilterSelectionRule::Initialize: rule: %s needs media flagging, which is disabled", m_name.c_str());
+    CLog::Log(LOGWARNING, "CFilterSelectionRule::Initialize: rule: {} needs media flagging, which is disabled", m_name.c_str());
   }
 
   if (pRule->QueryIntAttribute("id", (int *)&m_shaderId) != TIXML_SUCCESS)
@@ -90,7 +90,7 @@ bool CShadersSelectionRule::MatchesRegExp(const std::string& str, CRegExp& regEx
 
 void CShadersSelectionRule::GetShaders(const CFileItem& item, std::vector<uint32_t> &shaders, std::vector<uint32_t> &shadersStage, bool dxva)
 {
-  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: considering rule: %s", m_name.c_str());
+  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: considering rule: {}", m_name.c_str());
 
   if (m_bStreamDetails && (!item.HasVideoInfoTag())) return;
   /*
@@ -110,7 +110,7 @@ void CShadersSelectionRule::GetShaders(const CFileItem& item, std::vector<uint32
   {
     if (!item.GetVideoInfoTag()->HasStreamDetails())
     {
-      CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: cannot check rule: %s, no StreamDetails", m_name.c_str());
+      CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: cannot check rule: {}, no StreamDetails", m_name.c_str());
       return;
     }
 
@@ -140,11 +140,11 @@ void CShadersSelectionRule::GetShaders(const CFileItem& item, std::vector<uint32
 
   if (CompileRegExp(m_fileName, regExp) && !MatchesRegExp(item.GetPath(), regExp)) return;
 
-  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: matches rule: %s", m_name.c_str());
+  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: matches rule: {}", m_name.c_str());
 
   if (m_shaderId > -1)
   {
-    CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: adding shader: %d for rule: %s", m_shaderId, m_name.c_str());
+    CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: adding shader: %d for rule: {}", m_shaderId, m_name.c_str());
     shaders.push_back(m_shaderId);
 
     m_shaderStageStr == "postresize" ? m_shaderStage = 1 : m_shaderStage = 0;

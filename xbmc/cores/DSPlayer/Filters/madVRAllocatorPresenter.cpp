@@ -65,7 +65,7 @@ CmadVRAllocatorPresenter::CmadVRAllocatorPresenter(HWND hWnd, HRESULT& hr, std::
   m_frameCount = 0;
   
   if (FAILED(hr)) {
-    _Error += "%s ISubPicAllocatorPresenterImpl failed\n";
+    _Error += "{} ISubPicAllocatorPresenterImpl failed\n";
     return;
   }
 
@@ -106,7 +106,7 @@ CmadVRAllocatorPresenter::~CmadVRAllocatorPresenter()
   m_pORCB = nullptr;
   m_pSRCB = nullptr;
 
-  CLog::Log(LOGDEBUG, "%s Resources released", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} Resources released", __FUNCTION__);
 }
 
 STDMETHODIMP CmadVRAllocatorPresenter::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -138,7 +138,7 @@ void CmadVRAllocatorPresenter::SetResolution()
   {
     RESOLUTION res = CResolutionUtils::ChooseBestResolution(fps, nativeVideoSize.cx, nativeVideoSize.cy, false);
     bool bChanged = SetResolutionInternal(res);
-    CLog::Log(LOGDEBUG, "%s change resolution %s", __FUNCTION__, bChanged ?  "<success>" : "<failed>");
+    CLog::Log(LOGDEBUG, "{} change resolution {}", __FUNCTION__, bChanged ?  "<success>" : "<failed>");
   }
 
 }
@@ -155,7 +155,7 @@ void CmadVRAllocatorPresenter::ExclusiveCallback(LPVOID context, int event)
   if (event == ExclusiveModeWasJustEntered || event == ExclusiveModeWasJustLeft)
     pThis->m_isEnteringExclusive = false;
 
-  CLog::Log(LOGDEBUG, "%s madVR %s in Fullscreen Exclusive-Mode", __FUNCTION__, strEvent[event - 1].c_str());
+  CLog::Log(LOGDEBUG, "{} madVR {} in Fullscreen Exclusive-Mode", __FUNCTION__, strEvent[event - 1].c_str());
 }
 
 void CmadVRAllocatorPresenter::EnableExclusive(bool bEnable)
@@ -241,7 +241,7 @@ void CmadVRAllocatorPresenter::DisplayChange(bool bExternalChange)
   if (DX::DeviceResources::Get()->GetD3DContext() == nullptr || m_pD3DDev == nullptr)
     return;
 
-  CLog::Log(LOGDEBUG, "%s need to re-create the shared textures", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} need to re-create the shared textures", __FUNCTION__);
 
   if (m_pMadvrShared != nullptr)
     SAFE_DELETE(m_pMadvrShared);
@@ -293,7 +293,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::SetDeviceOsd(IDirect3DDevice9* pD3DDev)
 
 HRESULT CmadVRAllocatorPresenter::SetDevice(IDirect3DDevice9* pD3DDev)
 {
-  CLog::Log(LOGDEBUG, "%s madVR's device it's ready", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} madVR's device it's ready", __FUNCTION__);
 
   if (!pD3DDev)
   {
@@ -375,7 +375,7 @@ HRESULT CmadVRAllocatorPresenter::Render( REFERENCE_TIME rtStart, REFERENCE_TIME
 
     // Configure Render Manager
     g_application.GetComponent<CApplicationPlayer>()->Configure(m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy, m_fps, CONF_FLAGS_FULLSCREEN);
-    CLog::Log(LOGDEBUG, "%s Render manager configured (FPS: %f) %i %i %i %i", __FUNCTION__, m_fps, m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy);
+    CLog::Log(LOGDEBUG, "{} Render manager configured (FPS: %f) %i %i %i %i", __FUNCTION__, m_fps, m_NativeVideoSize.cx, m_NativeVideoSize.cy, m_AspectRatio.cx, m_AspectRatio.cy);
   }
 
   // Reset madVR Stats at start (after 50 frames)
@@ -583,7 +583,7 @@ void CmadVRAllocatorPresenter::SetPixelShader()
     SetPixelShader(Shader->GetSourceData().c_str(), nullptr);
     Shader->DeleteSourceData();
 
-    CLog::Log(LOGDEBUG, "%s Set PixelShader: %s applied: %s", __FUNCTION__, Shader->GetName().c_str(), strStage.c_str());
+    CLog::Log(LOGDEBUG, "{} Set PixelShader: {} applied: {}", __FUNCTION__, Shader->GetName().c_str(), strStage.c_str());
   }
 };
 
@@ -612,7 +612,7 @@ bool CmadVRAllocatorPresenter::SetResolutionInternal(const RESOLUTION res, bool 
   sDevMode.dmSize = sizeof(sDevMode);
 
   RESOLUTION_INFO res_info = CDisplaySettings::GetInstance().GetResolutionInfo(res);
-  CLog::Log(LOGDEBUG, "%s set system resolution to %s", __FUNCTION__, res_info.strMode.c_str());
+  CLog::Log(LOGDEBUG, "{} set system resolution to {}", __FUNCTION__, res_info.strMode.c_str());
 
   // If we can't read the current resolution or any detail of the resolution is different than res
   if (!EnumDisplaySettings(mi.szDevice, ENUM_CURRENT_SETTINGS, &sDevMode) ||
@@ -638,7 +638,7 @@ bool CmadVRAllocatorPresenter::SetResolutionInternal(const RESOLUTION res, bool 
     if ( !CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10) 
       && (res_info.fRefreshRate == 24.0 || res_info.fRefreshRate == 48.0 || res_info.fRefreshRate == 60.0))
     {
-      CLog::Log(LOGDEBUG, "%s : Using Windows 8+ workaround for refresh rate %d Hz", __FUNCTION__, static_cast<int>(res_info.fRefreshRate));
+      CLog::Log(LOGDEBUG, "{} : Using Windows 8+ workaround for refresh rate %d Hz", __FUNCTION__, static_cast<int>(res_info.fRefreshRate));
 
       // Get current resolution stored in registry
       DEVMODE sDevModeRegistry;
@@ -655,7 +655,7 @@ bool CmadVRAllocatorPresenter::SetResolutionInternal(const RESOLUTION res, bool 
           if (rc == DISP_CHANGE_SUCCESSFUL)
             bResChanged = true;
           else
-            CLog::Log(LOGERROR, "%s : ChangeDisplaySettingsEx (W8+ change resolution) failed with %d, using fallback", __FUNCTION__, rc);
+            CLog::Log(LOGERROR, "{} : ChangeDisplaySettingsEx (W8+ change resolution) failed with %d, using fallback", __FUNCTION__, rc);
 
           // Restore registry with original values
           sDevModeRegistry.dmSize = sizeof(sDevModeRegistry);
@@ -663,13 +663,13 @@ bool CmadVRAllocatorPresenter::SetResolutionInternal(const RESOLUTION res, bool 
           sDevModeRegistry.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY | DM_DISPLAYFLAGS;
           rc = ChangeDisplaySettingsEx(mi.szDevice, &sDevModeRegistry, nullptr, CDS_UPDATEREGISTRY | CDS_NORESET, nullptr);
           if (rc != DISP_CHANGE_SUCCESSFUL)
-            CLog::Log(LOGERROR, "%s : ChangeDisplaySettingsEx (W8+ restore registry) failed with %d", __FUNCTION__, rc);
+            CLog::Log(LOGERROR, "{} : ChangeDisplaySettingsEx (W8+ restore registry) failed with %d", __FUNCTION__, rc);
         }
         else
-          CLog::Log(LOGERROR, "%s : ChangeDisplaySettingsEx (W8+ set registry) failed with %d, using fallback", __FUNCTION__, rc);
+          CLog::Log(LOGERROR, "{} : ChangeDisplaySettingsEx (W8+ set registry) failed with %d, using fallback", __FUNCTION__, rc);
       }
       else
-        CLog::Log(LOGERROR, "%s : Unable to retrieve registry settings for Windows 8+ workaround, using fallback", __FUNCTION__);
+        CLog::Log(LOGERROR, "{} : Unable to retrieve registry settings for Windows 8+ workaround, using fallback", __FUNCTION__);
     }
 
     // Standard resolution change/fallback for Windows 8+ workaround
@@ -681,7 +681,7 @@ bool CmadVRAllocatorPresenter::SetResolutionInternal(const RESOLUTION res, bool 
       if (rc == DISP_CHANGE_SUCCESSFUL)
         bResChanged = true;
       else
-        CLog::Log(LOGERROR, "%s : ChangeDisplaySettingsEx failed with %d", __FUNCTION__, rc);
+        CLog::Log(LOGERROR, "{} : ChangeDisplaySettingsEx failed with %d", __FUNCTION__, rc);
     }
     return bResChanged;
   }

@@ -94,23 +94,23 @@ void CMadvrSettings::InitSettings()
   { 
     sMadvrSettingsXML = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/madvrsettings.xml");
     m_FileStringPo = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/strings.po");
-    CLog::Log(LOGINFO, "%s loading madvrSettings.xml from appdata/kodi/userdata/dsplayer", __FUNCTION__);
+    CLog::Log(LOGINFO, "{} loading madvrSettings.xml from appdata/kodi/userdata/dsplayer", __FUNCTION__);
   } 
   // Appdata addons/script.madvrsettings
   else if (XFILE::CDirectory::Exists("special://home/addons/script.madvrsettings/")) 
   {
     sVersionSuffix = GetVersionSuffix("special://home/addons/script.madvrsettings/resources/");
-    sMadvrSettingsXML = StringUtils::Format("special://home/addons/script.madvrsettings/resources/%s_madvrsettings.xml", sVersionSuffix.c_str());
-    m_FileStringPo = StringUtils::Format("special://home/addons/script.madvrsettings/resources/%s_strings.po", sVersionSuffix.c_str());
-    CLog::Log(LOGINFO, "%s loading %s_madvrSettings.xml from appdata/kodi/addons/script.madvrsettings", __FUNCTION__, sVersionSuffix.c_str());
+    sMadvrSettingsXML = StringUtils::Format("special://home/addons/script.madvrsettings/resources/{}_madvrsettings.xml", sVersionSuffix.c_str());
+    m_FileStringPo = StringUtils::Format("special://home/addons/script.madvrsettings/resources/{}_strings.po", sVersionSuffix.c_str());
+    CLog::Log(LOGINFO, "{} loading {}_madvrSettings.xml from appdata/kodi/addons/script.madvrsettings", __FUNCTION__, sVersionSuffix.c_str());
   }
   // InstallDir addons/script.madvrsettings
   else if (XFILE::CDirectory::Exists("special://xbmc/addons/script.madvrsettings/"))
   {
     sVersionSuffix = GetVersionSuffix("special://xbmc/addons/script.madvrsettings/resources/");
-    sMadvrSettingsXML = StringUtils::Format("special://xbmc/addons/script.madvrsettings/resources/%s_madvrsettings.xml", sVersionSuffix.c_str());
-    m_FileStringPo = StringUtils::Format("special://xbmc/addons/script.madvrsettings/resources/%s_strings.po", sVersionSuffix.c_str());
-    CLog::Log(LOGINFO, "%s loading %s_madvrSettings.xml from kodi/addons/script.madvrsettings", __FUNCTION__, sVersionSuffix.c_str());
+    sMadvrSettingsXML = StringUtils::Format("special://xbmc/addons/script.madvrsettings/resources/{}_madvrsettings.xml", sVersionSuffix.c_str());
+    m_FileStringPo = StringUtils::Format("special://xbmc/addons/script.madvrsettings/resources/{}_strings.po", sVersionSuffix.c_str());
+    CLog::Log(LOGINFO, "{} loading {}_madvrSettings.xml from kodi/addons/script.madvrsettings", __FUNCTION__, sVersionSuffix.c_str());
   }
 
   // Load settings strutcture for madVR
@@ -133,13 +133,13 @@ void CMadvrSettings::LoadMadvrXML(const std::string &xmlFile, const std::string 
 
   if (!m_XML.LoadFile(xmlFile))
   {
-    CLog::Log(LOGERROR, "%s Error loading %s, Line %d (%s)", __FUNCTION__, xmlFile.c_str(), m_XML.ErrorRow(), m_XML.ErrorDesc());
+    CLog::Log(LOGERROR, "{} Error loading {}, Line %d ({})", __FUNCTION__, xmlFile.c_str(), m_XML.ErrorRow(), m_XML.ErrorDesc());
     return;
   }
   TiXmlElement *pConfig = m_XML.RootElement();
   if (!pConfig || strcmpi(pConfig->Value(), xmlRoot.c_str()) != 0)
   {
-    CLog::Log(LOGERROR, "%s Error loading madvrSettings, no <%s> node", __FUNCTION__, xmlRoot.c_str());
+    CLog::Log(LOGERROR, "{} Error loading madvrSettings, no <{}> node", __FUNCTION__, xmlRoot.c_str());
     return;
   }
 
@@ -219,7 +219,7 @@ void CMadvrSettings::AddButton(TiXmlNode *pNode, int iSectionId, int iGroupId, i
   button.type = type;
   
   if (!CDSXMLUtils::GetInt(pSetting, "label",&button.label))
-    CLog::Log(LOGERROR, "%s missing attritube (label) for button %s", __FUNCTION__, button.name.c_str());
+    CLog::Log(LOGERROR, "{} missing attritube (label) for button {}", __FUNCTION__, button.name.c_str());
 
   if (button.type == "button_section")
   {
@@ -230,7 +230,7 @@ void CMadvrSettings::AddButton(TiXmlNode *pNode, int iSectionId, int iGroupId, i
   else if (button.type == "button_debug")
   {
     if (!CDSXMLUtils::GetString(pSetting,"path",&button.value))
-      CLog::Log(LOGERROR, "%s missing attritube (path) for button %s", __FUNCTION__, button.name.c_str());
+      CLog::Log(LOGERROR, "{} missing attritube (path) for button {}", __FUNCTION__, button.name.c_str());
   }
 
   m_gui[iSectionId].emplace_back(std::move(button));
@@ -249,7 +249,7 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
   if (!CDSXMLUtils::GetString(pSetting, "name", &setting.name)
     ||!CDSXMLUtils::GetString(pSetting, "type", &setting.type))
   {
-    CLog::Log(LOGERROR, "%s missing attritube (name, type) for setting name=%s type=%s", __FUNCTION__, setting.name.c_str(), setting.type.c_str());
+    CLog::Log(LOGERROR, "{} missing attritube (name, type) for setting name={} type={}", __FUNCTION__, setting.name.c_str(), setting.type.c_str());
   }
   if (StringUtils::StartsWith(setting.type, "!"))
   {
@@ -265,11 +265,11 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
 
   // GET LABEL
   if (!CDSXMLUtils::GetInt(pSetting, "label", &setting.label))
-    CLog::Log(LOGERROR, "%s missing attritube (label) for setting name=%s", __FUNCTION__, setting.name.c_str());
+    CLog::Log(LOGERROR, "{} missing attritube (label) for setting name={}", __FUNCTION__, setting.name.c_str());
 
   // GET DEFAULT VALUE
   if (!GetVariant(pSetting, "default", setting.type, &pDefault))
-    CLog::Log(LOGERROR, "%s missing attritube (default) for setting name=%s", __FUNCTION__, setting.name.c_str());
+    CLog::Log(LOGERROR, "{} missing attritube (default) for setting name={}", __FUNCTION__, setting.name.c_str());
 
   // GET DEPENDENCIES
   TiXmlElement *pDependencies = pSetting->FirstChildElement(SETTING_XML_ELM_DEPENDENCIES);
@@ -289,10 +289,10 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
       int iLabel;
       CVariant value;
       if (!CDSXMLUtils::GetInt(pOption, "label", &iLabel))
-        CLog::Log(LOGERROR, "%s missing attritube (label) for setting option name=%s", __FUNCTION__, setting.name.c_str());
+        CLog::Log(LOGERROR, "{} missing attritube (label) for setting option name={}", __FUNCTION__, setting.name.c_str());
 
       if (!GetVariant(pOption, "value", setting.type, &value))
-        CLog::Log(LOGERROR, "%s missing attritube (value) for setting option name=%s", __FUNCTION__, setting.name.c_str());
+        CLog::Log(LOGERROR, "{} missing attritube (value) for setting option name={}", __FUNCTION__, setting.name.c_str());
 
       if (value.isInteger())
         setting.optionsInt.emplace_back(iLabel, value.asInteger());
@@ -309,14 +309,14 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
   else if (setting.type == "float")
   {
     if (!CDSXMLUtils::GetString(pSetting,"format",&setting.slider.format))
-      CLog::Log(LOGERROR, "%s missing attribute (format) for setting name=%s", __FUNCTION__, setting.name.c_str());
+      CLog::Log(LOGERROR, "{} missing attribute (format) for setting name={}", __FUNCTION__, setting.name.c_str());
 
     if ( !CDSXMLUtils::GetInt(pSetting, "parentlabel", &setting.slider.parentLabel)
       || !CDSXMLUtils::GetFloat(pSetting, "min", &setting.slider.min)
       || !CDSXMLUtils::GetFloat(pSetting, "max", &setting.slider.max)
       || !CDSXMLUtils::GetFloat(pSetting, "step", &setting.slider.step))
     {
-      CLog::Log(LOGERROR, "%s missing attritube (parentLabel, min, max, step) for setting name=%s", __FUNCTION__, setting.name.c_str());
+      CLog::Log(LOGERROR, "{} missing attritube (parentLabel, min, max, step) for setting name={}", __FUNCTION__, setting.name.c_str());
     }
   }
 
@@ -366,7 +366,7 @@ std::string CMadvrSettings::DependenciesNameToId(const std::string& dependencies
       std::string str = reg.GetMatch(1);
       StringUtils::Replace(newLine, str, NameToId(str));     
     }
-    newDependencies = StringUtils::Format("%s%s\n", newDependencies.c_str(), newLine.c_str());
+    newDependencies = StringUtils::Format("{}{}\n", newDependencies.c_str(), newLine.c_str());
   }
   return newDependencies;
 }
@@ -376,7 +376,7 @@ std::string CMadvrSettings::NameToId(const std::string &str)
   if (str.empty())
     return "";
 
-  std::string sValue = StringUtils::Format("madvr.%s", str.c_str());
+  std::string sValue = StringUtils::Format("madvr.{}", str.c_str());
   StringUtils::ToLower(sValue);
   return sValue;
 }

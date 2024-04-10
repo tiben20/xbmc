@@ -264,8 +264,8 @@ HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration,
   BYTE        Buff[100];
   CStdString        strTemp;
 
-  //strTemp.Format(_T("%sPLAYLIST\\%s"), strPath, strFile);
-  strTemp.Format(_T("%s"),strFile);
+  //strTemp.Format(_T("{}PLAYLIST\\{}"), strPath, strFile);
+  strTemp.Format(_T("{}"),strFile);
   m_hFile   = CreateFile(strTemp, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, 
     OPEN_EXISTING, FILE_ATTRIBUTE_READONLY|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 
@@ -294,7 +294,7 @@ HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration,
       dwPos = dwPos + ReadShort() + 2;
       ReadBuffer(Buff, 5);
       //TODO FIX THIS
-      //strTemp.Format(_T("%sSTREAM\\%c%c%c%c%c.M2TS"), strPath, Buff[0], Buff[1], Buff[2], Buff[3], Buff[4]);
+      //strTemp.Format(_T("{}STREAM\\%c%c%c%c%c.M2TS"), strPath, Buff[0], Buff[1], Buff[2], Buff[3], Buff[4]);
       Playlist.push_back(strTemp);
 
       ReadBuffer(Buff, 4);
@@ -309,7 +309,7 @@ HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration,
 
       rtDuration += (rtOut - rtIn);
 
-      //      TRACE ("File : %S,  Duration : %S, Total duration  : %S\n", strName, ReftimeToString (rtOut - rtIn), ReftimeToString (rtDuration));
+      //      TRACE ("File : {},  Duration : {}, Total duration  : {}\n", strName, ReftimeToString (rtOut - rtIn), ReftimeToString (rtDuration));
     }
 
     CloseHandle (m_hFile);
@@ -334,20 +334,20 @@ HRESULT CHdmvClipInfo::FindMainMovie(LPCTSTR strFolder, CStdString& strPlaylistF
   //strPath.Replace(_T("\\BDMV\\"),    _T("\\"));
   strPath.Replace(_T("\\STREAM\\"),    _T("\\"));
   strPath  += _T("\\BDMV\\");
-  strFilter.Format (_T("%sPLAYLIST\\*.mpls"), strPath);
+  strFilter.Format (_T("{}PLAYLIST\\*.mpls"), strPath);
 
   HANDLE hFind = FindFirstFile(strFilter, &fd);
   if(hFind != INVALID_HANDLE_VALUE)
   {
     do
     {
-      strCurrentPlaylist.Format(_T("%sPLAYLIST\\%s"), strPath, fd.cFileName);
+      strCurrentPlaylist.Format(_T("{}PLAYLIST\\{}"), strPath, fd.cFileName);
       Playlist.clear();
       
       // Main movie shouldn't have duplicate M2TS filename...
       CStdString newpath;
       newpath = strPath;
-      newpath.AppendFormat(_T("\\%s"),fd.cFileName);
+      newpath.AppendFormat(_T("\\{}"),fd.cFileName);
       if (ReadPlaylist(newpath, rtCurrent, Playlist) == S_OK && rtCurrent > rtMax)
       {
         rtMax      = rtCurrent;

@@ -255,7 +255,7 @@ static void LOG_TOFILE(LPCTSTR FileName, LPCTSTR fmt, ...)
     if (_tfopen_s(&f, FileName, _T("at")) == 0)
     {
       fseek(f, 0, 2);
-      _ftprintf(f, _T("%s\n"), buff);
+      _ftprintf(f, _T("{}\n"), buff);
       fclose(f);
     }
     delete[] buff;
@@ -275,7 +275,7 @@ static void LOG(LPCTSTR fmt, ...)
   if (_tfopen_s(&f, LOG_FILE, _T("at")) == 0)
   {
     fseek(f, 0, 2);
-    _ftprintf(f, _T("%s\n"), buff);
+    _ftprintf(f, _T("{}\n"), buff);
     fclose(f);
   }
 
@@ -285,14 +285,14 @@ static void LOGPF(LPCTSTR prefix, const DDPIXELFORMAT* p, int n)
 {
   for (int i = 0; i < n; i++)
   {
-    LOG(_T("%s[%d].dwSize = %d"), prefix, i, p[i].dwSize);
-    LOG(_T("%s[%d].dwFlags = %08x"), prefix, i, p[i].dwFlags);
-    LOG(_T("%s[%d].dwFourCC = %4.4hs"), prefix, i, &p[i].dwFourCC);
-    LOG(_T("%s[%d].dwRGBBitCount = %08x"), prefix, i, &p[i].dwRGBBitCount);
-    LOG(_T("%s[%d].dwRBitMask = %08x"), prefix, i, &p[i].dwRBitMask);
-    LOG(_T("%s[%d].dwGBitMask = %08x"), prefix, i, &p[i].dwGBitMask);
-    LOG(_T("%s[%d].dwBBitMask = %08x"), prefix, i, &p[i].dwBBitMask);
-    LOG(_T("%s[%d].dwRGBAlphaBitMask = %08x"), prefix, i, &p[i].dwRGBAlphaBitMask);
+    LOG(_T("{}[%d].dwSize = %d"), prefix, i, p[i].dwSize);
+    LOG(_T("{}[%d].dwFlags = %08x"), prefix, i, p[i].dwFlags);
+    LOG(_T("{}[%d].dwFourCC = %4.4hs"), prefix, i, &p[i].dwFourCC);
+    LOG(_T("{}[%d].dwRGBBitCount = %08x"), prefix, i, &p[i].dwRGBBitCount);
+    LOG(_T("{}[%d].dwRBitMask = %08x"), prefix, i, &p[i].dwRBitMask);
+    LOG(_T("{}[%d].dwGBitMask = %08x"), prefix, i, &p[i].dwGBitMask);
+    LOG(_T("{}[%d].dwBBitMask = %08x"), prefix, i, &p[i].dwBBitMask);
+    LOG(_T("{}[%d].dwRGBAlphaBitMask = %08x"), prefix, i, &p[i].dwRGBAlphaBitMask);
   }
 }
 
@@ -300,11 +300,11 @@ static void LOGUDI(LPCTSTR prefix, const AMVAUncompDataInfo* p, int n)
 {
   for (int i = 0; i < n; i++)
   {
-    LOG(_T("%s[%d].dwUncompWidth = %d"), prefix, i, p[i].dwUncompWidth);
-    LOG(_T("%s[%d].dwUncompHeight = %d"), prefix, i, p[i].dwUncompHeight);
+    LOG(_T("{}[%d].dwUncompWidth = %d"), prefix, i, p[i].dwUncompWidth);
+    LOG(_T("{}[%d].dwUncompHeight = %d"), prefix, i, p[i].dwUncompHeight);
 
     std::wstring prefix2;
-    prefix2 = StringUtils::Format(_T("%s[%d]"), prefix, i);
+    prefix2 = StringUtils::Format(_T("{}[%d]"), prefix, i);
     LOGPF(prefix2.c_str(), &p[i].ddUncompPixelFormat, 1);
   }
 }
@@ -637,7 +637,7 @@ static HRESULT STDMETHODCALLTYPE GetVideoAcceleratorGUImine(IAMVideoAcceleratorC
     {
       for (DWORD i = 0; i < *pdwNumGuidsSupported; i++)
       {
-        LOG(_T("[out] pGuidsSupported[%d] = %s"), i, StringFromGUID(pGuidsSupported[i]));
+        LOG(_T("[out] pGuidsSupported[%d] = {}"), i, StringFromGUID(pGuidsSupported[i]));
       }
     }
   }
@@ -651,7 +651,7 @@ static HRESULT STDMETHODCALLTYPE GetUncompFormatsSupportedMine(IAMVideoAccelerat
 
   if (pGuid)
   {
-    LOG(_T("[in] *pGuid = %s"), StringFromGUID(*pGuid));
+    LOG(_T("[in] *pGuid = {}"), StringFromGUID(*pGuid));
   }
 
   if (pdwNumFormatsSupported)
@@ -696,7 +696,7 @@ static HRESULT STDMETHODCALLTYPE GetCompBufferInfoMine(IAMVideoAcceleratorC * Th
     g_guidDXVADecoder = *pGuid;
     g_nDXVAVersion = 1;
     bFirst = true;
-    LOG(_T("[in] *pGuid = %s"), StringFromGUID(*pGuid));
+    LOG(_T("[in] *pGuid = {}"), StringFromGUID(*pGuid));
 
     if (pdwNumTypesCompBuffers)
     {
@@ -861,9 +861,9 @@ static HRESULT STDMETHODCALLTYPE ExecuteMine(IAMVideoAcceleratorC* This, DWORD d
       LOG(_T("   ConfigRequested->bConfigSpatialResidInterleaved= %d"), ConfigRequested->bConfigSpatialResidInterleaved);
       LOG(_T("   ConfigRequested->bConfigSpecificIDCT      = %d"), ConfigRequested->bConfigSpecificIDCT);
       LOG(_T("   ConfigRequested->dwFunction          = %d"), ConfigRequested->dwFunction);
-      LOG(_T("   ConfigRequested->guidConfigBitstreamEncryption  = %s"), StringFromGUID(ConfigRequested->guidConfigBitstreamEncryption));
-      LOG(_T("   ConfigRequested->guidConfigMBcontrolEncryption  = %s"), StringFromGUID(ConfigRequested->guidConfigMBcontrolEncryption));
-      LOG(_T("   ConfigRequested->guidConfigResidDiffEncryption  = %s"), StringFromGUID(ConfigRequested->guidConfigResidDiffEncryption));
+      LOG(_T("   ConfigRequested->guidConfigBitstreamEncryption  = {}"), StringFromGUID(ConfigRequested->guidConfigBitstreamEncryption));
+      LOG(_T("   ConfigRequested->guidConfigMBcontrolEncryption  = {}"), StringFromGUID(ConfigRequested->guidConfigMBcontrolEncryption));
+      LOG(_T("   ConfigRequested->guidConfigResidDiffEncryption  = {}"), StringFromGUID(ConfigRequested->guidConfigResidDiffEncryption));
     }
     else
       LOG(_T("[in] lpPrivateInputData = %02x %02x %02x %02x ..."),
@@ -1269,15 +1269,15 @@ static void LogDXVA2Config(const DXVA2_ConfigPictureDecode* pConfig)
   LOG(_T("  - ConfigSpatialResid8               %d"), pConfig->ConfigSpatialResid8);
   LOG(_T("  - ConfigSpatialResidInterleaved     %d"), pConfig->ConfigSpatialResidInterleaved);
   LOG(_T("  - ConfigSpecificIDCT                %d"), pConfig->ConfigSpecificIDCT);
-  LOG(_T("  - guidConfigBitstreamEncryption     %s"), StringFromGUID(pConfig->guidConfigBitstreamEncryption));
-  LOG(_T("  - guidConfigMBcontrolEncryption     %s"), StringFromGUID(pConfig->guidConfigMBcontrolEncryption));
-  LOG(_T("  - guidConfigResidDiffEncryption     %s"), StringFromGUID(pConfig->guidConfigResidDiffEncryption));
+  LOG(_T("  - guidConfigBitstreamEncryption     {}"), StringFromGUID(pConfig->guidConfigBitstreamEncryption));
+  LOG(_T("  - guidConfigMBcontrolEncryption     {}"), StringFromGUID(pConfig->guidConfigMBcontrolEncryption));
+  LOG(_T("  - guidConfigResidDiffEncryption     {}"), StringFromGUID(pConfig->guidConfigResidDiffEncryption));
 }
 
 static void LogDXVA2VideoDesc(const DXVA2_VideoDesc* pVideoDesc)
 {
   LOG(_T("VideoDesc"));
-  LOG(_T("  - Format                            %s  (0x%08x)"), FindD3DFormat(pVideoDesc->Format), pVideoDesc->Format);
+  LOG(_T("  - Format                            {}  (0x%08x)"), FindD3DFormat(pVideoDesc->Format), pVideoDesc->Format);
   LOG(_T("  - InputSampleFreq                   %d/%d"), pVideoDesc->InputSampleFreq.Numerator, pVideoDesc->InputSampleFreq.Denominator);
   LOG(_T("  - OutputFrameFreq                   %d/%d"), pVideoDesc->OutputFrameFreq.Numerator, pVideoDesc->OutputFrameFreq.Denominator);
   LOG(_T("  - SampleFormat                      %d"), pVideoDesc->SampleFormat.value);
@@ -1298,7 +1298,7 @@ static void LogVideoCardCaps(IDirectXVideoDecoderService* pDecoderService)
     // Look for the decoder GUIDs we want.
     for (UINT iGuid = 0; iGuid < cDecoderGuids; iGuid++)
     {
-      LOG(_T("=== New mode : %s"), GetDXVAMode(&pDecoderGuids[iGuid]));
+      LOG(_T("=== New mode : {}"), GetDXVAMode(&pDecoderGuids[iGuid]));
 
       // Find a configuration that we support. 
       UINT            cFormats = 0;
@@ -1314,7 +1314,7 @@ static void LogVideoCardCaps(IDirectXVideoDecoderService* pDecoderService)
         // Look for a format that matches our output format.
         for (UINT iFormat = 0; iFormat < cFormats; iFormat++)
         {
-          LOG(_T("Direct 3D format : %s"), FindD3DFormat(pFormats[iFormat]));
+          LOG(_T("Direct 3D format : {}"), FindD3DFormat(pFormats[iFormat]));
           // Fill in the video description. Set the width, height, format, and frame rate.
           memset(&m_VideoDesc, 0, sizeof(m_VideoDesc));
           m_VideoDesc.SampleWidth = 1280;
@@ -1384,7 +1384,7 @@ static HRESULT STDMETHODCALLTYPE CreateVideoDecoderMine(
 #endif
   }
 
-  LOG(_T("IDirectXVideoDecoderService::CreateVideoDecoder  %s  (%d render targets) hr = %08x"), GetDXVAMode(&g_guidDXVADecoder), NumRenderTargets, hr);
+  LOG(_T("IDirectXVideoDecoderService::CreateVideoDecoder  {}  (%d render targets) hr = %08x"), GetDXVAMode(&g_guidDXVADecoder), NumRenderTargets, hr);
 
   return hr;
 }

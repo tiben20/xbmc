@@ -46,14 +46,14 @@ HRESULT CExternalPixelShader::Compile(CPixelShaderCompiler *pCompiler)
   HRESULT hr = pCompiler->CompileShader(m_SourceData.c_str(), "main", m_SourceTarget.c_str(), 0, &m_pPixelShader, NULL, &errorMsg);
   if (FAILED(hr))
   {
-    CLog::Log(LOGERROR, "%s Shader's compilation failed : %s", __FUNCTION__, errorMsg.c_str());
+    CLog::Log(LOGERROR, "{} Shader's compilation failed : {}", __FUNCTION__, errorMsg.c_str());
     return hr;
   }
 
   // Delete buffer
   m_SourceData = "";
 
-  CLog::Log(LOGINFO, "Pixel shader \"%s\" compiled", m_name.c_str());
+  CLog::Log(LOGINFO, "Pixel shader \"{}\" compiled", m_name.c_str());
   return S_OK;
 }
 

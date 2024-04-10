@@ -129,7 +129,7 @@ CStreamsManager::~CStreamsManager(void)
   m_pGraphBuilder = NULL;
   m_pSubs = NULL;
 
-  CLog::Log(LOGDEBUG, "%s Ressources released", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} Ressources released", __FUNCTION__);
 
 }
 
@@ -209,7 +209,7 @@ void CStreamsManager::SetAudioStream(int iStream)
     {
       m_audioStreams[enableIndex]->flags = AMSTREAMSELECTINFO_ENABLED;
       m_audioStreams[enableIndex]->connected = true;
-      CLog::Log(LOGDEBUG, "%s Successfully selected audio stream index: %i", __FUNCTION__, m_audioStreams[enableIndex]->IAMStreamSelect_Index);
+      CLog::Log(LOGDEBUG, "{} Successfully selected audio stream index: %i", __FUNCTION__, m_audioStreams[enableIndex]->IAMStreamSelect_Index);
     }
   }
   else {
@@ -226,7 +226,7 @@ void CStreamsManager::SetAudioStream(int iStream)
       CFGFilterFile *f;
       if (!(f = CFilterCoreFactory::GetFilterFromName(filter, false)))
       {
-        CLog::Log(LOGERROR, "%s The filter corresponding to the new rule doesn't exist. Using current audio decoder to decode audio.", __FUNCTION__);
+        CLog::Log(LOGERROR, "{} The filter corresponding to the new rule doesn't exist. Using current audio decoder to decode audio.", __FUNCTION__);
         goto standardway;
       }
       else
@@ -249,7 +249,7 @@ void CStreamsManager::SetAudioStream(int iStream)
         // Remove the old decoder from the graph
         hr = m_pGraphBuilder->RemoveFilter(CFGLoader::Filters.Audio.pBF);
         if (SUCCEEDED(hr))
-          CLog::Log(LOGDEBUG, "%s Removed old audio decoder from the graph", __FUNCTION__);
+          CLog::Log(LOGDEBUG, "{} Removed old audio decoder from the graph", __FUNCTION__);
 
         // Delete filter
         m_audioStreams[disableIndex]->pUnk = NULL;
@@ -267,7 +267,7 @@ void CStreamsManager::SetAudioStream(int iStream)
         // Add the new one
         if (FAILED(hr = m_pGraphBuilder->AddFilter(CFGLoader::Filters.Audio.pBF, f->GetName())))
         {
-          CLog::Log(LOGERROR, "%s Failed to add the new audio decoder. No more sound!", __FUNCTION__);
+          CLog::Log(LOGERROR, "{} Failed to add the new audio decoder. No more sound!", __FUNCTION__);
           goto done;
         }
 
@@ -285,7 +285,7 @@ void CStreamsManager::SetAudioStream(int iStream)
         m_audioStreams[enableIndex]->flags = AMSTREAMSELECTINFO_ENABLED;
         m_audioStreams[enableIndex]->connected = true;
 
-        CLog::Log(LOGINFO, "%s New audio decoder \"%s\" inserted because of rules configuration.", __FUNCTION__, CFGLoader::Filters.Audio.osdname.c_str());
+        CLog::Log(LOGINFO, "{} New audio decoder \"{}\" inserted because of rules configuration.", __FUNCTION__, CFGLoader::Filters.Audio.osdname.c_str());
 
         // Connections done, run the graph!
         goto done;
@@ -344,9 +344,9 @@ void CStreamsManager::SetAudioStream(int iStream)
     g_dsGraph->Play();
 
     if (SUCCEEDED(hr))
-      CLog::Log(LOGINFO, "%s Successfully changed audio stream", __FUNCTION__);
+      CLog::Log(LOGINFO, "{} Successfully changed audio stream", __FUNCTION__);
     else
-      CLog::Log(LOGERROR, "%s Can't change audio stream", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Can't change audio stream", __FUNCTION__);
   }
 }
 
@@ -416,14 +416,14 @@ void CStreamsManager::SetEdition(int iEdition)
     {
       // Reload Chapters
       if (!CChaptersManager::Get()->LoadChapters())
-        CLog::Log(LOGINFO, "%s No chapters found!", __FUNCTION__);
+        CLog::Log(LOGINFO, "{} No chapters found!", __FUNCTION__);
 
       // Update displayed time
       g_dsGraph->UpdateTotalTime();
 
       m_editionStreams[enableIndex]->flags = AMSTREAMSELECTINFO_ENABLED;
       m_editionStreams[enableIndex]->connected = true;
-      CLog::Log(LOGDEBUG, "%s Successfully selected edition - index: %i", __FUNCTION__, m_editionStreams[enableIndex]->IAMStreamSelect_Index);
+      CLog::Log(LOGDEBUG, "{} Successfully selected edition - index: %i", __FUNCTION__, m_editionStreams[enableIndex]->IAMStreamSelect_Index);
     }
   }
 }
@@ -490,7 +490,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
         pS.displayname = StringUtils::Format("A: Audio %02d", i + 1);
 
       m_audioStreams.push_back(static_cast<CDSStreamDetailAudio *>(infos));
-      CLog::Log(LOGINFO, "%s Audio stream found : %s - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
+      CLog::Log(LOGINFO, "{} Audio stream found : {} - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
     else if (group == CStreamDetail::SUBTITLE)
     {
@@ -498,7 +498,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
         m_subfilterStreams.push_back(static_cast<CDSStreamDetailSubfilter *>(infos));
       else
         SubtitleManager->GetSubtitles().push_back(static_cast<CDSStreamDetailSubtitle *>(infos));
-      CLog::Log(LOGINFO, "%s Subtitle stream found : %s - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
+      CLog::Log(LOGINFO, "{} Subtitle stream found : {} - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
     else if (group == CStreamDetail::EDITION || group == CStreamDetail::BD_TITLE)
     {
@@ -508,7 +508,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
         pBDSS->GetTitleInfo(m_editionStreams.size(), NULL, &pEdition->m_rtDuration);
       }
       m_editionStreams.push_back(pEdition);
-      CLog::Log(LOGINFO, "%s Editions stream found : %s - index : %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
+      CLog::Log(LOGINFO, "{} Editions stream found : {} - index : %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
 
     DeleteMediaType(mediaType);
@@ -532,26 +532,26 @@ void CStreamsManager::LoadStreamsInternal()
 
   int nIn = 0, nOut = 0, nInC = 0, nOutC = 0;
   CountPins(m_pSplitter, nIn, nOut, nInC, nOutC);
-  CLog::Log(LOGDEBUG, "%s The splitter has %d output pins", __FUNCTION__, nOut);
+  CLog::Log(LOGDEBUG, "{} The splitter has %d output pins", __FUNCTION__, nOut);
 
   BeginEnumPins(m_pSplitter, pEP, pPin)
   {
     if (SUCCEEDED(pPin->QueryDirection(&dir)) && (dir == PINDIR_OUTPUT))
     {
       g_charsetConverter.wToUTF8(GetPinName(pPin), pinName);
-      CLog::Log(LOGDEBUG, "%s Output pin found : %s", __FUNCTION__, pinName.c_str());
+      CLog::Log(LOGDEBUG, "{} Output pin found : {}", __FUNCTION__, pinName.c_str());
 
       BeginEnumMediaTypes(pPin, pET, pMediaType)
       {
 
         g_charsetConverter.wToUTF8(StringFromGUID(pMediaType->majortype), guid);
-        CLog::Log(LOGDEBUG, "%s \tOutput pin major type : %s %s", __FUNCTION__, GuidNames[pMediaType->majortype], guid.c_str());
+        CLog::Log(LOGDEBUG, "{} \tOutput pin major type : {} {}", __FUNCTION__, GuidNames[pMediaType->majortype], guid.c_str());
 
         g_charsetConverter.wToUTF8(StringFromGUID(pMediaType->subtype), guid);
-        CLog::Log(LOGDEBUG, "%s \tOutput pin sub type : %s %s", __FUNCTION__, GuidNames[pMediaType->subtype], guid.c_str());
+        CLog::Log(LOGDEBUG, "{} \tOutput pin sub type : {} {}", __FUNCTION__, GuidNames[pMediaType->subtype], guid.c_str());
 
         g_charsetConverter.wToUTF8(StringFromGUID(pMediaType->formattype), guid);
-        CLog::Log(LOGDEBUG, "%s \tOutput pin format type : %s %s", __FUNCTION__, GuidNames[pMediaType->formattype], guid.c_str());
+        CLog::Log(LOGDEBUG, "{} \tOutput pin format type : {} {}", __FUNCTION__, GuidNames[pMediaType->formattype], guid.c_str());
 
         if (pMediaType->majortype == MEDIATYPE_Video)
           infos = &m_videoStream;
@@ -583,7 +583,7 @@ void CStreamsManager::LoadStreamsInternal()
             pS.connected = true;
 
           m_audioStreams.push_back(static_cast<CDSStreamDetailAudio *>(infos));
-          CLog::Log(LOGINFO, "%s Audio stream found : %s", __FUNCTION__, pS.displayname.c_str());
+          CLog::Log(LOGINFO, "{} Audio stream found : {}", __FUNCTION__, pS.displayname.c_str());
           i++;
 
         }
@@ -598,7 +598,7 @@ void CStreamsManager::LoadStreamsInternal()
             pS.connected = true;
 
           SubtitleManager->GetSubtitles().push_back(static_cast<CDSStreamDetailSubtitle *>(infos));
-          CLog::Log(LOGINFO, "%s Subtitle stream found : %s", __FUNCTION__, pS.displayname.c_str());
+          CLog::Log(LOGINFO, "{} Subtitle stream found : {}", __FUNCTION__, pS.displayname.c_str());
           j++;
         }
         else if (pMediaType->majortype == MEDIATYPE_Video)
@@ -622,14 +622,14 @@ void CStreamsManager::LoadStreams()
   std::string splitterName;
   g_charsetConverter.wToUTF8(GetFilterName(m_pSplitter), splitterName);
 
-  CLog::Log(LOGDEBUG, "%s Looking for streams in %s splitter", __FUNCTION__, splitterName.c_str());
+  CLog::Log(LOGDEBUG, "{} Looking for streams in {} splitter", __FUNCTION__, splitterName.c_str());
 
   // Does the splitter support IAMStreamSelect?
   m_pIAMStreamSelect = NULL;
   HRESULT hr = m_pSplitter->QueryInterface(__uuidof(m_pIAMStreamSelect), (void **)&m_pIAMStreamSelect);
   if (SUCCEEDED(hr) && !(CGraphFilters::Get()->UsingMediaPortalTsReader()))
   {
-    CLog::Log(LOGDEBUG, "%s Get IAMStreamSelect interface from %s", __FUNCTION__, splitterName.c_str());
+    CLog::Log(LOGDEBUG, "{} Get IAMStreamSelect interface from {}", __FUNCTION__, splitterName.c_str());
     LoadIAMStreamSelectStreamsInternal();
   }
   else
@@ -644,7 +644,7 @@ void CStreamsManager::LoadStreams()
     HRESULT hr = m_pSubs->QueryInterface(__uuidof(m_pIAMStreamSelectSub), (void **)&m_pIAMStreamSelectSub);
     if (SUCCEEDED(hr))
     {
-      CLog::Log(LOGDEBUG, "%s Get IAMStreamSelect interface from %s", __FUNCTION__, subName.c_str());
+      CLog::Log(LOGDEBUG, "{} Get IAMStreamSelect interface from {}", __FUNCTION__, subName.c_str());
 
       HRESULT hr = m_pSubs->QueryInterface(__uuidof(m_pIDirectVobSub), (void **)&m_pIDirectVobSub);
       if (SUCCEEDED(hr))
@@ -799,14 +799,14 @@ void CStreamsManager::SetAudioInterface()
   hraudio = pAudio->QueryInterface(__uuidof(m_pILAVAudioSettings), (void **)&m_pILAVAudioSettings);
   if (SUCCEEDED(hraudio))
   {
-    CLog::Log(LOGDEBUG, "%s Get LAVAudio Settings interface from %s", __FUNCTION__, audioName.c_str());
+    CLog::Log(LOGDEBUG, "{} Get LAVAudio Settings interface from {}", __FUNCTION__, audioName.c_str());
     m_bIsLavAudio = true;
   }
 
   hraudio = pAudio->QueryInterface(IID_IffdshowBaseW, (void **)&m_pIFFDSwhoAudioSettings);
   if (SUCCEEDED(hraudio))
   {
-    CLog::Log(LOGDEBUG, "%s Get FFDShowAudio Settings interface from %s", __FUNCTION__, audioName.c_str());
+    CLog::Log(LOGDEBUG, "{} Get FFDShowAudio Settings interface from {}", __FUNCTION__, audioName.c_str());
     m_bIsFFDSAudio = true;
   }
 
@@ -921,7 +921,7 @@ int CStreamsManager::AddSubtitle(const std::string& subFilePath)
 
   g_charsetConverter.utf8ToW(subFile, subFileW);
 
-  CLog::Log(LOGDEBUG, "%s Successfully loaded external subtitle name  \"%s\" ", __FUNCTION__, subFile.c_str());
+  CLog::Log(LOGDEBUG, "{} Successfully loaded external subtitle name  \"{}\" ", __FUNCTION__, subFile.c_str());
 
   m_pIDirectVobSub->put_FileName(const_cast<wchar_t*>(subFileW.c_str()));
 
@@ -1010,7 +1010,7 @@ void CStreamsManager::SetSubtitle(int iStream)
       m_subfilterStreams[enableIndex]->connected = true;
     }
   }
-  CLog::Log(LOGDEBUG, "%s Successfully selected subfilter stream number %i", __FUNCTION__, enableIndex);
+  CLog::Log(LOGDEBUG, "{} Successfully selected subfilter stream number %i", __FUNCTION__, enableIndex);
   SetSubtitleVisible(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleOn);
 }
 
@@ -1038,7 +1038,7 @@ void CStreamsManager::SubInterface(SelectSubType action)
 
           langName = ISOToLanguage(fileName);
           if (!langName.empty() && !fileName.empty())
-            s->displayname = StringUtils::Format("%s (%s)", langName.c_str(), fileName.c_str());
+            s->displayname = StringUtils::Format("{} ({})", langName.c_str(), fileName.c_str());
           else if (!fileName.empty())
             s->displayname = fileName;
           else
@@ -1049,7 +1049,7 @@ void CStreamsManager::SubInterface(SelectSubType action)
           s->isolang = fileName;
           s->IAMStreamSelect_Index = i;
           m_subfilterStreams.push_back(s.release());
-          CLog::Log(LOGINFO, "%s Successfully loaded external subtitle name  \"%s\" ", __FUNCTION__, fileName.c_str());
+          CLog::Log(LOGINFO, "{} Successfully loaded external subtitle name  \"{}\" ", __FUNCTION__, fileName.c_str());
         }
       }
       if (action == SELECT_INTERNAL_SUB)
@@ -1409,7 +1409,7 @@ void CStreamsManager::MediaTypeToStreamDetail(AM_MEDIA_TYPE *pMediaType, CDSStre
     infos.m_fAspect = (float)infos.m_iWidth / infos.m_iHeight;
 
     // fourcc infos
-    CLog::Log(LOGINFO, "%s \tVideo stream fourcc : %c%c%c%c", __FUNCTION__, infos.m_iFourcc >> 24 & 0xff, infos.m_iFourcc >> 16 & 0xff, infos.m_iFourcc >> 8 & 0xff, infos.m_iFourcc & 0xff);
+    CLog::Log(LOGINFO, "{} \tVideo stream fourcc : %c%c%c%c", __FUNCTION__, infos.m_iFourcc >> 24 & 0xff, infos.m_iFourcc >> 16 & 0xff, infos.m_iFourcc >> 8 & 0xff, infos.m_iFourcc & 0xff);
 
     // TODO: That's really bad. We determine if we *can* use dxva with the file, and not if
     // dxva will be used. There're also many others parameters that need to be take into
@@ -1573,7 +1573,7 @@ void CStreamsManager::FormatStreamName(CStreamDetail& s)
       _name.resize(len - 1); //get rid of last \0
       std::string name; g_charsetConverter.wToUTF8(_name, name);
       if (s.m_eType == CStreamDetail::SUBTITLE && !((CDSStreamDetailSubtitle&)pS).trackname.empty())
-        pS.displayname = StringUtils::Format("%s (%s)", name.c_str(), ((CDSStreamDetailSubtitle&)pS).trackname.c_str());
+        pS.displayname = StringUtils::Format("{} ({})", name.c_str(), ((CDSStreamDetailSubtitle&)pS).trackname.c_str());
       else
         pS.displayname = name;
     }
@@ -1584,7 +1584,7 @@ void CStreamsManager::FormatStreamName(CStreamDetail& s)
     CDSStreamDetailSubtitle& c = (CDSStreamDetailSubtitle&)pS;
     std::string name = ISOToLanguage(c.isolang);
     if (!name.empty() && !c.trackname.empty())
-      c.displayname = StringUtils::Format("%s (%s)", name.c_str(), ((CDSStreamDetailSubtitle&)pS).trackname.c_str());
+      c.displayname = StringUtils::Format("{} ({})", name.c_str(), ((CDSStreamDetailSubtitle&)pS).trackname.c_str());
     else if (!c.trackname.empty())
       c.displayname = c.trackname;
     else
@@ -1628,13 +1628,13 @@ void CSubtitleManager::Initialize()
   ISubManager *pManager = NULL;
 
   if (CGraphFilters::Get()->Subs.pBF != nullptr) {
-    CLog::Log(LOGINFO, "%s disabled libsubs.dl", __FUNCTION__);
+    CLog::Log(LOGINFO, "{} disabled libsubs.dl", __FUNCTION__);
     return;
   }
   if (!m_dll.IsLoaded())
     return;
 
-  CLog::Log(LOGINFO, "%s enabled libsubs.dl", __FUNCTION__);
+  CLog::Log(LOGINFO, "{} enabled libsubs.dl", __FUNCTION__);
   // Log manager for the DLL
   m_Log.reset(new ILogImpl());
   
@@ -1852,7 +1852,7 @@ void CSubtitleManager::SetSubtitle(int iStream)
       m_subtitleStreams[enableIndex]->flags = AMSTREAMSELECTINFO_ENABLED;
       m_subtitleStreams[enableIndex]->connected = true;
       SetSubtitleVisible(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleOn);
-      CLog::Log(LOGDEBUG, "%s Successfully selected subtitle stream", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} Successfully selected subtitle stream", __FUNCTION__);
     }
   }
   else
@@ -1890,7 +1890,7 @@ void CSubtitleManager::SetSubtitle(int iStream)
     if (!connectedToPin)
     {
       /* Nothing support subtitles! */
-      CLog::Log(LOGERROR, "%s You're trying to use subtitle, but no filters in the graph seems to accept subtitles!", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} You're trying to use subtitle, but no filters in the graph seems to accept subtitles!", __FUNCTION__);
       hr = E_FAIL;
       goto done;
     }
@@ -1923,9 +1923,9 @@ void CSubtitleManager::SetSubtitle(int iStream)
     if (m_bSubtitlesVisible)
     {
       if (SUCCEEDED(hr))
-        CLog::Log(LOGINFO, "%s Successfully changed subtitle stream", __FUNCTION__);
+        CLog::Log(LOGINFO, "{} Successfully changed subtitle stream", __FUNCTION__);
       else
-        CLog::Log(LOGERROR, "%s Can't change subtitle stream", __FUNCTION__);
+        CLog::Log(LOGERROR, "{} Can't change subtitle stream", __FUNCTION__);
     }
   }
 }
@@ -1995,7 +1995,7 @@ int CSubtitleManager::AddSubtitle(const std::string& subFilePath)
       CoTaskMemFree(title);
     }
 
-    CLog::Log(LOGINFO, "%s Successfully loaded subtitle file \"%s\"", __FUNCTION__, s->path.c_str());
+    CLog::Log(LOGINFO, "{} Successfully loaded subtitle file \"{}\"", __FUNCTION__, s->path.c_str());
     m_subtitleStreams.push_back(s.release());
     return m_subtitleStreams.size() - 1;
   }

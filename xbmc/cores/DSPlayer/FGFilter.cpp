@@ -356,7 +356,7 @@ CFGFilterFile::CFGFilterFile(TiXmlElement *pFilter)
       m_path = CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/" + path);
       if (!XFILE::CFile::Exists(m_path))
       {
-        m_path = StringUtils::Format("special://xbmc/system/players/dsplayer/%s", path.c_str());
+        m_path = StringUtils::Format("special://xbmc/system/players/dsplayer/{}", path.c_str());
         if (!XFILE::CFile::Exists(m_path))
         {
           m_filterFound = false;
@@ -401,7 +401,7 @@ HRESULT CFGFilterFile::Create(IBaseFilter** ppBF)
     {
       std::string guid;
       g_charsetConverter.wToUTF8(StringFromGUID(m_clsid), guid);
-      CLog::Log(LOGINFO, "%s Failed to load external filter (clsid:%s path:%s). Trying with CoCreateInstance", __FUNCTION__,
+      CLog::Log(LOGINFO, "{} Failed to load external filter (clsid:{} path:{}). Trying with CoCreateInstance", __FUNCTION__,
         guid.c_str(), m_path.c_str());
 
       /* If LoadExternalFilter failed, maybe we will have more chance
@@ -411,7 +411,7 @@ HRESULT CFGFilterFile::Create(IBaseFilter** ppBF)
       hr = pBF.CoCreateInstance(m_clsid);
       if (FAILED(hr))
       {
-        CLog::Log(LOGFATAL, "%s CoCreateInstance failed!", __FUNCTION__);
+        CLog::Log(LOGFATAL, "{} CoCreateInstance failed!", __FUNCTION__);
         return hr;
       }
       *ppBF = pBF.Detach();
@@ -423,10 +423,10 @@ HRESULT CFGFilterFile::Create(IBaseFilter** ppBF)
   g_charsetConverter.wToUTF8(StringFromGUID(m_clsid), guid);
 
   if (FAILED(hr))
-    CLog::Log(LOGERROR, "%s Failed to load external filter (clsid:%s path:%s)", __FUNCTION__,
+    CLog::Log(LOGERROR, "{} Failed to load external filter (clsid:{} path:{})", __FUNCTION__,
     guid.c_str(), m_path.c_str());
   else
-    CLog::Log(LOGDEBUG, "%s Successfully loaded external filter (clsid:%s path:%s)", __FUNCTION__,
+    CLog::Log(LOGDEBUG, "{} Successfully loaded external filter (clsid:{} path:{})", __FUNCTION__,
     guid.c_str(), m_path.c_str());
 
   return hr;
@@ -459,7 +459,7 @@ HRESULT CFGFilterVideoRenderer::Create(IBaseFilter** ppBF)
 
   if (pCAP == NULL)
   {
-    CLog::Log(LOGERROR, "%s Failed to create the allocater presenter (error: %s)", __FUNCTION__, __err.c_str());
+    CLog::Log(LOGERROR, "{} Failed to create the allocater presenter (error: {})", __FUNCTION__, __err.c_str());
     return E_FAIL;
   }
   
@@ -467,7 +467,7 @@ HRESULT CFGFilterVideoRenderer::Create(IBaseFilter** ppBF)
   if (SUCCEEDED(hr = pCAP->CreateRenderer(&pRenderer))) 
   {
     *ppBF = Com::SmartQIPtr<IBaseFilter>(pRenderer).Detach();
-    CLog::Log(LOGDEBUG, "%s Allocator presenter successfully created", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Allocator presenter successfully created", __FUNCTION__);
   }
   
   if (!*ppBF) hr = E_FAIL;

@@ -161,7 +161,7 @@ void CDSPropertyPage::Process()
       if (SUCCEEDED(hr))
         return;
 
-      CLog::Log(LOGERROR, "%s Failed to show property page (result: 0x%X). Trying a custom way", __FUNCTION__, hr);
+      CLog::Log(LOGERROR, "{} Failed to show property page (result: 0x%X). Trying a custom way", __FUNCTION__, hr);
     }
 
     OLEPropertyFrame *opf;

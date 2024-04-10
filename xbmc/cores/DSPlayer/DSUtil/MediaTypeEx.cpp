@@ -65,20 +65,20 @@ CStdStringW CMediaTypeEx::ToString(IPin* pPin)
     if(fDim)
     {
       dim.Format(L"%dx%d", w, h);
-      if(w*ary != h*arx) dim.Format(L"%s (%d:%d)", dim, arx, ary);
+      if(w*ary != h*arx) dim.Format(L"{} (%d:%d)", dim, arx, ary);
     }
 
     if(formattype == FORMAT_VideoInfo || formattype == FORMAT_MPEGVideo)
     {
       VIDEOINFOHEADER* vih = (VIDEOINFOHEADER*)pbFormat;
       if(vih->AvgTimePerFrame) rate.Format(L"%0.2ffps ", 10000000.0f / vih->AvgTimePerFrame);
-      if(vih->dwBitRate) rate.Format(L"%s%dKbps", rate, vih->dwBitRate/1000);
+      if(vih->dwBitRate) rate.Format(L"{}%dKbps", rate, vih->dwBitRate/1000);
     }
     else if(formattype == FORMAT_VideoInfo2 || formattype == FORMAT_MPEG2_VIDEO || formattype == FORMAT_DiracVideoInfo)
     {
       VIDEOINFOHEADER2* vih = (VIDEOINFOHEADER2*)pbFormat;
       if(vih->AvgTimePerFrame) rate.Format(L"%0.2ffps ", 10000000.0f / vih->AvgTimePerFrame);
-      if(vih->dwBitRate) rate.Format(L"%s%dKbps", rate, vih->dwBitRate/1000);
+      if(vih->dwBitRate) rate.Format(L"{}%dKbps", rate, vih->dwBitRate/1000);
     }
 
     rate.Trim();
@@ -103,9 +103,9 @@ CStdStringW CMediaTypeEx::ToString(IPin* pPin)
       {
         codec = GetAudioCodecName(subtype, wfe->wFormatTag);
         dim.Format(L"%dHz"), wfe->nSamplesPerSec;
-        if(wfe->nChannels == 1) dim.Format(L"%s mono"), CStdString(dim);
-        else if(wfe->nChannels == 2) dim.Format(L"%s stereo"), CStdString(dim);
-        else dim.Format(L"%s %dch"), CStdString(dim), wfe->nChannels;
+        if(wfe->nChannels == 1) dim.Format(L"{} mono"), CStdString(dim);
+        else if(wfe->nChannels == 2) dim.Format(L"{} stereo"), CStdString(dim);
+        else dim.Format(L"{} %dch"), CStdString(dim), wfe->nChannels;
         if(wfe->nAvgBytesPerSec) rate.Format(L"%dKbps"), wfe->nAvgBytesPerSec*8/1000;
       }
     }
@@ -115,9 +115,9 @@ CStdStringW CMediaTypeEx::ToString(IPin* pPin)
 
       codec = GetAudioCodecName(subtype, 0);
       dim.Format(L"%dHz"), vf->nSamplesPerSec;
-      if(vf->nChannels == 1) dim.Format(L"%s mono"), CStdString(dim);
-      else if(vf->nChannels == 2) dim.Format(L"%s stereo"), CStdString(dim);
-      else dim.Format(L"%s %dch"), CStdString(dim), vf->nChannels;
+      if(vf->nChannels == 1) dim.Format(L"{} mono"), CStdString(dim);
+      else if(vf->nChannels == 2) dim.Format(L"{} stereo"), CStdString(dim);
+      else dim.Format(L"{} %dch"), CStdString(dim), vf->nChannels;
       if(vf->nAvgBitsPerSec) rate.Format(L"%dKbps"), vf->nAvgBitsPerSec/1000;
     }
     else if(formattype == FORMAT_VorbisFormat2)
@@ -126,9 +126,9 @@ CStdStringW CMediaTypeEx::ToString(IPin* pPin)
 
       codec = GetAudioCodecName(subtype, 0);
       dim.Format(L"%dHz"), vf->SamplesPerSec;
-      if(vf->Channels == 1) dim.Format(L"%s mono"), CStdString(dim);
-      else if(vf->Channels == 2) dim.Format(L"%s stereo"), CStdString(dim);
-      else dim.Format(L"%s %dch"), CStdString(dim), vf->Channels;
+      if(vf->Channels == 1) dim.Format(L"{} mono"), CStdString(dim);
+      else if(vf->Channels == 2) dim.Format(L"{} stereo"), CStdString(dim);
+      else dim.Format(L"{} %dch"), CStdString(dim), vf->Channels;
     }        
   }
   else if(majortype == MEDIATYPE_Text)
@@ -445,11 +445,11 @@ CStdStringA CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
   sl.AddTail(ToString() + "\n");  
 
   sl.AddTail("AM_MEDIA_TYPE: ");
-  str.Format("majortype: %s %s"), CStdString(GuidNames[majortype]), major;
+  str.Format("majortype: {} {}"), CStdString(GuidNames[majortype]), major;
   sl.AddTail(str);
-  str.Format("subtype: %s %s"), CStdString(GuidNames[subtype]), sub;
+  str.Format("subtype: {} {}"), CStdString(GuidNames[subtype]), sub;
   sl.AddTail(str);
-  str.Format("formattype: %s %s"), CStdString(GuidNames[formattype]), format;
+  str.Format("formattype: {} {}"), CStdString(GuidNames[formattype]), format;
   sl.AddTail(str);
   str.Format("bFixedSizeSamples: %d"), bFixedSizeSamples;
   sl.AddTail(str);
@@ -607,7 +607,7 @@ CStdStringA CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
         sl.AddTail(str);
         str.Format("dwChannelMask: 0x%08x"), wfe.dwChannelMask;
         sl.AddTail(str);
-        str.Format("SubFormat: %s"), CStringFromGUID(wfe.SubFormat);
+        str.Format("SubFormat: {}"), CStringFromGUID(wfe.SubFormat);
         sl.AddTail(str);
 
         sl.AddTail("");
@@ -683,9 +683,9 @@ CStdStringA CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
     sl.AddTail("SUBTITLEINFO:");
     str.Format("dwOffset: %d"), si.dwOffset;
     sl.AddTail(str);
-    str.Format("IsoLang: %s"), CStdString(CStdStringA(si.IsoLang, sizeof(si.IsoLang)-1));
+    str.Format("IsoLang: {}"), CStdString(CStdStringA(si.IsoLang, sizeof(si.IsoLang)-1));
     sl.AddTail(str);
-    str.Format("TrackName: %s"), CStdString(CStdStringW(si.TrackName, sizeof(si.TrackName)-1));
+    str.Format("TrackName: {}"), CStdString(CStdStringW(si.TrackName, sizeof(si.TrackName)-1));
     sl.AddTail(str);
 
     sl.AddTail("");

@@ -225,7 +225,7 @@ void CMadvrSettingsManager::ListSettings(const std::string &path)
   for (const auto &currentPath : paths)
   {
     CLog::Log(LOGDEBUG, "[madVR debug][Path   ] ################################################################");
-    CLog::Log(LOGDEBUG, "[madVR debug][Path   ] %s", currentPath.c_str());
+    CLog::Log(LOGDEBUG, "[madVR debug][Path   ] {}", currentPath.c_str());
     CLog::Log(LOGDEBUG, "[madVR debug][Path   ] ################################################################");
 
     ListFolders(currentPath);
@@ -244,19 +244,19 @@ void CMadvrSettingsManager::ListFolders(const std::string &path)
     if (folder.type == "profileRoot")
     {
       CLog::Log(LOGDEBUG, "[madVR debug][Group  ] ==============================================================");
-      CLog::Log(LOGDEBUG, "[madVR debug][Group  ] %s", folder.name.c_str());
+      CLog::Log(LOGDEBUG, "[madVR debug][Group  ] {}", folder.name.c_str());
       ListFolders(subPath);
     }
     else if (folder.type == "profile")
     {
-      CLog::Log(LOGDEBUG, "[madVR debug][Profile] %s", folder.name.c_str());
+      CLog::Log(LOGDEBUG, "[madVR debug][Profile] {}", folder.name.c_str());
       CLog::Log(LOGDEBUG, "[madVR debug][Profile] ==============================================================");
       ListFolders(subPath);
     }
     else
     {
       CLog::Log(LOGDEBUG, "[madVR debug][Folder ] --------------------------------------------------------------");
-      CLog::Log(LOGDEBUG, "[madVR debug][Folder ] %s - %s %s", folder.id.c_str(), folder.name.c_str(), folder.type.c_str());
+      CLog::Log(LOGDEBUG, "[madVR debug][Folder ] {} - {} {}", folder.id.c_str(), folder.name.c_str(), folder.type.c_str());
       ListFolders(subPath);
       ListValues(subPath);
     } 
@@ -274,7 +274,7 @@ void CMadvrSettingsManager::ListValues(const std::string &path)
   for (const auto &value : values)
   {
     std::string subPath = path + "\\" + value.id;
-    CLog::Log(LOGDEBUG, "[madVR debug][Value  ] %s = %s (%s)    %s", value.id.c_str(), GetValueForDebug(subPath, value.type).c_str(), value.type.c_str(), value.name.c_str());
+    CLog::Log(LOGDEBUG, "[madVR debug][Value  ] {} = {} ({})    {}", value.id.c_str(), GetValueForDebug(subPath, value.type).c_str(), value.type.c_str(), value.name.c_str());
   }
 }
 
@@ -282,7 +282,7 @@ const std::string CMadvrSettingsManager::GetValueForDebug(const std::string &pat
 {
   std::string sValue = "";
   if (type == "boolean")
-    sValue = StringUtils::Format("%s", GetBool(path, false) ? "true" : "false");
+    sValue = StringUtils::Format("{}", GetBool(path, false) ? "true" : "false");
   else if (type == "integer")
     sValue = StringUtils::Format("%i", GetInt(path));
   else if (type == "string")
@@ -308,7 +308,7 @@ std::string CMadvrSettingsManager::GetStr(const std::string &path, const std::st
   }
   if (m_bDebug && !type.empty())
   {
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Get%s] %s = %s (string)", 
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Get{}] {} = {} (string)", 
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED, 
       FixedStr(type).c_str(), path.c_str(), sValue.c_str());
   }
@@ -326,7 +326,7 @@ bool CMadvrSettingsManager::GetBool(const std::string &path, bool bNegate, const
   if (m_bDebug && !type.empty())
   {
     bool bValDebug = (b != 0);
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Get%s] %s = %s%s (boolean)",
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Get{}] {} = {}{} (boolean)",
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED,
       FixedStr(type).c_str(), path.c_str(), bValDebug ? "true" : "false", bNegate ? " (!negate)" : "");
   }
@@ -341,7 +341,7 @@ int CMadvrSettingsManager::GetInt(const std::string &path, const std::string &ty
   BOOL bResult = GetSettings(MADVR_SETTINGS_INT, pathW.c_str(), 0, NULL, NULL, &iValue, NULL);
   if (m_bDebug && !type.empty())
   {
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Get%s] %s = %i (integer)",
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Get{}] {} = %i (integer)",
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED,
       FixedStr(type).c_str(), path.c_str(), iValue);
   }
@@ -363,7 +363,7 @@ float CMadvrSettingsManager::GetFloat(const std::string &path, const std::string
   if (m_bDebug && !type.empty())
   {
     int iValue = FloatToInt(fValue, format);
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Get%s] %s = %i (%f) (integer)", 
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Get{}] {} = %i (%f) (integer)", 
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED, 
       FixedStr(type).c_str(), path.c_str(), iValue, fValue);
   }
@@ -438,7 +438,7 @@ void CMadvrSettingsManager::SetStr(const std::string &path, const std::string &s
   BOOL bResult = SetSettings(MADVR_SETTINGS_STRING, pathW.c_str(), strW.c_str(), NULL, NULL);
   if (m_bDebug && !type.empty())
   {
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Set%s] %s = %s (string)", 
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Set{}] {} = {} (string)", 
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED,
       FixedStr(type).c_str(), path.c_str(), str.c_str());
   }
@@ -456,7 +456,7 @@ void CMadvrSettingsManager::SetBool(const std::string &path, bool bValue, bool b
   BOOL bResult = SetSettings(MADVR_SETTINGS_BOOL, pathW.c_str(), NULL, b, NULL);
   if (m_bDebug && !type.empty())
   {
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Set%s] %s = %s%s (boolean)", 
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Set{}] {} = {}{} (boolean)", 
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED,
       FixedStr(type).c_str(), path.c_str(), bValue ? "true" : "false", bNegate ? " (!negate)" : "");
   }
@@ -469,7 +469,7 @@ void CMadvrSettingsManager::SetInt(const std::string &path, int iValue, const st
   BOOL bResult = SetSettings(MADVR_SETTINGS_INT, pathW.c_str(), NULL, NULL, iValue);
   if (m_bDebug && !type.empty())
   {
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Set%s] %s = %i (integer)",
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Set{}] {} = %i (integer)",
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED,
       FixedStr(type).c_str(), path.c_str(), iValue);
   }
@@ -483,7 +483,7 @@ void CMadvrSettingsManager::SetFloat(const std::string &path, float fValue, cons
   BOOL bResult = SetSettings(MADVR_SETTINGS_INT, pathW.c_str(), NULL, NULL, iValue);
   if (m_bDebug && !type.empty())
   {
-    CLog::Log(LOGDEBUG, "[madVR debug][%s][Set%s] %s = %i (%f) (integer)", 
+    CLog::Log(LOGDEBUG, "[madVR debug][{}][Set{}] {} = %i (%f) (integer)", 
       bResult ? MADVR_DEBUG_SUCCESS : MADVR_DEBUG_FAILED,
       FixedStr(type).c_str(), path.c_str(), iValue, fValue);
   }

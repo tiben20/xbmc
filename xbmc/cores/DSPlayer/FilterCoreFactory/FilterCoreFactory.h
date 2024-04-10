@@ -84,7 +84,7 @@ public:
       m_selecRules.pop_back();
     }
 
-    // CLog::Log(LOGDEBUG, "%s Ressources released", __FUNCTION__);
+    // CLog::Log(LOGDEBUG, "{} Ressources released", __FUNCTION__);
   }
 
 private:

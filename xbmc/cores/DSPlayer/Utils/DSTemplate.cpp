@@ -140,7 +140,7 @@ namespace Com
 
     if (host == _T("") || request_url == _T("")) return -1;
     complete_request.append(protocol).append(L"://").append(host).append(L":80").append(request_url);
-    //complete_request = StringUtils::FormatV(_T("%s://%s:%d%s"), protocol, host, port, request_url);
+    //complete_request = StringUtils::FormatV(_T("{}://{}:%d{}"), protocol, host, port, request_url);
     return 0;
   }
 
@@ -328,7 +328,7 @@ namespace Com
     return E_FAIL;
 
 #if 0
-    key_name.Format(_T("CLSID\\%s\\InprocServer32"), str_clsid);
+    key_name.Format(_T("CLSID\\{}\\InprocServer32"), str_clsid);
     RegKey key(HKEY_CLASSES_ROOT, key_name, false);
 
     if (key.hasValue(""))
@@ -345,7 +345,7 @@ namespace Com
       SHGetSpecialFolderPath(NULL, temp, CSIDL_WINDOWS, FALSE);
       windir = temp;
       DoReplace(file, _T("%PROGRAMFILES%"), progfiles);
-      DoReplace(file, _T("%SYSTEMROOT%"), windir);
+      DoReplace(file, _T("{}YSTEMROOT%"), windir);
       DoReplace(file, _T("%WINDIR%"), windir);
       //TODO add function that verify if the file exist
       file_exists = true;
@@ -862,7 +862,7 @@ namespace Com
         if (str) CoTaskMemFree(str);
 
 #if 0
-        key_name.Format(_T("CLSID\\%s"), str_clsid);
+        key_name.Format(_T("CLSID\\{}"), str_clsid);
         RegKey key(HKEY_CLASSES_ROOT, key_name, false);
         std::map<std::wstring, std::wstring> keyMaps = key.getValues();
         if (keyMaps.empty())

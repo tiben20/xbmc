@@ -216,13 +216,13 @@ int CDSSocket::send(const char* data, const unsigned int len)
 
   if (result < 0)
   {
-    CLog::Log(LOGERROR, "%s Socket::send  - select failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Socket::send  - select failed", __FUNCTION__);
     _sd = INVALID_SOCKET;
     return 0;
   }
   if (FD_ISSET(_sd, &set_w))
   {
-    CLog::Log(LOGERROR, "%s Socket::send  - failed to send data", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Socket::send  - failed to send data", __FUNCTION__);
     _sd = INVALID_SOCKET;
     return 0;
   }
@@ -232,7 +232,7 @@ int CDSSocket::send(const char* data, const unsigned int len)
   if (status == -1)
   {
     errormessage( getLastError(), "Socket::send");
-    CLog::Log(LOGERROR, "%s Socket::send  - failed to send data", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Socket::send  - failed to send data", __FUNCTION__);
     _sd = INVALID_SOCKET;
     return 0;
   }
@@ -316,7 +316,7 @@ bool CDSSocket::ReadLine(string& line)
 
     if (result < 0)
     {
-      CLog::Log(LOGDEBUG, "%s select failed", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} select failed", __FUNCTION__);
       errormessage(getLastError(), __FUNCTION__);
       _sd = INVALID_SOCKET;
       return false;
@@ -326,11 +326,11 @@ bool CDSSocket::ReadLine(string& line)
     {
       if (retries != 0)
       {
-         CLog::Log(LOGDEBUG, "%s timeout waiting for response, retrying... (%i)", __FUNCTION__, retries);
+         CLog::Log(LOGDEBUG, "{} timeout waiting for response, retrying... (%i)", __FUNCTION__, retries);
          retries--;
         continue;
       } else {
-         CLog::Log(LOGDEBUG, "%s timeout waiting for response. Aborting after 10 retries.", __FUNCTION__);
+         CLog::Log(LOGDEBUG, "{} timeout waiting for response. Aborting after 10 retries.", __FUNCTION__);
          return false;
       }
     }
@@ -338,7 +338,7 @@ bool CDSSocket::ReadLine(string& line)
     result = recv(_sd, buffer, sizeof(buffer) - 1, 0);
     if (result < 0)
     {
-      CLog::Log(LOGDEBUG, "%s recv failed", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} recv failed", __FUNCTION__);
       errormessage(getLastError(), __FUNCTION__);
       _sd = INVALID_SOCKET;
       return false;
@@ -415,7 +415,7 @@ bool CDSSocket::connect(const std::string& host, const unsigned short port)
 
   if ( !setHostname( host ) )
   {
-    CLog::Log(LOGERROR, "%s Socket::setHostname(%s) failed.", __FUNCTION__, host.c_str());
+    CLog::Log(LOGERROR, "{} Socket::setHostname({}) failed.", __FUNCTION__, host.c_str());
     return false;
   }
 
@@ -423,7 +423,7 @@ bool CDSSocket::connect(const std::string& host, const unsigned short port)
 
   if ( status == SOCKET_ERROR )
   {
-    CLog::Log(LOGERROR, "%s Socket::connect %s:%u", __FUNCTION__, host.c_str(), port);
+    CLog::Log(LOGERROR, "{} Socket::connect {}:%u", __FUNCTION__, host.c_str(), port);
     errormessage( getLastError(), "Socket::connect" );
     return false;
   }
@@ -469,7 +469,7 @@ bool CDSSocket::set_non_blocking(const bool b)
 
   if (ioctlsocket(_sd, FIONBIO, &iMode) == -1)
   {
-    CLog::Log(LOGERROR, "%s Socket::set_non_blocking - Can't set socket condition to: %i", __FUNCTION__, iMode);
+    CLog::Log(LOGERROR, "{} Socket::set_non_blocking - Can't set socket condition to: %i", __FUNCTION__, iMode);
     return false;
   }
 
@@ -560,7 +560,7 @@ void CDSSocket::errormessage(int errnum, const char* functionname) const
   default:
     errmsg = "WSA Error";
   }
-  CLog::Log(LOGERROR, "%s %s: (Winsock error=%i) %s", __FUNCTION__, functionname, errnum, errmsg);
+  CLog::Log(LOGERROR, "{} {}: (Winsock error=%i) {}", __FUNCTION__, functionname, errnum, errmsg);
 }
 
 int CDSSocket::getLastError() const

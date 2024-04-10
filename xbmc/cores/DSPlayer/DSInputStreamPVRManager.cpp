@@ -73,7 +73,7 @@ bool CDSInputStreamPVRManager::CloseAndOpenFile(const CURL& url)
     bReturnVal = m_pPlayer->WaitForFileClose();
 
     if (!bReturnVal)
-      CLog::Log(LOGERROR, "%s Closing file failed", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Closing file failed", __FUNCTION__);
 
     if (bReturnVal)
     {
@@ -94,7 +94,7 @@ bool CDSInputStreamPVRManager::CloseAndOpenFile(const CURL& url)
 #endif
       }
       if (!bReturnVal)
-        CLog::Log(LOGERROR, "%s Opening file failed", __FUNCTION__);
+        CLog::Log(LOGERROR, "{} Opening file failed", __FUNCTION__);
     }
   }
 
@@ -164,11 +164,11 @@ bool CDSInputStreamPVRManager::Open(const CFileItem& file)
 
       bReturnVal = true;
       m_isRecording = false;
-      CLog::Log(LOGDEBUG, "CDSInputStreamPVRManager - %s - playback has started on filename %s", __FUNCTION__, strURL.c_str());
+      CLog::Log(LOGDEBUG, "CDSInputStreamPVRManager - {} - playback has started on filename {}", __FUNCTION__, strURL.c_str());
     }
     else
     {
-      CLog::Log(LOGERROR, "CDSInputStreamPVRManager - %s - channel not found with filename %s", __FUNCTION__, strURL.c_str());
+      CLog::Log(LOGERROR, "CDSInputStreamPVRManager - {} - channel not found with filename {}", __FUNCTION__, strURL.c_str());
       return false;
     }
   }
@@ -206,7 +206,7 @@ bool CDSInputStreamPVRManager::Open(const CFileItem& file)
         }
         else
         {
-          CLog::Log(LOGERROR, "%s Stream conversion is not supported for this PVR Backend url: %s", __FUNCTION__, strTranslatedPVRFile.c_str());
+          CLog::Log(LOGERROR, "{} Stream conversion is not supported for this PVR Backend url: {}", __FUNCTION__, strTranslatedPVRFile.c_str());
         }
       }
     }
@@ -231,9 +231,9 @@ bool CDSInputStreamPVRManager::Open(const CFileItem& file)
   }
   else
   {
-    std::string strMessage = StringUtils::Format("Opening %s failed", file.IsLiveTV() ? "channel" : "recording");
+    std::string strMessage = StringUtils::Format("Opening {} failed", file.IsLiveTV() ? "channel" : "recording");
     CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Error, "DSPlayer", strMessage, TOAST_DISPLAY_TIME, false);
-    CLog::Log(LOGERROR, "%s %s", __FUNCTION__, strMessage.c_str());
+    CLog::Log(LOGERROR, "{} {}", __FUNCTION__, strMessage.c_str());
   }
 
   return bReturnVal;
@@ -271,7 +271,7 @@ bool CDSInputStreamPVRManager::PerformChannelSwitch()
     if (m_pPlayer->m_currentFileItem.GetPath() != fileItem.GetPath())
     {
       // File changed - fast channel switching is not possible
-      CLog::Log(LOGINFO, "%s - File changed - fast channel switching is not possible, opening new channel...", __FUNCTION__);
+      CLog::Log(LOGINFO, "{} - File changed - fast channel switching is not possible, opening new channel...", __FUNCTION__);
       bResult = m_pPlayer->OpenFileInternal(fileItem);
     }
     else
@@ -279,7 +279,7 @@ bool CDSInputStreamPVRManager::PerformChannelSwitch()
       // File not changed - channel switch complete successfully.
       m_pPlayer->UpdateApplication();
       m_pPlayer->UpdateChannelSwitchSettings();
-      CLog::Log(LOGINFO, "%s - Channel switch complete successfully", __FUNCTION__);
+      CLog::Log(LOGINFO, "{} - Channel switch complete successfully", __FUNCTION__);
     }
   }
 
@@ -307,12 +307,12 @@ bool CDSInputStreamPVRManager::GetNewChannel(CFileItem& fileItem)
       CFileItem newFileItem(channelPtr);
       fileItem = newFileItem;
       fileItem.SetPath(strNewFile);
-      CLog::Log(LOGINFO, "%s - New channel file path: %s", __FUNCTION__, strNewFile.c_str());
+      CLog::Log(LOGINFO, "{} - New channel file path: {}", __FUNCTION__, strNewFile.c_str());
     }
   }
 
   if (!bResult)
-    CLog::Log(LOGERROR, "%s - Failed to get file path of the new channel", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - Failed to get file path of the new channel", __FUNCTION__);
 
   return bResult;
 }
@@ -349,7 +349,7 @@ bool CDSInputStreamPVRManager::NextChannel(bool preview /* = false */)
   CFileItemPtr item = g_PVRChannelGroups->Get(channel->IsRadio())->GetSelectedGroup()->GetByChannelUp(channel);
   if (!item || !item->HasPVRChannelInfoTag())
   {
-    CLog::Log(LOGERROR, "%s - Cannot find the channel", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - Cannot find the channel", __FUNCTION__);
     return false;
   }
 
@@ -378,7 +378,7 @@ bool CDSInputStreamPVRManager::PrevChannel(bool preview/* = false*/)
   CFileItemPtr item = g_PVRChannelGroups->Get(channel->IsRadio())->GetSelectedGroup()->GetByChannelDown(channel);
   if (!item || !item->HasPVRChannelInfoTag())
   {
-    CLog::Log(LOGERROR, "%s - Cannot find the channel", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - Cannot find the channel", __FUNCTION__);
     return false;
   }
 
@@ -406,7 +406,7 @@ bool CDSInputStreamPVRManager::SelectChannelByNumber(unsigned int iChannelNumber
   CFileItemPtr item = g_PVRChannelGroups->Get(channel->IsRadio())->GetSelectedGroup()->GetByChannelNumber(iChannelNumber);
   if (!item || !item->HasPVRChannelInfoTag())
   {
-    CLog::Log(LOGERROR, "%s - Cannot find the channel %d", __FUNCTION__, iChannelNumber);
+    CLog::Log(LOGERROR, "{} - Cannot find the channel %d", __FUNCTION__, iChannelNumber);
     return false;
   }
 
@@ -451,7 +451,7 @@ CDSPVRBackend* CDSInputStreamPVRManager::GetPVRBackend()
   PVR_CLIENT pvrClient;
   if (!g_PVRClients->GetPlayingClient(pvrClient))
   {
-    CLog::Log(LOGERROR, "%s - Failed to get PVR Client", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} - Failed to get PVR Client", __FUNCTION__);
     return NULL;
   }
 

@@ -174,11 +174,11 @@ void CGUIDialogDSManager::LoadDsXML(xmlType type, TiXmlElement* &pNode, bool for
 
   if (!m_XML.LoadFile(xmlFile))
   {
-    CLog::Log(LOGERROR, "%s Error loading %s, Line %d (%s)", __FUNCTION__, xmlFile.c_str(), m_XML.ErrorRow(), m_XML.ErrorDesc());
+    CLog::Log(LOGERROR, "{} Error loading {}, Line %d ({})", __FUNCTION__, xmlFile.c_str(), m_XML.ErrorRow(), m_XML.ErrorDesc());
     if (!forceCreate)
       return;
 
-    CLog::Log(LOGDEBUG, "%s Creating loading %s, with root <%s> and first node <%s>", __FUNCTION__, xmlFile.c_str(), xmlRoot.c_str(), xmlNode.c_str());
+    CLog::Log(LOGDEBUG, "{} Creating loading {}, with root <{}> and first node <{}>", __FUNCTION__, xmlFile.c_str(), xmlRoot.c_str(), xmlNode.c_str());
 
     TiXmlElement pRoot(xmlRoot.c_str());
     if (type != PLAYERCOREFACTORY)
@@ -188,7 +188,7 @@ void CGUIDialogDSManager::LoadDsXML(xmlType type, TiXmlElement* &pNode, bool for
   TiXmlElement *pConfig = m_XML.RootElement();
   if (!pConfig || strcmpi(pConfig->Value(), xmlRoot.c_str()) != 0)
   {
-    CLog::Log(LOGERROR, "%s Error loading medias configuration, no <%s> node", __FUNCTION__, xmlRoot.c_str());
+    CLog::Log(LOGERROR, "{} Error loading medias configuration, no <{}> node", __FUNCTION__, xmlRoot.c_str());
     return;
   }
   if (type == MEDIASCONFIG
@@ -237,7 +237,7 @@ void CGUIDialogDSManager::GetFilterList(xmlType type, std::vector<DynamicStringS
       {
         XMLUtils::GetString(pFilter, "osdname", strFilterLabel);
         strFilter = CDSXMLUtils::GetString(pFilter, "name");
-        strFilterLabel = StringUtils::Format("%s (%s)", strFilterLabel.c_str(), strFilter.c_str());
+        strFilterLabel = StringUtils::Format("{} ({})", strFilterLabel.c_str(), strFilter.c_str());
 
         list.emplace_back(strFilterLabel, strFilter);
       }
@@ -285,7 +285,7 @@ void CGUIDialogDSManager::ShadersOptionFiller(std::shared_ptr<const CSetting>& s
   {
     strShaderLabel = CDSXMLUtils::GetString(pShader, "name");
     strShader = CDSXMLUtils::GetString(pShader, "id");
-    strShaderLabel = StringUtils::Format("%s (%s)", strShaderLabel.c_str(), strShader.c_str());
+    strShaderLabel = StringUtils::Format("{} ({})", strShaderLabel.c_str(), strShader.c_str());
 
     list.emplace_back(strShaderLabel, strShader);
 

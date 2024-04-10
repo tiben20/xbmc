@@ -579,30 +579,30 @@ void CGUIDialogDSRules::ShowDSRulesList()
   {
 
     if (rules[i]->strfileTypes != "")
-      rules[i]->strfileTypes = StringUtils::Format("Filetypes=%s", rules[i]->strfileTypes.c_str());
+      rules[i]->strfileTypes = StringUtils::Format("Filetypes={}", rules[i]->strfileTypes.c_str());
     if (rules[i]->strfileName != "")
-      rules[i]->strfileName = StringUtils::Format("Filename=%s", rules[i]->strfileName.c_str());
+      rules[i]->strfileName = StringUtils::Format("Filename={}", rules[i]->strfileName.c_str());
     if (rules[i]->strVideoCodec != "")
-      rules[i]->strVideoCodec = StringUtils::Format("Videocodec=%s", rules[i]->strVideoCodec.c_str());
+      rules[i]->strVideoCodec = StringUtils::Format("Videocodec={}", rules[i]->strVideoCodec.c_str());
     if (rules[i]->strVideoCodec != "")
-      rules[i]->strVideoCodec = StringUtils::Format("Audiocodec=%s", rules[i]->strAudioCodec.c_str());
+      rules[i]->strVideoCodec = StringUtils::Format("Audiocodec={}", rules[i]->strAudioCodec.c_str());
     if (rules[i]->strProtocols != "")
-      rules[i]->strProtocols = StringUtils::Format("Protocols=%s", rules[i]->strProtocols.c_str());
+      rules[i]->strProtocols = StringUtils::Format("Protocols={}", rules[i]->strProtocols.c_str());
 
     if (rules[i]->strName != "")
       strRule = rules[i]->strName;
     else
     {
-      strRule = StringUtils::Format("%s %s %s %s %s", rules[i]->strfileTypes.c_str(), rules[i]->strfileName.c_str(), rules[i]->strVideoCodec.c_str(), rules[i]->strAudioCodec.c_str(), rules[i]->strProtocols.c_str());
+      strRule = StringUtils::Format("{} {} {} {} {}", rules[i]->strfileTypes.c_str(), rules[i]->strfileName.c_str(), rules[i]->strVideoCodec.c_str(), rules[i]->strAudioCodec.c_str(), rules[i]->strProtocols.c_str());
       StringUtils::Trim(strRule);
     }
 
     if (rules[i]->strPriority != "")
     {
-      strRule = StringUtils::Format("%s (%s)", strRule.c_str(), rules[i]->strPriority.c_str());
+      strRule = StringUtils::Format("{} ({})", strRule.c_str(), rules[i]->strPriority.c_str());
     }
 
-    strRule = StringUtils::Format("Rule:   %s", strRule.c_str());
+    strRule = StringUtils::Format("Rule:   {}", strRule.c_str());
     pDlg->Add(strRule);
     count++;
   }

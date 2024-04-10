@@ -47,7 +47,7 @@ void CChaptersManager::FlushChapters()
     delete it->second;
   m_chapters.clear();
   m_currentChapter = -1;
-  CLog::Log(LOGDEBUG, "%s Ressources released", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} Ressources released", __FUNCTION__);
 }
 CChaptersManager *CChaptersManager::Get()
 {
@@ -124,7 +124,7 @@ bool CChaptersManager::LoadInterface()
     return false;
   std::string splitterName = CGraphFilters::Get()->Splitter.osdname;
 
-  //CLog::Log(LOGDEBUG, "%s Looking for chapters in \"%s\"", __FUNCTION__, splitterName.c_str());
+  //CLog::Log(LOGDEBUG, "{} Looking for chapters in \"{}\"", __FUNCTION__, splitterName.c_str());
 
   m_pIAMExtendedSeeking = CGraphFilters::Get()->Splitter.pBF;
   if (m_pIAMExtendedSeeking)
@@ -170,7 +170,7 @@ bool CChaptersManager::LoadChapters()
 
       SysFreeString(chapterName);
 
-      CLog::Log(LOGINFO, "%s Chapter \"%s\" found. Start time: %" PRId64, __FUNCTION__, infos->name.c_str(), infos->starttime);
+      CLog::Log(LOGINFO, "{} Chapter \"{}\" found. Start time: %" PRId64, __FUNCTION__, infos->name.c_str(), infos->starttime);
       m_chapters.insert(std::pair<long, SChapterInfos *>(i, infos));
     }
 
@@ -181,7 +181,7 @@ bool CChaptersManager::LoadChapters()
   else
   {
     std::string splitterName = CGraphFilters::Get()->Splitter.osdname;
-    CLog::Log(LOGERROR, "%s The splitter \"%s\" doesn't support chapters", __FUNCTION__, splitterName.c_str());
+    CLog::Log(LOGERROR, "{} The splitter \"{}\" doesn't support chapters", __FUNCTION__, splitterName.c_str());
     return false;
   }
 }
@@ -197,7 +197,7 @@ int CChaptersManager::SeekChapter(int iChapter)
       return -1;
 
     // Seek to the chapter.
-    CLog::Log(LOGDEBUG, "%s Seeking to chapter %d at %llu", __FUNCTION__, iChapter, m_chapters[iChapter]->starttime);
+    CLog::Log(LOGDEBUG, "{} Seeking to chapter %d at %llu", __FUNCTION__, iChapter, m_chapters[iChapter]->starttime);
     g_dsGraph->SeekInMilliSec(m_chapters[iChapter]->starttime);
   }
   else

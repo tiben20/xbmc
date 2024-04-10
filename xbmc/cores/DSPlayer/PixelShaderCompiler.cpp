@@ -48,11 +48,11 @@ CPixelShaderCompiler::CPixelShaderCompiler(bool fStaySilent)
   {
     if (!hDll)
     {
-      CLog::Log(LOGERROR, "%s Cannot load D3DX9_xx.DLL, pixel shaders will not work.", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Cannot load D3DX9_xx.DLL, pixel shaders will not work.", __FUNCTION__);
     }
     else if (!m_pD3DXCompileShader || !m_pD3DXDisassembleShader)
     {
-      CLog::Log(LOGERROR, "%s Cannot find necessary function entry points in D3DX9_xx.DLL, pixel shaders will not work.", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Cannot find necessary function entry points in D3DX9_xx.DLL, pixel shaders will not work.", __FUNCTION__);
     }
   }
 }

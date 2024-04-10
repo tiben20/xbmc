@@ -282,7 +282,7 @@ bool CRenderDSManager::Flush()
 #if TODO
   if (g_application.IsCurrentThread())
   {
-    CLog::Log(LOGDEBUG, "%s - flushing renderer", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} - flushing renderer", __FUNCTION__);
 
 
     CSingleExit exitlock(CServiceBroker::GetWinSystem()->GetGfxContext());
@@ -303,7 +303,7 @@ bool CRenderDSManager::Flush()
     CServiceBroker::GetAppMessenger()->PostMsg(TMSG_RENDERER_FLUSH);
     if (!m_flushEvent.WaitMSec(1000))
     {
-      CLog::Log(LOGERROR, "%s - timed out waiting for renderer to flush", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} - timed out waiting for renderer to flush", __FUNCTION__);
       return false;
     }
     else
@@ -332,7 +332,7 @@ void CRenderDSManager::CreateRenderer()
 
 void CRenderDSManager::DeleteRenderer()
 {
-  CLog::Log(LOGDEBUG, "%s - deleting renderer", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} - deleting renderer", __FUNCTION__);
 
   if (m_pRenderer)
   {
@@ -398,7 +398,7 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
 
       m_playerPort->GetDebugInfo(audio, video, player);
 
-      cores = StringUtils::Format("W( %s )", g_cpuInfo.GetCoresUsageString().c_str());
+      cores = StringUtils::Format("W( {} )", g_cpuInfo.GetCoresUsageString().c_str());
 
       m_debugRenderer.SetInfo(audio, video, player, cores);
       m_debugRenderer.Render(src, dst, view);
@@ -470,7 +470,7 @@ void CRenderDSManager::UpdateResolution()
   {
     if (m_Resolution != RES_INVALID)
     {      
-      CLog::Log(LOGDEBUG, "%s gui resolution updated by external display change event", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} gui resolution updated by external display change event", __FUNCTION__);
       CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(m_Resolution);
       UpdateDisplayLatency();
     }
@@ -521,9 +521,9 @@ void CRenderDSManager::DisplayChange(bool bExternalChange)
 
   // Convert Current Resolution to Kodi Res
 #if TODO
-  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f%s", DX::DeviceResources::Get()->GetCurrentScreen(), width, height, refreshRate, bInterlaced ? "istd" : "pstd");
+  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f{}", DX::DeviceResources::Get()->GetCurrentScreen(), width, height, refreshRate, bInterlaced ? "istd" : "pstd");
 #else
-  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f%s", 0, width, height, refreshRate, bInterlaced ? "istd" : "pstd");
+  std::string sRes = StringUtils::Format("%1i%05i%05i%09.5f{}", 0, width, height, refreshRate, bInterlaced ? "istd" : "pstd");
 #endif
   
   RESOLUTION res = CDisplaySettings::GetResolutionFromString(sRes);
@@ -535,20 +535,20 @@ void CRenderDSManager::DisplayChange(bool bExternalChange)
     {
       m_bPreInit = false;
       m_playerPort->SetDSWndVisible(true);
-      CLog::Log(LOGDEBUG, "%s showing dsplayer window", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} showing dsplayer window", __FUNCTION__);
     }
 
     m_Resolution = res;
     m_bTriggerDisplayChange = true;
-    CLog::Log(LOGDEBUG, "%s external display change event update resolution to %s", __FUNCTION__, res_info.strMode.c_str());
+    CLog::Log(LOGDEBUG, "{} external display change event update resolution to {}", __FUNCTION__, res_info.strMode.c_str());
   }
   else
   {
-    CLog::Log(LOGDEBUG, "%s internal display change event update resolution to %s", __FUNCTION__, res_info.strMode.c_str());
+    CLog::Log(LOGDEBUG, "{} internal display change event update resolution to {}", __FUNCTION__, res_info.strMode.c_str());
     if (m_bTriggerDisplayChange)
     {  
       m_bTriggerDisplayChange = false;
-      CLog::Log(LOGDEBUG, "%s requested gui resolution update by external display change event dropped", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} requested gui resolution update by external display change event dropped", __FUNCTION__);
     }
   }
 }

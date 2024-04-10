@@ -479,12 +479,12 @@ HRESULT LoadExternalObject(CStdStringW path, REFCLSID clsid, REFIID iid, void** 
       {
         hr = pCF->CreateInstance(NULL, iid, ppv);
         /*if (FAILED(hr))
-          CLog::Log(LOGERROR, "%s CreateInstance on IClassFactory failed! (hr : 0x%X). If you use ffdshow, please check that XBMC is on the white list!", __FUNCTION__, hr);*/
+          CLog::Log(LOGERROR, "{} CreateInstance on IClassFactory failed! (hr : 0x%X). If you use ffdshow, please check that XBMC is on the white list!", __FUNCTION__, hr);*/
       }
     }
   }
   /*else 
-    CLog::Log(LOGDEBUG, "%s CoLoadLibrary fails : %x", __FUNCTION__, GetLastError());*/
+    CLog::Log(LOGDEBUG, "{} CoLoadLibrary fails : %x", __FUNCTION__, GetLastError());*/
 
   if(FAILED(hr) && hInst && !fFound)
   {
@@ -532,7 +532,7 @@ void UnloadExternalObjects()
   {
     CoFreeLibrary((*it).hInst);
   }
-  //CLog::Log(LOGDEBUG, "%s Filters unloaded : %d", __FUNCTION__, i);
+  //CLog::Log(LOGDEBUG, "{} Filters unloaded : %d", __FUNCTION__, i);
 
   while (!s_extobjs.empty())
     s_extobjs.pop_back();

@@ -642,17 +642,17 @@ void CDSPlayerDatabase::UpdateTables(int version)
     while (!m_pDS->eof())
     {
       std::string strJson = PrepareSQL(
-        "{\"DC\":\"%s\",\"DL\":\"%s\",\"QC\":\"%s\",\"QL\":\"%s\",\"adaptiveSharpen\":%s,\"adaptiveSharpenStrength\":%f,\"arChange\":%i,\"chromaAntiRinging\":%s,"
-        "\"chromaUp\":\"%s\",\"cleanborders\":\"%s\",\"coloredDither\":%s,\"contentType\":\"%s\",\"crispenEdges\":%s,\"crispenEdgesLL\":%s,\"crispenEdgesStrength\":%f,"
-        "\"cropBars\":%s,\"cropSmallBars\":%s,\"debandActive\":%s,\"debandFadeLevel\":%i,\"debandLevel\":%i,\"autoActivateDeinterlacing\":%i,\"detectBars\":%s,\"dontDither\":\"%s\","
-        "\"dontCropSubs\":%i,\"dynamicDither\":%s,\"enhanceDetail\":%s,\"enhanceDetailStrength\":%f,\"lumaDown\":\"%s\",\"lumaDownAntiRinging\":%s,\"lumaDownLinear\":%s,"
-        "\"lumaSharpen\":%s,\"lumaSharpenStrength\":%f,\"lumaUp\":\"%s\",\"lumaUpAntiRinging\":%s,\"lumaUpSigmoidal\":%s,\"moveSubs\":%i,\"nnediDCScalingFactor\":\"%s\","
-        "\"nnediDLScalingFactor\":\"%s\",\"nnediQCScalingFactor\":\"%s\",\"nnediQLScalingFactor\":\"%s\",\"noSmallScaling\":%i,\"quickArChange\":\"%s\",\"reduceBigBars\":%i,"
-        "\"refineOnce\":%s,\"scanPartialFrame\":%s,\"sharpenAR\":%s,\"sharpenEdges\":%s,\"sharpenEdgesStrength\":%f,\"shiftImage\":%i,\"smoothMotionEnabled\":\"%s\","
-        "\"superChromaRes\":%s,\"superChromaResStrength\":%f,\"superRes\":%s,\"superResLinear\":%s,\"superResStrength\":%f,\"thinEdges\":%s,\"thinEdgesStrength\":%f,"
-        "\"upRefEnhanceDetailStrength\":%f,\"upRefAdaptiveSharpen\":%s,\"upRefAdaptiveSharpenStrength\":%f,\"upRefCrispenEdges\":%s,\"upRefCrispenEdgesLL\":%s,"
-        "\"upRefCrispenEdgesStrength\":%f,\"upRefEnhanceDetail\":%s,\"upRefLumaSharpen\":%s,\"upRefLumaSharpenStrength\":%f,\"upRefSharpenAR\":%s,"
-        "\"upRefSharpenEdges\":%s,\"upRefSharpenEdgesStrength\":%f,\"upRefThinEdges\":%s,\"upRefThinEdgesStrength\":%f}",
+        "{\"DC\":\"{}\",\"DL\":\"{}\",\"QC\":\"{}\",\"QL\":\"{}\",\"adaptiveSharpen\":{},\"adaptiveSharpenStrength\":%f,\"arChange\":%i,\"chromaAntiRinging\":{},"
+        "\"chromaUp\":\"{}\",\"cleanborders\":\"{}\",\"coloredDither\":{},\"contentType\":\"{}\",\"crispenEdges\":{},\"crispenEdgesLL\":{},\"crispenEdgesStrength\":%f,"
+        "\"cropBars\":{},\"cropSmallBars\":{},\"debandActive\":{},\"debandFadeLevel\":%i,\"debandLevel\":%i,\"autoActivateDeinterlacing\":%i,\"detectBars\":{},\"dontDither\":\"{}\","
+        "\"dontCropSubs\":%i,\"dynamicDither\":{},\"enhanceDetail\":{},\"enhanceDetailStrength\":%f,\"lumaDown\":\"{}\",\"lumaDownAntiRinging\":{},\"lumaDownLinear\":{},"
+        "\"lumaSharpen\":{},\"lumaSharpenStrength\":%f,\"lumaUp\":\"{}\",\"lumaUpAntiRinging\":{},\"lumaUpSigmoidal\":{},\"moveSubs\":%i,\"nnediDCScalingFactor\":\"{}\","
+        "\"nnediDLScalingFactor\":\"{}\",\"nnediQCScalingFactor\":\"{}\",\"nnediQLScalingFactor\":\"{}\",\"noSmallScaling\":%i,\"quickArChange\":\"{}\",\"reduceBigBars\":%i,"
+        "\"refineOnce\":{},\"scanPartialFrame\":{},\"sharpenAR\":{},\"sharpenEdges\":{},\"sharpenEdgesStrength\":%f,\"shiftImage\":%i,\"smoothMotionEnabled\":\"{}\","
+        "\"superChromaRes\":{},\"superChromaResStrength\":%f,\"superRes\":{},\"superResLinear\":{},\"superResStrength\":%f,\"thinEdges\":{},\"thinEdgesStrength\":%f,"
+        "\"upRefEnhanceDetailStrength\":%f,\"upRefAdaptiveSharpen\":{},\"upRefAdaptiveSharpenStrength\":%f,\"upRefCrispenEdges\":{},\"upRefCrispenEdgesLL\":{},"
+        "\"upRefCrispenEdgesStrength\":%f,\"upRefEnhanceDetail\":{},\"upRefLumaSharpen\":{},\"upRefLumaSharpenStrength\":%f,\"upRefSharpenAR\":{},"
+        "\"upRefSharpenEdges\":{},\"upRefSharpenEdgesStrength\":%f,\"upRefThinEdges\":{},\"upRefThinEdgesStrength\":%f}",
         m_oldSettings["DC"][m_pDS->fv("ImageDoubleChroma").get_asInt()].c_str(),
         m_oldSettings["DL"][m_pDS->fv("ImageDoubleLuma").get_asInt()].c_str(),
         m_oldSettings["QC"][m_pDS->fv("ImageQuadrupleChroma").get_asInt()].c_str(),
@@ -726,7 +726,7 @@ void CDSPlayerDatabase::UpdateTables(int version)
         m_pDS->fv("UpRefThinEdgesStrength").get_asFloat()
         );
       
-      std::string strSQL = PrepareSQL("INSERT INTO madvrSettings_new (file, Resolution, TvShowName, madvrJson) VALUES ('%s', %i, '%s','%s')",
+      std::string strSQL = PrepareSQL("INSERT INTO madvrSettings_new (file, Resolution, TvShowName, madvrJson) VALUES ('{}', %i, '{}','{}')",
         m_pDS->fv("file").get_asString().c_str(), m_pDS->fv("Resolution").get_asInt(), m_pDS->fv("TvShowName").get_asString().c_str(), strJson.c_str());
 
       m_pDS->exec(strSQL);
@@ -743,17 +743,17 @@ void CDSPlayerDatabase::UpdateTables(int version)
     while (!m_pDS->eof())
     {
       std::string strJson = PrepareSQL(
-        "{\"DC\":\"%s\",\"DL\":\"%s\",\"QC\":\"%s\",\"QL\":\"%s\",\"adaptiveSharpen\":%s,\"adaptiveSharpenStrength\":%f,\"arChange\":%i,\"chromaAntiRinging\":%s,"
-        "\"chromaUp\":\"%s\",\"cleanborders\":\"%s\",\"coloredDither\":%s,\"contentType\":\"%s\",\"crispenEdges\":%s,\"crispenEdgesLL\":%s,\"crispenEdgesStrength\":%f,"
-        "\"cropBars\":%s,\"cropSmallBars\":%s,\"debandActive\":%s,\"debandFadeLevel\":%i,\"debandLevel\":%i,\"autoActivateDeinterlacing\":%i,\"detectBars\":%s,\"dontDither\":\"%s\","
-        "\"dontCropSubs\":%i,\"dynamicDither\":%s,\"enhanceDetail\":%s,\"enhanceDetailStrength\":%f,\"lumaDown\":\"%s\",\"lumaDownAntiRinging\":%s,\"lumaDownLinear\":%s,"
-        "\"lumaSharpen\":%s,\"lumaSharpenStrength\":%f,\"lumaUp\":\"%s\",\"lumaUpAntiRinging\":%s,\"lumaUpSigmoidal\":%s,\"moveSubs\":%i,\"nnediDCScalingFactor\":\"%s\","
-        "\"nnediDLScalingFactor\":\"%s\",\"nnediQCScalingFactor\":\"%s\",\"nnediQLScalingFactor\":\"%s\",\"noSmallScaling\":%i,\"quickArChange\":\"%s\",\"reduceBigBars\":%i,"
-        "\"refineOnce\":%s,\"scanPartialFrame\":%s,\"sharpenAR\":%s,\"sharpenEdges\":%s,\"sharpenEdgesStrength\":%f,\"shiftImage\":%i,\"smoothMotionEnabled\":\"%s\","
-        "\"superChromaRes\":%s,\"superChromaResStrength\":%f,\"superRes\":%s,\"superResLinear\":%s,\"superResStrength\":%f,\"thinEdges\":%s,\"thinEdgesStrength\":%f,"
-        "\"upRefEnhanceDetailStrength\":%f,\"upRefAdaptiveSharpen\":%s,\"upRefAdaptiveSharpenStrength\":%f,\"upRefCrispenEdges\":%s,\"upRefCrispenEdgesLL\":%s,"
-        "\"upRefCrispenEdgesStrength\":%f,\"upRefEnhanceDetail\":%s,\"upRefLumaSharpen\":%s,\"upRefLumaSharpenStrength\":%f,\"upRefSharpenAR\":%s,"
-        "\"upRefSharpenEdges\":%s,\"upRefSharpenEdgesStrength\":%f,\"upRefThinEdges\":%s,\"upRefThinEdgesStrength\":%f}",
+        "{\"DC\":\"{}\",\"DL\":\"{}\",\"QC\":\"{}\",\"QL\":\"{}\",\"adaptiveSharpen\":{},\"adaptiveSharpenStrength\":%f,\"arChange\":%i,\"chromaAntiRinging\":{},"
+        "\"chromaUp\":\"{}\",\"cleanborders\":\"{}\",\"coloredDither\":{},\"contentType\":\"{}\",\"crispenEdges\":{},\"crispenEdgesLL\":{},\"crispenEdgesStrength\":%f,"
+        "\"cropBars\":{},\"cropSmallBars\":{},\"debandActive\":{},\"debandFadeLevel\":%i,\"debandLevel\":%i,\"autoActivateDeinterlacing\":%i,\"detectBars\":{},\"dontDither\":\"{}\","
+        "\"dontCropSubs\":%i,\"dynamicDither\":{},\"enhanceDetail\":{},\"enhanceDetailStrength\":%f,\"lumaDown\":\"{}\",\"lumaDownAntiRinging\":{},\"lumaDownLinear\":{},"
+        "\"lumaSharpen\":{},\"lumaSharpenStrength\":%f,\"lumaUp\":\"{}\",\"lumaUpAntiRinging\":{},\"lumaUpSigmoidal\":{},\"moveSubs\":%i,\"nnediDCScalingFactor\":\"{}\","
+        "\"nnediDLScalingFactor\":\"{}\",\"nnediQCScalingFactor\":\"{}\",\"nnediQLScalingFactor\":\"{}\",\"noSmallScaling\":%i,\"quickArChange\":\"{}\",\"reduceBigBars\":%i,"
+        "\"refineOnce\":{},\"scanPartialFrame\":{},\"sharpenAR\":{},\"sharpenEdges\":{},\"sharpenEdgesStrength\":%f,\"shiftImage\":%i,\"smoothMotionEnabled\":\"{}\","
+        "\"superChromaRes\":{},\"superChromaResStrength\":%f,\"superRes\":{},\"superResLinear\":{},\"superResStrength\":%f,\"thinEdges\":{},\"thinEdgesStrength\":%f,"
+        "\"upRefEnhanceDetailStrength\":%f,\"upRefAdaptiveSharpen\":{},\"upRefAdaptiveSharpenStrength\":%f,\"upRefCrispenEdges\":{},\"upRefCrispenEdgesLL\":{},"
+        "\"upRefCrispenEdgesStrength\":%f,\"upRefEnhanceDetail\":{},\"upRefLumaSharpen\":{},\"upRefLumaSharpenStrength\":%f,\"upRefSharpenAR\":{},"
+        "\"upRefSharpenEdges\":{},\"upRefSharpenEdgesStrength\":%f,\"upRefThinEdges\":{},\"upRefThinEdgesStrength\":%f}",
         m_oldSettings["DC"][m_pDS->fv("ImageDoubleChroma").get_asInt()].c_str(),
         m_oldSettings["DL"][m_pDS->fv("ImageDoubleLuma").get_asInt()].c_str(),
         m_oldSettings["QC"][m_pDS->fv("ImageQuadrupleChroma").get_asInt()].c_str(),
@@ -827,7 +827,7 @@ void CDSPlayerDatabase::UpdateTables(int version)
         m_pDS->fv("UpRefThinEdgesStrength").get_asFloat()
         );
 
-      std::string strSQL = PrepareSQL("INSERT INTO madvrDefResSettings_new (Resolution, ResolutionInternal, TvShowName, madvrJson) VALUES (%i, %i, '%s','%s')",
+      std::string strSQL = PrepareSQL("INSERT INTO madvrDefResSettings_new (Resolution, ResolutionInternal, TvShowName, madvrJson) VALUES (%i, %i, '{}','{}')",
         m_pDS->fv("Resolution").get_asInt(), m_pDS->fv("ResolutionInternal").get_asInt(), m_pDS->fv("TvShowName").get_asString().c_str(), strJson.c_str());
 
       m_pDS->exec(strSQL);
@@ -861,7 +861,7 @@ void CDSPlayerDatabase::UpdateTables(int version)
       else if (res == 4)
         res = 0;
 
-      std::string strSQL = PrepareSQL("INSERT INTO madvrFileSettings (file, Resolution, TvShowName, madvrJson) VALUES ('%s', %i, '%s','%s')",
+      std::string strSQL = PrepareSQL("INSERT INTO madvrFileSettings (file, Resolution, TvShowName, madvrJson) VALUES ('{}', %i, '{}','{}')",
         m_pDS->fv("file").get_asString().c_str(), res, m_pDS->fv("TvShowName").get_asString().c_str(), m_pDS->fv("madvrJson").get_asString().c_str());
 
       m_pDS->exec(strSQL);
@@ -893,11 +893,11 @@ void CDSPlayerDatabase::UpdateTables(int version)
       std::string strSQL;
       if (strTvShow == "NOTVSHOW_NULL")
       {
-        strSQL = PrepareSQL("INSERT INTO madvrResSettings (Resolution, madvrJson) VALUES (%i, '%s')", res, m_pDS->fv("madvrJson").get_asString().c_str());
+        strSQL = PrepareSQL("INSERT INTO madvrResSettings (Resolution, madvrJson) VALUES (%i, '{}')", res, m_pDS->fv("madvrJson").get_asString().c_str());
       }
       else 
       {
-        strSQL = PrepareSQL("INSERT INTO madvrTvShowSettings (TvShowName, Resolution, madvrJson) VALUES ('%s', %i, '%s')",
+        strSQL = PrepareSQL("INSERT INTO madvrTvShowSettings (TvShowName, Resolution, madvrJson) VALUES ('{}', %i, '{}')",
           strTvShow.c_str(), res, m_pDS->fv("madvrJson").get_asString().c_str());
       }
 
@@ -1047,7 +1047,7 @@ void CDSPlayerDatabase::GetEditionForFile(const std::string& strFilenameAndPath,
     if (NULL == m_pDB.get()) return;
     if (NULL == m_pDS.get()) return;
 
-    std::string strSQL = PrepareSQL("select * from edition where file='%s' order by editionNumber", strFilenameAndPath.c_str());
+    std::string strSQL = PrepareSQL("select * from edition where file='{}' order by editionNumber", strFilenameAndPath.c_str());
     m_pDS->query(strSQL.c_str());
     while (!m_pDS->eof())
     {
@@ -1063,7 +1063,7 @@ void CDSPlayerDatabase::GetEditionForFile(const std::string& strFilenameAndPath,
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+    CLog::Log(LOGERROR, "{} ({}) failed", __FUNCTION__, strFilenameAndPath.c_str());
   }
 }
 
@@ -1078,7 +1078,7 @@ void CDSPlayerDatabase::AddEdition(const std::string& strFilenameAndPath, const 
     std::string strSQL;
     int idEdition = -1;
 
-    strSQL = PrepareSQL("select idEdition from edition where file='%s'", strFilenameAndPath.c_str());
+    strSQL = PrepareSQL("select idEdition from edition where file='{}'", strFilenameAndPath.c_str());
 
     m_pDS->query(strSQL.c_str());
     if (m_pDS->num_rows() != 0)
@@ -1086,16 +1086,16 @@ void CDSPlayerDatabase::AddEdition(const std::string& strFilenameAndPath, const 
     m_pDS->close();
 
     if (idEdition >= 0)
-      strSQL = PrepareSQL("update edition set  editionName = '%s', editionNumber = '%i' where idEdition = %i", edition.editionName.c_str(), edition.editionNumber, idEdition);
+      strSQL = PrepareSQL("update edition set  editionName = '{}', editionNumber = '%i' where idEdition = %i", edition.editionName.c_str(), edition.editionNumber, idEdition);
     else
-      strSQL = PrepareSQL("insert into edition (idEdition, file, editionName, editionNumber) values(NULL, '%s', '%s', %i)", strFilenameAndPath.c_str(), edition.editionName.c_str(), edition.editionNumber);
+      strSQL = PrepareSQL("insert into edition (idEdition, file, editionName, editionNumber) values(NULL, '{}', '{}', %i)", strFilenameAndPath.c_str(), edition.editionName.c_str(), edition.editionNumber);
 
 
     m_pDS->exec(strSQL.c_str());
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+    CLog::Log(LOGERROR, "{} ({}) failed", __FUNCTION__, strFilenameAndPath.c_str());
   }
 }
 
@@ -1106,12 +1106,12 @@ void CDSPlayerDatabase::ClearEditionOfFile(const std::string& strFilenameAndPath
     if (NULL == m_pDB.get()) return;
     if (NULL == m_pDS.get()) return;
 
-    std::string strSQL = PrepareSQL("delete from edition where file='%s'", strFilenameAndPath.c_str());
+    std::string strSQL = PrepareSQL("delete from edition where file='{}'", strFilenameAndPath.c_str());
     m_pDS->exec(strSQL.c_str());
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+    CLog::Log(LOGERROR, "{} ({}) failed", __FUNCTION__, strFilenameAndPath.c_str());
   }
 }
 
@@ -1122,7 +1122,7 @@ bool CDSPlayerDatabase::GetVideoSettings(const std::string &strFilenameAndPath, 
     if (NULL == m_pDB.get()) return false;
     if (NULL == m_pDS.get()) return false;
     // ok, now obtain the settings for this file
-    std::string strSQL = PrepareSQL("select * from madvrFileSettings where file = '%s'", strFilenameAndPath.c_str());
+    std::string strSQL = PrepareSQL("select * from madvrFileSettings where file = '{}'", strFilenameAndPath.c_str());
 
     m_pDS->query(strSQL.c_str());
     if (m_pDS->num_rows() > 0)
@@ -1135,7 +1135,7 @@ bool CDSPlayerDatabase::GetVideoSettings(const std::string &strFilenameAndPath, 
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1162,7 +1162,7 @@ bool CDSPlayerDatabase::GetResSettings(int resolution, CMadvrSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1191,7 +1191,7 @@ bool CDSPlayerDatabase::GetUserSettings(int userId, CMadvrSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1205,7 +1205,7 @@ bool CDSPlayerDatabase::GetTvShowSettings(const std::string &tvShowName, CMadvrS
     if (NULL == m_pDS.get()) return false;
     // ok, now obtain the settings for this file
 
-    std::string strSQL = PrepareSQL("select * from madvrTvShowSettings where TvShowName='%s'", tvShowName.c_str());
+    std::string strSQL = PrepareSQL("select * from madvrTvShowSettings where TvShowName='{}'", tvShowName.c_str());
 
     m_pDS->query(strSQL.c_str());
     if (m_pDS->num_rows() > 0)
@@ -1218,7 +1218,7 @@ bool CDSPlayerDatabase::GetTvShowSettings(const std::string &tvShowName, CMadvrS
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1232,7 +1232,7 @@ void CDSPlayerDatabase::SetVideoSettings(const std::string& strFilenameAndPath, 
     if (NULL == m_pDS.get()) return;
 
     std::string strJson;
-    std::string strSQL = PrepareSQL("select * from madvrFileSettings where file='%s'", strFilenameAndPath.c_str());
+    std::string strSQL = PrepareSQL("select * from madvrFileSettings where file='{}'", strFilenameAndPath.c_str());
     CJSONVariantWriter::Write(setting.m_db,strJson, true);
 
     m_pDS->query(strSQL.c_str());
@@ -1241,7 +1241,7 @@ void CDSPlayerDatabase::SetVideoSettings(const std::string& strFilenameAndPath, 
       m_pDS->close();
       // update the item
 
-      strSQL = PrepareSQL("UPDATE madvrFileSettings set Resolution=%i, TvShowName='%s', madvrJson='%s' where file='%s'",
+      strSQL = PrepareSQL("UPDATE madvrFileSettings set Resolution=%i, TvShowName='{}', madvrJson='{}' where file='{}'",
         setting.m_Resolution, setting.m_TvShowName.c_str(), strJson.c_str(), strFilenameAndPath.c_str());
       m_pDS->exec(strSQL.c_str());
       return;
@@ -1249,14 +1249,14 @@ void CDSPlayerDatabase::SetVideoSettings(const std::string& strFilenameAndPath, 
     else
     { // add the items
       m_pDS->close();
-      strSQL = PrepareSQL("INSERT INTO madvrFileSettings (file, Resolution, TvShowName, madvrJson) VALUES ('%s', %i, '%s','%s')",
+      strSQL = PrepareSQL("INSERT INTO madvrFileSettings (file, Resolution, TvShowName, madvrJson) VALUES ('{}', %i, '{}','{}')",
         strFilenameAndPath.c_str(), setting.m_Resolution, setting.m_TvShowName.c_str(), strJson.c_str());
       m_pDS->exec(strSQL.c_str());
     }
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, strFilenameAndPath.c_str());
+    CLog::Log(LOGERROR, "{} ({}) failed", __FUNCTION__, strFilenameAndPath.c_str());
   }
 }
 
@@ -1278,21 +1278,21 @@ void CDSPlayerDatabase::SetResSettings(int resolution, const CMadvrSettings &set
       m_pDS->close();
       // update the item
 
-      strSQL = PrepareSQL("UPDATE madvrResSettings set madvrJson='%s' where Resolution=%i", strJson.c_str(), resolution);
+      strSQL = PrepareSQL("UPDATE madvrResSettings set madvrJson='{}' where Resolution=%i", strJson.c_str(), resolution);
       m_pDS->exec(strSQL.c_str());
       return;
     }
     else
     { // add the items
       m_pDS->close();
-      strSQL = PrepareSQL("INSERT INTO madvrResSettings (Resolution, madvrJson) VALUES (%i, '%s')",
+      strSQL = PrepareSQL("INSERT INTO madvrResSettings (Resolution, madvrJson) VALUES (%i, '{}')",
         resolution, strJson.c_str());
       m_pDS->exec(strSQL.c_str());
     }
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%ip) failed", __FUNCTION__, resolution);
+    CLog::Log(LOGERROR, "{} (%ip) failed", __FUNCTION__, resolution);
   }
 }
 
@@ -1315,21 +1315,21 @@ void CDSPlayerDatabase::SetUserSettings(int userId, const CMadvrSettings &settin
       m_pDS->close();
       // update the item
 
-      strSQL = PrepareSQL("UPDATE madvrUserSettings set madvrJson='%s' where User=%i", strJson.c_str(), userId);
+      strSQL = PrepareSQL("UPDATE madvrUserSettings set madvrJson='{}' where User=%i", strJson.c_str(), userId);
       m_pDS->exec(strSQL.c_str());
       return;
     }
     else
     { // add the items
       m_pDS->close();
-      strSQL = PrepareSQL("INSERT INTO madvrUserSettings (User, madvrJson) VALUES (%i, '%s')",
+      strSQL = PrepareSQL("INSERT INTO madvrUserSettings (User, madvrJson) VALUES (%i, '{}')",
         userId, strJson.c_str());
       m_pDS->exec(strSQL.c_str());
     }
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%ip) failed", __FUNCTION__, userId);
+    CLog::Log(LOGERROR, "{} (%ip) failed", __FUNCTION__, userId);
   }
 }
 
@@ -1341,7 +1341,7 @@ void CDSPlayerDatabase::SetTvShowSettings(const std::string &tvShowName, const C
     if (NULL == m_pDB.get()) return;
     if (NULL == m_pDS.get()) return;
 
-    std::string strSQL = PrepareSQL("select * from madvrTvShowSettings where TvShowName='%s'", tvShowName.c_str());
+    std::string strSQL = PrepareSQL("select * from madvrTvShowSettings where TvShowName='{}'", tvShowName.c_str());
     std::string strJson;
     CJSONVariantWriter::Write(settings.m_db, strJson, true);
 
@@ -1351,21 +1351,21 @@ void CDSPlayerDatabase::SetTvShowSettings(const std::string &tvShowName, const C
       m_pDS->close();
       // update the item
 
-      strSQL = PrepareSQL("UPDATE madvrTvShowSettings set madvrJson='%s' where TvShowName='%s'", strJson.c_str(), tvShowName.c_str());
+      strSQL = PrepareSQL("UPDATE madvrTvShowSettings set madvrJson='{}' where TvShowName='{}'", strJson.c_str(), tvShowName.c_str());
       m_pDS->exec(strSQL.c_str());
       return;
     }
     else
     { // add the items
       m_pDS->close();
-      strSQL = PrepareSQL("INSERT INTO madvrTvShowSettings (TvShowName, Resolution, madvrJson) VALUES ('%s', %i,'%s')",
+      strSQL = PrepareSQL("INSERT INTO madvrTvShowSettings (TvShowName, Resolution, madvrJson) VALUES ('{}', %i,'{}')",
         tvShowName.c_str(), settings.m_Resolution, strJson.c_str());
       m_pDS->exec(strSQL.c_str());
     }
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s (%s) failed", __FUNCTION__, tvShowName.c_str());
+    CLog::Log(LOGERROR, "{} ({}) failed", __FUNCTION__, tvShowName.c_str());
   }
 }
 
@@ -1386,7 +1386,7 @@ void CDSPlayerDatabase::EraseVideoSettings()
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1407,7 +1407,7 @@ void CDSPlayerDatabase::EraseResSettings(int resolution)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1425,7 +1425,7 @@ void CDSPlayerDatabase::EraseUserSettings(int userId)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1437,14 +1437,14 @@ void CDSPlayerDatabase::EraseTvShowSettings(const std::string &tvShowName)
     if (tvShowName.empty())
       return;
 
-    std::string strSQL = PrepareSQL("DELETE FROM madvrFileSettings where TvShowName='%s'", tvShowName.c_str());
-    CLog::Log(LOGINFO, "Deleting madvr settings information for %s files", tvShowName.c_str());
+    std::string strSQL = PrepareSQL("DELETE FROM madvrFileSettings where TvShowName='{}'", tvShowName.c_str());
+    CLog::Log(LOGINFO, "Deleting madvr settings information for {} files", tvShowName.c_str());
     m_pDS->exec(strSQL);
 
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1492,7 +1492,7 @@ bool CDSPlayerDatabase::GetLAVVideoSettings(CLavSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1544,7 +1544,7 @@ bool CDSPlayerDatabase::GetLAVAudioSettings(CLavSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1590,7 +1590,7 @@ bool CDSPlayerDatabase::GetLAVSplitterSettings(CLavSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return false;
 }
@@ -1687,7 +1687,7 @@ void CDSPlayerDatabase::SetLAVVideoSettings(CLavSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1785,7 +1785,7 @@ void CDSPlayerDatabase::SetLAVAudioSettings(CLavSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1807,11 +1807,11 @@ void CDSPlayerDatabase::SetLAVSplitterSettings(CLavSettings &settings)
       strSQL = "update lavsplitterSettings set ";
       strSQL += PrepareSQL("bTrayIcon=%i, ", settings.splitter_bTrayIcon);
       g_charsetConverter.wToUTF8(settings.splitter_prefAudioLangs, str, false);
-      strSQL += PrepareSQL("prefAudioLangs='%s', ", str.c_str());
+      strSQL += PrepareSQL("prefAudioLangs='{}', ", str.c_str());
       g_charsetConverter.wToUTF8(settings.splitter_prefSubLangs, str, false);
-      strSQL += PrepareSQL("prefSubLangs='%s', ", str.c_str());
+      strSQL += PrepareSQL("prefSubLangs='{}', ", str.c_str());
       g_charsetConverter.wToUTF8(settings.splitter_subtitleAdvanced, str, false);
-      strSQL += PrepareSQL("subtitleAdvanced='%s', ", str.c_str());
+      strSQL += PrepareSQL("subtitleAdvanced='{}', ", str.c_str());
       strSQL += PrepareSQL("subtitleMode=%i, ", settings.splitter_subtitleMode);
       strSQL += PrepareSQL("bPGSForcedStream=%i, ", settings.splitter_bPGSForcedStream);
       strSQL += PrepareSQL("bPGSOnlyForced=%i, ", settings.splitter_bPGSOnlyForced);
@@ -1839,11 +1839,11 @@ void CDSPlayerDatabase::SetLAVSplitterSettings(CLavSettings &settings)
 
       strSQL += PrepareSQL("%i, ", settings.splitter_bTrayIcon);
       g_charsetConverter.wToUTF8(settings.splitter_prefAudioLangs, str, false);
-      strSQL += PrepareSQL("'%s', ", str.c_str());
+      strSQL += PrepareSQL("'{}', ", str.c_str());
       g_charsetConverter.wToUTF8(settings.splitter_prefSubLangs, str, false);
-      strSQL += PrepareSQL("'%s', ", str.c_str());
+      strSQL += PrepareSQL("'{}', ", str.c_str());
       g_charsetConverter.wToUTF8(settings.splitter_subtitleAdvanced, str, false);
-      strSQL += PrepareSQL("'%s', ", str.c_str());
+      strSQL += PrepareSQL("'{}', ", str.c_str());
       strSQL += PrepareSQL("%i, ", settings.splitter_subtitleMode);
       strSQL += PrepareSQL("%i, ", settings.splitter_bPGSForcedStream);
       strSQL += PrepareSQL("%i, ", settings.splitter_bPGSOnlyForced);
@@ -1863,7 +1863,7 @@ void CDSPlayerDatabase::SetLAVSplitterSettings(CLavSettings &settings)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1877,7 +1877,7 @@ void CDSPlayerDatabase::EraseLAVVideo()
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 void CDSPlayerDatabase::EraseLAVAudio()
@@ -1890,7 +1890,7 @@ void CDSPlayerDatabase::EraseLAVAudio()
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 void CDSPlayerDatabase::EraseLAVSplitter()
@@ -1903,7 +1903,7 @@ void CDSPlayerDatabase::EraseLAVSplitter()
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1912,7 +1912,7 @@ int CDSPlayerDatabase::GetLastTvShowId(bool bLastWatched)
   try
   {
     std::string strSelect = bLastWatched ? "lastWatched" : "lastPlayed";
-    std::string strSQL = PrepareSQL("SELECT %s FROM lastTvId LIMIT 1", strSelect.c_str());
+    std::string strSQL = PrepareSQL("SELECT {} FROM lastTvId LIMIT 1", strSelect.c_str());
 
     if (!m_pDS->query(strSQL.c_str()))
       return -1;
@@ -1921,7 +1921,7 @@ int CDSPlayerDatabase::GetLastTvShowId(bool bLastWatched)
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return -1;
 }
@@ -1942,13 +1942,13 @@ void CDSPlayerDatabase::SetLastTvShowId(bool bLastWatched, int id)
       m_pDS->close();
       // update the item
 
-      strSQL = PrepareSQL("UPDATE lastTvId set %s=%i ", strSelect.c_str(), id);
+      strSQL = PrepareSQL("UPDATE lastTvId set {}=%i ", strSelect.c_str(), id);
       m_pDS->exec(strSQL.c_str());
     }
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1963,19 +1963,19 @@ void CDSPlayerDatabase::SetSubtitleExtTrackName(const std::string &strFilenameAn
 
     if (subTrackName.empty())
     {
-      strSQL = PrepareSQL("DELETE FROM settings WHERE file like '%s'", strFilenameAndPath.c_str());
+      strSQL = PrepareSQL("DELETE FROM settings WHERE file like '{}'", strFilenameAndPath.c_str());
       m_pDS->exec(strSQL.c_str());
       return;
     }
 
-    strSQL = PrepareSQL("SELECT * FROM settings WHERE file like '%s'", strFilenameAndPath.c_str());
+    strSQL = PrepareSQL("SELECT * FROM settings WHERE file like '{}'", strFilenameAndPath.c_str());
     m_pDS->query(strSQL.c_str());
     if (m_pDS->num_rows() > 0)
     {
       m_pDS->close();
       // update the item
 
-       strSQL = PrepareSQL("UPDATE settings set extSubTrackName='%s'", subTrackName.c_str());
+       strSQL = PrepareSQL("UPDATE settings set extSubTrackName='{}'", subTrackName.c_str());
 
       m_pDS->exec(strSQL.c_str());
     }
@@ -1983,13 +1983,13 @@ void CDSPlayerDatabase::SetSubtitleExtTrackName(const std::string &strFilenameAn
     {
       m_pDS->close();
 
-      strSQL = PrepareSQL("INSERT INTO settings (file, extSubTrackName) VALUES ('%s','%s')", strFilenameAndPath.c_str(), subTrackName.c_str());
+      strSQL = PrepareSQL("INSERT INTO settings (file, extSubTrackName) VALUES ('{}','{}')", strFilenameAndPath.c_str(), subTrackName.c_str());
       m_pDS->exec(strSQL.c_str());
     }
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
 }
 
@@ -1997,7 +1997,7 @@ std::string CDSPlayerDatabase::GetSubtitleExtTrackName(const std::string &strFil
 {
   try
   {
-    std::string strSQL = PrepareSQL("SELECT * FROM settings WHERE file like '%s'", strFilenameAndPath.c_str());
+    std::string strSQL = PrepareSQL("SELECT * FROM settings WHERE file like '{}'", strFilenameAndPath.c_str());
 
     if (!m_pDS->query(strSQL.c_str()))
       return "";
@@ -2006,7 +2006,7 @@ std::string CDSPlayerDatabase::GetSubtitleExtTrackName(const std::string &strFil
   }
   catch (...)
   {
-    CLog::Log(LOGERROR, "%s failed", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} failed", __FUNCTION__);
   }
   return "";
 }
@@ -2041,7 +2041,7 @@ void CDSPlayerDatabase::JsonToVariant(const std::string &strJson, CMadvrSettings
       });
       if (it == settings.m_options[setting->first].end())
       {
-        CLog::Log(LOGDEBUG, "%s the stored value for '%s' is invalid, will be applied the default value ", __FUNCTION__, setting->first.c_str());
+        CLog::Log(LOGDEBUG, "{} the stored value for '{}' is invalid, will be applied the default value ", __FUNCTION__, setting->first.c_str());
         tmp[setting->first] = setting->second;
       }
     }

@@ -53,7 +53,7 @@
 
 #define START_PERFORMANCE_COUNTER { int64_t start = CurrentHostCounter();
 #define END_PERFORMANCE_COUNTER(fn) int64_t end = CurrentHostCounter(); \
-  CLog::Log(LOGINFO, "%s %s. Elapsed time: %.2fms", __FUNCTION__, fn, 1000.f * (end - start) / CurrentHostFrequency()); }
+  CLog::Log(LOGINFO, "{} {}. Elapsed time: %.2fms", __FUNCTION__, fn, 1000.f * (end - start) / CurrentHostFrequency()); }
 
 typedef DWORD ThreadIdentifier;
 
@@ -262,7 +262,7 @@ public:
     if (wait)
       msg->Acquire();
 
-    CLog::Log(LOGDEBUG, "%s Message posted : %d on thread 0x%X", __FUNCTION__, msg->GetMessageType(), m_threadID);
+    CLog::Log(LOGDEBUG, "{} Message posted : %d on thread 0x%X", __FUNCTION__, msg->GetMessageType(), m_threadID);
     PostThreadMessage(m_threadID, WM_GRAPHMESSAGE, msg->GetMessageType(), (LPARAM)msg);
 
     if (wait)

@@ -56,7 +56,7 @@ public:
     delete m_pAudioRenderer;
     delete m_pShaders;
 
-    //CLog::Log(LOGDEBUG, "%s Ressources released", __FUNCTION__); Log Spam
+    //CLog::Log(LOGDEBUG, "{} Ressources released", __FUNCTION__); Log Spam
   }
 
   bool Match(const CFileItem& pFileItem, bool checkUrl = false)
@@ -66,7 +66,7 @@ public:
 
     if (m_fileTypes.empty() && m_fileName.empty() && m_Protocols.empty() && m_videoCodec.empty())
     {
-      CLog::Log(LOGDEBUG, "%s: no Rule parameters", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{}: no Rule parameters", __FUNCTION__);
       return false;
     }
 
@@ -75,7 +75,7 @@ public:
     {
       if (!pFileItem.HasVideoInfoTag() || !pFileItem.GetVideoInfoTag()->HasStreamDetails())
       {
-        CLog::Log(LOGDEBUG, "%s: %s, no StreamDetails", __FUNCTION__, m_name.c_str());
+        CLog::Log(LOGDEBUG, "{}: {}, no StreamDetails", __FUNCTION__, m_name.c_str());
         return false;
       }
       streamDetails = pFileItem.GetVideoInfoTag()->m_streamDetails;

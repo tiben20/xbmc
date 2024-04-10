@@ -29,12 +29,12 @@
 CDSArgusTV::CDSArgusTV(const std::string& strBackendBaseAddress, const std::string& strBackendName) 
   : CDSPVRBackend(strBackendBaseAddress, strBackendName)
 {
-  CLog::Log(LOGINFO, "%s PVR Backend name: %s, Base Address: %s", __FUNCTION__, strBackendName.c_str(), strBackendBaseAddress.c_str());
+  CLog::Log(LOGINFO, "{} PVR Backend name: {}, Base Address: {}", __FUNCTION__, strBackendName.c_str(), strBackendBaseAddress.c_str());
 }
 
 CDSArgusTV::~CDSArgusTV(void)
 {
-  CLog::Log(LOGINFO, "%s", __FUNCTION__);
+  CLog::Log(LOGINFO, "{}", __FUNCTION__);
 }
 
 bool CDSArgusTV::ConvertStreamURLToTimeShiftFilePath(const std::string& strUrl, std::string& strTimeShiftFile)
@@ -43,13 +43,13 @@ bool CDSArgusTV::ConvertStreamURLToTimeShiftFilePath(const std::string& strUrl, 
 
   if (strUrl.empty())
   {
-    CLog::Log(LOGERROR, "%s Stream URL is not valid.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Stream URL is not valid.", __FUNCTION__);
     return false;
   }
 
   if (!SupportsStreamConversion(strUrl))
   {
-    CLog::Log(LOGERROR, "%s Stream Conversion is not supported.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Stream Conversion is not supported.", __FUNCTION__);
     return false;
   }
   
@@ -81,7 +81,7 @@ bool CDSArgusTV::ConvertStreamURLToTimeShiftFilePath(const std::string& strUrl, 
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Failed to get Timeshifting info from the backend", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Failed to get Timeshifting info from the backend", __FUNCTION__);
   }
 
   if (bReturn)
@@ -89,12 +89,12 @@ bool CDSArgusTV::ConvertStreamURLToTimeShiftFilePath(const std::string& strUrl, 
   
   if (bReturn)
   {
-    CLog::Log(LOGINFO, "%s Rtsp Stream: %s converted to Timeshift File Path: %s", __FUNCTION__, strUrl.c_str(), strTimeShiftFilePath.c_str());
+    CLog::Log(LOGINFO, "{} Rtsp Stream: {} converted to Timeshift File Path: {}", __FUNCTION__, strUrl.c_str(), strTimeShiftFilePath.c_str());
     strTimeShiftFile = strTimeShiftFilePath;
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Failed to converted Rtsp Stream: %s to Timeshift File Path", __FUNCTION__, strUrl.c_str());
+    CLog::Log(LOGERROR, "{} Failed to converted Rtsp Stream: {} to Timeshift File Path", __FUNCTION__, strUrl.c_str());
   }
 
   return bReturn;

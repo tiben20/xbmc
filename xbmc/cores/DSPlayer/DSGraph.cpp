@@ -110,9 +110,9 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
   m_pGraphBuilder->InitManager();
 
   if (SUCCEEDED(m_pGraphBuilder->AddToROT()))
-    CLog::Log(LOGDEBUG, "%s Successfully added XBMC to the Running Object Table", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Successfully added XBMC to the Running Object Table", __FUNCTION__);
   else
-    CLog::Log(LOGERROR, "%s Failed to add XBMC to the Running Object Table", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Failed to add XBMC to the Running Object Table", __FUNCTION__);
 
   START_PERFORMANCE_COUNTER
     hr = m_pGraphBuilder->RenderFileXbmc(file);
@@ -214,9 +214,9 @@ void CDSGraph::CloseFile()
     }
 
     /* delete filters */
-    CLog::Log(LOGDEBUG, "%s Deleting filters ...", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Deleting filters ...", __FUNCTION__);
     CGraphFilters::Destroy();
-    CLog::Log(LOGDEBUG, "%s ... done!", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} ... done!", __FUNCTION__);
     CGraphFilters::Get()->DVD.Clear();
 
     if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_EXITMADVRFULLSCREEN))
@@ -240,7 +240,7 @@ void CDSGraph::CloseFile()
   }
   else
   {
-    CLog::Log(LOGDEBUG, "%s CloseFile called more than one time!", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} CloseFile called more than one time!", __FUNCTION__);
   }
 }
 
@@ -410,14 +410,14 @@ HRESULT CDSGraph::HandleGraphEvent()
   {
     m_bPerformStop = false;
     CServiceBroker::GetAppMessenger()->SendMsg(TMSG_MEDIA_STOP);
-    CLog::Log(LOGDEBUG, "%s Playback stopped at start", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Playback stopped at start", __FUNCTION__);
   }
 
   if (g_application.GetComponent<CApplicationPlayer>()->ReadyDS() && m_bPerformPause)
   {
     m_bPerformPause = false;
     CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_PAUSE);
-    CLog::Log(LOGDEBUG, "%s Playback paused at start", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Playback paused at start", __FUNCTION__);
   }
 
   // Make sure that we don't access the media event interface
@@ -432,19 +432,19 @@ HRESULT CDSGraph::HandleGraphEvent()
     switch (evCode)
     {
     case EC_STEP_COMPLETE:
-      CLog::Log(LOGDEBUG, "%s EC_STEP_COMPLETE", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_STEP_COMPLETE", __FUNCTION__);
       CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_COMPLETE:
-      CLog::Log(LOGDEBUG, "%s EC_COMPLETE", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_COMPLETE", __FUNCTION__);
       m_State.eof = true;
       CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_BUFFERING_DATA:
-      CLog::Log(LOGDEBUG, "%s EC_BUFFERING_DATA", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_BUFFERING_DATA", __FUNCTION__);
       break;
     case EC_USERABORT:
-      CLog::Log(LOGDEBUG, "%s EC_USERABORT", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_USERABORT", __FUNCTION__);
       CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_ERRORABORT:
@@ -453,20 +453,20 @@ HRESULT CDSGraph::HandleGraphEvent()
       {
         std::string error;
         g_charsetConverter.wToUTF8((std::wstring)((BSTR)evParam2), error);
-        CLog::Log(LOGDEBUG, "%s EC_ERRORABORT. Error code: 0x%X; Error message: %s", __FUNCTION__, evParam1, error.c_str());
+        CLog::Log(LOGDEBUG, "{} EC_ERRORABORT. Error code: 0x%X; Error message: {}", __FUNCTION__, evParam1, error.c_str());
       }
       else
-        CLog::Log(LOGDEBUG, "%s EC_ERRORABORT. Error code: 0x%X", __FUNCTION__, evParam1);
+        CLog::Log(LOGDEBUG, "{} EC_ERRORABORT. Error code: 0x%X", __FUNCTION__, evParam1);
       CServiceBroker::GetAppMessenger()->PostMsg(TMSG_MEDIA_STOP);
       break;
     case EC_STATE_CHANGE:
-      CLog::Log(LOGDEBUG, "%s EC_STATE_CHANGE", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_STATE_CHANGE", __FUNCTION__);
       break;
     case EC_DEVICE_LOST:
-      CLog::Log(LOGDEBUG, "%s EC_DEVICE_LOST", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_DEVICE_LOST", __FUNCTION__);
       break;
     case EC_VMR_RECONNECTION_FAILED:
-      CLog::Log(LOGDEBUG, "%s EC_VMR_RECONNECTION_FAILED", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} EC_VMR_RECONNECTION_FAILED", __FUNCTION__);
       break;
     case EC_DVD_CURRENT_HMSF_TIME:
     {
@@ -876,7 +876,7 @@ std::string CDSGraph::GetAudioInfo()
   if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   {
-    audioInfo = StringUtils::Format("Audio: (%s, %d Hz, %d Channels) | Renderer: %s",
+    audioInfo = StringUtils::Format("Audio: ({}, %d Hz, %d Channels) | Renderer: {}",
       c->GetAudioCodecDisplayName(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream()).c_str(),
       c->GetSampleRate(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream()),
       c->GetChannels(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream()),
@@ -886,13 +886,13 @@ std::string CDSGraph::GetAudioInfo()
   {
     std::string strStreamName;
     c->GetAudioStreamName(g_application.GetComponent<CApplicationPlayer>()->GetAudioStream(),strStreamName);
-    audioInfo = StringUtils::Format("Audio: (%s) | Renderer: %s",
+    audioInfo = StringUtils::Format("Audio: ({}) | Renderer: {}",
       strStreamName.c_str(),
       CGraphFilters::Get()->AudioRenderer.osdname.c_str());
   }
 
   int iAudioDelay = round(-CStreamsManager::Get()->GetAVDelay() * 1000.0f);
-  audioInfo = StringUtils::Format("%s | Delay: %ims",
+  audioInfo = StringUtils::Format("{} | Delay: %ims",
     audioInfo.c_str(),
     iAudioDelay);
 
@@ -910,7 +910,7 @@ std::string CDSGraph::GetVideoInfo()
   if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SHOWSPLITTERDETAIL) ||
       CGraphFilters::Get()->UsingMediaPortalTsReader())
   {
-    videoInfo = StringUtils::Format("Video: (%s, %dx%d) | Renderer: %s",
+    videoInfo = StringUtils::Format("Video: ({}, %dx%d) | Renderer: {}",
       c->GetVideoCodecDisplayName().c_str(),
       c->GetPictureWidth(),
       c->GetPictureHeight(),
@@ -920,7 +920,7 @@ std::string CDSGraph::GetVideoInfo()
   {
     std::string strStreamName;
     c->GetVideoStreamName(strStreamName);
-    videoInfo = StringUtils::Format("Video: (%s) | Renderer: %s",
+    videoInfo = StringUtils::Format("Video: ({}) | Renderer: {}",
       strStreamName.c_str(), 
       CGraphFilters::Get()->VideoRenderer.osdname.c_str());
   }

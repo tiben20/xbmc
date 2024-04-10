@@ -53,7 +53,7 @@ HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
   bool hasStreamDetails = false;
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MYVIDEOS_EXTRACTFLAGS) && FileItem.HasVideoInfoTag() && !FileItem.GetVideoInfoTag()->HasStreamDetails())
   {
-    CLog::Log(LOGDEBUG, "%s - trying to extract filestream details from video file %s", __FUNCTION__, CURL::GetRedacted(FileItem.GetPath()).c_str());
+    CLog::Log(LOGDEBUG, "{} - trying to extract filestream details from video file {}", __FUNCTION__, CURL::GetRedacted(FileItem.GetPath()).c_str());
     hasStreamDetails = CDVDFileInfo::GetFileStreamDetails(&FileItem);
   }
   else{
@@ -175,7 +175,7 @@ HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
       END_PERFORMANCE_COUNTER("Loading shaders");
     }
 
-  CLog::Log(LOGDEBUG, "%s All filters added to the graph", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} All filters added to the graph", __FUNCTION__);
 
   return S_OK;
 }

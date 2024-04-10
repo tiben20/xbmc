@@ -33,12 +33,12 @@ CDSMediaPortal::CDSMediaPortal(const std::string& strBackendBaseAddress, const s
   : CDSPVRBackend(strBackendBaseAddress, strBackendName)
   , m_pCardsSettings(NULL)
 {
-  CLog::Log(LOGINFO, "%s PVR Backend name: %s, Base Address: %s", __FUNCTION__, strBackendName.c_str(), strBackendBaseAddress.c_str());
+  CLog::Log(LOGINFO, "{} PVR Backend name: {}, Base Address: {}", __FUNCTION__, strBackendName.c_str(), strBackendBaseAddress.c_str());
 }
 
 CDSMediaPortal::~CDSMediaPortal(void)
 {
-  CLog::Log(LOGINFO, "%s", __FUNCTION__);
+  CLog::Log(LOGINFO, "{}", __FUNCTION__);
   SAFE_DELETE(m_pCardsSettings);
 }
 
@@ -52,13 +52,13 @@ bool CDSMediaPortal::ConvertStreamURLToTimeShiftFilePath(const std::string& strU
 
   if (strUrl.empty())
   {
-    CLog::Log(LOGERROR, "%s Stream URL is not valid.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Stream URL is not valid.", __FUNCTION__);
     return false;
   }
 
   if (!SupportsStreamConversion(strUrl))
   {
-    CLog::Log(LOGERROR, "%s Stream Conversion is not supported.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Stream Conversion is not supported.", __FUNCTION__);
     return false;
   }
 
@@ -86,21 +86,21 @@ bool CDSMediaPortal::ConvertStreamURLToTimeShiftFilePath(const std::string& strU
           if (ConvertRtspStreamUrlToTimeShiftFilePath(strResolvedUrl, strTimeShiftFilePath))
           {
             strTimeShiftFile = strTimeShiftFilePath;
-            CLog::Log(LOGINFO, "%s MediaPortal TVServer user name found: %s ", __FUNCTION__, timeshiftingUserNames[i].c_str());
+            CLog::Log(LOGINFO, "{} MediaPortal TVServer user name found: {} ", __FUNCTION__, timeshiftingUserNames[i].c_str());
             bReturn = true;
             break;
           }
         }
         else
         {
-          CLog::Log(LOGERROR, "%s Failed to MediaPortal TVServer failed to Set User Name: %s", __FUNCTION__, timeshiftingUserNames[i].c_str());
+          CLog::Log(LOGERROR, "{} Failed to MediaPortal TVServer failed to Set User Name: {}", __FUNCTION__, timeshiftingUserNames[i].c_str());
           break;
         }
       }
     }
     else
     {
-      CLog::Log(LOGERROR, "%s Failed to get Timeshifting User names from MediaPortal TVServer.", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} Failed to get Timeshifting User names from MediaPortal TVServer.", __FUNCTION__);
     }
   }
 
@@ -115,12 +115,12 @@ bool CDSMediaPortal::ConvertStreamURLToTimeShiftFilePath(const std::string& strU
 
   if (bReturn)
   {
-    CLog::Log(LOGINFO, "%s Rtsp Stream: %s converted to Timeshift File Path: %s", __FUNCTION__, strUrl.c_str(), strTimeShiftFilePath.c_str());
+    CLog::Log(LOGINFO, "{} Rtsp Stream: {} converted to Timeshift File Path: {}", __FUNCTION__, strUrl.c_str(), strTimeShiftFilePath.c_str());
     strTimeShiftFile = strTimeShiftFilePath;
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Failed to converted Rtsp Stream: %s to Timeshift File Path", __FUNCTION__, strUrl.c_str());
+    CLog::Log(LOGERROR, "{} Failed to converted Rtsp Stream: {} to Timeshift File Path", __FUNCTION__, strUrl.c_str());
   }
   
   return bReturn;
@@ -135,13 +135,13 @@ bool  CDSMediaPortal::GetRecordingStreamURL(const std::string& strRecordingId, s
 
   if (strRecordingId.empty())
   {
-    CLog::Log(LOGERROR, "%s Recording Id is not valid.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Recording Id is not valid.", __FUNCTION__);
     return false;
   }
 
   // GetRecordingInfo with RTSP url  (TVServerXBMC v1.1.0.90 or higher)
   bReturn = SendCommandToMPTVServer("GetRecordingInfo:" + strRecordingId + "|True\n", strResponse);
-  CLog::Log(LOGDEBUG, "%s Response message: %s", __FUNCTION__, strResponse.c_str());
+  CLog::Log(LOGDEBUG, "{} Response message: {}", __FUNCTION__, strResponse.c_str());
   /*
    * TVServerXBMC serverinterface.cs
    * XBMC pvr side:
@@ -194,22 +194,22 @@ bool  CDSMediaPortal::GetRecordingStreamURL(const std::string& strRecordingId, s
     } 
     else
     {
-      CLog::Log(LOGDEBUG, "%s PVR Backend response message is invalid.", __FUNCTION__);
+      CLog::Log(LOGDEBUG, "{} PVR Backend response message is invalid.", __FUNCTION__);
     }
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Failed to get recording info from PVR Backend, recording id: %s", __FUNCTION__, strRecordingId.c_str());
+    CLog::Log(LOGERROR, "{} Failed to get recording info from PVR Backend, recording id: {}", __FUNCTION__, strRecordingId.c_str());
   }
 
   if (bReturn)
   {
-    CLog::Log(LOGINFO, "%s Recording Stream URL: %s", __FUNCTION__, strRecUrl.c_str());
+    CLog::Log(LOGINFO, "{} Recording Stream URL: {}", __FUNCTION__, strRecUrl.c_str());
     strRecordingUrl = strRecUrl;
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Failed to get recording stream URL from PVR Backend.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Failed to get recording stream URL from PVR Backend.", __FUNCTION__);
   }
 
   return bReturn;
@@ -250,7 +250,7 @@ bool CDSMediaPortal::ConnectToMPTVServer()
       
       if (bReturn && strResponseMessage.find("Unexpected protocol") != std::string::npos)
       {
-        CLog::Log(LOGERROR, "%s TVServer does not accept protocol: PVRclientXBMC:0-1", __FUNCTION__);
+        CLog::Log(LOGERROR, "{} TVServer does not accept protocol: PVRclientXBMC:0-1", __FUNCTION__);
         bReturn = false;
       }
     }
@@ -259,7 +259,7 @@ bool CDSMediaPortal::ConnectToMPTVServer()
   if (bReturn)
     LoadCardSettings();
   else
-    CLog::Log(LOGERROR, "%s Failed to connect to MediaPortal TVServer!", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Failed to connect to MediaPortal TVServer!", __FUNCTION__);
 
   return bReturn;
 }
@@ -309,11 +309,11 @@ bool CDSMediaPortal::ConvertRtspStreamUrlToTimeShiftFilePath(const std::string& 
   else
   {
     bReturn = false;
-    CLog::Log(LOGDEBUG, "%s Failed to get Timeshifting info from the MediaPortal TVServer", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Failed to get Timeshifting info from the MediaPortal TVServer", __FUNCTION__);
   }
   
   if (bReturn)
-    CLog::Log(LOGDEBUG, "%s Timeshift File found: %s", __FUNCTION__, strTimeShiftFile.c_str());
+    CLog::Log(LOGDEBUG, "{} Timeshift File found: {}", __FUNCTION__, strTimeShiftFile.c_str());
 
   return bReturn;
 }
@@ -323,7 +323,7 @@ bool CDSMediaPortal::LoadCardSettings()
   bool bReturn = false;
   std::string strResponseMessage;
 
-  CLog::Log(LOGDEBUG, "%s Loading card settings from the MediaPortal TVServer", __FUNCTION__);
+  CLog::Log(LOGDEBUG, "{} Loading card settings from the MediaPortal TVServer", __FUNCTION__);
   
   // Retrieve card settings (needed for Live TV and recordings folders)
   bReturn = TCPClientSendCommand("GetCardSettings\n", strResponseMessage);
@@ -334,7 +334,7 @@ bool CDSMediaPortal::LoadCardSettings()
 
     if (bReturn && strResponseMessage.find("[ERROR]:") != std::string::npos)
     {
-      CLog::Log(LOGERROR, "%s TVServerXBMC error: %s", __FUNCTION__);
+      CLog::Log(LOGERROR, "{} TVServerXBMC error: {}", __FUNCTION__);
       bReturn = false;
     }
   }
@@ -349,9 +349,9 @@ bool CDSMediaPortal::LoadCardSettings()
   }
 
   if (bReturn)
-    CLog::Log(LOGDEBUG, "%s Card settings successfully loaded.", __FUNCTION__);
+    CLog::Log(LOGDEBUG, "{} Card settings successfully loaded.", __FUNCTION__);
   else
-    CLog::Log(LOGERROR, "%s Failed to load card settings.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Failed to load card settings.", __FUNCTION__);
 
   return bReturn;
 }
@@ -364,16 +364,16 @@ bool CDSMediaPortal::TranslatePathToUNC(const std::string& strLocalFilePath, std
   // Can we access the given file already?
   if (CDSFile::Exists(strFilePath, NULL))
   {
-    CLog::Log(LOGDEBUG, "%s Found the file at: %s", __FUNCTION__, strFilePath.c_str());
+    CLog::Log(LOGDEBUG, "{} Found the file at: {}", __FUNCTION__, strFilePath.c_str());
     strTranslatedFilePath = strLocalFilePath;
     return true;
   }
 
-  CLog::Log(LOGDEBUG, "%s Cannot access '%s' directly. Assuming multiseat mode. Need to translate to UNC filename.", __FUNCTION__, strFilePath.c_str());
+  CLog::Log(LOGDEBUG, "{} Cannot access '{}' directly. Assuming multiseat mode. Need to translate to UNC filename.", __FUNCTION__, strFilePath.c_str());
   
   if (!m_pCardsSettings || m_pCardsSettings->size() <= 0)
   {
-    CLog::Log(LOGERROR, "%s Cards Settings not found", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} Cards Settings not found", __FUNCTION__);
     return false;
   }
 
@@ -417,12 +417,12 @@ bool CDSMediaPortal::TranslatePathToUNC(const std::string& strLocalFilePath, std
 
   if (bFound)
   {
-    CLog::Log(LOGDEBUG, "%s Translate path %s -> %s", __FUNCTION__, strLocalFilePath.c_str(), strFilePath.c_str());
+    CLog::Log(LOGDEBUG, "{} Translate path {} -> {}", __FUNCTION__, strLocalFilePath.c_str(), strFilePath.c_str());
     strTranslatedFilePath = strFilePath;
   }
   else
   {
-    CLog::Log(LOGERROR, "%s Could not find a network share for '%s'. Check your TVServerXBMC settings!", __FUNCTION__, strLocalFilePath.c_str());
+    CLog::Log(LOGERROR, "{} Could not find a network share for '{}'. Check your TVServerXBMC settings!", __FUNCTION__, strLocalFilePath.c_str());
   }
 
   return bFound;
@@ -433,7 +433,7 @@ bool CDSMediaPortalCards::ParseLines(vector<string>& lines)
 {
   if (lines.empty())
   {
-    CLog::Log(LOGERROR, "%s No card settings found.", __FUNCTION__);
+    CLog::Log(LOGERROR, "{} No card settings found.", __FUNCTION__);
     return false;
   }
 
@@ -496,11 +496,11 @@ bool CDSMediaPortalCards::ParseLines(vector<string>& lines)
         card.TimeshiftFolderUNC = fields[18];
         if (card.RecordingFolderUNC.empty())
         {
-          CLog::Log(LOGINFO, "%s Warning: no recording share defined in the TVServerXBMC settings for card '%s'", __FUNCTION__, card.Name.c_str());
+          CLog::Log(LOGINFO, "{} Warning: no recording share defined in the TVServerXBMC settings for card '{}'", __FUNCTION__, card.Name.c_str());
         }
         if (card.TimeshiftFolderUNC.empty())
         {
-          CLog::Log(LOGINFO, "Warning: no timeshift share defined in the TVServerXBMC settings for card '%s'", __FUNCTION__, card.Name.c_str());
+          CLog::Log(LOGINFO, "Warning: no timeshift share defined in the TVServerXBMC settings for card '{}'", __FUNCTION__, card.Name.c_str());
         }
       }
       else

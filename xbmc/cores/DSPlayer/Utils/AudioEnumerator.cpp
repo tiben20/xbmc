@@ -123,7 +123,7 @@ void CAudioEnumerator::AddFilter(std::vector<DSFilterInfo>& pRenderers, std::wst
 
   pRenderers.push_back(filterInfo);
 
-  CLog::Log(LOGDEBUG, "Found audio renderer device \"%s\" (guid: %s)", filterInfo.lpstrName.c_str(), filterInfo.lpstrGuid.c_str());
+  CLog::Log(LOGDEBUG, "Found audio renderer device \"{}\" (guid: {})", filterInfo.lpstrName.c_str(), filterInfo.lpstrGuid.c_str());
 }
 
 #endif

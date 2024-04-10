@@ -45,13 +45,13 @@ HRESULT CreateMadVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** p
     {
       Error += "\n";
       Error += GetWindowsErrorMessage(hr, NULL);
-      CLog::Log(LOGERROR, "%s %s", __FUNCTION__, Error.c_str());
+      CLog::Log(LOGERROR, "{} {}", __FUNCTION__, Error.c_str());
       (*ppAP)->Release();
       *ppAP = NULL;
     }
     else if (!Error.empty())
     {
-      CLog::Log(LOGWARNING, "%s %s", __FUNCTION__, Error.c_str());
+      CLog::Log(LOGWARNING, "{} {}", __FUNCTION__, Error.c_str());
     }
   }
 

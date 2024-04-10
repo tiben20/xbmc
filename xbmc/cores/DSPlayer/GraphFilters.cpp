@@ -90,6 +90,7 @@ void CGraphFilters::SetSanearSettings()
     if (FAILED(SaneAudioRenderer::Factory::CreateSettings(&sanear)))
       return;
 #endif
+  return;
   std::wstring adeviceW;
   std::string adevice = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);  
   if (adevice == "System Default")

@@ -76,7 +76,7 @@ STDMETHODIMP CXBMCFileStream::SyncRead(LONGLONG llPosition, LONG lLength, BYTE* 
 		}
     catch (...)
     {
-      CLog::Log(LOGERROR,"%s Error while reading the file in xbmcfilesource filter",__FUNCTION__);
+      CLog::Log(LOGERROR,"{} Error while reading the file in xbmcfilesource filter",__FUNCTION__);
     }
 	}
 	while(m_hBreakEvent && WaitForSingleObject(m_hBreakEvent, 0) == WAIT_TIMEOUT);

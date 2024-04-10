@@ -40,7 +40,7 @@ HRESULT CXBMCAsyncStream::Load(const std::string& file)
   m_pFile.Close();
   if (!m_pFile.Open(m_pFileName, READ_TRUNCATED))
   {
-    CLog::Log(LOGERROR,"%s Failed to read the file in the xbmc source filter", __FUNCTION__);
+    CLog::Log(LOGERROR,"{} Failed to read the file in the xbmc source filter", __FUNCTION__);
     return E_FAIL;
   }
 

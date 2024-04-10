@@ -66,7 +66,7 @@ void CFilterSelectionRule::Initialize(TiXmlElement* pRule, const std::string &no
 
   if (m_bStreamDetails && !CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MYVIDEOS_EXTRACTFLAGS))
   {
-    CLog::Log(LOGWARNING, "CFilterSelectionRule::Initialize: rule: %s needs media flagging, which is disabled", m_name.c_str());
+    CLog::Log(LOGWARNING, "CFilterSelectionRule::Initialize: rule: {} needs media flagging, which is disabled", m_name.c_str());
   }
 
   m_filterName = CDSXMLUtils::GetString(pRule, "filter");
@@ -91,7 +91,7 @@ bool CFilterSelectionRule::MatchesRegExp(const std::string& str, CRegExp& regExp
 
 void CFilterSelectionRule::GetFilters(const CFileItem& item, std::vector<std::string> &vecCores, bool dxva)
 {
-  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: considering rule: %s", m_name.c_str());
+  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: considering rule: {}", m_name.c_str());
 
   if (m_bStreamDetails && (!item.HasVideoInfoTag())) 
     return;
@@ -112,7 +112,7 @@ void CFilterSelectionRule::GetFilters(const CFileItem& item, std::vector<std::st
   {
     if (!item.GetVideoInfoTag()->HasStreamDetails())
     {
-      CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: cannot check rule: %s, no StreamDetails", m_name.c_str());
+      CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: cannot check rule: {}, no StreamDetails", m_name.c_str());
       return;
     }
 
@@ -142,14 +142,14 @@ void CFilterSelectionRule::GetFilters(const CFileItem& item, std::vector<std::st
 
   if (CompileRegExp(m_fileName, regExp) && !MatchesRegExp(item.GetPath(), regExp)) return;
 
-  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: matches rule: %s", m_name.c_str());
+  //CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: matches rule: {}", m_name.c_str());
 
   for (unsigned int i = 0; i < vecSubRules.size(); i++)
     vecSubRules[i]->GetFilters(item, vecCores, dxva);
 
   if (!m_filterName.empty())
   {
-    CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: adding filter: %s for rule: %s", m_filterName.c_str(), m_name.c_str());
+    CLog::Log(LOGDEBUG, "CFilterSelectionRule::GetFilters: adding filter: {} for rule: {}", m_filterName.c_str(), m_name.c_str());
     vecCores.push_back(m_filterName);
   }
 }

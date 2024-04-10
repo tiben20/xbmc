@@ -336,7 +336,7 @@ void CGUIDialogDSFilters::ShowDSFiltersList()
       XMLUtils::GetString(pFilter, "osdname", strFilterLabel);
 
     strFilter = CDSXMLUtils::GetString(pFilter, "name");
-    strFilterLabel = StringUtils::Format("%s (%s)", strFilterLabel.c_str(), strFilter.c_str());
+    strFilterLabel = StringUtils::Format("{} ({})", strFilterLabel.c_str(), strFilter.c_str());
     pDlg->Add(strFilterLabel.c_str()); 
     count++;
 
