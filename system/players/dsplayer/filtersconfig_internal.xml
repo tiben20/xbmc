@@ -1,5 +1,10 @@
 <filtersconfig>
   <filters>
+  	<filter name="sanear_internal" type="audiorenderer">
+	  <path>Sanear/sanear64.ax</path>
+      <guid>{DF557071-C9FD-433A-9627-81E0D3640ED9}</guid>
+      <osdname>Sanear Audio Renderer</osdname>
+    </filter>
     <filter name="lavvideo_internal" type="videodec">
      <path>LAVFilters/LAVVideo.ax</path>
      <guid>{EE30215D-164F-4A92-A4EB-9D4C13390F9F}</guid>

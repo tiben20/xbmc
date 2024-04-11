@@ -800,13 +800,14 @@ void CFGLoader::SettingOptionsDSAudioRendererFiller(const std::shared_ptr<const 
 
 void CFGLoader::SettingOptionsSanearDevicesFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
-#if TODO
-  list.push_back(std::make_pair("System Default", "System Default"));
+  //ADD every device here
+  
+  list.push_back(StringSettingOption("System Default", "System Default"));
   for (const auto& device : GetDevices())
   {
-    list.push_back(std::make_pair(device.first, device.second));
+    list.push_back(StringSettingOption(device.first, device.second));// std::make_pair(device.first, device.second));
   }
-#endif
+
 }
 
 bool CFGLoader::LoadFilterCoreFactorySettings(const std::string& fileStr, ESettingsType type, bool clear, int iPriority)
