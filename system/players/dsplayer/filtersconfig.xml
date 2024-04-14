@@ -1,7 +1,10 @@
 <filtersconfig>
   <filters>
     <!-- You dont need a path if your filter is registered -->
-
+<filter name="sanear" type="audiorenderer">
+      <guid>{DF557071-C9FD-433A-9627-81E0D3640ED9}</guid>
+      <osdname>Sanear audio renderer</osdname>
+    </filter>
     <!-- Video decoders -->
     <filter name="mpcvideodec" type="videodec">
       <path>MPCVideoDec.ax</path>

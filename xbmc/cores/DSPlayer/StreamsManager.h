@@ -36,7 +36,6 @@
 #include <dmodshow.h>
 #include <D3d9.h>
 
-#include "Filters/ffdshow_constants.h"
 #include "DSGraph.h"
 #include "utils/log.h"
 #include "utils/CharsetConverter.h"

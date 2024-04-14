@@ -59,9 +59,9 @@
       <audio filter="ffdaudiodec" />
     </rule>
     <rule filetypes="mkv">
-      <source filter="avsource" />
-      <splitter filter="avsource" />
-      <video filter="mpcvideodec" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
+      <video filter="lavvideodec" />
       <!-- You can do like that to specifie a DXVA only filters.
       If you want to use the same filter for DXVA and non DXVA media, just add
       a single <video> line.
@@ -69,7 +69,7 @@
         <video dxva="true" filter="mpcvideodec" />
         <video filter="mpcvideodec" />
       </video> -->
-      <audio filter="ffdaudiodec" />
+      <audio filter="lavaudiodec" />
       <!--<extra>
         <extra filter="ac3filter" />
         <extra filter="dcgraphiceq" />
