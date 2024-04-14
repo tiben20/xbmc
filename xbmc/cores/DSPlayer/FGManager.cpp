@@ -364,7 +364,7 @@ HRESULT CFGManager::RenderFileXbmc(const CFileItem& pFileItem)
     if (FAILED(hr = RecoverFromGraphError(pFileItem)))
       return hr;
   }
-
+  CGraphFilters::Get()->SetSanearSettings();
   //Apparently the graph don't start with unconnected filters in the graph for wmv files
   //And its also going to be needed for error in the filters set by the user are not getting connected
   RemoveUnconnectedFilters(g_dsGraph->pFilterGraph);

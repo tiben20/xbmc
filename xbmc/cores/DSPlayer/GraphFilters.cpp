@@ -62,8 +62,7 @@ CGraphFilters::CGraphFilters() :
   m_isKodiRealFS(false),
   m_auxAudioDelay(false),
   m_bDialogProcessInfo(false),
-  m_pD3DDevice(nullptr),
-  sanear(nullptr)
+  m_pD3DDevice(nullptr)
 {
   m_mapHWAccelDeviceInfo.clear();
 }
@@ -90,7 +89,7 @@ void CGraphFilters::SetSanearSettings()
     if (FAILED(SaneAudioRenderer::Factory::CreateSettings(&sanear)))
       return;
 #endif
-  return;
+
   std::wstring adeviceW;
   std::string adevice = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);  
   if (adevice == "System Default")
@@ -103,7 +102,9 @@ void CGraphFilters::SetSanearSettings()
   bool bSanearIgnoreSystemChannelMixer = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_SANEARIGNORESYSTEMCHANNELMIXER);
   int iSanearCutoff = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_SANEARCUTOFF);
   int iSanearLevel = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_SANEARLEVEL);
-
+  if (!CGraphFilters::Get()->AudioRenderer.pBF)
+    return;
+  sanear = CGraphFilters::Get()->AudioRenderer.pBF;
   UINT32 buffer;
   sanear->GetOuputDevice(nullptr, nullptr, &buffer);
   sanear->SetOuputDevice(adeviceW.c_str(), bSanearExclusive, buffer);

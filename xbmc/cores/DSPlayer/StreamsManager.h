@@ -48,8 +48,7 @@
 #include "utils/StreamDetails.h"
 #include "Filters/IDirectVobSub.h"
 #include "Filters/LAVAudioSettings.h"
-#include "Filters/IffdshowBase.h"
-#include "Filters/IffdshowDecAudio.h"
+
 
 #include <cassert>
 
@@ -296,7 +295,6 @@ protected:
   std::vector<CDSStreamDetailEdition *> m_editionStreams;
   bool m_mkveditions;
   Com::SmartPtr<IDirectVobSub> m_pIDirectVobSub;
-  Com::SmartPtr<IffdshowBaseW> m_pIFFDSwhoAudioSettings;
   Com::SmartPtr<ILAVAudioSettings> m_pILAVAudioSettings;
   Com::SmartPtr<IAMStreamSelect> m_pIAMStreamSelect;
   Com::SmartPtr<IAMStreamSelect> m_pIAMStreamSelectSub;

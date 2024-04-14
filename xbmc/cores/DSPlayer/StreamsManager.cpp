@@ -774,9 +774,6 @@ void CStreamsManager::resetDelayInterface()
   BOOL bValue = iValueAudio != 0;
   int iValueSubs = m_InitialSubsDelay * 1000;
 
-  if (m_bIsFFDSAudio)
-    m_pIFFDSwhoAudioSettings->putParam(IDFF_audio_decoder_delay, iValueAudio);
-
   if (m_bIsXYVSFilter)
     m_pIDirectVobSub->put_SubtitleTiming(iValueSubs, 1000, 1000);
 
@@ -801,13 +798,6 @@ void CStreamsManager::SetAudioInterface()
   {
     CLog::Log(LOGDEBUG, "{} Get LAVAudio Settings interface from {}", __FUNCTION__, audioName.c_str());
     m_bIsLavAudio = true;
-  }
-
-  hraudio = pAudio->QueryInterface(IID_IffdshowBaseW, (void **)&m_pIFFDSwhoAudioSettings);
-  if (SUCCEEDED(hraudio))
-  {
-    CLog::Log(LOGDEBUG, "{} Get FFDShowAudio Settings interface from {}", __FUNCTION__, audioName.c_str());
-    m_bIsFFDSAudio = true;
   }
 
   m_InitialAudioDelay = GetAVDelay();
@@ -838,9 +828,6 @@ void CStreamsManager::SetAVDelay(float fValue, int iDisplayerLatency)
   if (m_bIsLavAudio)
     m_pILAVAudioSettings->SetAudioDelay(bValue, iValue);
 
-  if (m_bIsFFDSAudio)
-    m_pIFFDSwhoAudioSettings->putParam(IDFF_audio_decoder_delay, iValue);
-
   m_lastDelay = iValue;
 }
 
@@ -855,9 +842,6 @@ float CStreamsManager::GetAVDelay()
 
   if (m_bIsLavAudio)
     m_pILAVAudioSettings->GetAudioDelay(&bValue, &iValue);
-
-  if (m_bIsFFDSAudio)
-    m_pIFFDSwhoAudioSettings->getParam(IDFF_audio_decoder_delay, &iValue);
 
   fValue = (float)iValue / 1000.0f;
 

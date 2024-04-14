@@ -210,7 +210,7 @@ public:
   }
   void SetD3DDevice(IDirect3DDevice9 * pD3DDevice){ m_pD3DDevice = pD3DDevice; }
   IDirect3DDevice9* GetD3DDevice(){ return m_pD3DDevice; }
-  Com::SmartPtr<SaneAudioRenderer::ISettings> sanear;
+  Com::SmartQIPtr<SaneAudioRenderer::ISettings> sanear;
   
 private:
   CGraphFilters();
