@@ -8,3 +8,4 @@ xbmc/cores/DSPlayer/PVR                            cores/DSPlayer/PVR
 xbmc/cores/DSPlayer/Subtitles/subpic               cores/DSPlayer/Subtitles/subpic
 xbmc/cores/DSPlayer/Utils                          cores/DSPlayer/Utils
 xbmc/cores/DSPlayer/VideoRenderers                 cores/DSPlayer/VideoRenderers
+xbmc/cores/DSPlayer/Filters/MPCVideoRenderer       cores/DSPlayer/Filters/MPCVideoRenderer

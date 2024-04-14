@@ -165,7 +165,7 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 		if (m_DXVA2VPcaps.VideoProcessorOperations & DXVA2_VideoProcess_LinearScaling)      { dbgstr.append(L" LinearScaling,"); }
 		if (m_DXVA2VPcaps.VideoProcessorOperations & DXVA2_VideoProcess_GammaCompensated)   { dbgstr.append(L" GammaCompensated,"); }
 		if (m_DXVA2VPcaps.VideoProcessorOperations & DXVA2_VideoProcess_MaintainsOriginalFieldData) { dbgstr.append(L" MaintainsOriginalFieldData"); }
-		str_trim_end(dbgstr, ',');
+		dbgstr = dbgstr.TrimRight(',');
 		dbgstr.append(L"\n  Deinterlace Technology:");
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_BOBLineReplicate)       { dbgstr.append(L" BOBLineReplicate,"); }
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_BOBVerticalStretch)     { dbgstr.append(L" BOBVerticalStretch,"); }
@@ -176,7 +176,7 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_PixelAdaptive)          { dbgstr.append(L" PixelAdaptive,"); }
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_MotionVectorSteered)    { dbgstr.append(L" MotionVectorSteered,"); }
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_InverseTelecine)        { dbgstr.append(L" InverseTelecine"); }
-		str_trim_end(dbgstr, ',');
+		dbgstr = dbgstr.TrimRight(',');
 		DLog(dbgstr);
 		}
 #endif

@@ -221,7 +221,8 @@ HRESULT CD3D11VP::InitVideoProcessor(
 	if (m_VPCaps.FilterCaps & D3D11_VIDEO_PROCESSOR_FILTER_CAPS_EDGE_ENHANCEMENT)   { dbgstr.append(L" Edge enhancement,"); }
 	if (m_VPCaps.FilterCaps & D3D11_VIDEO_PROCESSOR_FILTER_CAPS_ANAMORPHIC_SCALING) { dbgstr.append(L" Anamorphic scaling,"); }
 	if (m_VPCaps.FilterCaps & D3D11_VIDEO_PROCESSOR_FILTER_CAPS_STEREO_ADJUSTMENT)  { dbgstr.append(L" Stereo adjustment"); }
-	str_trim_end(dbgstr, ',');
+	dbgstr = dbgstr.TrimRight(',');
+	//str_trim_end(dbgstr, ',');
 	dbgstr.AppendFormat(L"\n  InputFormat interlaced RGB    : {}", (m_VPCaps.InputFormatCaps & D3D11_VIDEO_PROCESSOR_FORMAT_CAPS_RGB_INTERLACED) ? L"supported" : L"NOT supported");
 	dbgstr.AppendFormat(L"\n  InputFormat RGB ProcAmp       : {}", (m_VPCaps.InputFormatCaps & D3D11_VIDEO_PROCESSOR_FORMAT_CAPS_RGB_PROCAMP) ? L"supported" : L"NOT supported");
 	dbgstr.append(L"\n  AutoStream image processing   :");
@@ -236,7 +237,7 @@ HRESULT CD3D11VP::InitVideoProcessor(
 		if (m_VPCaps.AutoStreamCaps & D3D11_VIDEO_PROCESSOR_AUTO_STREAM_CAPS_IMAGE_STABILIZATION) { dbgstr.append(L" Image stabilization,"); }
 		if (m_VPCaps.AutoStreamCaps & D3D11_VIDEO_PROCESSOR_AUTO_STREAM_CAPS_SUPER_RESOLUTION)    { dbgstr.append(L" Super resolution,"); }
 		if (m_VPCaps.AutoStreamCaps & D3D11_VIDEO_PROCESSOR_AUTO_STREAM_CAPS_ANAMORPHIC_SCALING)  { dbgstr.append(L" Anamorphic scaling"); }
-		str_trim_end(dbgstr, ',');
+		dbgstr = dbgstr.TrimRight(',');
 	}
 	DLog(dbgstr);
 #endif
@@ -323,7 +324,7 @@ HRESULT CD3D11VP::InitVideoProcessor(
 				if (m_RateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_MOTION_COMPENSATION) { dbgstr.append(L" Motion Compensation,"); }
 				if (m_RateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_INVERSE_TELECINE)                { dbgstr.append(L" Inverse Telecine,"); }
 				if (m_RateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION)           { dbgstr.append(L" Frame Rate Conversion"); }
-				str_trim_end(dbgstr, ',');
+				dbgstr = dbgstr.TrimRight(',');
 				dbgstr.AppendFormat(L"\n  PastFrames   : {}", m_RateConvCaps.PastFrames);
 				dbgstr.AppendFormat(L"\n  FutureFrames : {}", m_RateConvCaps.FutureFrames);
 				DLog(dbgstr);

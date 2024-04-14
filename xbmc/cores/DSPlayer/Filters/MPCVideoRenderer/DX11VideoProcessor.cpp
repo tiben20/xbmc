@@ -35,7 +35,7 @@
 
 
 #include "minhook/include/MinHook.h"
-#include "CPUInfo.h"
+#include "CPUInfo2.h"
 
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
@@ -3208,7 +3208,7 @@ HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_MOTION_COMPENSATION) str.AppendFormat(L" Motion Compensation,");
 		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_INVERSE_TELECINE)                str.AppendFormat(L" Inverse Telecine,");
 		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION)           str.AppendFormat(L" Frame Rate Conversion");
-		str_trim_end(str, ',');
+		str = str.TrimRight(',');
 		str.Format(L"\nReference Frames: Past {}, Future {}", rateConvCaps.PastFrames, rateConvCaps.FutureFrames);
 	} else {
 		str.append(L"Shaders");
@@ -3800,7 +3800,7 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 		if (m_bDitherUsed) {
 			str.append(L" dither");
 		}
-		str_trim_end(str, ',');
+		str = str.TrimRight(',');
 	}
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);

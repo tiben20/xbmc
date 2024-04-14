@@ -24,7 +24,7 @@
 #include "resource.h"
 #include "IVideoRenderer.h"
 #include "Shaders.h"
-
+#include "DSUtil/DSUtil.h"
 
 HRESULT CompileShader(const CStdString& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
 {
@@ -51,7 +51,7 @@ HRESULT CompileShader(const CStdString& srcCode, const D3D_SHADER_MACRO* pDefine
 
 		if (pErrorBlob) {
 			CStdStringA strErrorMsgs((char*)pErrorBlob->GetBufferPointer(), pErrorBlob->GetBufferSize());
-			DLog(A2WStr(strErrorMsgs));
+			DLog(AToW(strErrorMsgs));
 		} else {
 			DLog(L"Unexpected compiler error");
 		}

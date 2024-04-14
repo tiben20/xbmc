@@ -555,7 +555,7 @@ HRESULT CVRInfoPPage::OnActivate()
 
 	CStdStringW strVP;
 	if (S_OK == m_pVideoRenderer->GetVideoProcessorInfo(strVP)) {
-		str_replace(strVP, L"\n", L"\r\n");
+		strVP = strVP.Replace(L"\n", L"\r\n");
 		strInfo.append(strVP);
 	}
 

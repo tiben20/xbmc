@@ -1,0 +1,62 @@
+set(SOURCES CPUInfo2.cpp
+			csputils.cpp
+			CustomAllocator.cpp
+			D3D11Font.cpp
+			D3D11Geometry.cpp
+			D3D11VP.cpp
+			D3D9Font.cpp
+			D3D9Geometry.cpp
+			DisplayConfig.cpp
+			DX11Helper.cpp
+			DX11VideoProcessor.cpp
+			DX9Helper.cpp
+			DX9VideoProcessor.cpp
+			DXVA2VP.cpp
+			Helper.cpp
+			MediaSampleSideData.cpp
+			PropPage.cpp
+			Registry.cpp
+			renbase2.cpp
+			Shaders.cpp
+			stdafx.cpp
+			Times.cpp
+			Util2.cpp
+			VideoProcessor.cpp
+			VideoRenderer.cpp
+			VideoRendererInputPin.cpp)
+
+set(HEADERS atlredef.h
+CPUInfo2.h
+csputils.h
+CustomAllocator.h
+D3D11Font.h
+D3D11Geometry.h
+D3D11VP.h
+D3D9Font.h
+D3D9Geometry.h
+D3DCommon.h
+DisplayConfig.h
+DX11Helper.h
+DX11VideoProcessor.h
+DX9Helper.h
+DX9VideoProcessor.h
+DXVA2VP.h
+FontBitmap.h
+FrameStats.h
+gpu_memcpy_sse4.h
+Helper.h
+IVideoRenderer.h
+MediaSampleSideData.h
+PropPage.h
+Registry.h
+renbase2.h
+resource.h
+Shaders.h
+stdafx.h
+Times.h
+Util2.h
+VideoProcessor.h
+VideoRenderer.h
+VideoRendererInputPin.h)
+
+core_add_library(Filters)

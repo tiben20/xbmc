@@ -20,7 +20,7 @@
 
 #include "stdafx.h"
 #include <intrin.h>
-#include "CPUInfo.h"
+#include "CPUInfo2.h"
 
 
 

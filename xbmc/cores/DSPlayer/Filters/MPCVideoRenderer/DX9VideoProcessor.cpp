@@ -28,8 +28,8 @@
 #include "VideoRenderer.h"
 #include "Include/Version.h"
 #include "DX9VideoProcessor.h"
-#include "CPUInfo.h"
-
+#include "CPUInfo2.h"
+#include "DSUtil/DSUtil.h"
 #include "minhook/include/MinHook.h"
 
 static const ScalingShaderResId s_Upscaling9ResIDs[UPSCALE_COUNT] = {
@@ -406,7 +406,7 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 	D3DADAPTER_IDENTIFIER9 AdapID9 = {};
 	if (S_OK == m_pD3DEx->GetAdapterIdentifier(m_nCurrentAdapter, 0, &AdapID9)) {
 		m_VendorId = AdapID9.VendorId;
-		m_strAdapterDescription.Format(L"{} ({:04X}:{:04X})", A2WStr(AdapID9.Description), AdapID9.VendorId, AdapID9.DeviceId);
+		m_strAdapterDescription.Format(L"{} ({:04X}:{:04X})", AToW(AdapID9.Description), AdapID9.VendorId, AdapID9.DeviceId);
 		DLog(L"Graphics D3D9 adapter: {}", m_strAdapterDescription);
 	}
 
@@ -1871,7 +1871,7 @@ HRESULT CDX9VideoProcessor::GetVPInfo(CStdStringW& str)
 			if (dt & DXVA2_DeinterlaceTech_PixelAdaptive)          str.append(L" PixelAdaptive,");
 			if (dt & DXVA2_DeinterlaceTech_MotionVectorSteered)    str.append(L" MotionVectorSteered,");
 			if (dt & DXVA2_DeinterlaceTech_InverseTelecine)        str.append(L" InverseTelecine");
-			str_trim_end(str, ',');
+			str = str.TrimRight(',');
 			str.AppendFormat(L"\nReferenceSamples: Backward {}, Forward {}", DXVA2VPcaps.NumBackwardRefSamples, DXVA2VPcaps.NumForwardRefSamples);
 		} else {
 			str.append(L" none");
@@ -3053,7 +3053,7 @@ HRESULT CDX9VideoProcessor::DrawStats(IDirect3DSurface9* pRenderTarget)
 		if (m_bDitherUsed) {
 			str.append(L" dither");
 		}
-		str_trim_end(str, ',');
+		str = str.TrimRight(',');
 	}
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);

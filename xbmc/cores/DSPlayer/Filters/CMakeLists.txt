@@ -17,16 +17,8 @@ set(HEADERS AllocatorCommon.h
             asyncio.h
             asyncrdr.h
             BaseSharedRender.h
-            ffdshow_constants.h
             FocusThread.h
             IDirectVobSub.h
-            IffDecoder.h
-            IffdshowBase.h
-            IffdshowDec.h
-            IffdshowDecAudio.h
-            IffdshowDecVideo.h
-            IffdshowEnc.h
-            IffdshowParamsEnum.h
             IMpaDecFilter.h
             IMPCVideoDecFilter.h
             LAVAudioSettings.h

@@ -23,7 +23,7 @@
 #include <dxva2api.h>
 #include <mfobjects.h>
 #include "Util2.h"
-#include "StringUtil.h"
+#include "utils/StringUtils.h"
 #include "csputils.h"
 #include "Include/IMediaSideData.h"
 #include <dxgiformat.h>

@@ -19,6 +19,7 @@
 // SOFTWARE.
 
 #pragma once
+#include <intsafe.h>
 
 namespace CPUInfo {
 	enum PROCESSOR_TYPE {

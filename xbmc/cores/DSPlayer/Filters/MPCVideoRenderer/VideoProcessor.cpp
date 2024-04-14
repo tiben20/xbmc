@@ -23,8 +23,8 @@
 #include <Mferror.h>
 #include "Helper.h"
 #include "VideoRenderer.h"
-
 #include "VideoProcessor.h"
+#include "DSUtil/DSUtil.h"
 
 HRESULT CVideoProcessor::GetVideoSize(long *pWidth, long *pHeight)
 {
@@ -163,28 +163,28 @@ void CVideoProcessor::UpdateStatsInputFmt()
 	if (m_srcParams.CSType == CS_YUV) {
 		LPCSTR strs[6] = {};
 		GetExtendedFormatString(strs, m_srcExFmt, m_srcParams.CSType);
-		m_strStatsInputFmt.AppendFormat(L"\n  Range: {}", A2WStr(strs[1]));
+		m_strStatsInputFmt.AppendFormat(L"\n  Range: {}", AToW(strs[1]));
 		if (m_decExFmt.NominalRange == DXVA2_NominalRange_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
-		m_strStatsInputFmt.AppendFormat(L", Matrix: {}", A2WStr(strs[2]));
+		m_strStatsInputFmt.AppendFormat(L", Matrix: {}", AToW(strs[2]));
 		if (m_decExFmt.VideoTransferMatrix == DXVA2_VideoTransferMatrix_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
 		if (m_decExFmt.VideoLighting != DXVA2_VideoLighting_Unknown) {
 			// display Lighting only for values other than Unknown, but this never happens
-			m_strStatsInputFmt.AppendFormat(L", Lighting: {}", A2WStr(strs[3]));
+			m_strStatsInputFmt.AppendFormat(L", Lighting: {}", AToW(strs[3]));
 		};
-		m_strStatsInputFmt.AppendFormat(L"\n  Primaries: {}", A2WStr(strs[4]));
+		m_strStatsInputFmt.AppendFormat(L"\n  Primaries: {}", AToW(strs[4]));
 		if (m_decExFmt.VideoPrimaries == DXVA2_VideoPrimaries_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
-		m_strStatsInputFmt.AppendFormat(L", Function: {}", A2WStr(strs[5]));
+		m_strStatsInputFmt.AppendFormat(L", Function: {}", AToW(strs[5]));
 		if (m_decExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
 		if (m_srcParams.Subsampling == 420) {
-			m_strStatsInputFmt.AppendFormat(L"\n  ChromaLocation: {}", A2WStr(strs[0]));
+			m_strStatsInputFmt.AppendFormat(L"\n  ChromaLocation: {}", AToW(strs[0]));
 			if (m_decExFmt.VideoChromaSubsampling == DXVA2_VideoChromaSubsampling_Unknown) {
 				m_strStatsInputFmt += L'*';
 			};

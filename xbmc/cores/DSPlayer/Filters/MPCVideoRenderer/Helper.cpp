@@ -24,8 +24,8 @@
 #include "Utils/gpu_memcpy_sse4.h"
 #include "Include/Version.h"
 #include "Helper.h"
-#include "CPUInfo.h"
-#include "StringUtil.h"
+#include "CPUInfo2.h"
+#include "utils/StringUtils.h"
 
 CStdStringW GetVersionStr()
 {
@@ -904,7 +904,8 @@ HRESULT SaveToImage(BYTE* src, const UINT pitch, const UINT width, const UINT he
 	GUID wicFormat = {};
 	CStdStringW ext;
 	ext.assign(filename, filename.find_last_of(L"."));
-	str_tolower(ext);
+	ext = ext.ToLower();
+	
 	if (ext == L".bmp") {
 		wicFormat = GUID_ContainerFormatBmp;
 	}
