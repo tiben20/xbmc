@@ -26,7 +26,7 @@
 #include "Shaders.h"
 #include "DSUtil/DSUtil.h"
 
-HRESULT CompileShader(const CStdString& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
+HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
 {
 	//ASSERT(*ppShaderBlob == nullptr);
 

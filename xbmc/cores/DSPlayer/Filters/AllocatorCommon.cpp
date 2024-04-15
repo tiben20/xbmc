@@ -30,6 +30,7 @@
 #include "DSUtil/DSUtil.h"
 #include "AllocatorCommon.h"
 #include "madVRAllocatorPresenter.h"
+#include "mpcvideorenderer/VideoRenderer.h"
 #include "utils/log.h"
 
 HRESULT CreateMadVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP)
@@ -52,6 +53,33 @@ HRESULT CreateMadVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** p
     else if (!Error.empty())
     {
       CLog::Log(LOGWARNING, "{} {}", __FUNCTION__, Error.c_str());
+    }
+  }
+
+  return hr;
+}
+
+HRESULT CreateMPCVideoRenderer(const CLSID& clsid, HWND hWnd, IBaseFilter** ppAP)
+{
+  HRESULT    hr = S_OK;
+  if (clsid == __uuidof(CMpcVideoRenderer))
+  {
+    std::string Error;
+    *ppAP = DNew CMpcVideoRenderer(nullptr, &hr);
+    
+    (*ppAP)->AddRef();
+
+    if (FAILED(hr))
+    {
+      Error += "\n";
+      Error += GetWindowsErrorMessage(hr, NULL);
+      CLog::Log(LOGERROR, "%s %s", __FUNCTION__, Error.c_str());
+      (*ppAP)->Release();
+      *ppAP = NULL;
+    }
+    else if (!Error.empty())
+    {
+      CLog::Log(LOGWARNING, "%s %s", __FUNCTION__, Error.c_str());
     }
   }
 

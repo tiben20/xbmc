@@ -202,8 +202,8 @@ public:
 	virtual void ClearPreScaleShaders() = 0;
 	virtual void ClearPostScaleShaders() = 0;
 
-	virtual HRESULT AddPreScaleShader(const CStdStringW& name, const CStdString& srcCode) = 0;
-	virtual HRESULT AddPostScaleShader(const CStdStringW& name, const CStdString& srcCode) = 0;
+	virtual HRESULT AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode) = 0;
+	virtual HRESULT AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode) = 0;
 
 	virtual HRESULT GetCurentImage(long *pDIBImage) = 0;
 	virtual HRESULT GetDisplayedImage(BYTE **ppDib, unsigned *pSize) = 0;

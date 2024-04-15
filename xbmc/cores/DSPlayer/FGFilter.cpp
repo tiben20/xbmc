@@ -30,6 +30,7 @@
 #include "FGFilter.h"
 #include "DSUtil/SmartPtr.h"
 #include "Filters/madVRAllocatorPresenter.h"
+#include "Filters/MPCVideoRenderer/VideoRenderer.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "utils/log.h"
 #include "utils/charsetconverter.h"
@@ -456,6 +457,11 @@ HRESULT CFGFilterVideoRenderer::Create(IBaseFilter** ppBF)
   std::string __err;
   if (m_clsid == CLSID_madVRAllocatorPresenter)
     CreateMadVR(m_clsid, g_hWnd, &pCAP);
+
+  if (m_clsid == __uuidof(CMpcVideoRenderer))
+  { 
+    CreateMPCVideoRenderer(m_clsid, g_hWnd, ppBF);
+  }
 
   if (pCAP == NULL)
   {

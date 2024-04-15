@@ -57,6 +57,7 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "guilib/GUIComponent.h"
+#include "Filters/MPCVideoRenderer/VideoRenderer.h"
 
 namespace
 {
@@ -444,6 +445,10 @@ HRESULT CFGLoader::InsertVideoRenderer()
   if (videoRender.ToLower() == "madvr")
   {
     m_pFGF = new CFGFilterVideoRenderer(CLSID_madVRAllocatorPresenter, "Kodi madVR");
+  }
+  else if (videoRender.ToLower() == "mpcvr")
+  {
+    m_pFGF = new CFGFilterVideoRenderer(__uuidof(CMpcVideoRenderer), "Kodi mpcVR");
   }
 
   hr = m_pFGF->Create(&CGraphFilters::Get()->VideoRenderer.pBF);

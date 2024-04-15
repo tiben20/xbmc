@@ -43,8 +43,8 @@ private:
 	friend class CVideoRendererInputPin;
 
 	// Direct3D 11
-	Microsoft::WRL::ComPtr<ID3D11Device1>        m_pDevice;
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
+	//Microsoft::WRL::ComPtr<ID3D11Device1>        m_pDevice;
+	//Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerPoint;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerLinear;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerDither;
@@ -256,8 +256,8 @@ public:
 	void ClearPreScaleShaders() override;
 	void ClearPostScaleShaders() override;
 
-	HRESULT AddPreScaleShader(const CStdStringW& name, const CStdString& srcCode) override;
-	HRESULT AddPostScaleShader(const CStdStringW& name, const CStdString& srcCode) override;
+	HRESULT AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode) override;
+	HRESULT AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode) override;
 
 private:
 	void UpdateTexures();

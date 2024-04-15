@@ -71,9 +71,9 @@
     <TargetName>strmbasd</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\libs\$(Platform)\</OutDir>
-    <IntDir>$(Platform)\Debug\</IntDir>
+    <OutDir>..\..\..\..\project\BuildDependencies\$(Platform)\lib\</OutDir>
     <TargetName>strmbasd</TargetName>
+    <IntDir>$(Platform)\Debug\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>..\libs\$(Platform)\</OutDir>
@@ -101,7 +101,7 @@
     </ClCompile>
     <Lib>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\libs\$(Platform)\strmbasd.lib</OutputFile>
+      <OutputFile>..\..\..\..\project\BuildDependencies\$(Platform)\lib\strmbasd.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,7 +122,7 @@
     </ClCompile>
     <Lib>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\libs\$(Platform)\strmbasd.lib</OutputFile>
+      <OutputFile>..\..\..\..\project\BuildDependencies\$(Platform)\lib\strmbasd.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -138,7 +138,7 @@
     </ClCompile>
     <Lib>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\libs\$(Platform)\strmbase.lib</OutputFile>
+      <OutputFile>..\..\..\..\project\BuildDependencies\$(Platform)\lib\strmbase.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,7 +157,7 @@
     </ClCompile>
     <Lib>
       <AdditionalDependencies>strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\libs\$(Platform)\strmbase.lib</OutputFile>
+      <OutputFile>..\..\..\..\project\BuildDependencies\$(Platform)\lib\strmbase.lib</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>

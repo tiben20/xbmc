@@ -22,6 +22,7 @@
 
 #include <dxva2api.h>
 #include "utils/StdString.h"
+#include "VersionHelpers.h"
 
 enum :int {
 	TEXFMT_AUTOINT = 0,

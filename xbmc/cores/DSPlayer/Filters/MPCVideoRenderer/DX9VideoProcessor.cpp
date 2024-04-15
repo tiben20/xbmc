@@ -587,7 +587,7 @@ HRESULT CDX9VideoProcessor::InitInternal(bool* pChangeDevice/* = nullptr*/)
 		m_pFilter->m_pSubCallBack->SetDevice(m_pD3DDevEx.Get());
 	}
 
-	if (m_VendorId == PCIV_INTEL && CPUInfo::HaveSSE41()) {
+	if (m_VendorId == PCIV_Intel && CPUInfo::HaveSSE41()) {
 		m_pCopyGpuFn = CopyGpuFrame_SSE41;
 	} else {
 		m_pCopyGpuFn = CopyFrameAsIs;
@@ -744,7 +744,7 @@ HRESULT CDX9VideoProcessor::InitializeDXVA2VP(const FmtConvParams_t& params, con
 
 	DLog(L"CDX9VideoProcessor::InitializeDXVA2VP() started with input surface: {}, {} x {}", D3DFormatToString(dxva2format), width, height);
 
-	if (m_VendorId != PCIV_INTEL && (dxva2format == D3DFMT_X8R8G8B8 || dxva2format == D3DFMT_A8R8G8B8)) {
+	if (m_VendorId != PCIV_Intel && (dxva2format == D3DFMT_X8R8G8B8 || dxva2format == D3DFMT_A8R8G8B8)) {
 		m_DXVA2VP.ReleaseVideoProcessor();
 		DLog(L"CDX9VideoProcessor::InitializeDXVA2VP() : RGB input is not supported");
 		return E_FAIL;
@@ -2097,7 +2097,7 @@ void CDX9VideoProcessor::ClearPostScaleShaders()
 	DLog(L"CDX9VideoProcessor::ClearPostScaleShaders().");
 }
 
-HRESULT CDX9VideoProcessor::AddPreScaleShader(const CStdStringW& name, const CStdString& srcCode)
+HRESULT CDX9VideoProcessor::AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode)
 {
 #ifdef _DEBUG
 	if (!m_pD3DDevEx) {
@@ -2131,7 +2131,7 @@ HRESULT CDX9VideoProcessor::AddPreScaleShader(const CStdStringW& name, const CSt
 #endif
 }
 
-HRESULT CDX9VideoProcessor::AddPostScaleShader(const CStdStringW& name, const CStdString& srcCode)
+HRESULT CDX9VideoProcessor::AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode)
 {
 	if (!m_pD3DDevEx) {
 		return E_ABORT;

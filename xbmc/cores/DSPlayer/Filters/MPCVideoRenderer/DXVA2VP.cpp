@@ -25,7 +25,7 @@
 #include "DX9Helper.h"
 
 #include "DXVA2VP.h"
-
+#include "rendering/dx/DirectXHelper.h"
 // CDXVA2VP
 
 // https://msdn.microsoft.com/en-us/library/cc307964(v=vs.85).aspx
@@ -351,7 +351,7 @@ HRESULT CDXVA2VP::InitVideoProcessor(
 
 	m_BltParams.DestFormat.value = 0; // output to RGB
 	m_BltParams.DestFormat.SampleFormat = DXVA2_SampleProgressiveFrame; // output to progressive RGB
-	if (exFmt.NominalRange == DXVA2_NominalRange_0_255 && (m_VendorId == PCIV_NVIDIA || m_VendorId == PCIV_AMDATI)) {
+	if (exFmt.NominalRange == DXVA2_NominalRange_0_255 && (m_VendorId == PCIV_NVIDIA || m_VendorId == PCIV_AMD)) {
 		// hack for Nvidia and AMD, nothing helps Intel
 		m_BltParams.DestFormat.NominalRange = DXVA2_NominalRange_16_235;
 	} else {

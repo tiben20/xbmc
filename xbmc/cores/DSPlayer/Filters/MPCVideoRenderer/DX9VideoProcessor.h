@@ -176,8 +176,8 @@ public:
 	void ClearPreScaleShaders() override;
 	void ClearPostScaleShaders() override;
 
-	HRESULT AddPreScaleShader(const CStdStringW& name, const CStdString& srcCode) override;
-	HRESULT AddPostScaleShader(const CStdStringW& name, const CStdString& srcCode) override;
+	HRESULT AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode) override;
+	HRESULT AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode) override;
 
 private:
 	void UpdateTexures();

@@ -27,6 +27,7 @@
 #include "MadvrSharedRender.h"
 #include "MadvrSettingsManager.h"
 #include "threads/Event.h"
+#include "MPCVideoRenderer/include/ISubRender.h"
 
 class CmadVRAllocatorPresenter
   : public ISubPicAllocatorPresenterImpl,

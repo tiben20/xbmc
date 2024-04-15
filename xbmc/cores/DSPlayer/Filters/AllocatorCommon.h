@@ -51,3 +51,4 @@ extern std::string GetWindowsErrorMessage(HRESULT _Error, HMODULE _Module);
 extern const char *GetD3DFormatStr(D3DFORMAT Format);
 
 extern HRESULT CreateMadVR(const CLSID& clsid, HWND hWnd, ISubPicAllocatorPresenter** ppAP);
+extern HRESULT CreateMPCVideoRenderer(const CLSID& clsid, HWND hWnd, IBaseFilter** ppAP);

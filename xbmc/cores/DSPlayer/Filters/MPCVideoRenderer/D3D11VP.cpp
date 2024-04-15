@@ -27,7 +27,7 @@
 #include "IVideoRenderer.h"
 
 #include "D3D11VP.h"
-
+#include "rendering/dx/DirectXHelper.h"
 #define ENABLE_FUTUREFRAMES 0
 
 int ValueDXVA2toD3D11(const DXVA2_Fixed32 fixed, const D3D11_VIDEO_PROCESSOR_FILTER_RANGE& range)
@@ -791,7 +791,7 @@ HRESULT CD3D11VP::SetSuperRes(const int iSuperRes)
 	if (m_VendorId == PCIV_NVIDIA) {
 		return SetSuperResNvidia(enable);
 	}
-	else if (m_VendorId == PCIV_INTEL) {
+	else if (m_VendorId == PCIV_Intel) {
 		return SetSuperResIntel(enable);
 	}
 

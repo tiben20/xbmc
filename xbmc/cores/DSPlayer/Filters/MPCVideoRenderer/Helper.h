@@ -42,9 +42,9 @@
 
 #define DXGI_FORMAT_PLANAR (DXGI_FORMAT)0xFFFF
 
-#define PCIV_AMDATI      0x1002
-#define PCIV_NVIDIA      0x10DE
-#define PCIV_INTEL       0x8086
+//#define PCIV_AMD      0x1002
+//#define PCIV_NVIDIA      0x10DE
+//#define PCIV_Intel       0x8086
 
 #define INVALID_TIME INT64_MIN
 

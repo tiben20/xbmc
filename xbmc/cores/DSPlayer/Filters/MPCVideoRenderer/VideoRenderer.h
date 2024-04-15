@@ -32,6 +32,9 @@
 #include "Include/ID3DFullscreenControl.h"
 #include "Include/FilterInterfacesImpl.h"
 
+/* kodi related headers */
+#include "rendering/dx/DeviceResources.h"
+
 const AMOVIESETUP_MEDIATYPE sudPinTypesIn[] = {
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_NV12},
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_P010},
