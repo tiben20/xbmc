@@ -107,7 +107,7 @@ void ShaderGetPixels(
 			}
 		}
 	}
-	DLog(L"ConvertColorShader: frame consists of {} planes", planes);
+	DLog(L"ConvertColorShader: frame consists of %f planes", planes);
 
 	const bool packed422 = (fmtParams.cformat == CF_YUY2 || fmtParams.cformat == CF_Y210 || fmtParams.cformat == CF_Y216);
 	const bool blendDeint420 = (blendDeinterlace && fmtParams.Subsampling == 420);
@@ -220,11 +220,11 @@ void ShaderGetPixels(
 				code.append("colorUV = texUV.Sample(samp, input.Tex).rg;\n");
 			}
 			else if (chromaScaling == CHROMA_CatmullRom && fmtParams.Subsampling == 420) {
-				code.AppendFormat("float2 t = frac(input.Tex * (wh*0.5)){};\n", strChromaPos2); // Very strange, but it works.
+				code.AppendFormat("float2 t = frac(input.Tex * (wh*0.5))%s;\n", strChromaPos2); // Very strange, but it works.
 				code.append(code_CatmullRom_weights);
 				for (int y = 0; y < 4; y++) {
 					for (int x = 0; x < 4; x++) {
-						code.AppendFormat("float2 c{}{} = texUV.Sample(samp, input.Tex, int2({}, {})).rg;\n", x, y, x-1, y-1);
+						code.AppendFormat("float2 c%i%i = texUV.Sample(samp, input.Tex, int2(%i, %i)).rg;\n", x, y, x-1, y-1);
 					}
 				}
 				code.append(code_Bicubic_UV);
@@ -243,7 +243,7 @@ void ShaderGetPixels(
 					"}\n");
 			}
 			else { // CHROMA_Bilinear
-				code.AppendFormat("float2 pos = input.Tex{};\n", strChromaPos);
+				code.AppendFormat("float2 pos = input.Tex%s;\n", strChromaPos);
 				code.append(
 					"colorUV = texUV.Sample(sampL, pos).rg;\n"
 				);
@@ -266,13 +266,13 @@ void ShaderGetPixels(
 				);
 			}
 			else if (chromaScaling == CHROMA_CatmullRom && fmtParams.Subsampling == 420) {
-				code.AppendFormat("float2 t = frac(input.Tex * (wh*0.5)){};\n", strChromaPos2); // I don't know why, but it works.
+				code.AppendFormat("float2 t = frac(input.Tex * (wh*0.5))%s;\n", strChromaPos2); // I don't know why, but it works.
 				code.append(code_CatmullRom_weights);
 				code.append("float2 c00,c10,c20,c30,c01,c11,c21,c31,c02,c12,c22,c32,c03,c13,c23,c33;\n");
 				for (int y = 0; y < 4; y++) {
 					for (int x = 0; x < 4; x++) {
-						code.AppendFormat("c{}{}[0] = texU.Sample(samp, input.Tex, int2({}, {})).r;\n", x, y, x-1, y-1);
-						code.AppendFormat("c{}{}[1] = texV.Sample(samp, input.Tex, int2({}, {})).r;\n", x, y, x-1, y-1);
+						code.AppendFormat("c%i%i[0] = texU.Sample(samp, input.Tex, int2(%i, %i)).r;\n", x, y, x-1, y-1);
+						code.AppendFormat("c%i%i[1] = texV.Sample(samp, input.Tex, int2(%i, %i)).r;\n", x, y, x-1, y-1);
 					}
 				}
 				code.append(code_Bicubic_UV);
@@ -297,7 +297,7 @@ void ShaderGetPixels(
 					"}\n");
 			}
 			else { // CHROMA_Bilinear
-				code.AppendFormat("float2 pos = input.Tex{};\n", strChromaPos);
+				code.AppendFormat("float2 pos = input.Tex%s;\n", strChromaPos);
 				code.append(
 					"colorUV[0] = texU.Sample(sampL, pos).r;\n"
 					"colorUV[1] = texV.Sample(sampL, pos).r;\n"
@@ -389,14 +389,14 @@ void ShaderGetPixels(
 				code.append("float2 pos = t0 * (wh*0.5);\n"
 					"float2 t = frac(pos);\n"
 					"pos -= t;\n");
-				code.AppendFormat("t = t{};\n", strChromaPos2);
+				code.AppendFormat("t = t%s;\n", strChromaPos2);
 				code.append(code_CatmullRom_weights);
 				for (int y = 0; y < 4; y++) {
 					for (int x = 0; x < 4; x++) {
 						if (fmtParams.cformat == CF_NV12) {
-							code.AppendFormat("float2 c{}{} = tex2D(sUV, (pos + float2({}+0.5, {}+0.5))*dxdy2).ra;\n", x, y, x - 1, y - 1);
+							code.AppendFormat("float2 c%i%i = tex2D(sUV, (pos + float2(%i+0.5, %i+0.5))*dxdy2).ra;\n", x, y, x - 1, y - 1);
 						} else {
-							code.AppendFormat("float2 c{}{} = tex2D(sUV, (pos + float2({}+0.5, {}+0.5))*dxdy2).rg;\n", x, y, x - 1, y - 1);
+							code.AppendFormat("float2 c%i%i = tex2D(sUV, (pos + float2(%i+0.5, %i+0.5))*dxdy2).rg;\n", x, y, x - 1, y - 1);
 						}
 					}
 				}
@@ -448,13 +448,13 @@ void ShaderGetPixels(
 				code.append("float2 pos = t0 * (wh*0.5);\n"
 					"float2 t = frac(pos);\n"
 					"pos -= t;\n");
-				code.AppendFormat("t = t{};\n", strChromaPos2);
+				code.AppendFormat("t = t%s;\n", strChromaPos2);
 				code.append(code_CatmullRom_weights);
 				code.append("float2 c00,c10,c20,c30,c01,c11,c21,c31,c02,c12,c22,c32,c03,c13,c23,c33;\n");
 				for (int y = 0; y < 4; y++) {
 					for (int x = 0; x < 4; x++) {
-						code.AppendFormat("c{}{}[0] = tex2D(sU, (pos + float2({}+0.5, {}+0.5))*dxdy2).r;\n", x, y, x-1, y-1);
-						code.AppendFormat("c{}{}[1] = tex2D(sV, (pos + float2({}+0.5, {}+0.5))*dxdy2).r;\n", x, y, x-1, y-1);
+						code.AppendFormat("c%i%i[0] = tex2D(sU, (pos + float2(%i+0.5, %i+0.5))*dxdy2).r;\n", x, y, x-1, y-1);
+						code.AppendFormat("c%i%i[1] = tex2D(sV, (pos + float2(%i+0.5, %i+0.5))*dxdy2).r;\n", x, y, x-1, y-1);
 					}
 				}
 				code.append(code_Bicubic_UV);
@@ -600,7 +600,7 @@ HRESULT GetShaderConvertColor(
 		code.append("static const float3x3 matrix_conv_prim = {\n");
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				code.AppendFormat("{}, ", matrix_conv_prim[i][j]);
+				code.AppendFormat("%f, ", matrix_conv_prim[i][j]);
 			}
 			code.append("\n");
 		}
