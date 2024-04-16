@@ -461,6 +461,7 @@ HRESULT CFGFilterVideoRenderer::Create(IBaseFilter** ppBF)
   if (m_clsid == __uuidof(CMpcVideoRenderer))
   { 
     CreateMPCVideoRenderer(m_clsid, g_hWnd, ppBF);
+    return S_OK;
   }
 
   if (pCAP == NULL)

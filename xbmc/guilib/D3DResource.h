@@ -283,10 +283,9 @@ public:
 
   void OnDestroyDevice(bool fatal) override;
   void OnCreateDevice() override;
-
 private:
   bool CreateInternal();
-
+  int m_iId;
   bool m_inited;
   Microsoft::WRL::ComPtr<ID3DBlob> m_PSBuffer;
   Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PS;

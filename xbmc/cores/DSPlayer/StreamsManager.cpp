@@ -1621,7 +1621,8 @@ void CSubtitleManager::Initialize()
   CLog::Log(LOGINFO, "{} enabled libsubs.dl", __FUNCTION__);
   // Log manager for the DLL
   m_Log.reset(new ILogImpl());
-  
+  //TODO
+  return;
   m_dll.CreateD3D11SubtitleManager(DX::DeviceResources().Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
 
   if (!pManager)

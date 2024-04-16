@@ -25,6 +25,7 @@
 #include "IVideoRenderer.h"
 #include "Shaders.h"
 #include "DSUtil/DSUtil.h"
+#include "DSResource.h"
 
 HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
 {
@@ -617,11 +618,11 @@ HRESULT GetShaderConvertColor(
 	const bool packed422 = (fmtParams.cformat == CF_YUY2 || fmtParams.cformat == CF_Y210 || fmtParams.cformat == CF_Y216);
 	const bool fix422 = (packed422 && texW * 2 == width);
 
-	code.AppendFormat("#define w {}\n", fix422 ? width : texW);
-	code.AppendFormat("#define dx (1.0/{})\n", texW);
-	code.AppendFormat("#define dy (1.0/{})\n", texH);
-	code.AppendFormat("static const float2 wh = {{{}, {}}};\n", fix422 ? width : texW, texH);
-	code.AppendFormat("static const float2 dxdy2 = {{2.0/{}, 2.0/{}}};\n", texW, texH);
+	code.AppendFormat("#define w %u\n", fix422 ? width : texW);
+	code.AppendFormat("#define dx (1.0/%u)\n", texW);
+	code.AppendFormat("#define dy (1.0/%u)\n", texH);
+	code.AppendFormat("static const float2 wh = {{%u, %u}};\n", fix422 ? width : texW, texH);
+	code.AppendFormat("static const float2 dxdy2 = {{2.0/%u, 2.0/%u}};\n", texW, texH);
 
 	if (bDX11) {
 		code.append(
@@ -760,9 +761,9 @@ HRESULT GetShaderConvertColor(
 		mul_matrix3x3(mat, dovi_lms2rgb, linear);
 
 		code.append("float3x3 mat = {\n");
-		code.AppendFormat("{}, {}, {},\n", mat[0][0], mat[0][1], mat[0][2]);
-		code.AppendFormat("{}, {}, {},\n", mat[1][0], mat[1][1], mat[1][2]);
-		code.AppendFormat("{}, {}, {}\n", mat[2][0], mat[2][1], mat[2][2]);
+		code.AppendFormat("%f, %f, %f,\n", mat[0][0], mat[0][1], mat[0][2]);
+		code.AppendFormat("%f, %f, %f,\n", mat[1][0], mat[1][1], mat[1][2]);
+		code.AppendFormat("%f, %f, %f\n", mat[2][0], mat[2][1], mat[2][2]);
 		code.append("};\n");
 
 		// PQ EOTF

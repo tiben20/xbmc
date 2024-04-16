@@ -26,6 +26,7 @@
 #include "resource.h"
 #include "FontBitmap.h"
 #include "D3D11Font.h"
+#include "DSResource.h"
 
 #define MAX_NUM_VERTICES 400*6
 

@@ -133,7 +133,7 @@ private:
 	HRESULT InitializeTexVP(const FmtConvParams_t& params, const UINT width, const UINT height);
 	void UpdatFrameProperties(); // use this after receiving modified frame from hardware decoder
 
-	HRESULT CreatePShaderFromResource(IDirect3DPixelShader9** ppPixelShader, UINT resid);
+	HRESULT CreatePShaderFromResource(IDirect3DPixelShader9** ppPixelShader, std::string resid);
 	void SetShaderConvertColorParams();
 
 	HRESULT SetShaderDoviCurvesPoly();

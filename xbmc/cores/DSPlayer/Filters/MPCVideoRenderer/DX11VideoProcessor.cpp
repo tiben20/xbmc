@@ -36,6 +36,7 @@
 
 #include "minhook/include/MinHook.h"
 #include "CPUInfo2.h"
+#include "DSResource.h"
 
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
@@ -91,7 +92,7 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 }
 
 static const ScalingShaderResId s_Upscaling11ResIDs[UPSCALE_COUNT] = {
-	{0,                            0,                            L"Nearest-neighbor"  },
+	{"0",                            "0",                            L"Nearest-neighbor"  },
 	{IDF_PS_11_INTERP_MITCHELL4_X, IDF_PS_11_INTERP_MITCHELL4_Y, L"Mitchell-Netravali"},
 	{IDF_PS_11_INTERP_CATMULL4_X,  IDF_PS_11_INTERP_CATMULL4_Y,  L"Catmull-Rom"       },
 	{IDF_PS_11_INTERP_LANCZOS2_X,  IDF_PS_11_INTERP_LANCZOS2_Y,  L"Lanczos2"          },
@@ -505,7 +506,7 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 	}
 
 	ReleaseSwapChain();
-	m_pDXGIFactory2= nullptr;
+	//m_pDXGIFactory2= nullptr;
 
 	ReleaseDevice();
 
@@ -549,22 +550,22 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 		SetCallbackDevice();
 
-		if (!m_pDXGISwapChain1 || m_bIsFullscreen != m_pFilter->m_bIsFullscreen || bWindowChanged) {
+		if (!DX::DeviceResources::Get()->GetSwapChain() || m_bIsFullscreen != m_pFilter->m_bIsFullscreen || bWindowChanged) {
 			InitSwapChain();
 			UpdateStatsStatic();
 			m_pFilter->OnDisplayModeChange();
 		}
-
+		
 		return S_OK;
 	}
 	m_nCurrentAdapter = currentAdapter;
 
-	if (m_bDecoderDevice && m_pDXGISwapChain1) {
+	if (m_bDecoderDevice && DX::DeviceResources::Get()->GetSwapChain()) {
 		return S_OK;
 	}
 
 	ReleaseSwapChain();
-	m_pDXGIFactory2= nullptr;
+	//m_pDXGIFactory2= nullptr;
 	ReleaseDevice();
 
 	D3D_FEATURE_LEVEL featureLevels[] = {
@@ -614,7 +615,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 	DLog(L"CDX11VideoProcessor::Init() : D3D11CreateDevice() successfully with feature level {}.{}", (featurelevel >> 12), (featurelevel >> 8) & 0xF);
 
-	hr = SetDevice(pDevice, nullptr, false);
+	//hr = SetDevice(pDevice, nullptr, false);
 	pDevice->Release();
 
 	if (S_OK == hr) {
@@ -748,12 +749,12 @@ void CDX11VideoProcessor::ReleaseDevice()
 
 void CDX11VideoProcessor::ReleaseSwapChain()
 {
-	if (m_pDXGISwapChain1) {
-		m_pDXGISwapChain1->SetFullscreenState(FALSE, nullptr);
+	if (DX::DeviceResources::Get()->GetSwapChain()) {
+		DX::DeviceResources::Get()->GetSwapChain()->SetFullscreenState(FALSE, nullptr);
 	}
-	m_pDXGIOutput= nullptr;
+	//m_pDXGIOutput= nullptr;
 	m_pDXGISwapChain4= nullptr;
-	m_pDXGISwapChain1= nullptr;
+	//m_pDXGISwapChain1= nullptr;
 }
 
 UINT CDX11VideoProcessor::GetPostScaleSteps()
@@ -771,18 +772,20 @@ UINT CDX11VideoProcessor::GetPostScaleSteps()
 	return nSteps;
 }
 
-HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, UINT resid)
+HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, std::string resid)
 {
 	if (!DX::DeviceResources::Get()->GetD3DDevice() || !ppPixelShader) {
 		return E_POINTER;
 	}
+	CD3DDSVertexShader shdr;
+	shdr.LoadFromFile(resid);
 
 	LPVOID data;
 	DWORD size;
-	HRESULT hr = GetDataFromResource(data, size, resid);
-	if (FAILED(hr)) {
-		return hr;
-	}
+	data = shdr.GetData();
+	size = shdr.GetSize();
+	//HRESULT hr = GetDataFromResource(data, size, resid);
+
 
 	return DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(data, size, nullptr, ppPixelShader);
 }
@@ -1128,7 +1131,7 @@ HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 
 HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, const bool bDecoderDevice)
 {
-	HRESULT hr = E_FAIL;
+	HRESULT hr = S_OK;
 #if 0
 	DLog(L"CDX11VideoProcessor::SetDevice()");
 
@@ -1150,11 +1153,11 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device *pDevice, ID3D11DeviceContex
 	} else {
 		DX::DeviceResources::Get()->GetD3DDevice()->GetImmediateContext1(&m_pDeviceContext);
 	}
-
+#endif
 	// for d3d11 subtitles
 	Com::SmartQIPtr<ID3D10Multithread> pMultithread(DX::DeviceResources::Get()->GetD3DContext());
 	pMultithread->SetMultithreadProtected(TRUE);
-
+#if 0
 	Microsoft::WRL::ComPtr<IDXGIDevice> pDXGIDevice;
 	hr = DX::DeviceResources::Get()->GetD3DDevice()->QueryInterface(IID_PPV_ARGS(&pDXGIDevice));
 	if (FAILED(hr)) {
@@ -1178,7 +1181,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device *pDevice, ID3D11DeviceContex
 		m_strAdapterDescription.Format(L"{} ({:04X}:{:04X})", dxgiAdapterDesc.Description, dxgiAdapterDesc.VendorId, dxgiAdapterDesc.DeviceId);
 		DLog(L"Graphics DXGI adapter: {}", m_strAdapterDescription);
 	}
-
+#endif
 	HRESULT hr2 = m_D3D11VP.InitVideoDevice(DX::DeviceResources::Get()->GetD3DDevice(), DX::DeviceResources::Get()->GetD3DContext(), m_VendorId);
 	DLogIf(FAILED(hr2), L"CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error {}", HR2Str(hr2));
 
@@ -1211,11 +1214,13 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device *pDevice, ID3D11DeviceContex
 	bdesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateBlendState(&bdesc, &m_pAlphaBlendState));
 
+	
 	LPVOID data;
 	DWORD size;
 	EXECUTE_ASSERT(S_OK == GetDataFromResource(data, size, IDF_VS_11_SIMPLE));
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateVertexShader(data, size, nullptr, &m_pVS_Simple));
-
+	return S_OK;
+#if 0
 	D3D11_INPUT_ELEMENT_DESC Layout[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
@@ -1320,12 +1325,21 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device *pDevice, ID3D11DeviceContex
 	m_pFilter->OnDisplayModeChange();
 	UpdateStatsStatic();
 	SetGraphSize();
-#endif
+
 	return hr;
+#endif
 }
 
 HRESULT CDX11VideoProcessor::InitSwapChain()
 {
+	const auto bHdrOutput = m_bHdrPassthroughSupport && m_bHdrPassthrough && (SourceIsHDR() || m_bVPUseRTXVideoHDR);
+	m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+	if (bHdrOutput) {
+		HRESULT hr2 = DX::DeviceResources::Get()->GetSwapChain()->QueryInterface(IID_PPV_ARGS(&m_pDXGISwapChain4));
+	}
+	return S_OK;
+#if 0
+
 	DLog(L"CDX11VideoProcessor::InitSwapChain() - {}", m_pFilter->m_bIsFullscreen ? L"fullscreen" : L"window");
 	CheckPointer(m_pDXGIFactory2, E_FAIL);
 
@@ -1426,6 +1440,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 	}
 
 	return hr;
+#endif
 }
 
 BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
@@ -1704,7 +1719,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN) {
 		hr = InitializeD3D11VP(FmtParams, origW, origH);
 		if (SUCCEEDED(hr)) {
-			UINT resId = 0;
+			std::string resId = 0;
 			bool bTransFunc22 = m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_22
 								|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_709
 								|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_240M;
@@ -1733,7 +1748,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 				m_strCorrection = L"Fix BT.2020";
 			}
 
-			if (resId) {
+			if (resId.length()>0) {
 				EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, resId));
 				DLogIf(m_pPSCorrection, L"CDX11VideoProcessor::InitMediaType() m_pPSCorrection('{}') created", m_strCorrection);
 			}
@@ -2006,7 +2021,7 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 {
-	CheckPointer(m_pDXGISwapChain1, E_FAIL);
+	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_FAIL);
 
 	uint64_t tick = GetPreciseTick();
 
@@ -2250,14 +2265,14 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTime)
 {
 	CheckPointer(m_TexSrcVideo.pTexture, E_FAIL);
-	CheckPointer(m_pDXGISwapChain1, E_FAIL);
+	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_FAIL);
 
 	if (field) {
 		m_FieldDrawn = field;
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	HRESULT hr = m_pDXGISwapChain1->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::Render() : GetBuffer() failed with error {}", HR2Str(hr));
 		return hr;
@@ -2397,16 +2412,17 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			}
 		}
 	}
-
-	if (m_bVBlankBeforePresent && m_pDXGIOutput) {
-		hr = m_pDXGIOutput->WaitForVBlank();
+	Microsoft::WRL::ComPtr<IDXGIOutput>    pDXGIOutput;
+	DX::DeviceResources::Get()->GetOutput(&pDXGIOutput);
+	if (m_bVBlankBeforePresent && pDXGIOutput) {
+		hr = pDXGIOutput->WaitForVBlank();
 		DLogIf(FAILED(hr), L"WaitForVBlank failed with error {}", HR2Str(hr));
 	}
 
 	SyncFrameToStreamTime(frameStartTime);
 
 	g_bPresent = true;
-	hr = m_pDXGISwapChain1->Present(1, 0);
+	hr = DX::DeviceResources::Get()->GetSwapChain()->Present(1, 0);
 	g_bPresent = false;
 	DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : Present() failed with error {}", HR2Str(hr));
 
@@ -2421,10 +2437,10 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 
 HRESULT CDX11VideoProcessor::FillBlack()
 {
-	CheckPointer(m_pDXGISwapChain1, E_ABORT);
+	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_ABORT);
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	HRESULT hr = m_pDXGISwapChain1->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::FillBlack() : GetBuffer() failed with error {}", HR2Str(hr));
 		return hr;
@@ -2462,7 +2478,7 @@ HRESULT CDX11VideoProcessor::FillBlack()
 	}
 
 	g_bPresent = true;
-	hr = m_pDXGISwapChain1->Present(1, 0);
+	hr = DX::DeviceResources::Get()->GetSwapChain()->Present(1, 0);
 	g_bPresent = false;
 	DLogIf(FAILED(hr), L"CDX11VideoProcessor::FillBlack() : Present() failed with error {}", HR2Str(hr));
 
@@ -2581,7 +2597,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 
 	if (FAILED(hr)) {
 		ASSERT(0);
-		UINT resid = 0;
+		std::string resid = 0;
 		if (m_srcParams.cformat == CF_YUY2) {
 			resid = IDF_PS_11_CONVERT_YUY2;
 		}
@@ -2611,7 +2627,7 @@ void CDX11VideoProcessor::UpdateBitmapShader()
 {
 	if (m_bHdrDisplayModeEnabled
 			&& (SourceIsPQorHLG() || m_bVPUseRTXVideoHDR)) {
-		UINT resid;
+		std::string resid;
 		float SDR_peak_lum;
 		switch (m_iHdrOsdBrightness) {
 		default:
@@ -3005,8 +3021,8 @@ HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 	const UINT w = m_windowRect.Width();
 	const UINT h = m_windowRect.Height();
 
-	if (m_pDXGISwapChain1 && !m_bIsFullscreen) {
-		hr = m_pDXGISwapChain1->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
+	if (DX::DeviceResources::Get()->GetSwapChain() && !m_bIsFullscreen) {
+		hr = DX::DeviceResources::Get()->GetSwapChain()->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
 	}
 
 	SetGraphSize();
@@ -3128,12 +3144,12 @@ HRESULT CDX11VideoProcessor::GetCurentImage(long *pDIBImage)
 
 HRESULT CDX11VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned* pSize)
 {
-	if (!m_pDXGISwapChain1 || !DX::DeviceResources::Get()->GetD3DDevice() || !DX::DeviceResources::Get()->GetD3DContext()) {
+	if (!DX::DeviceResources::Get()->GetSwapChain() || !DX::DeviceResources::Get()->GetD3DDevice() || !DX::DeviceResources::Get()->GetD3DContext()) {
 		return E_ABORT;
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	HRESULT hr = m_pDXGISwapChain1->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::GetDisplayedImage() failed with error {}", HR2Str(hr));
 		return hr;
@@ -3631,9 +3647,9 @@ HRESULT CDX11VideoProcessor::AddPostScaleShader(const CStdStringW& name, const C
 void CDX11VideoProcessor::UpdateStatsPresent()
 {
 	DXGI_SWAP_CHAIN_DESC1 swapchain_desc;
-	if (m_pDXGISwapChain1 && S_OK == m_pDXGISwapChain1->GetDesc1(&swapchain_desc)) {
+	if (DX::DeviceResources::Get()->GetSwapChain() && S_OK == DX::DeviceResources::Get()->GetSwapChain()->GetDesc1(&swapchain_desc)) {
 		m_strStatsPresent.assign(L"\nPresentation  : ");
-		if (m_bVBlankBeforePresent && m_pDXGIOutput) {
+		if (m_bVBlankBeforePresent /*&& m_pDXGIOutput*/) {
 			m_strStatsPresent.append(L"wait VBlank, ");
 		}
 		switch (swapchain_desc.SwapEffect) {

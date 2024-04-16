@@ -31,7 +31,8 @@
 #include "D3D11Font.h"
 #include "D3D11Geometry.h"
 #include "VideoProcessor.h"
-
+/*kodi*/
+#include "guilib/D3DResource.h"
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
@@ -109,10 +110,11 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSHalfOUtoInterlace;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSFinalPass;
 
-	Microsoft::WRL::ComPtr<IDXGIFactory2>   m_pDXGIFactory2;
-	Microsoft::WRL::ComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
+	//Microsoft::WRL::ComPtr<IDXGIFactory2>   m_pDXGIFactory2;
+	//Microsoft::WRL::ComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
+	//this one we kept only but will neeed reset
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
-	Microsoft::WRL::ComPtr<IDXGIOutput>    m_pDXGIOutput;
+	//Microsoft::WRL::ComPtr<IDXGIOutput>    m_pDXGIOutput;
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
 	// Input parameters
@@ -197,7 +199,7 @@ private:
 
 	UINT GetPostScaleSteps();
 
-	HRESULT CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, UINT resid);
+	HRESULT CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, std::string resid);
 	void SetShaderConvertColorParams();
 
 	HRESULT SetShaderDoviCurvesPoly();
@@ -216,6 +218,9 @@ private:
 	}
 
 	bool HandleHDRToggle();
+
+	/*added for kodi*/
+	std::vector<CD3DPixelShader> m_pPixelShaders;
 
 public:
 	HRESULT SetDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, const bool bDecoderDevice);

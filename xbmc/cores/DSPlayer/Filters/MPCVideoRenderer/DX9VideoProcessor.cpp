@@ -31,9 +31,10 @@
 #include "CPUInfo2.h"
 #include "DSUtil/DSUtil.h"
 #include "minhook/include/MinHook.h"
+#include "DSResource.h"
 
 static const ScalingShaderResId s_Upscaling9ResIDs[UPSCALE_COUNT] = {
-	{0,                           0,                           L"Nearest-neighbor"  },
+	{"0",                           "0",                           L"Nearest-neighbor"  },
 	{IDF_PS_9_INTERP_MITCHELL4_X, IDF_PS_9_INTERP_MITCHELL4_Y, L"Mitchell-Netravali"},
 	{IDF_PS_9_INTERP_CATMULL4_X,  IDF_PS_9_INTERP_CATMULL4_Y,  L"Catmull-Rom"       },
 	{IDF_PS_9_INTERP_LANCZOS2_X,  IDF_PS_9_INTERP_LANCZOS2_Y,  L"Lanczos2"          },
@@ -807,12 +808,12 @@ void CDX9VideoProcessor::UpdatFrameProperties()
 	m_srcLines = m_srcHeight * m_srcParams.PitchCoeff / 2;
 }
 
-HRESULT CDX9VideoProcessor::CreatePShaderFromResource(IDirect3DPixelShader9** ppPixelShader, UINT resid)
+HRESULT CDX9VideoProcessor::CreatePShaderFromResource(IDirect3DPixelShader9** ppPixelShader, std::string resid)
 {
 	if (!m_pD3DDevEx || !ppPixelShader) {
 		return E_POINTER;
 	}
-
+#if 0
 	static const HMODULE hModule = (HMODULE)&__ImageBase;
 
 	HRSRC hrsrc = FindResourceW(hModule, MAKEINTRESOURCEW(resid), L"FILE");
@@ -829,6 +830,7 @@ HRESULT CDX9VideoProcessor::CreatePShaderFromResource(IDirect3DPixelShader9** pp
 	}
 
 	return m_pD3DDevEx->CreatePixelShader((const DWORD*)LockResource(hGlobal), ppPixelShader);
+#endif
 }
 
 void CDX9VideoProcessor::SetShaderConvertColorParams()
@@ -2323,7 +2325,7 @@ HRESULT CDX9VideoProcessor::UpdateConvertColorShader()
 
 	if (FAILED(hr)) {
 		ASSERT(0);
-		UINT resid = 0;
+		std::string resid = 0;
 		if (m_srcParams.cformat == CF_YUY2) {
 			resid = IDF_PS_9_CONVERT_YUY2;
 		}

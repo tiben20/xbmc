@@ -28,7 +28,7 @@
 #include "resource.h"
 
 #include "D3D11Geometry.h"
-
+#include "DSResource.h"
 
 //
 // CD3D11Quadrilateral

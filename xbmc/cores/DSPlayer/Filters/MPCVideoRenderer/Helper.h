@@ -57,8 +57,8 @@ struct VR_Extradata {
 };
 
 struct ScalingShaderResId {
-	UINT shaderX;
-	UINT shaderY;
+	std::string shaderX;
+	std::string shaderY;
 	const wchar_t* const description;
 };
 

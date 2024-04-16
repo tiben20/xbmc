@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "Util2.h"
+#include "DSResource.h"
 
 VERSIONHELPERAPI
 IsWindows11OrGreater() // https://walbourn.github.io/windows-sdk-for-windows-11/
@@ -127,8 +128,10 @@ CStdStringW HR2Str(const HRESULT hr)
 	return str;
 }
 
-HRESULT GetDataFromResource(LPVOID& data, DWORD& size, UINT resid)
+HRESULT GetDataFromResource(LPVOID& data, DWORD& size, std::string resid)
 {
+
+#if 0
 	static const HMODULE hModule = (HMODULE)&__ImageBase;
 
 	HRSRC hrsrc = FindResourceW(hModule, MAKEINTRESOURCEW(resid), L"FILE");
@@ -147,7 +150,7 @@ HRESULT GetDataFromResource(LPVOID& data, DWORD& size, UINT resid)
 	if (!data) {
 		return E_FAIL;
 	}
-
+#endif
 	return S_OK;
 }
 
