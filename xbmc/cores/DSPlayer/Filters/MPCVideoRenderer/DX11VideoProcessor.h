@@ -33,13 +33,25 @@
 #include "VideoProcessor.h"
 /*kodi*/
 #include "guilib/D3DResource.h"
+#include "../IDSPlayer.h"
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
 
 class CDX11VideoProcessor
-	: public CVideoProcessor
+	: public CVideoProcessor,
+	  public IDSRendererAllocatorCallback
 {
+public:
+	// IDSRendererAllocatorCallback
+	CRect GetActiveVideoRect() override { return CRect(); };
+	bool IsEnteringExclusive() override { return false; }
+	void EnableExclusive(bool bEnable) override {};
+	void SetPixelShader() override {};
+	void SetResolution() override;
+	void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override {};
+	bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) const override;
+	void DisplayChange(bool bExternalChange) override {};
 private:
 	friend class CVideoRendererInputPin;
 

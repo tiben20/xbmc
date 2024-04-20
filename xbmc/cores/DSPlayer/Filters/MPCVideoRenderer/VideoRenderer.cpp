@@ -28,6 +28,7 @@
 #include "Include/Version.h"
 #include "VideoRenderer.h"
 #include "Registry.h"
+#include "windowing/windows/WinSystemWin32DX.h"
 
 #define WM_SWITCH_FULLSCREEN (WM_APP + 0x1000)
 
@@ -353,7 +354,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	if (m_Sets.bUseD3D11 && IsWindows7SP1OrGreater()) {
 		m_VideoProcessor.reset(new CDX11VideoProcessor(this, m_Sets, hr));
 		if (SUCCEEDED(hr)) {
-			hr = m_VideoProcessor->Init(m_hWnd);
+			hr = m_VideoProcessor->Init(g_hWnd);
 		}
 
 		if (FAILED(hr)) {

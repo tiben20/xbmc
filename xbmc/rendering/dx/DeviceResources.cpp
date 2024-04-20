@@ -436,6 +436,7 @@ void DX::DeviceResources::CreateDeviceResources()
   if (SUCCEEDED(m_d3dDevice.As(&m_d3dDebug)))
   {
     ComPtr<ID3D11InfoQueue> d3dInfoQueue;
+    hr = m_d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
     if (SUCCEEDED(m_d3dDebug.As(&d3dInfoQueue)))
     {
       std::vector<D3D11_MESSAGE_ID> hide =
@@ -449,6 +450,10 @@ void DX::DeviceResources::CreateDeviceResources()
       filter.DenyList.NumIDs = hide.size();
       filter.DenyList.pIDList = hide.data();
       d3dInfoQueue->AddStorageFilterEntries(&filter);
+      d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, TRUE);
+      d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+      d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, TRUE);
+      
     }
   }
 #endif

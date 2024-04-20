@@ -149,6 +149,7 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
     m_pVideoWindow->put_WindowState(SW_SHOW);
     m_pVideoWindow->SetWindowForeground(OATRUE);
     m_pVideoWindow->put_MessageDrain((OAHWND)CDSPlayer::GetDShWnd());
+
   }
 
   //TODO Ti-Ben

@@ -101,6 +101,30 @@ public:
   SSubSettings subtitlesSettings;
 };
 
+class CMPCVRSettings : public CRendererSettings
+{
+public:
+  CMPCVRSettings()
+  {
+    SetDefault();
+  }
+  void SetDefault()
+  {
+    CRendererSettings::SetDefault();
+
+    highColorResolution = false;
+    enableFrameTimeCorrection = false;
+    outputRange = OUTPUT_RANGE_0_255;
+    buffers = 4;
+  }
+
+public:
+  bool highColorResolution;
+  bool enableFrameTimeCorrection;
+  EVR_OUTPUT_RANGE outputRange;
+  int buffers;
+};
+
 class CEVRRendererSettings: public CRendererSettings
 {
 public:

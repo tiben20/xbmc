@@ -222,7 +222,7 @@ void CRenderDSManager::FrameMove()
         CServiceBroker::GetAppMessenger()->PostMsg(TMSG_SWITCHTOFULLSCREEN);
       }
     }
-    if (m_renderState == STATE_CONFIGURED && m_bWaitingForRenderOnDS && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo())
+    if (m_renderState == STATE_CONFIGURED && m_bWaitingForRenderOnDS )//&& CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo()) removed for mpcvr
     {
       m_bWaitingForRenderOnDS = false;
       m_bPreInit = false;

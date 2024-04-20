@@ -309,6 +309,8 @@ void CDSPlayer::SetCurrentVideoRenderer(const std::string &videoRenderer)
   
   if (StringUtils::ToLower(videoRenderer) == "madvr")
     m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_MADVR;
+  if (StringUtils::ToLower(videoRenderer) == "mpcvr")
+    m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_MPCVR;
 }
 
 bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
@@ -1426,7 +1428,8 @@ void CDSPlayer::UpdateProcessInfo(int index)
   info = StringUtils::Format("{}, {}", CGraphFilters::Get()->VideoRenderer.osdname.c_str(), CGraphFilters::Get()->AudioRenderer.osdname.c_str());
   m_processInfo->SetVideoPixelFormat(info);
   //filters in dsplayer
-  m_processInfo->SetVideoDeintMethod(g_dsGraph->GetGeneralInfo());
+  //this make mpcvr loop endlessly
+  //m_processInfo->SetVideoDeintMethod(g_dsGraph->GetGeneralInfo());
 
   //AUDIO
 
@@ -1488,6 +1491,7 @@ void CDSPlayer::DisplayChange(bool bExternalChange)
 
 int CDSPlayer::VideoDimsToResolution(int iWidth, int iHeight)
 {
+  //called fast for size
   int res = 0;
   int madvr_res = -1;
 
@@ -1570,13 +1574,13 @@ void CDSPlayer::EnableExclusive(bool bEnable)
 
 void CDSPlayer::SetPixelShader() const
 {
-  if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  if (UsingDS(DIRECTSHOW_RENDERER_MADVR) || UsingDS(DIRECTSHOW_RENDERER_MPCVR))
     m_pAllocatorCallback->SetPixelShader();
 }
 
 void CDSPlayer::SetResolution() const
 {
-  if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  if (UsingDS(DIRECTSHOW_RENDERER_MADVR) || UsingDS(DIRECTSHOW_RENDERER_MPCVR))
     m_pAllocatorCallback->SetResolution();
 }
 
@@ -1604,15 +1608,17 @@ void CDSPlayer::SetPosition() const
 
 bool CDSPlayer::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const
 {
-  if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  if (UsingDS(DIRECTSHOW_RENDERER_MADVR) || UsingDS(DIRECTSHOW_RENDERER_MPCVR))
     return m_pAllocatorCallback->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret);
+  
+  
 
   return false;
 }
 
 void CDSPlayer::Reset(bool bForceWindowed)
 {
-  if (UsingDS(DIRECTSHOW_RENDERER_EVR))
+  if (UsingDS(DIRECTSHOW_RENDERER_MPCVR))
     m_pAllocatorCallback->Reset(bForceWindowed);
 }
 

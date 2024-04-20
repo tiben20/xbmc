@@ -71,6 +71,9 @@ void CDSSettings::Initialize()
 
   if (videoRender.ToLower() == "madvr")
     pRendererSettings = new CMADVRRendererSettings();
+  
+  if (videoRender.ToLower() == "mpcvr")
+    pRendererSettings = new CMPCVRSettings();
 
   // Create the pixel shader list
   pixelShaderList.reset(new CPixelShaderList());

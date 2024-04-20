@@ -92,7 +92,12 @@ SmartRect SmartPoint::operator-(const RECT* lpRect) const throw()
 
 // SmartRect
 SmartRect::SmartRect() throw()
-{ /* random filled */ }
+{
+  left = 0;
+  top = 0;
+  right = 0;
+  bottom = 0;
+}
 SmartRect::SmartRect(int l, int t, int r, int b) throw()
 { left = l; top = t; right = r; bottom = b; }
 SmartRect::SmartRect(const RECT& srcRect) throw()

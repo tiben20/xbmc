@@ -51,6 +51,7 @@ public:
   CBaseSharedRender();
   virtual ~CBaseSharedRender();
   HRESULT CreateTextures(ID3D11Device* pD3DDeviceKodi, IDirect3DDevice9Ex* pD3DDeviceDS, int width, int height);
+  HRESULT CreateD3D11Textures(int width, int height);
 
   // IDSRendererPaintCallback
   virtual void BeginRender() {};

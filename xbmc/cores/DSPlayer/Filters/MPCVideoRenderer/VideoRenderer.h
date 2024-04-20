@@ -34,6 +34,7 @@
 
 /* kodi related headers */
 #include "rendering/dx/DeviceResources.h"
+#include <combase.h>
 
 const AMOVIESETUP_MEDIATYPE sudPinTypesIn[] = {
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_NV12},

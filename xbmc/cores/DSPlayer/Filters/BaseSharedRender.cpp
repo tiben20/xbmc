@@ -185,17 +185,21 @@ HRESULT CBaseSharedRender::CreateTextures(ID3D11Device* pD3DDeviceKodi, IDirect3
 {
   HRESULT hr;
   m_pD3DDeviceKodi = pD3DDeviceKodi;
-  m_pD3DDeviceDS = pD3DDeviceDS;
+  if (pD3DDeviceDS)
+    m_pD3DDeviceDS = pD3DDeviceDS;
   m_dwWidth = width;
   m_dwHeight = height;
+  //not used for shared renderer so just pass a nullptr
+  if (pD3DDeviceDS)
+  { 
+    // Create VertexBuffer
+    if (FAILED(hr = m_pD3DDeviceDS->CreateVertexBuffer(sizeof(VID_FRAME_VERTEX) * 4, D3DUSAGE_WRITEONLY, D3DFVF_VID_FRAME_VERTEX, D3DPOOL_DEFAULT, &m_pDSVertexBuffer, NULL)))
+      CLog::Log(LOGDEBUG, "{} Failed to create vertex buffer", __FUNCTION__);
 
-  // Create VertexBuffer
-  if (FAILED(hr = m_pD3DDeviceDS->CreateVertexBuffer(sizeof(VID_FRAME_VERTEX) * 4, D3DUSAGE_WRITEONLY, D3DFVF_VID_FRAME_VERTEX, D3DPOOL_DEFAULT, &m_pDSVertexBuffer, NULL)))
-    CLog::Log(LOGDEBUG, "{} Failed to create vertex buffer", __FUNCTION__);
-
-  // Create Fake Staging Texture
-  if (FAILED(hr = CreateFakeStaging(&m_pKodiFakeStaging)))
-    CLog::Log(LOGDEBUG, "{} Failed to create fake staging texture", __FUNCTION__);
+    // Create Fake Staging Texture
+    if (FAILED(hr = CreateFakeStaging(&m_pKodiFakeStaging)))
+      CLog::Log(LOGDEBUG, "{} Failed to create fake staging texture", __FUNCTION__);
+  }
 
   // Create Under Shared Texture
   if (FAILED(hr = CreateSharedResource(&m_pDSUnderTexture, &m_pKodiUnderTexture)))
@@ -206,6 +210,11 @@ HRESULT CBaseSharedRender::CreateTextures(ID3D11Device* pD3DDeviceKodi, IDirect3
     CLog::Log(LOGDEBUG, "{} Failed to create over shared texture", __FUNCTION__);
 
   return hr;
+}
+
+HRESULT CBaseSharedRender::CreateD3D11Textures(int width, int height)
+{
+    return E_NOTIMPL;
 }
 
 HRESULT CBaseSharedRender::RenderInternal(DS_RENDER_LAYER layer)
