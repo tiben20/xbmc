@@ -624,7 +624,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 	DLog(L"CDX11VideoProcessor::Init() : D3D11CreateDevice() successfully with feature level {}.{}", (featurelevel >> 12), (featurelevel >> 8) & 0xF);
 
-	//hr = SetDevice(pDevice, nullptr, false);
+	hr = SetDevice(pDevice, nullptr, false);
 	pDevice->Release();
 
 	if (S_OK == hr) {
@@ -3038,7 +3038,7 @@ HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 	const UINT h = m_windowRect.Height();
 
 	if (DX::DeviceResources::Get()->GetSwapChain() && !m_bIsFullscreen) {
-		hr = DX::DeviceResources::Get()->GetSwapChain()->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
+		//hr = DX::DeviceResources::Get()->GetSwapChain()->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
 	}
 
 	SetGraphSize();

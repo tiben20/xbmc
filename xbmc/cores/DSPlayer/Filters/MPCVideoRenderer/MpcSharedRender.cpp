@@ -88,11 +88,10 @@ void CMpcSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 
 void CMpcSharedRender::EndRender()
 {
-  m_dsWait.Unlock();
-  return;
+
   // Force to complete the rendering on Kodi device
-  DX::DeviceResources::Get()->FinishCommandList();
-  ForceComplete();
+  DX::DeviceResources::Get()->FinishCommandList(true);
+  //ForceComplete();
 
   m_bGuiVisible = GuiVisible();
   m_bGuiVisibleOver = GuiVisible(RENDER_LAYER_OVER);

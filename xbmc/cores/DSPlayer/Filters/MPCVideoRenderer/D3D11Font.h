@@ -36,8 +36,8 @@ class CD3D11Font
 
 	D3DCOLOR m_Color = D3DCOLOR_XRGB(255, 255, 255);
 
-	ID3D11Device* m_pDevice = nullptr;
-	ID3D11DeviceContext* m_pDeviceContext = nullptr;
+	//ID3D11Device* m_pDevice = nullptr;
+	//ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
 	ID3D11InputLayout*        m_pInputLayout    = nullptr;
 	ID3D11VertexShader*       m_pVertexShader   = nullptr;

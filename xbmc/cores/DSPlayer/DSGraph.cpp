@@ -354,14 +354,17 @@ void CDSGraph::UpdateWindowPosition()
   if (m_pVideoWindow && m_pVideoWindow)
   {
     HRESULT hr;
-    Com::SmartRect videoRect, windowRect;
+    Com::SmartRect windowRect;
     CRect vr;
+    CRect videoRect;
     vr = CServiceBroker::GetWinSystem()->GetGfxContext().GetViewWindow();
+    videoRect = CRect(vr);
+    videoRect.Intersect(CRect(0, 0, vr.Width(), vr.Height()));
     if (vr.Width() > 0)
     {
       hr = m_pBasicVideo->SetDefaultSourcePosition();
 
-      //hr = m_pBasicVideo->SetDestinationPosition(videoRect.left, videoRect.top, videoRect.Width(), videoRect.Height());
+      hr = m_pBasicVideo->SetDestinationPosition(videoRect.x1, videoRect.y1, videoRect.Width(), videoRect.Height());
       hr = m_pVideoWindow->SetWindowPosition(vr.x1, vr.y1, vr.Width(), vr.Height());
     }
   }

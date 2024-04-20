@@ -130,7 +130,13 @@ CStdStringW HR2Str(const HRESULT hr)
 
 HRESULT GetDataFromResource(LPVOID& data, DWORD& size, std::string resid)
 {
-
+	CD3DDSVertexShader shdr;
+	if (!shdr.LoadFromFile(resid))
+	{
+		return E_FAIL;
+	}
+	data = shdr.GetData();
+	size = shdr.GetSize();
 #if 0
 	static const HMODULE hModule = (HMODULE)&__ImageBase;
 

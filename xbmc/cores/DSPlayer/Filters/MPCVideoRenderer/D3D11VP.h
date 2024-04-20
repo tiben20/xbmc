@@ -21,6 +21,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include "windowing/windows/WinSystemWin32DX.h"
 
 class VideoTextureBuffer
 {
@@ -114,7 +115,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VideoDevice> m_pVideoDevice;
 	Microsoft::WRL::ComPtr<ID3D11VideoProcessor> m_pVideoProcessor;
 
-	Microsoft::WRL::ComPtr<ID3D11VideoContext> m_pVideoContext;
+	//Microsoft::WRL::ComPtr<ID3D11VideoContext> m_pVideoContext;
 	Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> m_pVideoProcessorEnum;
 
 	Microsoft::WRL::ComPtr<ID3D11VideoContext1> m_pVideoContext1;
@@ -159,7 +160,7 @@ public:
 
 	HRESULT InitInputTextures(ID3D11Device* pDevice);
 
-	bool IsVideoDeviceOk() { return (m_pVideoDevice != nullptr); }
+	bool IsVideoDeviceOk() { return (DX::DeviceResources::Get()->GetD3DDevice() != nullptr); }
 	bool IsReady() { return (m_pVideoProcessor != nullptr); }
 	void GetVPParams(D3D11_VIDEO_PROCESSOR_CAPS& caps, UINT& rateConvIndex, D3D11_VIDEO_PROCESSOR_RATE_CONVERSION_CAPS& rateConvCaps);
 	BOOL IsPqSupported() { return m_bConvSupportedG2084; }
