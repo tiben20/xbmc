@@ -62,27 +62,13 @@ HRESULT CMpcSharedRender::Render(DS_RENDER_LAYER layer)
 
 void CMpcSharedRender::BeginRender()
 {
+  CLog::Log(LOGDEBUG, "{} Failed to create over shared texture", __FUNCTION__);
   // Wait that EVR complete the rendering
   m_kodiWait.Lock();
   m_kodiWait.Wait(100);
 
   // Lock EVR thread while kodi rendering
   m_dsWait.Lock();
-
-  if (!m_pD3DDeviceKodi)
-    m_pD3DDeviceKodi = DX::DeviceResources::Get()->GetD3DDevice();
-  // Clear RenderTarget
-  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
-  ID3D11RenderTargetView* pSurface11;
-
-  
-  m_pD3DDeviceKodi->CreateRenderTargetView(m_pKodiUnderTexture, NULL, &pSurface11);
-  pContext->ClearRenderTargetView(pSurface11, m_fColor);
-  pSurface11->Release();
-
-  m_pD3DDeviceKodi->CreateRenderTargetView(m_pKodiOverTexture, NULL, &pSurface11);
-  pContext->ClearRenderTargetView(pSurface11, m_fColor);
-  pSurface11->Release();
 
   // Reset RenderCount
   ResetRenderCount();
@@ -91,17 +77,19 @@ void CMpcSharedRender::BeginRender()
 void CMpcSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 {
   m_currentVideoLayer = layer;
-
+  /*
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
   ID3D11RenderTargetView* pSurface11;
 
   m_pD3DDeviceKodi->CreateRenderTargetView(layer == RENDER_LAYER_UNDER ? m_pKodiUnderTexture : m_pKodiOverTexture, NULL, &pSurface11);
   pContext->OMSetRenderTargets(1, &pSurface11, 0);
-  pSurface11->Release();
+  pSurface11->Release();*/
 }
 
 void CMpcSharedRender::EndRender()
 {
+  m_dsWait.Unlock();
+  return;
   // Force to complete the rendering on Kodi device
   DX::DeviceResources::Get()->FinishCommandList();
   ForceComplete();

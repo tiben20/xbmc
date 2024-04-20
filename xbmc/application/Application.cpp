@@ -815,6 +815,7 @@ void CApplication::Render()
     return;
 
 #if HAS_DS_PLAYER
+  //we 
   appPlayer->BeginRender();
 #endif
 

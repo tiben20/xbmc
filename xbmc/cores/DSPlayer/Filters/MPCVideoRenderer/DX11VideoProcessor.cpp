@@ -2269,22 +2269,26 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		float fps;
 		fps = 10000000.0 / m_rtAvgTimePerFrame;
 		g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
-		CLog::Log(LOGDEBUG, "{} Render manager configured (FPS: %f) %i %i %i %i", __FUNCTION__, fps, m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY);
+		CLog::Log(LOGINFO, "{} Render manager configured (FPS: {}) {} {} {} {}", __FUNCTION__, fps, m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY);
 	}
 
 	if (field) {
 		m_FieldDrawn = field;
 	}
 
+#if 0//using kodi backbuffer
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
+	
 	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		DLog(L"CDX11VideoProcessor::Render() : GetBuffer() failed with error {}", HR2Str(hr));
 		return hr;
 	}
-
+#else
+	HRESULT hr;
+#endif
 	uint64_t tick1 = GetPreciseTick();
-
+#if 0 //done on the kodi side
 	if (!m_windowRect.IsRectEmpty()) {
 		// fill the BackBuffer with black
 		ID3D11RenderTargetView* pRenderTargetView;
@@ -2294,22 +2298,28 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			pRenderTargetView->Release();
 		}
 	}
+#else
+	if (m_renderRect.IsRectEmpty())
+	{
+		//CDSPlayer::PostMessage(new CDSMsg(CDSMsg::GENERAL_SET_WINDOW_POS), false);
+	}
+#endif
 
 	if (!m_renderRect.IsRectEmpty()) {
-		hr = Process(pBackBuffer.Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
+		hr = Process(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
 	}
 
 	if (!m_pPSHalfOUtoInterlace) {
-		DrawSubtitles(pBackBuffer.Get());
+		DrawSubtitles(DX::DeviceResources::Get()->GetBackBuffer().Get());
 	}
 
 	if (m_bShowStats) {
-		hr = DrawStats(pBackBuffer.Get());
+		hr = DrawStats(DX::DeviceResources::Get()->GetBackBuffer().Get());
 	}
 
 	if (m_bAlphaBitmapEnable) {
 		D3D11_TEXTURE2D_DESC desc;
-		pBackBuffer->GetDesc(&desc);
+		DX::DeviceResources::Get()->GetBackBuffer().Get()->GetDesc(&desc);
 		D3D11_VIEWPORT VP = {
 			m_AlphaBitmapNRectDest.left * desc.Width,
 			m_AlphaBitmapNRectDest.top * desc.Height,
@@ -2318,7 +2328,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			0.0f,
 			1.0f
 		};
-		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource.Get(), pBackBuffer.Get(),
+		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource.Get(), DX::DeviceResources::Get()->GetBackBuffer().Get(),
 			m_pAlphaBitmapVertex.Get(), &VP,
 			m_pSamplerLinear.Get());
 	}
@@ -2442,6 +2452,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 
 HRESULT CDX11VideoProcessor::FillBlack()
 {
+	return S_OK;
 	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_ABORT);
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
@@ -4004,6 +4015,8 @@ STDMETHODIMP CDX11VideoProcessor::UpdateAlphaBitmapParameters(const MFVideoAlpha
 
 void CDX11VideoProcessor::SetResolution()
 {
+	
+
 	m_pSharedRenderer->CreateD3D11Textures(m_windowRect.Width(), m_windowRect.Height());
 	
 }

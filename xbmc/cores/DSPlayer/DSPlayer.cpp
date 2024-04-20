@@ -1580,6 +1580,7 @@ void CDSPlayer::SetPixelShader() const
 
 void CDSPlayer::SetResolution() const
 {
+  //TODO mpcvr set resolution
   if (UsingDS(DIRECTSHOW_RENDERER_MADVR) || UsingDS(DIRECTSHOW_RENDERER_MPCVR))
     m_pAllocatorCallback->SetResolution();
 }

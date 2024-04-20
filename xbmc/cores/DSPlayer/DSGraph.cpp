@@ -357,11 +357,13 @@ void CDSGraph::UpdateWindowPosition()
     Com::SmartRect videoRect, windowRect;
     CRect vr;
     vr = CServiceBroker::GetWinSystem()->GetGfxContext().GetViewWindow();
-    
-    hr = m_pBasicVideo->SetDefaultSourcePosition();
-    
-    //hr = m_pBasicVideo->SetDestinationPosition(videoRect.left, videoRect.top, videoRect.Width(), videoRect.Height());
-    hr = m_pVideoWindow->SetWindowPosition(vr.x1, vr.y1, vr.Width(), vr.Height());
+    if (vr.Width() > 0)
+    {
+      hr = m_pBasicVideo->SetDefaultSourcePosition();
+
+      //hr = m_pBasicVideo->SetDestinationPosition(videoRect.left, videoRect.top, videoRect.Width(), videoRect.Height());
+      hr = m_pVideoWindow->SetWindowPosition(vr.x1, vr.y1, vr.Width(), vr.Height());
+    }
   }
 }
 
