@@ -17,8 +17,9 @@
 #include <DirectXMath.h>
 #include <d3dx11effect.h>
 #include <wrl/client.h>
+#include "utils/log.h"
 
-#define IDF_DITHER_32X32_FLOAT16        "res\\dither32x32float16.bin"
+#define IDF_DITHER_32X32_FLOAT16 "special://xbmc/system/players/dsplayer/MPCShaders/dither32x32float16.bin"
 #define IDF_HLSL_ST2084 "special://xbmc/system/players/dsplayer/MPCShaders/st2084.cso"
 #define IDF_HLSL_HLG "special://xbmc/system/players/dsplayer/MPCShaders/hlg.cso"
 #define IDF_HLSL_HDR_TONE_MAPPING "special://xbmc/system/players/dsplayer/MPCShaders/hdr_tone_mapping.cso"

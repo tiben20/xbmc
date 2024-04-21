@@ -48,8 +48,8 @@ HRESULT CD3D11Quadrilateral::InitDeviceObjects(ID3D11Device* pDevice, ID3D11Devi
 
 	//m_pDevice = pDevice;
 	//m_pDevice->AddRef();
-	//m_pDeviceContext = pDeviceContext;
-	//m_pDeviceContext->AddRef();
+	m_pDeviceContext = pDeviceContext;
+	m_pDeviceContext->AddRef();
 
 	D3D11_BUFFER_DESC BufferDesc = { sizeof(m_Vertices), D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 	D3D11_SUBRESOURCE_DATA InitData = { m_Vertices, 0, 0 };
@@ -91,7 +91,7 @@ void CD3D11Quadrilateral::InvalidateDeviceObjects()
 	SAFE_RELEASE(m_pBlendState);
 	SAFE_RELEASE(m_pInputLayout);
 	SAFE_RELEASE(m_pVertexBuffer);
-	//SAFE_RELEASE(m_pDeviceContext);
+	SAFE_RELEASE(m_pDeviceContext);
 	//SAFE_RELEASE(m_pDevice);
 }
 
@@ -109,10 +109,10 @@ HRESULT CD3D11Quadrilateral::Set(const float x1, const float y1, const float x2,
 
 	if (m_pVertexBuffer) {
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		hr = DX::DeviceResources::Get()->GetD3DContext()->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		if (S_OK == hr) {
 			memcpy(mappedResource.pData, m_Vertices, sizeof(m_Vertices));
-			DX::DeviceResources::Get()->GetD3DContext()->Unmap(m_pVertexBuffer, 0);
+			m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
 		};
 	}
 
@@ -126,8 +126,8 @@ HRESULT CD3D11Quadrilateral::Draw(ID3D11RenderTargetView* pRenderTargetView, con
 	UINT Offset = 0;
 	ID3D11ShaderResourceView* views[1] = {};
 	ID3D11DeviceContext* deviceContext;
-	deviceContext = DX::DeviceResources::Get()->GetD3DContext();
-	DX::DeviceResources::Get()->GetD3DContext()->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
+	deviceContext = m_pDeviceContext;
+	m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
 
 	D3D11_VIEWPORT VP;
 	VP.TopLeftX = 0;
@@ -207,8 +207,8 @@ HRESULT CD3D11Dots::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext
 
 	//m_pDevice = pDevice;
 	//m_pDevice->AddRef();
-	//m_pDeviceContext = pDeviceContext;
-	//m_pDeviceContext->AddRef();
+	m_pDeviceContext = pDeviceContext;
+	m_pDeviceContext->AddRef();
 
 	LPVOID data;
 	DWORD size;
@@ -233,7 +233,7 @@ void CD3D11Dots::InvalidateDeviceObjects()
 	SAFE_RELEASE(m_pInputLayout);
 	SAFE_RELEASE(m_pVertexShader);
 	SAFE_RELEASE(m_pVertexBuffer);
-	//SAFE_RELEASE(m_pDeviceContext);
+	SAFE_RELEASE(m_pDeviceContext);
 	//SAFE_RELEASE(m_pDevice);
 }
 
@@ -318,10 +318,10 @@ HRESULT CD3D11Dots::UpdateVertexBuffer()
 
 	if (m_pVertexBuffer) {
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		hr = DX::DeviceResources::Get()->GetD3DContext()->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		if (S_OK == hr) {
 			memcpy(mappedResource.pData, m_Vertices.data(), vertexSize);
-			DX::DeviceResources::Get()->GetD3DContext()->Unmap(m_pVertexBuffer, 0);
+			m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
 		};
 	}
 
@@ -335,13 +335,13 @@ void CD3D11Dots::Draw()
 	UINT Offset = 0;
 	ID3D11ShaderResourceView* views[1] = {};
 
-	DX::DeviceResources::Get()->GetD3DContext()->PSSetShaderResources(0, 1, views);
-	DX::DeviceResources::Get()->GetD3DContext()->IASetInputLayout(m_pInputLayout);
-	DX::DeviceResources::Get()->GetD3DContext()->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
-	DX::DeviceResources::Get()->GetD3DContext()->VSSetShader(m_pVertexShader, nullptr, 0);
-	DX::DeviceResources::Get()->GetD3DContext()->PSSetShader(m_pPixelShader, nullptr, 0);
+	m_pDeviceContext->PSSetShaderResources(0, 1, views);
+	m_pDeviceContext->IASetInputLayout(m_pInputLayout);
+	m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
+	m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
+	m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
 
-	DX::DeviceResources::Get()->GetD3DContext()->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK); // TODO: add m_bAlphaBlend support
+	m_pDeviceContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK); // TODO: add m_bAlphaBlend support
 
 	DrawPrimitive();
 }

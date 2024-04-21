@@ -57,7 +57,7 @@ private:
 
 	// Direct3D 11
 	//Microsoft::WRL::ComPtr<ID3D11Device1>        m_pDevice;
-	//Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerPoint;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerLinear;
 	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerDither;
@@ -235,7 +235,7 @@ private:
 	std::vector<CD3DPixelShader> m_pPixelShaders;
 
 public:
-	HRESULT SetDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, const bool bDecoderDevice);
+	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);
 	HRESULT InitSwapChain();
 
 	BOOL VerifyMediaType(const CMediaType* pmt) override;

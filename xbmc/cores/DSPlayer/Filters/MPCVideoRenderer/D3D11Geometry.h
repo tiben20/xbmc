@@ -33,7 +33,7 @@ class CD3D11Quadrilateral
 {
 protected:
 	//ID3D11Device* m_pDevice = nullptr;
-	//ID3D11DeviceContext* m_pDeviceContext = nullptr;
+	ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
 	bool m_bAlphaBlend = false;
 	ID3D11BlendState* m_pBlendState = nullptr;
@@ -83,7 +83,7 @@ class CD3D11Dots
 {
 protected:
 	//ID3D11Device* m_pDevice = nullptr;
-	//ID3D11DeviceContext* m_pDeviceContext = nullptr;
+	ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
 	ID3D11InputLayout*  m_pInputLayout  = nullptr;
 	ID3D11VertexShader* m_pVertexShader = nullptr;
@@ -102,8 +102,8 @@ protected:
 
 	virtual inline void DrawPrimitive()
 	{
-		DX::DeviceResources::Get()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-		DX::DeviceResources::Get()->GetD3DContext()->Draw(m_Vertices.size(), 0);
+		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+		m_pDeviceContext->Draw(m_Vertices.size(), 0);
 	}
 
 public:
@@ -139,8 +139,8 @@ protected:
 
 	inline void DrawPrimitive() override
 	{
-		DX::DeviceResources::Get()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		DX::DeviceResources::Get()->GetD3DContext()->Draw(m_Vertices.size(), 0);
+		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		m_pDeviceContext->Draw(m_Vertices.size(), 0);
 	}
 };
 
@@ -156,7 +156,7 @@ protected:
 
 	inline void DrawPrimitive() override
 	{
-		DX::DeviceResources::Get()->GetD3DContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		DX::DeviceResources::Get()->GetD3DContext()->Draw(m_Vertices.size(), 0);
+		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		m_pDeviceContext->Draw(m_Vertices.size(), 0);
 	}
 };
