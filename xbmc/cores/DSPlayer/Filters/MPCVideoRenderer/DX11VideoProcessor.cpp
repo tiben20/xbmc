@@ -2207,9 +2207,15 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		return hr;
 	}
 #else
-	HRESULT hr;
+	HRESULT hr = S_OK;
 #endif
 	uint64_t tick1 = GetPreciseTick();
+	float fColor[4];
+	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::BLACK);
+	ID3D11RenderTargetView* pRTView = DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget();
+	m_pDeviceContext->ClearRenderTargetView(pRTView, fColor);
+	m_pDeviceContext->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+	
 #if 0 //done on the kodi side
 	if (!m_windowRect.IsRectEmpty()) {
 		// fill the BackBuffer with black
@@ -2357,11 +2363,20 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	}
 
 	SyncFrameToStreamTime(frameStartTime);
-
-	g_bPresent = true;
-	hr = DX::DeviceResources::Get()->GetSwapChain()->Present(1, 0);
-	g_bPresent = false;
-	DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : Present() failed with error {}", HR2Str(hr));
+	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
+	if (FAILED(m_pDeviceContext->FinishCommandList(true, &pCommandList)))
+	{
+		
+		CLog::Log(LOGINFO, "{} ERROR Finishing commmand list", __FUNCTION__);
+	}
+	else
+	{
+		m_pSharedRenderer->EndRender(pCommandList);
+	}
+	//g_bPresent = true;
+	//hr = DX::DeviceResources::Get()->GetSwapChain()->Present(1, 0);
+	//g_bPresent = false;
+	
 
 	m_RenderStats.presentticks = GetPreciseTick() - tick3;
 

@@ -89,8 +89,17 @@ void CMpcSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 void CMpcSharedRender::EndRender()
 {
 
+
+}
+
+
+void CMpcSharedRender::EndRender(Microsoft::WRL::ComPtr<ID3D11CommandList> commandList)
+{
+
   // Force to complete the rendering on Kodi device
-  DX::DeviceResources::Get()->FinishCommandList(true);
+  DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(commandList.Get(), false);
+  DXGI_PRESENT_PARAMETERS parameters = {};
+  HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->Present1(1, 0, &parameters);
   //ForceComplete();
 
   m_bGuiVisible = GuiVisible();
