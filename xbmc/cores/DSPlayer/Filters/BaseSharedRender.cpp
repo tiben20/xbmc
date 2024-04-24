@@ -35,6 +35,7 @@
 #include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
+#include "MPCVideoRenderer/atlredef.h"
 
 const DWORD D3DFVF_VID_FRAME_VERTEX = 0x004 | 0x100;
 
@@ -214,13 +215,29 @@ HRESULT CBaseSharedRender::CreateTextures(ID3D11Device* pD3DDeviceKodi, IDirect3
 
 HRESULT CBaseSharedRender::CreateD3D11Textures(int width, int height)
 {
-    return E_NOTIMPL;
+  m_dwWidth = width;
+  m_dwHeight = height;
+
+  if (!m_pMPCFakeStaging.Create(width, height, 1, D3D11_USAGE_STAGING, DXGI_FORMAT_B8G8R8A8_UNORM))
+    CLog::Log(LOGERROR, "{} Failed to create m_pMPCFakeStaging texture", __FUNCTION__);
+  if (!m_pMPCOverTexture.Create(width, height, 1, D3D11_USAGE_DEFAULT, DXGI_FORMAT_B8G8R8A8_UNORM))
+    CLog::Log(LOGERROR, "{} Failed to create m_pMPCOverTexture texture", __FUNCTION__);
+  if (!m_pMPCUnderTexture.Create(width, height, 1, D3D11_USAGE_DEFAULT, DXGI_FORMAT_B8G8R8A8_UNORM))
+    CLog::Log(LOGERROR, "{} Failed to create m_pMPCUnderTexture texture", __FUNCTION__);
+
+  D3DSetDebugName(m_pMPCFakeStaging.Get(), "Mpc Staging texture");
+  D3DSetDebugName(m_pMPCOverTexture.Get(), "Mpc over texture");
+  D3DSetDebugName(m_pMPCUnderTexture.Get(), "Mpc under texture");
+
+  return S_OK;
 }
 
 HRESULT CBaseSharedRender::RenderInternal(DS_RENDER_LAYER layer)
 {
   HRESULT hr = E_UNEXPECTED;
 
+  if (!m_pD3DDeviceDS)
+    return S_OK;
   // If there isn't something to draw skip di rendering
   if (!m_bGuiVisible)
     return hr;

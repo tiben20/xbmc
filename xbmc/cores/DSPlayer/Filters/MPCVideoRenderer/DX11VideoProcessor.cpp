@@ -47,6 +47,9 @@
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
 
+#define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
+#define GetSwapChain DX::DeviceResources::Get()->GetSwapChain()
+
 typedef BOOL(WINAPI* pSetWindowPos)(
 	_In_ HWND hWnd,
 	_In_opt_ HWND hWndInsertAfter,
@@ -275,7 +278,7 @@ HRESULT CDX11VideoProcessor::AlphaBlt(
 	ID3D11SamplerState* pSampler)
 {
 	ID3D11RenderTargetView* pRenderTargetView;
-	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	
 	if (S_OK == hr) {
 		UINT Stride = sizeof(VERTEX);
@@ -312,7 +315,7 @@ HRESULT CDX11VideoProcessor::TextureCopyRect(
 {
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
-	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"TextureCopyRect() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -344,7 +347,7 @@ HRESULT CDX11VideoProcessor::TextureResizeShader(
 {
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
-	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::TextureResizeShader() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -560,7 +563,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 		SetCallbackDevice();
 
-		if (!DX::DeviceResources::Get()->GetSwapChain() || m_bIsFullscreen != m_pFilter->m_bIsFullscreen || bWindowChanged) {
+		if (!GetSwapChain || m_bIsFullscreen != m_pFilter->m_bIsFullscreen || bWindowChanged) {
 			InitSwapChain();
 			UpdateStatsStatic();
 			m_pFilter->OnDisplayModeChange();
@@ -570,7 +573,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 	}
 	m_nCurrentAdapter = currentAdapter;
 
-	if (m_bDecoderDevice && DX::DeviceResources::Get()->GetSwapChain()) {
+	if (m_bDecoderDevice && GetSwapChain) {
 		return S_OK;
 	}
 
@@ -580,7 +583,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 	CLog::LogF(LOGINFO,"{} Settings device ",__FUNCTION__);
 
-	HRESULT hr = SetDevice(DX::DeviceResources::Get()->GetD3DDevice(), false);
+	HRESULT hr = SetDevice(GetDevice, false);
 
 
 	if (S_OK == hr) {
@@ -600,7 +603,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 bool CDX11VideoProcessor::Initialized()
 {
-	return (DX::DeviceResources::Get()->GetD3DDevice() != nullptr && m_pDeviceContext != nullptr);
+	return (GetDevice != nullptr && m_pDeviceContext != nullptr);
 }
 
 void CDX11VideoProcessor::ReleaseVP()
@@ -696,8 +699,8 @@ void CDX11VideoProcessor::ReleaseDevice()
 void CDX11VideoProcessor::ReleaseSwapChain()
 {
 	//verify if we need this
-	//if (DX::DeviceResources::Get()->GetSwapChain())
-		//DX::DeviceResources::Get()->GetSwapChain()->SetFullscreenState(FALSE, nullptr);
+	//if (GetSwapChain)
+		//GetSwapChain->SetFullscreenState(FALSE, nullptr);
 	
 	m_pDXGISwapChain4= nullptr;
 }
@@ -719,7 +722,7 @@ UINT CDX11VideoProcessor::GetPostScaleSteps()
 
 HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, std::string resid)
 {
-	if (!DX::DeviceResources::Get()->GetD3DDevice() || !ppPixelShader) {
+	if (!GetDevice || !ppPixelShader) {
 		return E_POINTER;
 	}
 	CD3DDSVertexShader shdr;
@@ -732,7 +735,7 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 	//HRESULT hr = GetDataFromResource(data, size, resid);
 
 
-	return DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(data, size, nullptr, ppPixelShader);
+	return GetDevice->CreatePixelShader(data, size, nullptr, ppPixelShader);
 }
 
 void CDX11VideoProcessor::SetShaderConvertColorParams()
@@ -805,7 +808,7 @@ void CDX11VideoProcessor::SetShaderConvertColorParams()
 	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	BufferDesc.CPUAccessFlags = 0;
 	D3D11_SUBRESOURCE_DATA InitData = { &cbuffer, 0, 0 };
-	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&BufferDesc, &InitData, &m_PSConvColorData.pConstants));
+	EXECUTE_ASSERT(S_OK == GetDevice->CreateBuffer(&BufferDesc, &InitData, &m_PSConvColorData.pConstants));
 }
 
 HRESULT CDX11VideoProcessor::SetShaderDoviCurvesPoly()
@@ -867,7 +870,7 @@ HRESULT CDX11VideoProcessor::SetShaderDoviCurvesPoly()
 	else {
 		D3D11_BUFFER_DESC BufferDesc = { sizeof(polyCurves), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 		D3D11_SUBRESOURCE_DATA InitData = { &polyCurves, 0, 0 };
-		hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&BufferDesc, &InitData, &m_pDoviCurvesConstantBuffer);
+		hr = GetDevice->CreateBuffer(&BufferDesc, &InitData, &m_pDoviCurvesConstantBuffer);
 	}
 
 	return hr;
@@ -955,7 +958,7 @@ HRESULT CDX11VideoProcessor::SetShaderDoviCurves()
 	else {
 		D3D11_BUFFER_DESC BufferDesc = { sizeof(cbuffer), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 		D3D11_SUBRESOURCE_DATA InitData = { &cbuffer, 0, 0 };
-		hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&BufferDesc, &InitData, &m_pDoviCurvesConstantBuffer);
+		hr = GetDevice->CreateBuffer(&BufferDesc, &InitData, &m_pDoviCurvesConstantBuffer);
 	}
 
 	return hr;
@@ -1087,13 +1090,17 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	CheckPointer(pDevice, E_POINTER);
 
 	hr = pDevice->CreateDeferredContext1(0, &m_pDeviceContext);
+	
 	if (FAILED(hr))
 	{
 		CLog::LogF(LOGERROR, "{} CreateDeferredContext1 failed",__FUNCTION__);
 		return hr;
 	}
-
-
+	DXGI_SWAP_CHAIN_DESC1 desc;
+	GetSwapChain->GetDesc1(&desc);
+	
+	m_pSharedRenderer->CreateD3D11Textures(desc.Width, desc.Height);
+		
 	// for d3d11 subtitles
 	//Com::SmartQIPtr<ID3D10Multithread> pMultithread(m_pDeviceContext.Get());
 	//pMultithread->SetMultithreadProtected(TRUE);
@@ -1190,14 +1197,14 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	//set the callback for subtitles
 	SetCallbackDevice();
 
-	HRESULT hr3 = m_Font3D.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), m_pDeviceContext.Get());
+	HRESULT hr3 = m_Font3D.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
 	DLogIf(FAILED(hr3), L"m_Font3D.InitDeviceObjects() failed with error {}", HR2Str(hr3));
 	if (SUCCEEDED(hr3)) {
-		hr3 = m_StatsBackground.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), m_pDeviceContext.Get());
-		hr3 = m_Rect3D.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), m_pDeviceContext.Get());
-		hr3 = m_Underlay.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), m_pDeviceContext.Get());
-		hr3 = m_Lines.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), m_pDeviceContext.Get());
-		hr3 = m_SyncLine.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), m_pDeviceContext.Get());
+		hr3 = m_StatsBackground.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
+		hr3 = m_Rect3D.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
+		hr3 = m_Underlay.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
+		hr3 = m_Lines.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
+		hr3 = m_SyncLine.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
 		DLogIf(FAILED(hr3), L"Geometric primitives InitDeviceObjects() failed with error {}", HR2Str(hr3));
 	}
 	ASSERT(S_OK == hr3);
@@ -1209,7 +1216,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 		hr4 = GetDataFromResource(data, size, IDF_DITHER_32X32_FLOAT16);
 		if (S_OK == hr4) {
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
-			hr4 = m_pDeviceContext.Get()->Map(m_TexDither.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			hr4 = DX::DeviceResources::Get()->GetD3DContext()->Map(m_TexDither.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 			if (S_OK == hr4) {
 				uint16_t* src = (uint16_t*)data;
 				BYTE* dst = (BYTE*)mappedResource.pData;
@@ -1224,7 +1231,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 					src += dither_size;
 					dst += mappedResource.RowPitch;
 				}
-				m_pDeviceContext.Get()->Unmap(m_TexDither.pTexture.Get(), 0);
+				DX::DeviceResources::Get()->GetD3DContext()->Unmap(m_TexDither.pTexture.Get(), 0);
 			}
 		}
 		if (FAILED(hr4)) {
@@ -1248,7 +1255,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 	const auto bHdrOutput = m_bHdrPassthroughSupport && m_bHdrPassthrough && (SourceIsHDR() || m_bVPUseRTXVideoHDR);
 	m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 	if (bHdrOutput) {
-		HRESULT hr2 = DX::DeviceResources::Get()->GetSwapChain()->QueryInterface(IID_PPV_ARGS(&m_pDXGISwapChain4));
+		HRESULT hr2 = GetSwapChain->QueryInterface(IID_PPV_ARGS(&m_pDXGISwapChain4));
 		return hr2;
 	}
 	
@@ -1310,7 +1317,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 		fullscreenDesc.Windowed = FALSE;
 
 		bCreateSwapChain = true;
-		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(DX::DeviceResources::Get()->GetD3DDevice(), m_hWnd, &desc1, &fullscreenDesc, nullptr, &m_pDXGISwapChain1);
+		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(GetDevice, m_hWnd, &desc1, &fullscreenDesc, nullptr, &m_pDXGISwapChain1);
 		bCreateSwapChain = false;
 		DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd(fullscreen) failed with error {}", HR2Str(hr));
 
@@ -1337,7 +1344,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 			L"CDX11VideoProcessor::InitSwapChain() : Invalid window size {}x{}, use {}x{}",
 			m_windowRect.Width(), m_windowRect.Height(), desc1.Width, desc1.Height);
 
-		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(DX::DeviceResources::Get()->GetD3DDevice(), m_hWnd, &desc1, nullptr, nullptr, &m_pDXGISwapChain1);
+		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(GetDevice, m_hWnd, &desc1, nullptr, nullptr, &m_pDXGISwapChain1);
 		DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd() failed with error {}", HR2Str(hr));
 
 		m_lastFullscreenHMonitor = nullptr;
@@ -1629,7 +1636,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	m_srcVideoTransferFunction = m_srcExFmt.VideoTransferFunction;
 
 	HRESULT hr = E_NOT_VALID_STATE;
-	DX::DeviceResources().Get()->SetMultithreadProtected(1);
+	DX::DeviceResources().Get()->SetMultithreadProtected(true);
 	// D3D11 Video Processor
 	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN) {
 		hr = InitializeD3D11VP(FmtParams, origW, origH);
@@ -1716,7 +1723,7 @@ HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, co
 		return hr;
 	}
 
-	hr = m_D3D11VP.InitInputTextures(DX::DeviceResources::Get()->GetD3DDevice());
+	hr = m_D3D11VP.InitInputTextures(GetDevice);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitializeD3D11VP() : InitInputTextures() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -1733,7 +1740,7 @@ HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, co
 		InitSwapChain();
 	}
 
-	hr = m_TexSrcVideo.Create(DX::DeviceResources::Get()->GetD3DDevice(), dxgiFormat, width, height, Tex2D_DynamicShaderWriteNoSRV);
+	hr = m_TexSrcVideo.Create(GetDevice, dxgiFormat, width, height, Tex2D_DynamicShaderWriteNoSRV);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitializeD3D11VP() : m_TexSrcVideo.Create() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -1756,7 +1763,7 @@ HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 
 	CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitializeTexVP() started with input surface: {}, {} x {}", WToA(DXGIFormatToString(srcDXGIFormat)).c_str(), width, height);
 
-	HRESULT hr = m_TexSrcVideo.CreateEx(DX::DeviceResources::Get()->GetD3DDevice(), srcDXGIFormat, params.pDX11Planes, width, height, Tex2D_DynamicShaderWrite);
+	HRESULT hr = m_TexSrcVideo.CreateEx(GetDevice, srcDXGIFormat, params.pDX11Planes, width, height, Tex2D_DynamicShaderWrite);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitializeTexVP() : m_TexSrcVideo.CreateEx() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -1774,7 +1781,7 @@ HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 	hr = UpdateConvertColorShader();
 
 	SAFE_RELEASE(m_PSConvColorData.pVertexBuffer);
-	EXECUTE_ASSERT(S_OK == CreateVertexBuffer(DX::DeviceResources::Get()->GetD3DDevice(), &m_PSConvColorData.pVertexBuffer, m_srcWidth, m_srcHeight, m_srcRect, 0, false));
+	EXECUTE_ASSERT(S_OK == CreateVertexBuffer(GetDevice, &m_PSConvColorData.pVertexBuffer, m_srcWidth, m_srcHeight, m_srcRect, 0, false));
 
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::InitializeTexVP() completed successfully");
 
@@ -1835,10 +1842,10 @@ BOOL CDX11VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 
 				HRESULT hr = E_FAIL;
 				if (VP11Format != DXGI_FORMAT_UNKNOWN) {
-					hr = m_Alignment.texture.Create(DX::DeviceResources::Get()->GetD3DDevice(), VP11Format, biWidth, biHeight, Tex2D_DynamicShaderWriteNoSRV);
+					hr = m_Alignment.texture.Create(GetDevice, VP11Format, biWidth, biHeight, Tex2D_DynamicShaderWriteNoSRV);
 				}
 				if (FAILED(hr) && FmtParams.DX11Format != DXGI_FORMAT_UNKNOWN) {
-					hr = m_Alignment.texture.CreateEx(DX::DeviceResources::Get()->GetD3DDevice(), FmtParams.DX11Format, FmtParams.pDX11Planes, biWidth, biHeight, Tex2D_DynamicShaderWrite);
+					hr = m_Alignment.texture.CreateEx(GetDevice, FmtParams.DX11Format, FmtParams.pDX11Planes, biWidth, biHeight, Tex2D_DynamicShaderWrite);
 				}
 				if (FAILED(hr)) {
 					return FALSE;
@@ -1936,7 +1943,7 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 {
-	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_FAIL);
+	CheckPointer(GetSwapChain, E_FAIL);
 
 	uint64_t tick = GetPreciseTick();
 
@@ -2180,19 +2187,24 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTime)
 {
 	CheckPointer(m_TexSrcVideo.pTexture, E_FAIL);
-	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_FAIL);
+	CheckPointer(GetSwapChain, E_FAIL);
+	
+	if (m_pSharedRenderer)
+		m_pSharedRenderer->Render(RENDER_LAYER_UNDER);
+
+	
 
 	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
 	{
-		//m_NativeVideoSize = GetVideoSize(false);
-		//m_AspectRatio = GetVideoSize(true);
-
 		// Configure Render Manager
 		float fps;
 		fps = 10000000.0 / m_rtAvgTimePerFrame;
 		g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
 		CLog::Log(LOGINFO, "{} Render manager configured (FPS: {}) {} {} {} {}", __FUNCTION__, fps, m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY);
 	}
+
+	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
+		return false;
 
 	if (field) {
 		m_FieldDrawn = field;
@@ -2201,7 +2213,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 #if 0//using kodi backbuffer
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
 	
-	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	HRESULT hr = GetSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::Render() : GetBuffer() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -2220,7 +2232,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	if (!m_windowRect.IsRectEmpty()) {
 		// fill the BackBuffer with black
 		ID3D11RenderTargetView* pRenderTargetView;
-		if (S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pRenderTargetView)) {
+		if (S_OK == GetDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pRenderTargetView)) {
 			const FLOAT ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 			DX::DeviceResources::Get()->GetImmediateContext()->ClearRenderTargetView(pRenderTargetView, ClearColor);
 			pRenderTargetView->Release();
@@ -2266,9 +2278,9 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		static int nTearingPos = 0;
 
 		ID3D11RenderTargetView* pRenderTargetView;
-		if (S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTargetView)) {
+		if (S_OK == GetDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTargetView)) {
 			CD3D11Rectangle d3d11rect;
-			HRESULT hr2 = d3d11rect.InitDeviceObjects(DX::DeviceResources::Get()->GetD3DDevice(), DX::DeviceResources::Get()->GetImmediateContext());
+			HRESULT hr2 = d3d11rect.InitDeviceObjects(GetDevice, DX::DeviceResources::Get()->GetImmediateContext());
 
 			const SIZE szWindow = m_windowRect.Size();
 			RECT rcTearing;
@@ -2363,19 +2375,26 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	}
 
 	SyncFrameToStreamTime(frameStartTime);
+	
+	m_pSharedRenderer->Render(RENDER_LAYER_OVER);
+
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 	if (FAILED(m_pDeviceContext->FinishCommandList(true, &pCommandList)))
 	{
-		
-		CLog::Log(LOGINFO, "{} ERROR Finishing commmand list", __FUNCTION__);
+		CLog::LogF(LOGERROR, "failed to finish command queue.");
+		return E_FAIL;
 	}
 	else
 	{
-		m_pSharedRenderer->EndRender(pCommandList);
+		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), false);
 	}
-	//g_bPresent = true;
-	//hr = DX::DeviceResources::Get()->GetSwapChain()->Present(1, 0);
-	//g_bPresent = false;
+
+	
+		
+	
+	g_bPresent = true;
+	//hr = GetSwapChain->Present(1, 0);
+	g_bPresent = false;
 	
 
 	m_RenderStats.presentticks = GetPreciseTick() - tick3;
@@ -2390,17 +2409,17 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 HRESULT CDX11VideoProcessor::FillBlack()
 {
 	return S_OK;
-	CheckPointer(DX::DeviceResources::Get()->GetSwapChain(), E_ABORT);
+	CheckPointer(GetSwapChain, E_ABORT);
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	HRESULT hr = GetSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::FillBlack() : GetBuffer() failed with error {}",__FUNCTION__);
 		return hr;
 	}
 
 	ID3D11RenderTargetView* pRenderTargetView;
-	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pRenderTargetView);
+	hr = GetDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pRenderTargetView);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::FillBlack() : CreateRenderTargetView() failed with error {}", __FUNCTION__);
 		return hr;
@@ -2431,7 +2450,7 @@ HRESULT CDX11VideoProcessor::FillBlack()
 	}
 
 	g_bPresent = true;
-	hr = DX::DeviceResources::Get()->GetSwapChain()->Present(1, 0);
+	hr = GetSwapChain->Present(1, 0);
 	g_bPresent = false;
 	DLogIf(FAILED(hr), L"CDX11VideoProcessor::FillBlack() : Present() failed with error {}", HR2Str(hr));
 
@@ -2454,13 +2473,13 @@ void CDX11VideoProcessor::UpdateTexures()
 	if (m_D3D11VP.IsReady()) {
 		if (m_bVPScaling) {
 			Com::SmartSize texsize = m_videoRect.Size();
-			hr = m_TexConvertOutput.CheckCreate(DX::DeviceResources::Get()->GetD3DDevice(), m_D3D11OutputFmt, texsize.cx, texsize.cy, Tex2D_DefaultShaderRTarget);
+			hr = m_TexConvertOutput.CheckCreate(GetDevice, m_D3D11OutputFmt, texsize.cx, texsize.cy, Tex2D_DefaultShaderRTarget);
 		} else {
-			hr = m_TexConvertOutput.CheckCreate(DX::DeviceResources::Get()->GetD3DDevice(), m_D3D11OutputFmt, m_srcRectWidth, m_srcRectHeight, Tex2D_DefaultShaderRTarget);
+			hr = m_TexConvertOutput.CheckCreate(GetDevice, m_D3D11OutputFmt, m_srcRectWidth, m_srcRectHeight, Tex2D_DefaultShaderRTarget);
 		}
 	}
 	else {
-		hr = m_TexConvertOutput.CheckCreate(DX::DeviceResources::Get()->GetD3DDevice(), m_InternalTexFmt, m_srcRectWidth, m_srcRectHeight, Tex2D_DefaultShaderRTarget);
+		hr = m_TexConvertOutput.CheckCreate(GetDevice, m_InternalTexFmt, m_srcRectWidth, m_srcRectHeight, Tex2D_DefaultShaderRTarget);
 	}
 }
 
@@ -2480,7 +2499,7 @@ void CDX11VideoProcessor::UpdatePostScaleTexures()
 	}
 
 	const UINT numPostScaleSteps = GetPostScaleSteps();
-	HRESULT hr = m_TexsPostScale.CheckCreate(DX::DeviceResources::Get()->GetD3DDevice(), m_InternalTexFmt, m_windowRect.Width(), m_windowRect.Height(), numPostScaleSteps);
+	HRESULT hr = m_TexsPostScale.CheckCreate(GetDevice, m_InternalTexFmt, m_windowRect.Width(), m_windowRect.Height(), numPostScaleSteps);
 	//UpdateStatsPostProc();
 }
 
@@ -2531,7 +2550,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 		m_iChromaScaling, convertType, false,
 		&pShaderCode);
 	if (S_OK == hr) {
-		hr = DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColor);
+		hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColor);
 		pShaderCode->Release();
 	}
 
@@ -2543,7 +2562,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 			m_iChromaScaling, convertType, true,
 			&pShaderCode);
 		if (S_OK == hr) {
-			hr = DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColorDeint);
+			hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColorDeint);
 			pShaderCode->Release();
 		}
 	}
@@ -2622,7 +2641,7 @@ HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
 {
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
-	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"ConvertColorPass() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -2722,7 +2741,7 @@ HRESULT CDX11VideoProcessor::ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2
 
 		if (!m_TexResize.pTexture) {
 			// use only float textures here
-			hr = m_TexResize.Create(DX::DeviceResources::Get()->GetD3DDevice(), DXGI_FORMAT_R16G16B16A16_FLOAT, texWidth, texHeight, Tex2D_DefaultShaderRTarget);
+			hr = m_TexResize.Create(GetDevice, DXGI_FORMAT_R16G16B16A16_FLOAT, texWidth, texHeight, Tex2D_DefaultShaderRTarget);
 			if (FAILED(hr)) {
 				CLog::LogF(LOGINFO,"CDX11VideoProcessor::ResizeShaderPass() : m_TexResize.Create() failed with error {}", WToA(HR2Str(hr)).c_str());
 				return hr;
@@ -2760,7 +2779,7 @@ HRESULT CDX11VideoProcessor::FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRen
 {
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
-	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::FinalPass() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -2806,7 +2825,7 @@ void CDX11VideoProcessor::DrawSubtitles(ID3D11Texture2D* pRenderTarget)
 {
 	if (m_pFilter->m_pSub11CallBack) {
 		ID3D11RenderTargetView* pRenderTargetView;
-		HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+		HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 		if (SUCCEEDED(hr)) {
 			const Com::SmartRect rSrcPri(Com::SmartPoint(0, 0), m_windowRect.Size());
 			const Com::SmartRect rDstVid(m_videoRect);
@@ -2974,8 +2993,8 @@ HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 	const UINT w = m_windowRect.Width();
 	const UINT h = m_windowRect.Height();
 
-	if (DX::DeviceResources::Get()->GetSwapChain() && !m_bIsFullscreen) {
-		//hr = DX::DeviceResources::Get()->GetSwapChain()->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
+	if (GetSwapChain && !m_bIsFullscreen) {
+		//hr = GetSwapChain->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
 	}
 
 	SetGraphSize();
@@ -3047,7 +3066,7 @@ HRESULT CDX11VideoProcessor::GetCurentImage(long *pDIBImage)
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pRGB32Texture2D;
 	D3D11_TEXTURE2D_DESC texdesc = CreateTex2DDesc(DXGI_FORMAT_B8G8R8X8_UNORM, w, h, Tex2D_DefaultRTarget);
 
-	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateTexture2D(&texdesc, nullptr, &pRGB32Texture2D);
+	hr = GetDevice->CreateTexture2D(&texdesc, nullptr, &pRGB32Texture2D);
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -3078,7 +3097,7 @@ HRESULT CDX11VideoProcessor::GetCurentImage(long *pDIBImage)
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pRGB32Texture2D_Shared;
 	texdesc = CreateTex2DDesc(DXGI_FORMAT_B8G8R8X8_UNORM, w, h, Tex2D_StagingRead);
 
-	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateTexture2D(&texdesc, nullptr, &pRGB32Texture2D_Shared);
+	hr = GetDevice->CreateTexture2D(&texdesc, nullptr, &pRGB32Texture2D_Shared);
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -3097,12 +3116,12 @@ HRESULT CDX11VideoProcessor::GetCurentImage(long *pDIBImage)
 
 HRESULT CDX11VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned* pSize)
 {
-	if (!DX::DeviceResources::Get()->GetSwapChain() || !DX::DeviceResources::Get()->GetD3DDevice() || !m_pDeviceContext) {
+	if (!GetSwapChain || !GetDevice || !m_pDeviceContext) {
 		return E_ABORT;
 	}
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
+	HRESULT hr = GetSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::GetDisplayedImage() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -3118,7 +3137,7 @@ HRESULT CDX11VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned* pSize)
 
 	D3D11_TEXTURE2D_DESC desc2 = CreateTex2DDesc(desc.Format, desc.Width, desc.Height, Tex2D_StagingRead);
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pTexture2DShared;
-	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateTexture2D(&desc2, nullptr, &pTexture2DShared);
+	hr = GetDevice->CreateTexture2D(&desc2, nullptr, &pTexture2DShared);
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::GetDisplayedImage() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -3203,7 +3222,7 @@ HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 	str.Format(L"\nVideo rect     : {},{},{},{} - {}x{}", m_videoRect.left, m_videoRect.top, m_videoRect.right, m_videoRect.bottom, m_videoRect.Width(), m_videoRect.Height());
 	str.Format(L"\nWindow rect    : {},{},{},{} - {}x{}", m_windowRect.left, m_windowRect.top, m_windowRect.right, m_windowRect.bottom, m_windowRect.Width(), m_windowRect.Height());
 
-	if (DX::DeviceResources::Get()->GetD3DDevice()) {
+	if (GetDevice) {
 		std::vector<std::pair<const DXGI_FORMAT, UINT>> formatsYUV = {
 			{ DXGI_FORMAT_NV12,               0 },
 			{ DXGI_FORMAT_P010,               0 },
@@ -3222,10 +3241,10 @@ HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 			{ DXGI_FORMAT_R16G16B16A16_UNORM, 0 },
 		};
 		for (auto& [format, formatSupport] : formatsYUV) {
-			DX::DeviceResources::Get()->GetD3DDevice()->CheckFormatSupport(format, &formatSupport);
+			GetDevice->CheckFormatSupport(format, &formatSupport);
 		}
 		for (auto& [format, formatSupport] : formatsRGB) {
-			DX::DeviceResources::Get()->GetD3DDevice()->CheckFormatSupport(format, &formatSupport);
+			GetDevice->CheckFormatSupport(format, &formatSupport);
 		}
 
 		int count = 0;
@@ -3540,7 +3559,7 @@ void CDX11VideoProcessor::ClearPostScaleShaders()
 HRESULT CDX11VideoProcessor::AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode)
 {
 #ifdef _DEBUG
-	if (!DX::DeviceResources::Get()->GetD3DDevice()) {
+	if (!GetDevice) {
 		return E_ABORT;
 	}
 
@@ -3548,7 +3567,7 @@ HRESULT CDX11VideoProcessor::AddPreScaleShader(const CStdStringW& name, const CS
 	HRESULT hr = CompileShader(srcCode, nullptr, "ps_4_0", &pShaderCode);
 	if (S_OK == hr) {
 		m_pPreScaleShaders.emplace_back();
-		hr = DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPreScaleShaders.back().shader);
+		hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPreScaleShaders.back().shader);
 		if (S_OK == hr) {
 			m_pPreScaleShaders.back().name = name;
 			//UpdatePreScaleTexures(); //TODO
@@ -3573,7 +3592,7 @@ HRESULT CDX11VideoProcessor::AddPreScaleShader(const CStdStringW& name, const CS
 
 HRESULT CDX11VideoProcessor::AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode)
 {
-	if (!DX::DeviceResources::Get()->GetD3DDevice()) {
+	if (!GetDevice) {
 		return E_ABORT;
 	}
 
@@ -3581,7 +3600,7 @@ HRESULT CDX11VideoProcessor::AddPostScaleShader(const CStdStringW& name, const C
 	HRESULT hr = CompileShader(srcCode, nullptr, "ps_4_0", &pShaderCode);
 	if (S_OK == hr) {
 		m_pPostScaleShaders.emplace_back();
-		hr = DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPostScaleShaders.back().shader);
+		hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPostScaleShaders.back().shader);
 		if (S_OK == hr) {
 			m_pPostScaleShaders.back().name = name;
 			UpdatePostScaleTexures();
@@ -3600,7 +3619,7 @@ HRESULT CDX11VideoProcessor::AddPostScaleShader(const CStdStringW& name, const C
 void CDX11VideoProcessor::UpdateStatsPresent()
 {
 	DXGI_SWAP_CHAIN_DESC1 swapchain_desc;
-	if (DX::DeviceResources::Get()->GetSwapChain() && S_OK == DX::DeviceResources::Get()->GetSwapChain()->GetDesc1(&swapchain_desc)) {
+	if (GetSwapChain && S_OK == GetSwapChain->GetDesc1(&swapchain_desc)) {
 		m_strStatsPresent.assign(L"\nPresentation  : ");
 		if (m_bVBlankBeforePresent /*&& m_pDXGIOutput*/) {
 			m_strStatsPresent.append(L"wait VBlank, ");
@@ -3809,7 +3828,7 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 #endif
 
 	ID3D11RenderTargetView* pRenderTargetView = nullptr;
-	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	if (S_OK == hr) {
 		SIZE rtSize = m_windowRect.Size();
 
@@ -3899,7 +3918,7 @@ STDMETHODIMP CDX11VideoProcessor::SetAlphaBitmap(const MFVideoAlphaBitmap *pBmpP
 			return E_INVALIDARG;
 		}
 
-		hr = m_TexAlphaBitmap.CheckCreate(DX::DeviceResources::Get()->GetD3DDevice(), DXGI_FORMAT_B8G8R8A8_UNORM, bm.bmWidth, bm.bmHeight, Tex2D_DefaultShader);
+		hr = m_TexAlphaBitmap.CheckCreate(GetDevice, DXGI_FORMAT_B8G8R8A8_UNORM, bm.bmWidth, bm.bmHeight, Tex2D_DefaultShader);
 		DLogIf(FAILED(hr), L"CDX11VideoProcessor::SetAlphaBitmap() : CheckCreate() failed with error {}", HR2Str(hr));
 		if (S_OK == hr) {
 			m_pDeviceContext->UpdateSubresource(m_TexAlphaBitmap.pTexture.Get(), 0, nullptr, bm.bmBits, bm.bmWidthBytes, 0);
@@ -3933,7 +3952,7 @@ STDMETHODIMP CDX11VideoProcessor::UpdateAlphaBitmapParameters(const MFVideoAlpha
 			m_pAlphaBitmapVertex= nullptr;
 		}
 		if (!m_pAlphaBitmapVertex) {
-			HRESULT hr = CreateVertexBuffer(DX::DeviceResources::Get()->GetD3DDevice(), &m_pAlphaBitmapVertex, m_TexAlphaBitmap.desc.Width, m_TexAlphaBitmap.desc.Height, m_AlphaBitmapRectSrc, 0, false);
+			HRESULT hr = CreateVertexBuffer(GetDevice, &m_pAlphaBitmapVertex, m_TexAlphaBitmap.desc.Width, m_TexAlphaBitmap.desc.Height, m_AlphaBitmapRectSrc, 0, false);
 			if (FAILED(hr)) {
 				m_bAlphaBitmapEnable = false;
 				return hr;
@@ -3954,7 +3973,7 @@ void CDX11VideoProcessor::SetResolution()
 {
 	
 
-	m_pSharedRenderer->CreateD3D11Textures(m_windowRect.Width(), m_windowRect.Height());
+	//m_pSharedRenderer->CreateD3D11Textures(m_windowRect.Width(), m_windowRect.Height());
 	
 }
 
@@ -3967,8 +3986,8 @@ bool CDX11VideoProcessor::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam,
 void CDX11VideoProcessor::SetCallbackDevice()
 {
 	CLog::Log(LOGINFO, "{} setting callback", __FUNCTION__);
-	if (!m_bCallbackDeviceIsSet && DX::DeviceResources::Get()->GetD3DDevice() && m_pFilter->m_pSub11CallBack) {
-		m_bCallbackDeviceIsSet = SUCCEEDED(m_pFilter->m_pSub11CallBack->SetDevice11(DX::DeviceResources::Get()->GetD3DDevice()));
+	if (!m_bCallbackDeviceIsSet && GetDevice && m_pFilter->m_pSub11CallBack) {
+		m_bCallbackDeviceIsSet = SUCCEEDED(m_pFilter->m_pSub11CallBack->SetDevice11(GetDevice));
 		CLog::Log(LOGINFO, "{} setting callback is set", __FUNCTION__);
 	}
 }

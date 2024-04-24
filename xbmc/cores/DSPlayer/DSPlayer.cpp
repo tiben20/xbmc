@@ -1609,7 +1609,7 @@ void CDSPlayer::SetPosition() const
 
 bool CDSPlayer::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const
 {
-  if (UsingDS(DIRECTSHOW_RENDERER_MADVR) || UsingDS(DIRECTSHOW_RENDERER_MPCVR))
+  if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
     return m_pAllocatorCallback->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret);
   
   

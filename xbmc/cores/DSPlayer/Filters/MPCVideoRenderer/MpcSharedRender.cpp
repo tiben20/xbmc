@@ -62,14 +62,26 @@ HRESULT CMpcSharedRender::Render(DS_RENDER_LAYER layer)
 
 void CMpcSharedRender::BeginRender()
 {
-  CLog::Log(LOGDEBUG, "{} Failed to create over shared texture", __FUNCTION__);
-  // Wait that EVR complete the rendering
+  // Wait that MPC complete the rendering
   m_kodiWait.Lock();
   m_kodiWait.Wait(100);
 
-  // Lock EVR thread while kodi rendering
+  // Lock MPC thread while kodi rendering
   m_dsWait.Lock();
 
+  // Clear RenderTarget
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+  ID3D11RenderTargetView* pSurface11;
+
+  DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(m_pMPCUnderTexture.Get(), NULL, &pSurface11);
+  D3DSetDebugName(pSurface11, "MPCUnderTexture render target");
+  pContext->ClearRenderTargetView(pSurface11, m_fColor);
+  pSurface11->Release();
+
+  DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(m_pMPCOverTexture.Get(), NULL, &pSurface11);
+  D3DSetDebugName(pSurface11, "MPCOverTexture render target");
+  pContext->ClearRenderTargetView(pSurface11, m_fColor);
+  pSurface11->Release();
   // Reset RenderCount
   ResetRenderCount();
 }
@@ -77,34 +89,28 @@ void CMpcSharedRender::BeginRender()
 void CMpcSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 {
   m_currentVideoLayer = layer;
-  /*
-  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+
+ 
   ID3D11RenderTargetView* pSurface11;
 
-  m_pD3DDeviceKodi->CreateRenderTargetView(layer == RENDER_LAYER_UNDER ? m_pKodiUnderTexture : m_pKodiOverTexture, NULL, &pSurface11);
-  pContext->OMSetRenderTargets(1, &pSurface11, 0);
-  pSurface11->Release();*/
+  DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(layer == RENDER_LAYER_UNDER ? m_pMPCUnderTexture.Get() : m_pMPCOverTexture.Get(), NULL, &pSurface11);
+  DX::DeviceResources::Get()->GetD3DContext()->OMSetRenderTargets(1, &pSurface11, 0);
+  pSurface11->Release();
 }
+
 
 void CMpcSharedRender::EndRender()
 {
 
-
-}
-
-
-void CMpcSharedRender::EndRender(Microsoft::WRL::ComPtr<ID3D11CommandList> commandList)
-{
-
   // Force to complete the rendering on Kodi device
-  DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(commandList.Get(), false);
-  DXGI_PRESENT_PARAMETERS parameters = {};
-  HRESULT hr = DX::DeviceResources::Get()->GetSwapChain()->Present1(1, 0, &parameters);
+  DX::DeviceResources::Get()->FinishCommandList();
+
+  //do we need staging?
   //ForceComplete();
 
   m_bGuiVisible = GuiVisible();
   m_bGuiVisibleOver = GuiVisible(RENDER_LAYER_OVER);
 
-  // Unlock MPC rendering
+  // Unlock EVR rendering
   m_dsWait.Unlock();
 }

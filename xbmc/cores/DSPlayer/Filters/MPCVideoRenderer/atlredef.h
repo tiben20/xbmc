@@ -18,3 +18,7 @@ extern "C" IMAGE_DOS_HEADER __ImageBase;
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "minhook.lib")
 
+//#define LOG_HR(hr) \
+//  CLog::LogF(LOGERROR, "function call at line {} ends with error: {}", __LINE__, \
+//             DX::GetErrorDescription(hr));
+

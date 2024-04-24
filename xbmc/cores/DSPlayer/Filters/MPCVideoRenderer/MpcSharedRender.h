@@ -32,7 +32,6 @@ public:
 
   void BeginRender() override;
   void RenderToTexture(DS_RENDER_LAYER layer) override;
-  void EndRender(Microsoft::WRL::ComPtr<ID3D11CommandList> commandList) override;
   void EndRender() override;
   HRESULT Render(DS_RENDER_LAYER layer);  
 };

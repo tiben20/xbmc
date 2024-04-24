@@ -24,6 +24,12 @@ struct RESOLUTION_INFO;
 struct DEBUG_INFO_RENDER;
 struct VideoDriverInfo;
 
+inline void D3DSetDebugName(_In_ ID3D11DeviceChild* pObj, _In_z_ const CHAR* pstrName)
+{
+  if (pObj)
+    pObj->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strlen(pstrName), pstrName);
+}
+
 namespace DX
 {
   interface IDeviceNotify

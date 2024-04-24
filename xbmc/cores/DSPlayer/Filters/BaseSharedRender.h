@@ -26,6 +26,7 @@
 #include "IDSPlayer.h"
 #include "d3d9.h"
 #include "D3d11.h"
+#include "guilib/d3dresource.h"
 #include <wrl/client.h>
 enum SHAREDRENDER_STATE
 {
@@ -57,7 +58,6 @@ public:
   // IDSRendererPaintCallback
   virtual void BeginRender() {};
   virtual void RenderToTexture(DS_RENDER_LAYER layer) {};
-  virtual void EndRender(Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList) {};
   virtual void EndRender() {};
   virtual void IncRenderCount();
 
@@ -86,6 +86,10 @@ protected:
   ID3D11Texture2D*          m_pKodiUnderTexture = nullptr;
   ID3D11Texture2D*          m_pKodiOverTexture = nullptr;
   ID3D11Texture2D*          m_pKodiFakeStaging = nullptr;
+  
+  CD3DTexture               m_pMPCUnderTexture;
+  CD3DTexture               m_pMPCOverTexture;
+  CD3DTexture               m_pMPCFakeStaging;
 
   DWORD m_dwWidth = 0;
   DWORD m_dwHeight = 0;

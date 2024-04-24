@@ -1035,7 +1035,7 @@ const std::string& CGraphicContext::GetMediaDir() const
 void CGraphicContext::Flip(bool rendered, bool videoLayer)
 {
 #if HAS_DS_PLAYER   
-  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS())
+  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MADVR))
 #endif
   CServiceBroker::GetRenderSystem()->PresentRender(rendered, videoLayer);
 
