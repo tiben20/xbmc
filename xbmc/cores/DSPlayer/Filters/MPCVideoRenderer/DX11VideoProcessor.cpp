@@ -279,7 +279,9 @@ HRESULT CDX11VideoProcessor::AlphaBlt(
 {
 	ID3D11RenderTargetView* pRenderTargetView;
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
-	
+
+	D3DSetDebugName(pRenderTargetView, "MPC RenderTarget AlphaBlt");
+
 	if (S_OK == hr) {
 		UINT Stride = sizeof(VERTEX);
 		UINT Offset = 0;
@@ -316,6 +318,8 @@ HRESULT CDX11VideoProcessor::TextureCopyRect(
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget TextureCopyRect");
+
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"TextureCopyRect() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -348,6 +352,8 @@ HRESULT CDX11VideoProcessor::TextureResizeShader(
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget TextureResizeShader");
+
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::TextureResizeShader() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -1211,12 +1217,12 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 
 	SetStereo3dTransform(m_iStereo3dTransform);
 
-	HRESULT hr4 = m_TexDither.Create(DX::DeviceResources::Get()->GetD3DDevice(), DXGI_FORMAT_R16G16B16A16_FLOAT, dither_size, dither_size, Tex2D_DynamicShaderWrite);
+	HRESULT hr4 = m_TexDither.Create(GetDevice, DXGI_FORMAT_R16G16B16A16_FLOAT, dither_size, dither_size, Tex2D_DynamicShaderWrite);
 	if (S_OK == hr4) {
 		hr4 = GetDataFromResource(data, size, IDF_DITHER_32X32_FLOAT16);
 		if (S_OK == hr4) {
 			D3D11_MAPPED_SUBRESOURCE mappedResource;
-			hr4 = DX::DeviceResources::Get()->GetD3DContext()->Map(m_TexDither.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			hr4 = m_pDeviceContext->Map(m_TexDither.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 			if (S_OK == hr4) {
 				uint16_t* src = (uint16_t*)data;
 				BYTE* dst = (BYTE*)mappedResource.pData;
@@ -1231,7 +1237,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 					src += dither_size;
 					dst += mappedResource.RowPitch;
 				}
-				DX::DeviceResources::Get()->GetD3DContext()->Unmap(m_TexDither.pTexture.Get(), 0);
+				m_pDeviceContext->Unmap(m_TexDither.pTexture.Get(), 0);
 			}
 		}
 		if (FAILED(hr4)) {
@@ -2386,6 +2392,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	}
 	else
 	{
+		D3DSetDebugName(pCommandList.Get(), "CommandList mpc deferred context");
 		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), false);
 	}
 
@@ -2642,6 +2649,8 @@ HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+
+	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget ConvertColorPass");
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"ConvertColorPass() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -2780,6 +2789,7 @@ HRESULT CDX11VideoProcessor::FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRen
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget FinalPass");
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::FinalPass() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
@@ -2826,6 +2836,8 @@ void CDX11VideoProcessor::DrawSubtitles(ID3D11Texture2D* pRenderTarget)
 	if (m_pFilter->m_pSub11CallBack) {
 		ID3D11RenderTargetView* pRenderTargetView;
 		HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+		D3DSetDebugName(pRenderTargetView, "MPC RenderTarget DrawSubtitles");
+
 		if (SUCCEEDED(hr)) {
 			const Com::SmartRect rSrcPri(Com::SmartPoint(0, 0), m_windowRect.Size());
 			const Com::SmartRect rDstVid(m_videoRect);
@@ -3829,6 +3841,8 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 
 	ID3D11RenderTargetView* pRenderTargetView = nullptr;
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
+	D3DSetDebugName(pRenderTargetView, "MPC RenderTarget DrawStats");
+
 	if (S_OK == hr) {
 		SIZE rtSize = m_windowRect.Size();
 

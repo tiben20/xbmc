@@ -24,6 +24,9 @@
 #include "platform/win32/CharsetConverter.h"
 #include "platform/win32/WIN32Util.h"
 
+#include "application/ApplicationComponents.h"
+#include "application/ApplicationPlayer.h"
+
 #ifdef TARGET_WINDOWS_STORE
 #include <winrt/Windows.Graphics.Display.Core.h>
 
@@ -1041,12 +1044,14 @@ void DX::DeviceResources::Present()
 
 void DX::DeviceResources::ClearDepthStencil() const
 {
-  m_deferrContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
+    m_deferrContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 }
 
 void DX::DeviceResources::ClearRenderTarget(ID3D11RenderTargetView* pRTView, float color[4]) const
 {
-  m_deferrContext->ClearRenderTargetView(pRTView, color);
+  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
+    m_deferrContext->ClearRenderTargetView(pRTView, color);
 }
 
 void DX::DeviceResources::HandleOutputChange(const std::function<bool(DXGI_OUTPUT_DESC)>& cmpFunc)

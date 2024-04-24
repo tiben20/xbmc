@@ -70,7 +70,7 @@ void CMpcSharedRender::BeginRender()
   m_dsWait.Lock();
 
   // Clear RenderTarget
-  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+  /*ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
   ID3D11RenderTargetView* pSurface11;
 
   DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(m_pMPCUnderTexture.Get(), NULL, &pSurface11);
@@ -81,7 +81,7 @@ void CMpcSharedRender::BeginRender()
   DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(m_pMPCOverTexture.Get(), NULL, &pSurface11);
   D3DSetDebugName(pSurface11, "MPCOverTexture render target");
   pContext->ClearRenderTargetView(pSurface11, m_fColor);
-  pSurface11->Release();
+  pSurface11->Release();*/
   // Reset RenderCount
   ResetRenderCount();
 }
@@ -93,9 +93,9 @@ void CMpcSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
  
   ID3D11RenderTargetView* pSurface11;
 
-  DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(layer == RENDER_LAYER_UNDER ? m_pMPCUnderTexture.Get() : m_pMPCOverTexture.Get(), NULL, &pSurface11);
-  DX::DeviceResources::Get()->GetD3DContext()->OMSetRenderTargets(1, &pSurface11, 0);
-  pSurface11->Release();
+  //DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(layer == RENDER_LAYER_UNDER ? m_pMPCUnderTexture.Get() : m_pMPCOverTexture.Get(), NULL, &pSurface11);
+  //DX::DeviceResources::Get()->GetD3DContext()->OMSetRenderTargets(1, &pSurface11, 0);
+  //pSurface11->Release();
 }
 
 

@@ -744,7 +744,7 @@ void CDSPlayer::Process()
   while (!m_bStop && PlayerState != DSPLAYER_CLOSED && PlayerState != DSPLAYER_LOADING)
   {
     HandleMessages();
-    PostMessage(new CDSMsg(CDSMsg::PLAYER_PAUSE));
+    //PostMessage(new CDSMsg(CDSMsg::PLAYER_PAUSE));
     
 
   }

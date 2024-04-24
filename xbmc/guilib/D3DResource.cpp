@@ -464,6 +464,8 @@ ID3D11RenderTargetView* CD3DTexture::GetRenderTargetInternal(unsigned idx)
     {
       CLog::LogF(LOGWARNING, "cannot create texture view.");
     }
+    else
+      D3DSetDebugName(m_renderTargets[idx].Get(), StringUtils::Format("KodiRenderTarget {}", idx).c_str());
   }
 
   return m_renderTargets[idx].Get();

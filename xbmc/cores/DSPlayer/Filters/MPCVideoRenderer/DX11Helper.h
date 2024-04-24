@@ -21,6 +21,7 @@
 #pragma once
 
 #include <d3d11_1.h>
+#include "rendering/dx/DeviceResources.h"
 
 enum Tex2DType {
 	Tex2D_Default,
@@ -59,7 +60,7 @@ struct Tex2D_t
 		HRESULT hr = pDevice->CreateTexture2D(&texdesc, nullptr, &pTexture);
 		if (S_OK == hr) {
 			pTexture->GetDesc(&desc);
-
+			D3DSetDebugName(pTexture.Get(), "Tex2D_t");
 			if (type != Tex2D_DynamicShaderWriteNoSRV && (desc.BindFlags & D3D11_BIND_SHADER_RESOURCE)) {
 				D3D11_SHADER_RESOURCE_VIEW_DESC shaderDesc;
 				shaderDesc.Format = format;
@@ -68,6 +69,7 @@ struct Tex2D_t
 				shaderDesc.Texture2D.MipLevels = 1;       // = Texture2D desc.MipLevels
 
 				hr = pDevice->CreateShaderResourceView(pTexture.Get(), &shaderDesc, &pShaderResource);
+				D3DSetDebugName(pShaderResource.Get(), "Tex2D_t ShaderResourceView");
 				if (FAILED(hr)) {
 					Release();
 				}
