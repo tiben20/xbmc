@@ -29,6 +29,7 @@
 #include "VideoRenderer.h"
 #include "Registry.h"
 #include "windowing/windows/WinSystemWin32DX.h"
+#include "utils/SystemInfo.h"
 
 #define WM_SWITCH_FULLSCREEN (WM_APP + 0x1000)
 
@@ -344,7 +345,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		}
 	}
 #endif
-	if (!IsWindows10OrGreater()) {
+	if (!CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10)) {
 		m_Sets.bHdrPassthrough = false;
 		m_Sets.iHdrToggleDisplay = HDRTD_Disabled;
 	}

@@ -524,7 +524,7 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 
 	ReleaseSwapChain();
 	//m_pDXGIFactory2= nullptr;
-
+	m_pSharedRenderer = nullptr;
 	ReleaseDevice();
 
 	m_pDXGIFactory1= nullptr;
@@ -1261,8 +1261,12 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 HRESULT CDX11VideoProcessor::InitSwapChain()
 {
 	CLog::LogF(LOGINFO, "{} ", __FUNCTION__);
+
 	const auto bHdrOutput = m_bHdrPassthroughSupport && m_bHdrPassthrough && (SourceIsHDR() || m_bVPUseRTXVideoHDR);
 	m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+	DXGI_SWAP_CHAIN_DESC1 desc = { 0 };
+	GetSwapChain->GetDesc1(&desc);
+	m_SwapChainFmt = desc.Format;
 	if (bHdrOutput) {
 		HRESULT hr2 = GetSwapChain->QueryInterface(IID_PPV_ARGS(&m_pDXGISwapChain4));
 		return hr2;
@@ -1313,7 +1317,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 		if ((m_iSwapEffect == SWAPEFFECT_Flip && IsWindows8OrGreater()) || bHdrOutput) {
 			desc1.BufferCount = bHdrOutput ? 6 : 2;
 			desc1.Scaling = DXGI_SCALING_NONE;
-			desc1.SwapEffect = IsWindows10OrGreater() ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+			desc1.SwapEffect = CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		} else { // SWAPEFFECT_Discard or Windows 7
 			desc1.BufferCount = 1;
 			desc1.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
@@ -1342,7 +1346,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 		if ((m_iSwapEffect == SWAPEFFECT_Flip && IsWindows8OrGreater()) || bHdrOutput) {
 			desc1.BufferCount = bHdrOutput ? 6 : 2;
 			desc1.Scaling = DXGI_SCALING_NONE;
-			desc1.SwapEffect = IsWindows10OrGreater() ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+			desc1.SwapEffect = CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 		} else { // SWAPEFFECT_Discard or Windows 7
 			desc1.BufferCount = 1;
 			desc1.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;

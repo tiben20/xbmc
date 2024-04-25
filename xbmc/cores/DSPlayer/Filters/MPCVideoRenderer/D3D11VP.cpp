@@ -126,7 +126,10 @@ HRESULT CD3D11VP::InitVideoDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pC
 void CD3D11VP::ReleaseVideoDevice()
 {
 	ReleaseVideoProcessor();
-
+	m_pVideoContext1 = nullptr;
+	m_pVideoContext = nullptr;
+	m_pVideoDevice = nullptr;
+	
 	m_VendorId = 0;
 
 	m_bConvSupportedG2084 = FALSE;
@@ -394,10 +397,12 @@ void CD3D11VP::ReleaseVideoProcessor()
 	m_VideoTextures.Clear();
 
 	m_pVideoProcessor=nullptr;
-
+	
 	m_pVideoProcessorEnum1 = nullptr;
-		m_pVideoProcessorEnum = nullptr;
-
+  m_pVideoProcessorEnum = nullptr;
+	
+		
+	
 	m_VPCaps = {};
 	m_RateConvIndex = 0;
 	m_RateConvCaps = {};
