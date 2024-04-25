@@ -90,7 +90,7 @@ public:
 
 	ID3D11Texture2D** GetTexture(UINT num)
 	{
-		if (num < m_Textures.size()) {
+		if (num < m_Textures.size()){
 			return &m_Textures[num];
 		} else {
 			return nullptr;
@@ -115,7 +115,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VideoDevice> m_pVideoDevice;
 	Microsoft::WRL::ComPtr<ID3D11VideoProcessor> m_pVideoProcessor;
 
-	//Microsoft::WRL::ComPtr<ID3D11VideoContext> m_pVideoContext;
+	Microsoft::WRL::ComPtr<ID3D11VideoContext> m_pVideoContext;
 	Microsoft::WRL::ComPtr<ID3D11VideoProcessorEnumerator> m_pVideoProcessorEnum;
 
 	Microsoft::WRL::ComPtr<ID3D11VideoContext1> m_pVideoContext1;

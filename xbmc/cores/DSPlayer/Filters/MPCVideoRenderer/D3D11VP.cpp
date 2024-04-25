@@ -83,7 +83,14 @@ HRESULT CD3D11VP::InitVideoDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pC
 		return hr;
 	}
 
-	hr = pContext->QueryInterface(IID_PPV_ARGS(&m_pVideoContext1));
+	hr = DX::DeviceResources::Get()->GetImmediateContext()->QueryInterface(IID_PPV_ARGS(&m_pVideoContext));
+	if (FAILED(hr)) {
+		DLog(L"CD3D11VP::InitVideoDevice() : QueryInterface(ID3D11VideoContext) failed with error {}", HR2Str(hr));
+		ReleaseVideoDevice();
+		return hr;
+	}
+
+	hr = m_pVideoContext->QueryInterface(IID_PPV_ARGS(&m_pVideoContext1));
 	DLogIf(!m_pVideoContext1, L"CD3D11VP::InitVideoDevice() : ID3D11VideoContext1 unavailable");
 
 #ifdef _DEBUG
@@ -416,6 +423,8 @@ HRESULT CD3D11VP::InitInputTextures(ID3D11Device* pDevice)
 		D3D11_TEXTURE2D_DESC texdesc = CreateTex2DDesc(m_srcFormat, m_srcWidth, m_srcHeight, Tex2D_Default);
 
 		hr = pDevice->CreateTexture2D(&texdesc, nullptr, ppTexture);
+		
+		D3DSetDebugName(*ppTexture, "MPC VideoProcessor Texture");
 		if (S_OK == hr) {
 			D3D11_VIDEO_PROCESSOR_INPUT_VIEW_DESC inputViewDesc = {};
 			inputViewDesc.ViewDimension = D3D11_VPIV_DIMENSION_TEXTURE2D;

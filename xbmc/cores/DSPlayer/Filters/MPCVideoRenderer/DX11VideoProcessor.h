@@ -195,6 +195,8 @@ private:
 	bool m_bCallbackDeviceIsSet = false;
 	void SetCallbackDevice();
 
+	bool m_bDsplayerNotified = false;
+
 public:
 	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
 	~CDX11VideoProcessor() override;

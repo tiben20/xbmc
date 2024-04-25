@@ -741,6 +741,8 @@ void CDSPlayer::Process()
 
     if (CGraphFilters::Get()->IsDVD())
       CStreamsManager::Get()->LoadDVDStreams();
+    
+    m_callback.OnPlayBackStarted(m_currentFileItem);
   }
 
   while (!m_bStop && PlayerState != DSPLAYER_CLOSED && PlayerState != DSPLAYER_LOADING)
@@ -818,6 +820,11 @@ void CDSPlayer::HandleMessages()
         g_dsGraph->UpdateTime();
         m_processInfo->SetPlayTimes(0, g_dsGraph->GetTime(), 0, g_dsGraph->GetTotalTime());
         
+      }
+      else if (pMsg->IsType(CDSMsg::PLAYER_PLAYBACK_STARTED))
+      {
+        CServiceBroker::GetAppMessenger()->PostMsg(TMSG_SWITCHTOFULLSCREEN);
+        m_callback.OnAVStarted(m_currentFileItem);
       }
 
       /*DVD COMMANDS*/

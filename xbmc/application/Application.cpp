@@ -2765,6 +2765,10 @@ bool CApplication::OnMessage(CGUIMessage& message)
       if (!m_itemCurrentFile->IsLiveTV() ||
           (!appPlayer->IsPlayingVideo() && !appPlayer->IsPlayingAudio()))
       {
+        bool live, video, audio;
+        live = !m_itemCurrentFile->IsLiveTV();
+        video = !appPlayer->IsPlayingVideo();
+        audio = !appPlayer->IsPlayingAudio();
         CGUIDialogBusy* dialog =
             CServiceBroker::GetGUI()->GetWindowManager().GetWindow<CGUIDialogBusy>(
                 WINDOW_DIALOG_BUSY);

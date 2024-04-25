@@ -1647,7 +1647,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	if (FmtParams.VP11Format != DXGI_FORMAT_UNKNOWN) {
 		hr = InitializeD3D11VP(FmtParams, origW, origH);
 		if (SUCCEEDED(hr)) {
-			std::string resId = 0;
+			std::string resId = "";
 			bool bTransFunc22 = m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_22
 								|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_709
 								|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_240M;
@@ -2208,7 +2208,15 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
 		CLog::Log(LOGINFO, "{} Render manager configured (FPS: {}) {} {} {} {}", __FUNCTION__, fps, m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY);
 	}
-
+	else
+	{
+		if (!m_bDsplayerNotified)
+		{
+			m_bDsplayerNotified = true;
+			CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PLAYBACK_STARTED),false);
+			CLog::Log(LOGINFO, "{} DSPLAYER notify playback started sent",__FUNCTION__);
+		}
+	}
 	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
 		return false;
 
