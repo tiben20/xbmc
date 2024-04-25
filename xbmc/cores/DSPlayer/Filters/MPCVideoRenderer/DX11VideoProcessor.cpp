@@ -432,7 +432,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
 	SetDefaultDXVA2ProcAmpValues(m_DXVA2ProcAmpValues);
 
-	pOrigSetWindowPosDX11 = SetWindowPos;
+	/*pOrigSetWindowPosDX11 = SetWindowPos;
 	auto ret = HookFunc(&pOrigSetWindowPosDX11, pNewSetWindowPosDX11);
 	DLogIf(!ret, L"CDX11VideoProcessor::CDX11VideoProcessor() : hook for SetWindowPos() fail");
 
@@ -440,7 +440,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	ret = HookFunc(&pOrigSetWindowLongADX11, pNewSetWindowLongADX11);
 	DLogIf(!ret, L"CDX11VideoProcessor::CDX11VideoProcessor() : hook for SetWindowLongA() fail");
 
-	MH_EnableHook(MH_ALL_HOOKS);
+	MH_EnableHook(MH_ALL_HOOKS);*/
 
 	Microsoft::WRL::ComPtr<IDXGIAdapter> pDXGIAdapter;
 	for (UINT adapter = 0; m_pDXGIFactory1->EnumAdapters(adapter, &pDXGIAdapter) != DXGI_ERROR_NOT_FOUND; ++adapter) {
@@ -2229,11 +2229,11 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 #endif
 	uint64_t tick1 = GetPreciseTick();
 	float fColor[4];
-	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::BLACK);
+	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::NONE);
 	ID3D11RenderTargetView* pRTView = DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget();
 	m_pDeviceContext->ClearRenderTargetView(pRTView, fColor);
 	m_pDeviceContext->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
-	
+
 #if 0 //done on the kodi side
 	if (!m_windowRect.IsRectEmpty()) {
 		// fill the BackBuffer with black

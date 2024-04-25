@@ -103,7 +103,7 @@ void CMpcSharedRender::EndRender()
 {
 
   // Force to complete the rendering on Kodi device
-  DX::DeviceResources::Get()->FinishCommandList();
+  //DX::DeviceResources::Get()->FinishCommandList();
 
   //do we need staging?
   //ForceComplete();

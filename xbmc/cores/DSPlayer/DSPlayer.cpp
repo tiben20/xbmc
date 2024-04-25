@@ -107,9 +107,11 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_HasVideo = false;
   m_HasAudio = false;
   m_isMadvr = (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
-
-  if (InitWindow(m_hWnd))
-    CLog::Log(LOGDEBUG, "{} : Create DSPlayer window - hWnd:", __FUNCTION__);
+  if (m_isMadvr)
+  {
+    if (InitWindow(m_hWnd))
+      CLog::Log(LOGDEBUG, "{} : Create DSPlayer window - hWnd:", __FUNCTION__);
+  }
 
   /* Suspend AE temporarily so exclusive or hog-mode sinks */
   /* don't block DSPlayer access to audio device  */
@@ -561,7 +563,7 @@ bool CDSPlayer::InitWindow(HWND &hWnd)
   wndClass.hInstance = m_hInstance;
   wndClass.hIcon = NULL;
   wndClass.hCursor = NULL;
-  wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+  wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
   wndClass.lpszMenuName = NULL;
   wndClass.lpszClassName = m_className.c_str();
 
