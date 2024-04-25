@@ -693,7 +693,10 @@ void CDX11VideoProcessor::ReleaseDevice()
 	m_Alignment.texture.Release();
 	m_Alignment.cformat = {};
 	m_Alignment.cx = {};
+	if (m_pDeviceContext)
+		m_pDeviceContext->Flush();
 	m_pDeviceContext= nullptr;
+	
 	m_bCallbackDeviceIsSet = false;
 
 	m_pVertexBuffer= nullptr;
@@ -2239,9 +2242,9 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	float fColor[4];
 	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::NONE);
 	ID3D11RenderTargetView* pRTView = DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget();
-	m_pDeviceContext->ClearRenderTargetView(pRTView, fColor);
-	m_pDeviceContext->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
-
+	DX::DeviceResources::Get()->GetImmediateContext()->ClearRenderTargetView(pRTView, fColor);
+	DX::DeviceResources::Get()->GetImmediateContext()->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+	
 #if 0 //done on the kodi side
 	if (!m_windowRect.IsRectEmpty()) {
 		// fill the BackBuffer with black
