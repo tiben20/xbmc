@@ -646,7 +646,7 @@ void CDX11VideoProcessor::ReleaseDevice()
 
 	ReleaseVP();
 	m_D3D11VP.ReleaseVideoDevice();
-
+	m_D3D11VP.ResetFrameOrder();
 	m_StatsBackground.InvalidateDeviceObjects();
 	m_Font3D.InvalidateDeviceObjects();
 	m_Rect3D.InvalidateDeviceObjects();
@@ -1900,10 +1900,19 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
 	if (m_bKodiResizeBuffers)
 	{
+		//not the cleanest way but we need to resize buffers on wm_size
+		winrt::Windows::Foundation::Size sz;
+		sz = DX::DeviceResources::Get()->GetLogicalSize();
+		
+		m_windowRect.right = sz.Width;
+		m_windowRect.bottom= sz.Height;
+		m_videoRect.right = sz.Width;
+		m_videoRect.bottom = sz.Height;		UpdateRenderRect();
 		HRESULT hr = SetDevice(GetDevice, false);
 		if (SUCCEEDED(hr))
 		{
 			CLog::Log(LOGDEBUG, "{} kodi asking for a device resize and reset", __FUNCTION__);
+			
 			m_bKodiResizeBuffers = false;
 		}
 
@@ -3054,6 +3063,7 @@ void CDX11VideoProcessor::Reset(bool bForceWindowed)
 
 	m_pDXGIFactory1 = nullptr;
 	m_bKodiResizeBuffers = true;
+	
 }
 
 HRESULT CDX11VideoProcessor::Reset()
