@@ -52,6 +52,7 @@ public:
 	void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override {};
 	bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) const override;
 	void DisplayChange(bool bExternalChange) override {};
+	void Reset(bool bForceWindowed) override;
 private:
 	friend class CVideoRendererInputPin;
 
@@ -125,7 +126,7 @@ private:
 	//Microsoft::WRL::ComPtr<IDXGIFactory2>   m_pDXGIFactory2;
 	//Microsoft::WRL::ComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
 	//this one we kept only but will neeed reset
-	Microsoft::WRL::ComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
+	//Microsoft::WRL::ComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
 	//Microsoft::WRL::ComPtr<IDXGIOutput>    m_pDXGIOutput;
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
@@ -196,6 +197,7 @@ private:
 	void SetCallbackDevice();
 
 	bool m_bDsplayerNotified = false;
+	bool m_bKodiResizeBuffers = false;
 
 public:
 	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);

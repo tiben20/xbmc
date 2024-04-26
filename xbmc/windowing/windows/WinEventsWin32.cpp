@@ -685,10 +685,9 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       }
     return(0);
     case WM_SIZE:
-#if TODO
 #if HAS_DS_PLAYER
-      PostMessage(CDSPlayer::GetDShWnd(), uMsg, wParam, lParam);
-#endif
+      CDSPlayer::PostMessage(new CDSMsgBool(CDSMsg::RESET_DEVICE,true), true);
+      //PostMessage(CDSPlayer::GetDShWnd(), uMsg, wParam, lParam);
 #endif
       if (wParam == SIZE_MINIMIZED)
       {

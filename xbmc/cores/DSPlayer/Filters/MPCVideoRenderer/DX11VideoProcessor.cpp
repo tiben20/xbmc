@@ -535,7 +535,6 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 
 HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullptr*/)
 {
-/*TODO REMOVE INTERNAL CREATION AND USE OUR D3D DEVICE*/
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::Init()");
 	
 
@@ -711,7 +710,7 @@ void CDX11VideoProcessor::ReleaseSwapChain()
 	//if (GetSwapChain)
 		//GetSwapChain->SetFullscreenState(FALSE, nullptr);
 	
-	m_pDXGISwapChain4= nullptr;
+	//m_pDXGISwapChain4= nullptr;
 }
 
 UINT CDX11VideoProcessor::GetPostScaleSteps()
@@ -1267,9 +1266,11 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 	DXGI_SWAP_CHAIN_DESC1 desc = { 0 };
 	GetSwapChain->GetDesc1(&desc);
 	m_SwapChainFmt = desc.Format;
+	
 	if (bHdrOutput) {
-		HRESULT hr2 = GetSwapChain->QueryInterface(IID_PPV_ARGS(&m_pDXGISwapChain4));
-		return hr2;
+		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
+		return GetSwapChain->QueryInterface(IID_PPV_ARGS(&swapChain4));
+		
 	}
 	
 	return S_OK;
@@ -1632,7 +1633,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 
 	if (m_bHdrAllowSwitchDisplay && m_srcVideoTransferFunction != m_srcExFmt.VideoTransferFunction) {
 		auto ret = HandleHDRToggle();
-		if (!ret && (m_bHdrPassthrough && m_bHdrPassthroughSupport && SourceIsPQorHLG() && !m_pDXGISwapChain4)) {
+		if (!ret && (m_bHdrPassthrough && m_bHdrPassthroughSupport && SourceIsPQorHLG())) {
 			ret = true;
 		}
 		if (ret) {
@@ -1748,8 +1749,8 @@ HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, co
 	auto rtxHDR = m_bVPRTXVideoHDR && m_bHdrPassthroughSupport && m_bHdrPassthrough && m_iTexFormat != TEXFMT_8INT && !SourceIsHDR();
 	m_bVPUseRTXVideoHDR = (m_D3D11VP.SetRTXVideoHDR(rtxHDR) == S_OK);
 
-	if ((m_bVPUseRTXVideoHDR && !m_pDXGISwapChain4)
-			|| (!m_bVPUseRTXVideoHDR && m_pDXGISwapChain4 && !SourceIsHDR())) {
+	if ((m_bVPUseRTXVideoHDR )
+			|| (!m_bVPUseRTXVideoHDR && !SourceIsHDR())) {
 		InitSwapChain();
 	}
 
@@ -1897,6 +1898,16 @@ BOOL CDX11VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 
 HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
+	if (m_bKodiResizeBuffers)
+	{
+		HRESULT hr = SetDevice(GetDevice, false);
+		if (SUCCEEDED(hr))
+		{
+			CLog::Log(LOGDEBUG, "{} kodi asking for a device resize and reset", __FUNCTION__);
+			m_bKodiResizeBuffers = false;
+		}
+
+	}
 	REFERENCE_TIME rtStart, rtEnd;
 	if (FAILED(pSample->GetTime(&rtStart, &rtEnd))) {
 		rtStart = m_pFilter->m_FrameStats.GeTimestamp();
@@ -2329,7 +2340,8 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	uint64_t tick3 = GetPreciseTick();
 	m_RenderStats.paintticks = tick3 - tick1;
 
-	if (m_pDXGISwapChain4) {
+	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
+	if (SUCCEEDED(GetSwapChain->QueryInterface(IID_PPV_ARGS(&swapChain4)))) {
 		if (m_hdr10.bValid) {
 			if (m_DoviMaxMasteringLuminance > m_hdr10.hdr10.MaxMasteringLuminance) {
 				m_hdr10.hdr10.MaxMasteringLuminance = m_DoviMaxMasteringLuminance;
@@ -2342,13 +2354,13 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		const DXGI_COLOR_SPACE_TYPE colorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
 		if (m_currentSwapChainColorSpace != colorSpace) {
 			if (m_hdr10.bValid) {
-				hr = m_pDXGISwapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
+				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
 				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", HR2Str(hr));
 
 				m_lastHdr10 = m_hdr10;
 				UpdateStatsStatic();
 			} else if (m_lastHdr10.bValid) {
-				hr = m_pDXGISwapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
+				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
 				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(lastHdr) failed with error {}", HR2Str(hr));
 			} else {
 				m_lastHdr10.bValid = true;
@@ -2363,16 +2375,16 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 				m_lastHdr10.hdr10.WhitePoint[1]   = 16450;
 				m_lastHdr10.hdr10.MaxMasteringLuminance = m_DoviMaxMasteringLuminance ? m_DoviMaxMasteringLuminance : 1000 * 10000; // 1000 nits
 				m_lastHdr10.hdr10.MinMasteringLuminance = m_DoviMinMasteringLuminance ? m_DoviMinMasteringLuminance : 50;           // 0.005 nits
-				hr = m_pDXGISwapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
+				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
 				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(Display P3 standard) failed with error {}", HR2Str(hr));
 
 				UpdateStatsStatic();
 			}
 
 			UINT colorSpaceSupport = 0;
-			if (SUCCEEDED(m_pDXGISwapChain4->CheckColorSpaceSupport(colorSpace, &colorSpaceSupport))
+			if (SUCCEEDED(swapChain4->CheckColorSpaceSupport(colorSpace, &colorSpaceSupport))
 					&& (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) == DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) {
-				hr = m_pDXGISwapChain4->SetColorSpace1(colorSpace);
+				hr = swapChain4->SetColorSpace1(colorSpace);
 				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetColorSpace1() failed with error {}", HR2Str(hr));
 				if (SUCCEEDED(hr)) {
 					m_currentSwapChainColorSpace = colorSpace;
@@ -2380,7 +2392,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			}
 		} else if (m_hdr10.bValid) {
 			if (memcmp(&m_hdr10.hdr10, &m_lastHdr10.hdr10, sizeof(m_hdr10.hdr10)) != 0) {
-				hr = m_pDXGISwapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
+				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
 				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", HR2Str(hr));
 
 				m_lastHdr10 = m_hdr10;
@@ -3029,6 +3041,19 @@ HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 	UpdatePostScaleTexures();
 
 	return hr;
+}
+
+void CDX11VideoProcessor::Reset(bool bForceWindowed)
+{
+	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
+	ReleaseSwapChain();
+	//m_pDXGIFactory2= nullptr;
+	m_pSharedRenderer = nullptr;
+	m_pSharedRenderer = new CMpcSharedRender();
+	ReleaseDevice();
+
+	m_pDXGIFactory1 = nullptr;
+	m_bKodiResizeBuffers = true;
 }
 
 HRESULT CDX11VideoProcessor::Reset()
@@ -4000,9 +4025,7 @@ STDMETHODIMP CDX11VideoProcessor::UpdateAlphaBitmapParameters(const MFVideoAlpha
 
 void CDX11VideoProcessor::SetResolution()
 {
-	
 
-	//m_pSharedRenderer->CreateD3D11Textures(m_windowRect.Width(), m_windowRect.Height());
 	
 }
 
@@ -4011,6 +4034,8 @@ bool CDX11VideoProcessor::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam,
 	*ret = m_pFilter->OnReceiveMessage(hWnd, uMsg, (WPARAM)wParam, (LPARAM)lParam);
 	return false;
 }
+
+
 
 void CDX11VideoProcessor::SetCallbackDevice()
 {
