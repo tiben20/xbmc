@@ -7,6 +7,7 @@ set(SOURCES CPUInfo2.cpp
 			D3D9Font.cpp
 			D3D9Geometry.cpp
 			DisplayConfig.cpp
+			DSResource.cpp
 			DX11Helper.cpp
 			DX11VideoProcessor.cpp
 			DX9Helper.cpp
@@ -14,6 +15,7 @@ set(SOURCES CPUInfo2.cpp
 			DXVA2VP.cpp
 			Helper.cpp
 			MediaSampleSideData.cpp
+			MpcSharedRender.cpp
 			PropPage.cpp
 			Registry.cpp
 			renbase2.cpp
@@ -26,37 +28,39 @@ set(SOURCES CPUInfo2.cpp
 			VideoRendererInputPin.cpp)
 
 set(HEADERS atlredef.h
-CPUInfo2.h
-csputils.h
-CustomAllocator.h
-D3D11Font.h
-D3D11Geometry.h
-D3D11VP.h
-D3D9Font.h
-D3D9Geometry.h
-D3DCommon.h
-DisplayConfig.h
-DX11Helper.h
-DX11VideoProcessor.h
-DX9Helper.h
-DX9VideoProcessor.h
-DXVA2VP.h
-FontBitmap.h
-FrameStats.h
-gpu_memcpy_sse4.h
-Helper.h
-IVideoRenderer.h
-MediaSampleSideData.h
-PropPage.h
-Registry.h
-renbase2.h
-resource.h
-Shaders.h
-stdafx.h
-Times.h
-Util2.h
-VideoProcessor.h
-VideoRenderer.h
-VideoRendererInputPin.h)
+			CPUInfo2.h
+			csputils.h
+			CustomAllocator.h
+			D3D11Font.h
+			D3D11Geometry.h
+			D3D11VP.h
+			D3D9Font.h
+			D3D9Geometry.h
+			D3DCommon.h
+			DisplayConfig.h
+			DSResource.h
+			DX11Helper.h
+			DX11VideoProcessor.h
+			DX9Helper.h
+			DX9VideoProcessor.h
+			DXVA2VP.h
+			FontBitmap.h
+			FrameStats.h
+			gpu_memcpy_sse4.h
+			Helper.h
+			IVideoRenderer.h
+			MediaSampleSideData.h
+			MpcSharedRender.h
+			PropPage.h
+			Registry.h
+			renbase2.h
+			resource.h
+			Shaders.h
+			stdafx.h
+			Times.h
+			Util2.h
+			VideoProcessor.h
+			VideoRenderer.h
+			VideoRendererInputPin.h)
 
 core_add_library(Filters)
