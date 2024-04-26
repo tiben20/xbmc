@@ -63,5 +63,4 @@ set(HEADERS atlredef.h
 			VideoRenderer.h
 			VideoRendererInputPin.h)
 			
-
 core_add_library(Filters)
