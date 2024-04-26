@@ -100,64 +100,20 @@
 #define IDF_PS_11_FINAL_PASS_10 "special://xbmc/system/players/dsplayer/MPCShaders/ps_final_pass_10.cso"
 
 
-class CD3DDSVertexShader : public ID3DResource
-{
-public:
-  CD3DDSVertexShader();
-  ~CD3DDSVertexShader();
-
-  bool LoadFromFile(std::string path);
-  bool Create(const std::wstring& vertexFile, D3D11_INPUT_ELEMENT_DESC* vertexLayout, unsigned int vertexLayoutSize);
-  bool Create(const void* code, size_t codeLength, D3D11_INPUT_ELEMENT_DESC* vertexLayout, unsigned int vertexLayoutSize);
-  void ReleaseShader();
-  void BindShader();
-  void UnbindShader();
-  void Release();
-  bool IsInited() { return m_inited; }
-
-  void OnDestroyDevice(bool fatal) override;
-  void OnCreateDevice() override;
-  LPVOID GetData() { return m_data; };
-  DWORD GetSize() { return m_size; };
-private:
-  bool CreateInternal();
-
-  bool m_inited;
-  unsigned int m_vertexLayoutSize;
-  std::string m_path;
-
-  LPVOID m_data;
-  DWORD m_size;
-
-  D3D11_INPUT_ELEMENT_DESC* m_vertexLayout;
-  Microsoft::WRL::ComPtr<ID3DBlob> m_VSBuffer;
-  Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VS;
-  Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
-};
-
-class CD3DDSPixelShader : public ID3DResource
+class CD3DDSPixelShader
 {
 public:
   CD3DDSPixelShader();
   ~CD3DDSPixelShader();
 
   bool LoadFromFile(std::string path);
-  bool Create(const std::wstring& wstrFile);
-  bool Create(const void* code, size_t codeLength);
-  void ReleaseShader();
-  void BindShader();
-  void UnbindShader();
-  void Release();
-  bool IsInited() { return m_inited; }
-
-  void OnDestroyDevice(bool fatal) override;
-  void OnCreateDevice() override;
+  LPVOID GetData() { return m_data; }
+  SIZE_T GetSize() { return m_size; }
 private:
-  bool CreateInternal();
-  int m_iId;
-  bool m_inited;
   std::string m_path;
 
-  Microsoft::WRL::ComPtr<ID3DBlob> m_PSBuffer;
+  LPVOID m_data;
+  SIZE_T m_size;
+  ID3DBlob* m_PSBuffer;
   Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PS;
 };

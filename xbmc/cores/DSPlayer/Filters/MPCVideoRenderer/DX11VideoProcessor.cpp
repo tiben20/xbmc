@@ -733,8 +733,10 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 	if (!GetDevice || !ppPixelShader) {
 		return E_POINTER;
 	}
-	CD3DDSVertexShader shdr;
-	shdr.LoadFromFile(resid);
+	CD3DDSPixelShader shdr;
+	if (!shdr.LoadFromFile(resid))
+		CLog::Log(LOGERROR, "{} failed loading the file", __FUNCTION__);
+
 
 	LPVOID data;
 	DWORD size;
