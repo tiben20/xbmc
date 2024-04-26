@@ -290,12 +290,14 @@ private:
 public:
 	CFontBitmapDWrite()
 	{
-		HRESULT hr = D2D1CreateFactory(
+
+		/*HRESULT hr = D2D1CreateFactory(
 			D2D1_FACTORY_TYPE_SINGLE_THREADED,
 #ifdef _DEBUG
 			{ D2D1_DEBUG_LEVEL_INFORMATION },
 #endif
-			&m_pD2D1Factory);
+			&m_pD2D1Factory);*/
+		HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(m_pD2D1Factory), &m_pD2D1Factory);
 		DLogIf(FAILED(hr), L"D2D1CreateFactory() failed with error {}", HR2Str(hr));
 
 		if (SUCCEEDED(hr)) {

@@ -90,15 +90,16 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext
 	DWORD size;
 	EXECUTE_ASSERT(S_OK == GetDataFromResource(data, size, IDF_VS_11_SIMPLE));
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateVertexShader(data, size, nullptr, &m_pVertexShader));
-
+	D3DSetDebugName(m_pVertexShader, "D3DFont Vertex shader");
 	static const D3D11_INPUT_ELEMENT_DESC vertexLayout[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateInputLayout(vertexLayout, std::size(vertexLayout), data, size, &m_pInputLayout));
-
+	D3DSetDebugName(m_pInputLayout, "D3DFont input layout");
 	EXECUTE_ASSERT(S_OK == GetDataFromResource(data, size, IDF_PS_11_FONT));
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreatePixelShader(data, size, nullptr, &m_pPixelShader));
+	D3DSetDebugName(m_pPixelShader, "D3DFont pixel shader");
 
 	// create the vertex array
 	std::vector<Font11Vertex> vertices;
@@ -114,6 +115,7 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext
 	D3D11_SUBRESOURCE_DATA vertexData = { vertices.data(), 0, 0 };
 
 	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&vertexBufferDesc, &vertexData, &m_pVertexBuffer);
+	D3DSetDebugName(m_pVertexBuffer, "D3DFont vertex buffer");
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -153,6 +155,7 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext
 
 	// Create the pixel constant buffer pointer so we can access the pixel shader constant buffer from within this class.
 	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&pixelBufferDesc, nullptr, &m_pPixelBuffer);
+	D3DSetDebugName(m_pPixelBuffer, "D3DFont pixel buffer");
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -169,7 +172,7 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext
 	SampDesc.MinLOD = 0;
 	SampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateSamplerState(&SampDesc, &m_pSamplerState));
-
+	D3DSetDebugName(m_pSamplerState, "D3DFont sampler state");
 	D3D11_BLEND_DESC blendDesc = {};
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;
 	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
@@ -180,7 +183,7 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBlendState(&blendDesc, &m_pBlendState);
-
+	D3DSetDebugName(m_pBlendState, "D3DFont blend state");
 	return hr;
 }
 
@@ -253,6 +256,7 @@ HRESULT CD3D11Font::CreateFontBitmap(const WCHAR* strFontName, const UINT fontHe
 
 	D3D11_SUBRESOURCE_DATA subresData = { pData, uPitch, 0 };
 	hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateTexture2D(&texDesc, &subresData, &m_pTexture);
+	D3DSetDebugName(m_pTexture, "D3DFont 2d font texture");
 	fontBitmap.Unlock();
 	if (FAILED(hr)) {
 		return hr;
@@ -264,7 +268,7 @@ HRESULT CD3D11Font::CreateFontBitmap(const WCHAR* strFontName, const UINT fontHe
 	srvDesc.Texture2D.MipLevels = 1;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 	EXECUTE_ASSERT(S_OK == DX::DeviceResources::Get()->GetD3DDevice()->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pShaderResource));
-
+	D3DSetDebugName(m_pShaderResource, "D3DFont shader resource view");
 	return hr;
 }
 
