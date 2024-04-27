@@ -188,7 +188,7 @@ CD3DTexture::~CD3DTexture()
   delete[] m_data;
 }
 
-bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE usage, DXGI_FORMAT format, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */)
+bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE usage, DXGI_FORMAT format, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */, std::string sDebugName)
 {
   m_width = width;
   m_height = height;
@@ -212,7 +212,7 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE us
     if (usage == D3D11_USAGE_STAGING)
       m_cpuFlags |= D3D11_CPU_ACCESS_READ;
   }
-
+  
   m_format = format;
   m_usage = usage;
 
@@ -237,7 +237,10 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE us
     CLog::LogF(LOGERROR, "failed to create texture.");
     return false;
   }
-
+#if defined(_DEBUG)
+  D3DSetDebugName(m_texture.Get(), sDebugName.c_str());
+#endif
+  
   Register();
 
   return true;

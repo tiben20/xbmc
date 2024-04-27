@@ -153,38 +153,38 @@ void CVideoProcessor::UpdateStatsInputFmt()
 	m_strStatsInputFmt.append(m_srcParams.str);
 
 	if (m_srcWidth != m_srcRectWidth || m_srcHeight != m_srcRectHeight) {
-		m_strStatsInputFmt.AppendFormat(L" {}x{} ->", m_srcWidth, m_srcHeight);
+		m_strStatsInputFmt.append(StringUtils::Format(L" {}x{} ->", m_srcWidth, m_srcHeight));
 	}
-	m_strStatsInputFmt.AppendFormat(L" {}x{}", m_srcRectWidth, m_srcRectHeight);
+	m_strStatsInputFmt.append(StringUtils::Format(L" {}x{}", m_srcRectWidth, m_srcRectHeight));
 	if (m_srcAnamorphic) {
-		m_strStatsInputFmt.AppendFormat(L" ({}:{})", m_srcAspectRatioX, m_srcAspectRatioY);
+		m_strStatsInputFmt.append(StringUtils::Format(L" ({}:{})", m_srcAspectRatioX, m_srcAspectRatioY));
 	}
 
 	if (m_srcParams.CSType == CS_YUV) {
 		LPCSTR strs[6] = {};
 		GetExtendedFormatString(strs, m_srcExFmt, m_srcParams.CSType);
-		m_strStatsInputFmt.AppendFormat(L"\n  Range: {}", AToW(strs[1]));
+		m_strStatsInputFmt.append(StringUtils::Format(L"\n  Range: {}", AToW(strs[1])));
 		if (m_decExFmt.NominalRange == DXVA2_NominalRange_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
-		m_strStatsInputFmt.AppendFormat(L", Matrix: {}", AToW(strs[2]));
+		m_strStatsInputFmt.append(StringUtils::Format(L", Matrix: {}", AToW(strs[2])));
 		if (m_decExFmt.VideoTransferMatrix == DXVA2_VideoTransferMatrix_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
 		if (m_decExFmt.VideoLighting != DXVA2_VideoLighting_Unknown) {
 			// display Lighting only for values other than Unknown, but this never happens
-			m_strStatsInputFmt.AppendFormat(L", Lighting: {}", AToW(strs[3]));
+			m_strStatsInputFmt.append(StringUtils::Format(L", Lighting: {}", AToW(strs[3])));
 		};
-		m_strStatsInputFmt.AppendFormat(L"\n  Primaries: {}", AToW(strs[4]));
+		m_strStatsInputFmt.append(StringUtils::Format(L"\n  Primaries: {}", AToW(strs[4])));
 		if (m_decExFmt.VideoPrimaries == DXVA2_VideoPrimaries_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
-		m_strStatsInputFmt.AppendFormat(L", Function: {}", AToW(strs[5]));
+		m_strStatsInputFmt.append(StringUtils::Format(L", Function: {}", AToW(strs[5])));
 		if (m_decExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_Unknown) {
 			m_strStatsInputFmt += L'*';
 		};
 		if (m_srcParams.Subsampling == 420) {
-			m_strStatsInputFmt.AppendFormat(L"\n  ChromaLocation: {}", AToW(strs[0]));
+			m_strStatsInputFmt.append(StringUtils::Format(L"\n  ChromaLocation: {}", AToW(strs[0])));
 			if (m_decExFmt.VideoChromaSubsampling == DXVA2_VideoChromaSubsampling_Unknown) {
 				m_strStatsInputFmt += L'*';
 			};

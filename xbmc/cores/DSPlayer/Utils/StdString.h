@@ -3172,7 +3172,7 @@ public:
 	}
 
 #endif // #ifdef SS_SAFE_FORMAT
-
+#if 1
 	void AppendFormat(const CT* szFmt, ...)
 	{
 		va_list argList;
@@ -3180,7 +3180,17 @@ public:
 		AppendFormatV(szFmt, argList);
 		va_end(argList);
 	}
-
+#else
+	//trying to use kodi way of format with auto message = fmt::format(format, std::forward<Args>(args)...);
+	void AppendFormat(const std::string_view& format, Args&&... args)
+	{
+		va_list argList;
+		va_start(argList, szFmt);
+		AppendFormatV(szFmt, argList);
+		va_end(argList);
+	}
+	
+#endif
 #define MAX_FMT_TRIES		5	 // #of times we try 
 #define FMT_BLOCK_SIZE		2048 // # of bytes to increment per try
 #define BUFSIZE_1ST	256

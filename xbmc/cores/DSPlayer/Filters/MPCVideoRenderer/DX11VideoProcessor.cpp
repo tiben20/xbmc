@@ -1902,6 +1902,7 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
 	if (m_bKodiResizeBuffers)
 	{
+		//when m_windowRect is modified and in video processor it should be the size of the window
 		//not the cleanest way but we need to resize buffers on wm_size
 		winrt::Windows::Foundation::Size sz;
 		sz = DX::DeviceResources::Get()->GetLogicalSize();
@@ -1909,7 +1910,8 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 		m_windowRect.right = sz.Width;
 		m_windowRect.bottom= sz.Height;
 		m_videoRect.right = sz.Width;
-		m_videoRect.bottom = sz.Height;		UpdateRenderRect();
+		m_videoRect.bottom = sz.Height;
+		UpdateRenderRect();
 		HRESULT hr = SetDevice(GetDevice, false);
 		if (SUCCEEDED(hr))
 		{
@@ -3710,13 +3712,13 @@ void CDX11VideoProcessor::UpdateStatsPresent()
 void CDX11VideoProcessor::UpdateStatsStatic()
 {
 	if (m_srcParams.cformat) {
-		m_strStatsHeader.Format(L"MPC VR {}, Direct3D 11", _CRT_WIDE(VERSION_STR));
+		m_strStatsHeader.Format(L"MPC VR %s Modified for kodi, Direct3D 11", _CRT_WIDE(VERSION_STR));
 
 		UpdateStatsInputFmt();
 
 		m_strStatsVProc.assign(L"\nVideoProcessor: ");
 		if (m_D3D11VP.IsReady()) {
-			m_strStatsVProc.Format(L"D3D11 VP, output to {}", DXGIFormatToString(m_D3D11OutputFmt));
+			m_strStatsVProc.AppendFormat(L"D3D11 VP, output to %s", DXGIFormatToString(m_D3D11OutputFmt));
 		} else {
 			m_strStatsVProc.append(L"Shaders");
 			if (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422) {
@@ -3734,7 +3736,7 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 				}
 			}
 		}
-		m_strStatsVProc.Format(L"\nInternalFormat: {}", DXGIFormatToString(m_InternalTexFmt));
+		m_strStatsVProc.AppendFormat(L"\nInternalFormat: %s", DXGIFormatToString(m_InternalTexFmt));
 
 		if (SourceIsHDR() || m_bVPUseRTXVideoHDR) {
 			m_strStatsHDR.assign(L"\nHDR processing: ");
@@ -3744,7 +3746,7 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 					m_strStatsHDR.append(L", RTX Video HDR*");
 				}
 				if (m_lastHdr10.bValid) {
-					m_strStatsHDR.Format(L", {} nits", m_lastHdr10.hdr10.MaxMasteringLuminance / 10000);
+					m_strStatsHDR.AppendFormat(L", %u nits", m_lastHdr10.hdr10.MaxMasteringLuminance / 10000);
 				}
 			} else if (m_bConvertToSdr) {
 				m_strStatsHDR.append(L"Convert to SDR");
@@ -3799,15 +3801,10 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
-	str.Format(L"\nGraph. Adapter: {}", m_strAdapterDescription);
+	str.AppendFormat(L"\nGraph. Adapter: %s", m_strAdapterDescription);
 
 	wchar_t frametype = (m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
-	str.Format(
-		L"\nFrame rate    : {:7.3f}{},{:7.3f}",
-		m_pFilter->m_FrameStats.GetAverageFps(),
-		frametype,
-		m_pFilter->m_DrawStats.GetAverageFps()
-	);
+	str.AppendFormat(L"\n %4.3f %c,%4.3f", m_pFilter->m_FrameStats.GetAverageFps(), frametype, m_pFilter->m_DrawStats.GetAverageFps());
 
 	str.append(m_strStatsInputFmt);
 	if (m_Dovi.bValid) {
@@ -3821,9 +3818,9 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	const int dstW = m_videoRect.Width();
 	const int dstH = m_videoRect.Height();
 	if (m_iRotation) {
-		str.Format(L"\nScaling       : {}x{} r{}\u00B0> {}x{}", m_srcRectWidth, m_srcRectHeight, m_iRotation, dstW, dstH);
+		str.AppendFormat(L"\nScaling       : %ux%u r%u\u00B0> %ix%i", m_srcRectWidth, m_srcRectHeight, m_iRotation, dstW, dstH);
 	} else {
-		str.Format(L"\nScaling       : {}x{} -> {}x{}", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
+		str.AppendFormat(L"\nScaling       : %ux%u -> %ix%i", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
 	}
 	if (m_srcRectWidth != dstW || m_srcRectHeight != dstH) {
 		if (m_D3D11VP.IsReady() && m_bVPScaling && !m_bVPScalingUseShaders) {
@@ -3848,10 +3845,10 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	if (m_strCorrection || m_pPostScaleShaders.size() || m_bDitherUsed) {
 		str.append(L"\nPostProcessing:");
 		if (m_strCorrection) {
-			str.Format(L" {},", m_strCorrection);
+			str.AppendFormat(L" %s,", m_strCorrection);
 		}
 		if (m_pPostScaleShaders.size()) {
-			str.Format(L" shaders[{}],", m_pPostScaleShaders.size());
+			str.AppendFormat(L" shaders[%u],", m_pPostScaleShaders.size());
 		}
 		if (m_bDitherUsed) {
 			str.append(L" dither");
@@ -3861,14 +3858,14 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	str.append(m_strStatsHDR);
 	str.append(m_strStatsPresent);
 
-	str.Format(L"\nFrames: {:5}, skipped: {}/{}, failed: {}",
+	str.AppendFormat(L"\nFrames: %u, skipped: %u/%u, failed: %u",
 		m_pFilter->m_FrameStats.GetFrames(), m_pFilter->m_DrawStats.m_dropped, m_RenderStats.dropped2, m_RenderStats.failed);
-	str.Format(L"\nTimes(ms): Copy{:3}, Paint{:3}, Present{:3}",
+	str.AppendFormat(L"\nTimes(ms): Copy: %u, Paint %u, Present %u",
 		m_RenderStats.copyticks * 1000 / GetPreciseTicksPerSecondI(),
 		m_RenderStats.paintticks * 1000 / GetPreciseTicksPerSecondI(),
 		m_RenderStats.presentticks * 1000 / GetPreciseTicksPerSecondI());
 
-	str.Format(L"\nSync offset   : {:+3} ms", (m_RenderStats.syncoffset + 5000) / 10000);
+	str.AppendFormat(L"\nSync offset   : %i ms", (m_RenderStats.syncoffset + 5000) / 10000);
 
 #if SYNC_OFFSET_EX
 	{

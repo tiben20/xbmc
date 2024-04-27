@@ -93,7 +93,7 @@ public:
   CD3DTexture();
   virtual ~CD3DTexture();
 
-  bool Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE usage, DXGI_FORMAT format, const void* pInitData = nullptr, unsigned int srcPitch = 0);
+  bool Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE usage, DXGI_FORMAT format, const void* pInitData = nullptr, unsigned int srcPitch = 0, std::string sDebugName = "");
 
   void Release();
   bool GetDesc(D3D11_TEXTURE2D_DESC *desc) const;

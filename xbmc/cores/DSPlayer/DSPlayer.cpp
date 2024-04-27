@@ -1596,6 +1596,7 @@ void CDSPlayer::SetResolution() const
 
 void CDSPlayer::SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect)
 {
+  //this is called every time the window is resized
   m_sourceRect = sourceRect;
   m_videoRect = videoRect;
   m_viewRect = viewRect;
