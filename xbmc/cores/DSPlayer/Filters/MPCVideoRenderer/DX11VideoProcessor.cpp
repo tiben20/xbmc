@@ -537,9 +537,10 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 {
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::Init()");
 	
+	auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
 
-	const bool bWindowChanged = (m_hWnd != hwnd);
-	m_hWnd = hwnd;
+	const bool bWindowChanged = (m_hWnd != winSystem->GetHwnd());
+	m_hWnd = winSystem->GetHwnd();
 	m_bHdrPassthroughSupport = false;
 	m_bHdrDisplayModeEnabled = false;
 	m_DisplayBitsPerChannel = 8;
@@ -561,7 +562,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 	IDXGIAdapter* pDXGIAdapter = nullptr;
 	
-	const UINT currentAdapter = GetAdapter(hwnd, DX::DeviceResources::Get()->GetIDXGIFactory2(), &pDXGIAdapter);
+	const UINT currentAdapter = GetAdapter(winSystem->GetHwnd(), DX::DeviceResources::Get()->GetIDXGIFactory2(), &pDXGIAdapter);
 	CheckPointer(pDXGIAdapter, E_FAIL);
 	if (m_nCurrentAdapter == currentAdapter) {
 		SAFE_RELEASE(pDXGIAdapter);
