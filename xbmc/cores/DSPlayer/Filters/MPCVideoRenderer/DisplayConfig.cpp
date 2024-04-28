@@ -305,7 +305,7 @@ CStdStringW DisplayConfigToString(const DisplayConfig_t& dc)
 	CStdStringW str;
 	if (dc.width && dc.height && dc.refreshRate.Numerator) {
 		double freq = (double)dc.refreshRate.Numerator / (double)dc.refreshRate.Denominator;
-		str.Format(L"{} {}x{} {:.3f}", dc.monitorName, dc.width, dc.height, freq);
+		str.Format(L"%s %ux%u %d", dc.monitorName, dc.width, dc.height, freq);
 		if (dc.scanLineOrdering >= DISPLAYCONFIG_SCANLINE_ORDERING_INTERLACED) {
 			str += 'i';
 		}
@@ -317,7 +317,7 @@ CStdStringW DisplayConfigToString(const DisplayConfig_t& dc)
 CStdStringW D3DDisplayModeToString(const D3DDISPLAYMODEEX& dm)
 {
 	CStdStringW str;
-	str.Format(L"{}x{} {}", dm.Width, dm.Height, dm.RefreshRate);
+	str.Format(L"%ux%u %d", dm.Width, dm.Height, dm.RefreshRate);
 	if (dm.ScanLineOrdering == D3DSCANLINEORDERING_INTERLACED) {
 		str += 'i';
 	}

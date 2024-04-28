@@ -1603,7 +1603,6 @@ void CDSPlayer::SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect)
 
   if (!CDSPlayer::IsCurrentThread())
   {
-    //CDSPlayer::PostMessage(new CDSMsg(CDSMsg::SET_WINDOW_POS), false);
     CDSPlayer::PostMessage(new CDSMsg(CDSMsg::GENERAL_SET_WINDOW_POS), false);
     return;
   }

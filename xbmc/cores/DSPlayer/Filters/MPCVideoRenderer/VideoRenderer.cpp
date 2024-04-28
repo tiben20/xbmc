@@ -29,6 +29,7 @@
 #include "VideoRenderer.h"
 #include "Registry.h"
 #include "windowing/windows/WinSystemWin32DX.h"
+#include "ServiceBroker.h"
 #include "utils/SystemInfo.h"
 
 #define WM_SWITCH_FULLSCREEN (WM_APP + 0x1000)
@@ -687,8 +688,9 @@ void CMpcVideoRenderer::OnDisplayModeChange(const bool bReset/* = false*/)
 	if (bReset && !m_VideoProcessor->IsInit()) {
 		m_VideoProcessor->Reset();
 	}
-
-	m_hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+	auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
+	
+	m_hMon = MonitorFromWindow(winSystem->GetHwnd(), MONITOR_DEFAULTTONEAREST);
 	UpdateDisplayInfo();
 
 	m_bDisplayModeChanging = false;
