@@ -31,8 +31,15 @@ CMPCVRRenderer::CMPCVRRenderer()
 
 CMPCVRRenderer::~CMPCVRRenderer()
 {
-  //fix swap chain?
+  Release();
 }
+
+void CMPCVRRenderer::Release()
+{
+  
+  m_IntermediateTarget.Release();
+}
+
 
 void CMPCVRRenderer::Render(int index,
                            int index2,

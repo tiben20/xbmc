@@ -26,7 +26,9 @@ class CMPCVRRenderer : public CBaseRenderer
 public:
   static std::shared_ptr<CMPCVRRenderer> Get();
   CMPCVRRenderer();
-  ~CMPCVRRenderer();
+  virtual ~CMPCVRRenderer();
+
+  void Release();
 
   void Render(int index, int index2, CD3DTexture& target, const CRect& sourceRect, 
               const CRect& destRect, const CRect& viewRect, unsigned flags);

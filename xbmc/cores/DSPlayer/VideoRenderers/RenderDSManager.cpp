@@ -343,10 +343,11 @@ void CRenderDSManager::DeleteRenderer()
 {
   CLog::Log(LOGDEBUG, "{} - deleting renderer", __FUNCTION__);
 
-  if (m_pRenderer)
-  {
-    m_pRenderer.reset();
-  }
+  
+    
+  if (m_currentRenderer == DIRECTSHOW_RENDERER_MPCVR)
+    CMPCVRRenderer::Get()->Release();
+  m_pRenderer.reset();
 }
 
 void CRenderDSManager::SetViewMode(int iViewMode)
