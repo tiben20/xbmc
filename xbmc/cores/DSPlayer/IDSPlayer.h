@@ -86,6 +86,7 @@ public:
   virtual bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const { return false; };
   virtual void Reset(bool bForceWindowed) {};
   virtual void DisplayChange(bool bExternalChange) {};
+  //virtual void SetRenderManager(CRenderDSManager& manager) {};
 };
 
 class IDSRendererPaintCallback

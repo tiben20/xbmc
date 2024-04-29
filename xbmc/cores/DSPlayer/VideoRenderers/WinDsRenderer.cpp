@@ -47,6 +47,7 @@ CWinDsRenderer::CWinDsRenderer():
   m_bConfigured(false)
   , m_oldVideoRect(0, 0, 0, 0)
 {
+  PreInit();
 }
 
 CWinDsRenderer::~CWinDsRenderer()
@@ -71,25 +72,6 @@ void CWinDsRenderer::SetupScreenshot()
 
 bool CWinDsRenderer::Configure(const VideoPicture& picture, float fps, unsigned int orientation)
 {
-  /*if (m_sourceWidth != width
-    || m_sourceHeight != height)
-  {
-    m_sourceWidth = width;
-    m_sourceHeight = height;
-    // need to recreate textures
-  }
-
-  m_fps = fps;
-  m_iFlags = flags;
-  m_flags = flags;
-  m_format = format;
-
-  // calculate the input frame aspect ratio
-  CalculateFrameAspectRatio(d_width, d_height);
-
-  SetViewMode(CMediaSettings::GetInstance().GetCurrentVideoSettings().m_ViewMode);
-  ManageRenderArea();
-  */
   m_bConfigured = true;
 
   return true;
@@ -214,21 +196,17 @@ bool CWinDsRenderer::RenderCapture(CRenderCapture* capture)
 void CWinDsRenderer::RenderUpdate(bool clear, unsigned int flags, unsigned int alpha)
 {
   if (clear)
-    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(m_clearColour);
-  CRenderSystemDX* renderSystem = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
-  if (alpha < 255)
-    renderSystem->SetAlphaBlendEnable(true);
-  else
-    renderSystem->SetAlphaBlendEnable(false);
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
+
+  DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
   if (!m_bConfigured)
     return;
 
-  CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
-
   ManageRenderArea();
 
   Render(flags);
+  DX::Windowing()->SetAlphaBlendEnable(true);
 }
 
 void CWinDsRenderer::Flush()

@@ -52,7 +52,7 @@
 using namespace KODI::MESSAGING;
 using namespace std::chrono_literals;
 
-CRenderDSManager::CRenderDSManager(IRenderDSMsg *player) :
+CRenderDSManager::CRenderDSManager(IRenderDSMsg* port) :
   m_pRenderer(nullptr),
   m_bTriggerUpdateResolution(false),
   m_bTriggerDisplayChange(false),
@@ -67,13 +67,13 @@ CRenderDSManager::CRenderDSManager(IRenderDSMsg *player) :
   m_dwidth(0),
   m_dheight(0),
   m_fps(0.0f),
-  m_playerPort(player)
+  m_playerPort(port)
 {
 }
 
 CRenderDSManager::~CRenderDSManager()
 {
-  delete m_pRenderer;
+  m_pRenderer.reset();
 }
 
 void CRenderDSManager::GetVideoRect(CRect &source, CRect &dest, CRect &view) const
@@ -151,8 +151,20 @@ bool CRenderDSManager::Configure()
     if (!m_pRenderer)
       return false;
   }
-  
-  bool result = (reinterpret_cast<CWinDsRenderer*>(m_pRenderer))->Configure(m_width, m_height, m_dwidth, m_dheight, m_fps, m_flags, (AVPixelFormat)0, 0, 0);
+  bool result;
+  if (m_currentRenderer == DIRECTSHOW_RENDERER_MADVR)
+  {
+    
+
+    result = reinterpret_cast<CWinDsRenderer*>(m_pRenderer.get())->Configure(m_width, m_height, m_dwidth, m_dheight, m_fps, m_flags, (AVPixelFormat)0, 0, 0);
+  }
+  else if (m_currentRenderer == DIRECTSHOW_RENDERER_MPCVR)
+  {
+    result = CMPCVRRenderer::Get()->Configure(m_width, m_height, m_dwidth, m_dheight, m_fps);
+    m_pRenderer = CMPCVRRenderer::Get();
+  }
+
+   
   if (result)
   {
     CRenderInfo info = m_pRenderer->GetRenderInfo();
@@ -173,8 +185,8 @@ bool CRenderDSManager::Configure()
 void CRenderDSManager::Reset()
 {
 
-  if (m_pRenderer)
-    (reinterpret_cast<CWinDsRenderer*>(m_pRenderer))->Reset();
+  if (m_pRenderer && m_currentRenderer == DIRECTSHOW_RENDERER_MADVR)
+    reinterpret_cast<CWinDsRenderer*>(m_pRenderer.get())->Reset();
 
 }
 
@@ -237,8 +249,10 @@ void CRenderDSManager::EndRender()
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(0);
 }
 
-void CRenderDSManager::PreInit()
+
+void CRenderDSManager::PreInit(DIRECTSHOW_RENDERER renderer)
 {
+  
 #if TODO
   if (!g_application.IsCurrentThread())
   {
@@ -248,6 +262,7 @@ void CRenderDSManager::PreInit()
 #endif
   CSingleExit lock(m_statelock);
 
+  m_currentRenderer = renderer;
   if (!m_pRenderer)
     CreateRenderer();
 
@@ -315,19 +330,13 @@ bool CRenderDSManager::Flush()
 
 void CRenderDSManager::CreateRenderer()
 {
-
-  if (!m_pRenderer)
+  m_pRenderer = nullptr;
+  if (m_currentRenderer == DIRECTSHOW_RENDERER_MADVR)
+    m_pRenderer = std::make_shared<CWinDsRenderer>();
+  else if (m_currentRenderer == DIRECTSHOW_RENDERER_MPCVR)
   {
-    m_pRenderer = new CWinDsRenderer();
-
-    if (m_pRenderer)
-    {
-      reinterpret_cast<CWinDsRenderer*>(m_pRenderer)->PreInit();
-    }
-    else
-      CLog::Log(LOGERROR, "RenderDSManager::CreateRenderer: failed to create renderer");
+    m_pRenderer= CMPCVRRenderer::Get();
   }
-
 }
 
 void CRenderDSManager::DeleteRenderer()
@@ -336,8 +345,7 @@ void CRenderDSManager::DeleteRenderer()
 
   if (m_pRenderer)
   {
-    delete m_pRenderer;
-    m_pRenderer = NULL;
+    m_pRenderer.reset();
   }
 }
 
@@ -368,7 +376,7 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
   CSingleExit exitLock(CServiceBroker::GetWinSystem()->GetGfxContext());
 
   {
-    CSingleExit lock(m_statelock);
+    std::unique_lock<CCriticalSection> lock(m_statelock);
     if (m_renderState != STATE_CONFIGURED)
       return;
   }

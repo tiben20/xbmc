@@ -1158,7 +1158,7 @@
           <level>0</level>
           <dependencies>
             <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">EVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
           </dependencies>
           <control type="button" format="action" />
         </setting>

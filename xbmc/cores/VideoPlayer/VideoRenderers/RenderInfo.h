@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <vector>
 #include "cores/IPlayer.h"
-
+#include "cores/Videosettings.h"
 extern "C" {
 #include <libavutil/pixfmt.h>
 }

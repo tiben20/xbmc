@@ -91,5 +91,6 @@ protected:
   DWORD                m_clearColour;
   unsigned int         m_flags;
   CRect                m_oldVideoRect;
+ 
 };
 #endif

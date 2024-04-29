@@ -234,9 +234,12 @@ bool CDSPlayer::OpenFileInternal(const CFileItem& file)
     m_currentFileItem = file;
 
     m_hReadyEvent.Reset();
+    SetCurrentVideoRenderer(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER));
 
-    m_renderManager.PreInit();
+    m_renderManager.PreInit(m_CurrentVideoRenderer);
 
+    //if (m_pAllocatorCallback)
+      //m_pAllocatorCallback->SetRenderManager(m_renderManager);
     Create();
 
     // wait for the ready event
@@ -1580,6 +1583,8 @@ void CDSPlayer::EnableExclusive(bool bEnable)
   if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
     m_pAllocatorCallback->EnableExclusive(bEnable);
 }
+
+
 
 void CDSPlayer::SetPixelShader() const
 {

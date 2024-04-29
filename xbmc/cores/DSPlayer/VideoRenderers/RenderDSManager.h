@@ -30,12 +30,15 @@
 #include "threads/CriticalSection.h"
 #include "cores/VideoSettings.h"
 #include "Videorenderers/WinDsRenderer.h"
+#include "VideoRenderers/MPCVRRenderer.h"
+#include "../VideoPlayer/Videorenderers/baserenderer.h"
 #include "../VideoPlayer/Videorenderers/DebugRenderer.h"
 #include "threads/Event.h"
 #include "threads/systemclock.h"
 
 class IPaintCallback;
 class CWinDSRenderer;
+class CMPCVRRenderer;
 class CRenderDSManager;
 
 class IRenderDSMsg
@@ -51,7 +54,7 @@ protected:
 class CRenderDSManager
 {
 public:
-  CRenderDSManager(IRenderDSMsg *player);
+  CRenderDSManager(IRenderDSMsg* port);
   ~CRenderDSManager();
 
   // Functions called from render thread
@@ -67,7 +70,7 @@ public:
   void UpdateResolution();
   void TriggerUpdateResolution(float fps, int width, int flags);
   void SetViewMode(int iViewMode);
-  void PreInit();
+  void PreInit(DIRECTSHOW_RENDERER renderer);
   void UnInit();
   bool Flush();
   bool IsConfigured() const;
@@ -83,7 +86,7 @@ public:
   bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags);
   void DisplayChange(bool bExternalChange);
   void EndRender();
-
+  
 protected:
 
   void PresentSingle(bool clear, DWORD flags, DWORD alpha);
@@ -93,7 +96,7 @@ protected:
   void DeleteRenderer();
 
   CDebugRenderer m_debugRenderer;
-  CBaseRenderer *m_pRenderer;
+  std::shared_ptr<CBaseRenderer> m_pRenderer;
   mutable CCriticalSection m_statelock;
   CCriticalSection m_datalock;
   bool m_bTriggerUpdateResolution;
@@ -127,4 +130,5 @@ protected:
 
   CEvent m_flushEvent;
   IRenderDSMsg *m_playerPort;
+  DIRECTSHOW_RENDERER  m_currentRenderer;
 };

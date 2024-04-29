@@ -460,7 +460,6 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 		pDXGIAdapter= nullptr;
 	}
 	//CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
-	m_pSharedRenderer = new CMpcSharedRender();
 }
 
 static bool ToggleHDR(const DisplayConfig_t& displayConfig, const BOOL bEnableAdvancedColor)
@@ -524,7 +523,6 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 
 	ReleaseSwapChain();
 	//m_pDXGIFactory2= nullptr;
-	m_pSharedRenderer = nullptr;
 	ReleaseDevice();
 
 	m_pDXGIFactory1= nullptr;
@@ -1109,8 +1107,6 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	}
 	DXGI_SWAP_CHAIN_DESC1 desc;
 	GetSwapChain->GetDesc1(&desc);
-	
-	m_pSharedRenderer->CreateD3D11Textures(desc.Width, desc.Height);
 		
 	// for d3d11 subtitles
 	//Com::SmartQIPtr<ID3D10Multithread> pMultithread(m_pDeviceContext.Get());
@@ -2224,13 +2220,11 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 
 HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTime)
 {
+	//lock kodi gui
+	std::unique_lock<CCriticalSection> lock(CServiceBroker::GetWinSystem()->GetGfxContext());
+
 	CheckPointer(m_TexSrcVideo.pTexture, E_FAIL);
 	CheckPointer(GetSwapChain, E_FAIL);
-	
-	if (m_pSharedRenderer)
-		m_pSharedRenderer->Render(RENDER_LAYER_UNDER);
-
-	
 
 	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
 	{
@@ -2250,7 +2244,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		}
 	}
 	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
-		return false;
+		return E_FAIL;
 
 	if (field) {
 		m_FieldDrawn = field;
@@ -2270,42 +2264,35 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	uint64_t tick1 = GetPreciseTick();
 	float fColor[4];
 	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::NONE);
-	ID3D11RenderTargetView* pRTView = DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget();
+	CRect src,dst, vw;
+	Com::SmartRect oldrect;
+	oldrect = m_videoRect;
+	CMPCVRRenderer::Get()->GetVideoRect(src, dst, vw);
+	m_renderRect = Com::SmartRect(vw.x1,vw.y1, vw.x2,vw.y2);
+	m_videoRect = Com::SmartRect(dst.x1, dst.y1, dst.x2, dst.y2);
+	if (oldrect != m_videoRect)
+	{
+		UpdateTexures();
+	}
+	ID3D11RenderTargetView* pRTView = CMPCVRRenderer::Get()->GetIntermediateTarget().GetRenderTarget();
 	DX::DeviceResources::Get()->GetImmediateContext()->ClearRenderTargetView(pRTView, fColor);
 	DX::DeviceResources::Get()->GetImmediateContext()->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
-	
-#if 0 //done on the kodi side
-	if (!m_windowRect.IsRectEmpty()) {
-		// fill the BackBuffer with black
-		ID3D11RenderTargetView* pRenderTargetView;
-		if (S_OK == GetDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pRenderTargetView)) {
-			const FLOAT ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-			DX::DeviceResources::Get()->GetImmediateContext()->ClearRenderTargetView(pRenderTargetView, ClearColor);
-			pRenderTargetView->Release();
-		}
-	}
-#else
-	if (m_renderRect.IsRectEmpty())
-	{
-		//CDSPlayer::PostMessage(new CDSMsg(CDSMsg::GENERAL_SET_WINDOW_POS), false);
-	}
-#endif
 
 	if (!m_renderRect.IsRectEmpty()) {
-		hr = Process(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
+		hr = Process(CMPCVRRenderer::Get()->GetIntermediateTarget().Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
 	}
 
 	if (!m_pPSHalfOUtoInterlace) {
-		DrawSubtitles(DX::DeviceResources::Get()->GetBackBuffer().Get());
+		DrawSubtitles(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
 
 	if (m_bShowStats) {
-		hr = DrawStats(DX::DeviceResources::Get()->GetBackBuffer().Get());
+		hr = DrawStats(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
 
 	if (m_bAlphaBitmapEnable) {
 		D3D11_TEXTURE2D_DESC desc;
-		DX::DeviceResources::Get()->GetBackBuffer().Get()->GetDesc(&desc);
+		CMPCVRRenderer::Get()->GetIntermediateTarget().Get()->GetDesc(&desc);
 		D3D11_VIEWPORT VP = {
 			m_AlphaBitmapNRectDest.left * desc.Width,
 			m_AlphaBitmapNRectDest.top * desc.Height,
@@ -2314,7 +2301,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			0.0f,
 			1.0f
 		};
-		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource.Get(), DX::DeviceResources::Get()->GetBackBuffer().Get(),
+		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource.Get(), CMPCVRRenderer::Get()->GetIntermediateTarget().Get(),
 			m_pAlphaBitmapVertex.Get(), &VP,
 			m_pSamplerLinear.Get());
 	}
@@ -2423,8 +2410,6 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 
 	SyncFrameToStreamTime(frameStartTime);
 	
-	m_pSharedRenderer->Render(RENDER_LAYER_OVER);
-
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 	if (FAILED(m_pDeviceContext->FinishCommandList(true, &pCommandList)))
 	{
@@ -2517,7 +2502,6 @@ void CDX11VideoProcessor::UpdateTexures()
 
 	// TODO: try making w and h a multiple of 128.
 	HRESULT hr = S_OK;
-
 	if (m_D3D11VP.IsReady()) {
 		if (m_bVPScaling) {
 			Com::SmartSize texsize = m_videoRect.Size();
@@ -3062,8 +3046,6 @@ void CDX11VideoProcessor::Reset(bool bForceWindowed)
 	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
 	ReleaseSwapChain();
 	//m_pDXGIFactory2= nullptr;
-	m_pSharedRenderer = nullptr;
-	m_pSharedRenderer = new CMpcSharedRender();
 	ReleaseDevice();
 
 	m_pDXGIFactory1 = nullptr;

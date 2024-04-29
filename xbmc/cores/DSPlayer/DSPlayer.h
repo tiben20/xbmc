@@ -193,10 +193,7 @@ public:
   bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags) override;
   bool UsingDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) const override;
   bool ReadyDS(DIRECTSHOW_RENDERER renderer = DIRECTSHOW_RENDERER_UNDEF) override;
-  void Register(IDSRendererAllocatorCallback* pAllocatorCallback) override 
-  { 
-    m_pAllocatorCallback = pAllocatorCallback; 
-  }
+  void Register(IDSRendererAllocatorCallback* pAllocatorCallback) override { m_pAllocatorCallback = pAllocatorCallback; }
   void Register(IDSRendererPaintCallback* pPaintCallback) override { m_pPaintCallback = pPaintCallback; }
   void Register(IMadvrSettingCallback* pSettingCallback) override { m_pSettingCallback = pSettingCallback; }
   void Unregister(IDSRendererAllocatorCallback* pAllocatorCallback) override { m_pAllocatorCallback = nullptr; }
@@ -277,6 +274,7 @@ public:
 
   static HWND GetDShWnd() { return m_hWnd; }
   static bool IsDSPlayerThread() { return CThread::GetCurrentThread()->IsCurrentThread(); }
+
 protected:
   void SetDSWndVisible(bool bVisible) override;
   void SetRenderOnDS(bool bRender) override;
