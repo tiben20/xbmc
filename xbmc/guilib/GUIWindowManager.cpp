@@ -1362,7 +1362,7 @@ bool CGUIWindowManager::Render()
     RenderPass();
     hasRendered = true;
   }
-  else if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_FILL_VIEWPORT_ON_CHANGE)
+  else if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_FILL_VIEWPORT_ON_CHANGE || CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
   {
     if (!dirtyRegions.empty())
     {

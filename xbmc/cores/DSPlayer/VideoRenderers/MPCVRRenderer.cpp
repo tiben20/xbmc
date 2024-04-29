@@ -88,8 +88,18 @@ bool CMPCVRRenderer::Flush(bool saveBuffers)
 
 void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
 {
+
+  if (clear)
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
+  //DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
+
   ManageRenderArea();
+  //m_sourceRect source of the video
+  //m_destRect destination rectangle
+  //GetScreenRect screen rectangle
   DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_IntermediateTarget.Get());
+
+  //DX::Windowing()->SetAlphaBlendEnable(true);
   
 }
 
@@ -102,7 +112,10 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
     m_sourceHeight = height;
     // need to recreate textures
   }
-
+  m_sourceRect.x1 = 0;
+  m_sourceRect.x2 = width;
+  m_sourceRect.y1 = 0;
+  m_sourceRect.y2 = height;
   m_fps = fps;
   
   
@@ -116,6 +129,27 @@ CD3DTexture& CMPCVRRenderer::GetIntermediateTarget()
   {
   }
   return m_IntermediateTarget;
+}
+
+CRect CMPCVRRenderer::GetScreenRect() const
+{
+  CRect screenRect(0.f, 0.f,
+    static_cast<float>(CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth()),
+    static_cast<float>(CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight()));
+
+  switch (CServiceBroker::GetWinSystem()->GetGfxContext().GetStereoMode())
+  {
+  case RENDER_STEREO_MODE_SPLIT_HORIZONTAL:
+    screenRect.y2 *= 2;
+    break;
+  case RENDER_STEREO_MODE_SPLIT_VERTICAL:
+    screenRect.x2 *= 2;
+    break;
+  default:
+    break;
+  }
+
+  return screenRect;
 }
 
 void CMPCVRRenderer::GetVideoRect(CRect& source, CRect& dest, CRect& view) const

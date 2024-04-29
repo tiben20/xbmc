@@ -849,7 +849,7 @@ void CApplication::Render()
 
   // render video layer
 #ifdef HAS_DS_PLAYER   
-  if (!appPlayer->ReadyDS())
+  if (!appPlayer->ReadyDS(DIRECTSHOW_RENDERER_MADVR))
 #endif
     CServiceBroker::GetGUI()->GetWindowManager().RenderEx();
 

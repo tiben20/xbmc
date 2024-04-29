@@ -1044,13 +1044,13 @@ void DX::DeviceResources::Present()
 
 void DX::DeviceResources::ClearDepthStencil() const
 {
-  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
+  //if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
     m_deferrContext->ClearDepthStencilView(m_d3dDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 }
 
 void DX::DeviceResources::ClearRenderTarget(ID3D11RenderTargetView* pRTView, float color[4]) const
 {
-  if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
+  //if (!CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
     m_deferrContext->ClearRenderTargetView(pRTView, color);
 }
 

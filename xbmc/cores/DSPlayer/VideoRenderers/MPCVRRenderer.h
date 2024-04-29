@@ -106,4 +106,5 @@ protected:
   unsigned m_renderOrientation = 0;
   
   CD3DTexture m_IntermediateTarget;
+  CRect GetScreenRect() const;
 };

@@ -127,6 +127,7 @@ public:
 
   //virtual int GetVideoStream() {} const override;
   virtual int GetVideoStreamCount() const override { return 1; }
+  void GetVideoStreamInfo(int streamId, VideoStreamInfo& info) const override;
   virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo& info) const override;
   //virtual void SetVideoStream(int iStream);
 

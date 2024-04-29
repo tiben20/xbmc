@@ -2504,7 +2504,7 @@ void CDX11VideoProcessor::UpdateTexures()
 	HRESULT hr = S_OK;
 	if (m_D3D11VP.IsReady()) {
 		if (m_bVPScaling) {
-			Com::SmartSize texsize = m_videoRect.Size();
+			Com::SmartSize texsize = m_renderRect.Size();
 			hr = m_TexConvertOutput.CheckCreate(GetDevice, m_D3D11OutputFmt, texsize.cx, texsize.cy, Tex2D_DefaultShaderRTarget);
 		} else {
 			hr = m_TexConvertOutput.CheckCreate(GetDevice, m_D3D11OutputFmt, m_srcRectWidth, m_srcRectHeight, Tex2D_DefaultShaderRTarget);

@@ -382,7 +382,8 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
       return;
   }
 
-  g_application.GetComponent<CApplicationPlayer>()->RenderToTexture(RENDER_LAYER_OVER);
+  if (m_currentRenderer == DIRECTSHOW_RENDERER_MADVR)
+    g_application.GetComponent<CApplicationPlayer>()->RenderToTexture(RENDER_LAYER_OVER);
 
   if (!gui && m_pRenderer->IsGuiLayer())
     return;
@@ -397,6 +398,7 @@ void CRenderDSManager::Render(bool clear, DWORD flags, DWORD alpha, bool gui)
     if (!m_pRenderer->IsGuiLayer())
       m_pRenderer->Update(); 
   }
+  //add overlays
 #if TODO
     CRect src, dst, view;
     m_pRenderer->GetVideoRect(src, dst, view);

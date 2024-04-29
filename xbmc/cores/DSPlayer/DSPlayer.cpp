@@ -420,6 +420,43 @@ bool CDSPlayer::CloseFile(bool reopen)
   return true;
 }
 
+void CDSPlayer::GetVideoStreamInfo(int streamId, VideoStreamInfo& info) const
+{
+  std::unique_lock<CCriticalSection> lock(m_content.m_section);
+  std::string strStreamName;
+
+  if (streamId == CURRENT_STREAM)
+    streamId = m_content.m_videoIndex;
+
+  if (streamId < 0 || streamId > GetVideoStreamCount() - 1)
+  {
+    info.valid = false;
+    return;
+  }
+
+  if (CStreamsManager::Get())
+    CStreamsManager::Get()->GetVideoStreamName(strStreamName);
+
+  //if (s.language.length() > 0)
+  //  info.language = s.language;
+
+  if (strStreamName.length() > 0)
+    info.name = strStreamName;
+
+  m_renderManager.GetVideoRect(info.SrcRect, info.DestRect, info.VideoRect);
+
+  info.name = strStreamName;
+  info.width = (GetPictureWidth());
+  info.height = (GetPictureHeight());
+  info.codecName = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetVideoCodecName() : "";
+  info.videoAspectRatio = (float)info.width / (float)info.height;
+
+  info.stereoMode = (CStreamsManager::Get()) ? CStreamsManager::Get()->GetStereoMode() : "";
+  if (info.stereoMode == "mono")
+    info.stereoMode = "";
+}
+
+//old dsplayer might change to this one
 void CDSPlayer::GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo &info) const
 {
   std::unique_lock<CCriticalSection> lock(m_content.m_section);
