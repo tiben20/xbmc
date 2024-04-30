@@ -25,7 +25,6 @@
 #include <thread>
 #include "renbase2.h"
 #include "IVideoRenderer.h"
-#include "DX9VideoProcessor.h"
 #include "DX11VideoProcessor.h"
 #include "Include/ISubRender.h"
 #include "Include/ISubRender11.h"

@@ -21,6 +21,8 @@
 #pragma once
 #include "utils/stdstring.h"
 #include "fmt/xchar.h"
+#include "utils/log.h"
+
 #ifndef FCC
 #define FCC(ch4) ((((DWORD)(ch4) & 0xFF) << 24) |     \
                   (((DWORD)(ch4) & 0xFF00) << 8) |    \
@@ -35,10 +37,19 @@
 #endif
 
 template <typename... Args>
+inline void DebugLogFmt(const std::string_view& format, Args&&... args)
+{
+
+	auto message = fmt::format(format, std::forward<Args>(args)...);
+	CLog::Log(LOGINFO, message);
+	//Log(MapLogLevel(level), format, std::forward<Args>(args)...);
+}
+#if 0
 inline void DebugLogFmt(CStdStringW format, Args&& ...args)
 {
 	//DbgLogInfo(LOG_TRACE, 3, format.FormatV(make_wformat_args(args...)).c_str());
 }
+#endif
 
 #ifdef _DEBUG
 #define DLog(...) DebugLogFmt(__VA_ARGS__)

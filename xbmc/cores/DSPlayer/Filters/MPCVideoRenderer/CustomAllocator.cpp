@@ -22,6 +22,7 @@
 #include "CustomAllocator.h"
 #include "Helper.h"
 #include "VideoRendererInputPin.h"
+#include "DSUtil/DSUtil.h"
 
 CCustomMediaSample::CCustomMediaSample(LPCTSTR pName, CBaseAllocator *pAllocator, HRESULT *phr, LPBYTE pBuffer, LONG length)
 	: CMediaSampleSideData(pName, pAllocator, phr, pBuffer, length)
@@ -162,7 +163,7 @@ HRESULT CCustomAllocator::GetBuffer(IMediaSample** ppBuffer, REFERENCE_TIME* pSt
 	HRESULT hr = __super::GetBuffer(ppBuffer, pStartTime, pEndTime, dwFlags);
 
 	if (SUCCEEDED(hr) && m_pNewMT) {
-		DLog(L"CCustomAllocator::GetBuffer() : Set new media type for MediaSample\n{}", MediaType2Str(m_pNewMT));
+		DLog("CCustomAllocator::GetBuffer() : Set new media type for MediaSample\n%s", WToA(MediaType2Str(m_pNewMT)));
 		(*ppBuffer)->SetMediaType(m_pNewMT);
 		SAFE_DELETE(m_pNewMT);
 		m_cbBuffer = 0;
@@ -173,7 +174,7 @@ HRESULT CCustomAllocator::GetBuffer(IMediaSample** ppBuffer, REFERENCE_TIME* pSt
 
 void CCustomAllocator::SetNewMediaType(const CMediaType& mt)
 {
-	DLog(L"CCustomAllocator::SetNewMediaType()");
+	DLog("CCustomAllocator::SetNewMediaType()");
 
 	SAFE_DELETE(m_pNewMT);
 	m_pNewMT = new CMediaType(mt);

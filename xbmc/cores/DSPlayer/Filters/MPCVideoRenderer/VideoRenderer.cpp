@@ -31,6 +31,7 @@
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "ServiceBroker.h"
 #include "utils/SystemInfo.h"
+#include "DSUtil/DSUtil.h"
 
 #define WM_SWITCH_FULLSCREEN (WM_APP + 0x1000)
 
@@ -72,7 +73,7 @@ LPCWSTR g_pszThis = L"This";
 
 static void RemoveParentWndProc(HWND hWnd)
 {
-	DLog(L"RemoveParentWndProc()");
+	DLog("RemoveParentWndProc()");
 	auto pfnOldProc = (WNDPROC)GetPropW(hWnd, g_pszOldParentWndProc);
 	if (pfnOldProc) {
 		SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)pfnOldProc);
@@ -93,7 +94,7 @@ static LRESULT CALLBACK ParentWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM
 			RemovePropW(hWnd, g_pszThis);
 			break;
 		case WM_DISPLAYCHANGE:
-			DLog(L"ParentWndProc() - WM_DISPLAYCHANGE");
+			DLog("ParentWndProc() - WM_DISPLAYCHANGE");
 			pThis->OnDisplayModeChange(true);
 			break;
 		case WM_MOVE:
@@ -136,17 +137,17 @@ static LRESULT CALLBACK ParentWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM
 CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	: CBaseVideoRenderer2(__uuidof(this), L"MPC Video Renderer", pUnk, phr)
 {
-	DLog(L"CMpcVideoRenderer::CMpcVideoRenderer()");
+	DLog("CMpcVideoRenderer::CMpcVideoRenderer()");
 
 	auto nPrevInstance = g_nInstance++; // always increment g_nInstance in the constructor
 	if (nPrevInstance > 0) {
 		*phr = E_ABORT;
-		DLog(L"Previous copy of CMpcVideoRenderer found! Initialization aborted.");
+		DLog("Previous copy of CMpcVideoRenderer found! Initialization aborted.");
 		return;
 	}
 
-	DLog(L"Windows {}", GetWindowsVersion());
-	DLog(GetNameAndVersion());
+	DLog("Windows {}", WToA(GetWindowsVersion()));
+	DLog(GetNameAndVersion().c_str());
 
 	ASSERT(S_OK == *phr);
 	m_pInputPin = new CVideoRendererInputPin(this, phr, L"In", this);
@@ -362,16 +363,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		if (FAILED(hr)) {
 			m_VideoProcessor.reset();
 		}
-		DLogIf(S_OK == hr, L"Direct3D11 initialization successfully!");
-	}
-
-	if (!m_VideoProcessor) {
-		m_VideoProcessor.reset(new CDX9VideoProcessor(this, m_Sets, hr));
-		if (SUCCEEDED(hr)) {
-			hr = m_VideoProcessor->Init(::GetForegroundWindow());
-		}
-
-		DLogIf(S_OK == hr, L"Direct3D9 initialization successfully!");
+		DLogIf(S_OK == hr, "Direct3D11 initialization successfully!");
 	}
 
 	*phr = hr;
@@ -381,7 +373,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 
 CMpcVideoRenderer::~CMpcVideoRenderer()
 {
-	DLog(L"CMpcVideoRenderer::~CMpcVideoRenderer()");
+	DLog("CMpcVideoRenderer::~CMpcVideoRenderer()");
 
 	if (m_hWndWindow) {
 		::SendMessageW(m_hWndWindow, WM_CLOSE, 0, 0);
@@ -404,14 +396,14 @@ CMpcVideoRenderer::~CMpcVideoRenderer()
 
 void CMpcVideoRenderer::NewSegment(REFERENCE_TIME startTime)
 {
-	DLog(L"CMpcVideoRenderer::NewSegment()");
+	DLog("CMpcVideoRenderer::NewSegment()");
 
 	m_rtStartTime = startTime;
 }
 
 HRESULT CMpcVideoRenderer::BeginFlush()
 {
-	DLog(L"CMpcVideoRenderer::BeginFlush()");
+	DLog("CMpcVideoRenderer::BeginFlush()");
 
 	m_bFlushing = true;
 	return __super::BeginFlush();
@@ -419,7 +411,7 @@ HRESULT CMpcVideoRenderer::BeginFlush()
 
 HRESULT CMpcVideoRenderer::EndFlush()
 {
-	DLog(L"CMpcVideoRenderer::EndFlush()");
+	DLog("CMpcVideoRenderer::EndFlush()");
 
 	m_VideoProcessor->Flush();
 
@@ -468,7 +460,7 @@ long CMpcVideoRenderer::CalcImageSize(CMediaType& mt, bool redefine_mt)
 				rcTarget = rcSource;
 			}
 
-			DLog(L"CMpcVideoRenderer::CalcImageSize() buffer size changed from {}x{} to {}x{}", pBIH->biWidth, pBIH->biHeight, Size.cx, Size.cy);
+			DLog("CMpcVideoRenderer::CalcImageSize() buffer size changed from {}x{} to {}x{}", pBIH->biWidth, pBIH->biHeight, Size.cx, Size.cy);
 			// overwrite buffer size
 			pBIH->biWidth  = Size.cx;
 			pBIH->biHeight = Size.cy;
@@ -505,7 +497,7 @@ HRESULT CMpcVideoRenderer::CheckMediaType(const CMediaType* pmt)
 
 HRESULT CMpcVideoRenderer::SetMediaType(const CMediaType *pmt)
 {
-	DLog(L"CMpcVideoRenderer::SetMediaType()\n{}", MediaType2Str(pmt));
+	DLog("CMpcVideoRenderer::SetMediaType()\n{}", WToA(MediaType2Str(pmt)));
 
 	CheckPointer(pmt, E_POINTER);
 	CheckPointer(pmt->pbFormat, E_POINTER);
@@ -527,7 +519,7 @@ HRESULT CMpcVideoRenderer::SetMediaType(const CMediaType *pmt)
 
 		if (mtNew != mt) {
 			if (S_OK == m_pInputPin->GetConnected()->QueryAccept(&mtNew)) {
-				DLog(L"CMpcVideoRenderer::SetMediaType() : upstream filter accepted new media type. QueryAccept return S_OK");
+				DLog("CMpcVideoRenderer::SetMediaType() : upstream filter accepted new media type. QueryAccept return S_OK");
 				inputPin->SetNewMediaType(mtNew);
 				mt = std::move(mtNew);
 			}
@@ -581,7 +573,7 @@ HRESULT CMpcVideoRenderer::Receive(IMediaSample* pSample)
 	// override CBaseRenderer::Receive() for the implementation of the search during the pause
 
 	if (m_bFlushing) {
-		DLog(L"CMpcVideoRenderer::Receive() - flushing, skip sample");
+		DLog("CMpcVideoRenderer::Receive() - flushing, skip sample");
 		return S_OK;
 	}
 
@@ -740,7 +732,7 @@ STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** 
 // IMediaFilter
 STDMETHODIMP CMpcVideoRenderer::Run(REFERENCE_TIME rtStart)
 {
-	DLog(L"CMpcVideoRenderer::Run()");
+	DLog("CMpcVideoRenderer::Run()");
 
 	if (m_State == State_Running) {
 		return NOERROR;
@@ -754,7 +746,7 @@ STDMETHODIMP CMpcVideoRenderer::Run(REFERENCE_TIME rtStart)
 
 STDMETHODIMP CMpcVideoRenderer::Pause()
 {
-	DLog(L"CMpcVideoRenderer::Pause()");
+	DLog("CMpcVideoRenderer::Pause()");
 
 	m_filterState = State_Paused;
 
@@ -763,7 +755,7 @@ STDMETHODIMP CMpcVideoRenderer::Pause()
 
 STDMETHODIMP CMpcVideoRenderer::Stop()
 {
-	DLog(L"CMpcVideoRenderer::Stop()");
+	DLog("CMpcVideoRenderer::Stop()");
 
 	m_filterState = State_Stopped;
 	m_bValidBuffer = false;
@@ -809,12 +801,12 @@ CStdStringW PropSetAndIdToString(REFGUID PropSet, ULONG Id)
 // IKsPropertySet
 STDMETHODIMP CMpcVideoRenderer::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength)
 {
-	DLog(L"IKsPropertySet::Set({}, {}, {}, {}, {})", PropSetAndIdToString(PropSet, Id), pInstanceData, InstanceLength, pPropertyData, DataLength);
+	DLog("IKsPropertySet::Set({}, {}, {}, {}, {})", WToA(PropSetAndIdToString(PropSet, Id)), pInstanceData, InstanceLength, pPropertyData, DataLength);
 
 	if (PropSet == AM_KSPROPSETID_CopyProt) {
 		if (Id == AM_PROPERTY_COPY_MACROVISION || Id == AM_PROPERTY_COPY_DIGITAL_CP) {
-			DLogIf(Id == AM_PROPERTY_COPY_MACROVISION, L"No Macrovision please");
-			DLogIf(Id == AM_PROPERTY_COPY_DIGITAL_CP, L"No Digital CP please");
+			DLogIf(Id == AM_PROPERTY_COPY_MACROVISION, "No Macrovision please");
+			DLogIf(Id == AM_PROPERTY_COPY_DIGITAL_CP, "No Digital CP please");
 			return S_OK;
 		}
 	}
@@ -836,7 +828,7 @@ STDMETHODIMP CMpcVideoRenderer::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceD
 
 STDMETHODIMP CMpcVideoRenderer::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength, ULONG* pBytesReturned)
 {
-	DLog(L"IKsPropertySet::Get({}, {}, {}, {}, {}, ...)", PropSetAndIdToString(PropSet, Id), pInstanceData, InstanceLength, pPropertyData, DataLength);
+	DLog("IKsPropertySet::Get({}, {}, {}, {}, {}, ...)", WToA(PropSetAndIdToString(PropSet, Id)), pInstanceData, InstanceLength, pPropertyData, DataLength);
 
 	if (PropSet == AM_KSPROPSETID_CopyProt) {
 		if (Id == AM_PROPERTY_COPY_ANALOG_COMPONENT) {
@@ -857,7 +849,7 @@ STDMETHODIMP CMpcVideoRenderer::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceD
 
 STDMETHODIMP CMpcVideoRenderer::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport)
 {
-	DLog(L"IKsPropertySet::QuerySupported({}, ...)", PropSetAndIdToString(PropSet, Id));
+	DLog("IKsPropertySet::QuerySupported({}, ...)", WToA(PropSetAndIdToString(PropSet, Id)));
 
 	if (PropSet == AM_KSPROPSETID_CopyProt) {
 		if (Id == AM_PROPERTY_COPY_MACROVISION || Id == AM_PROPERTY_COPY_DIGITAL_CP) {
@@ -1022,7 +1014,7 @@ STDMETHODIMP CMpcVideoRenderer::GetPreferredAspectRatio(long *plAspectX, long *p
 
 void CMpcVideoRenderer::SwitchFullScreen()
 {
-	DLog(L"CMpcVideoRenderer::SwitchFullScreen() : Switch to fullscreen");
+	DLog("CMpcVideoRenderer::SwitchFullScreen() : Switch to fullscreen");
 	m_bIsFullscreen = true;
 
 	if (m_hWnd) {
@@ -1089,7 +1081,7 @@ HRESULT CMpcVideoRenderer::Init(const bool bCreateWindow/* = false*/)
 				wc.cbWndExtra = sizeof(CMpcVideoRenderer*); // pointer size
 				if (!RegisterClassExW(&wc)) {
 					hr = HRESULT_FROM_WIN32(GetLastError());
-					DLog(L"CMpcVideoRenderer::Init() : RegisterClassExW() failed with error {}", HR2Str(hr));
+					DLog("CMpcVideoRenderer::Init() : RegisterClassExW() failed with error {}", WToA(HR2Str(hr)));
 					return hr;
 				}
 			}
@@ -1108,7 +1100,7 @@ HRESULT CMpcVideoRenderer::Init(const bool bCreateWindow/* = false*/)
 
 			if (!m_hWndWindow) {
 				hr = HRESULT_FROM_WIN32(GetLastError());
-				DLog(L"CMpcVideoRenderer::Init() : CreateWindowExW() failed with error {}", HR2Str(hr));
+				DLog("CMpcVideoRenderer::Init() : CreateWindowExW() failed with error {}", WToA(HR2Str(hr)));
 				return E_FAIL;
 			}
 
@@ -1189,7 +1181,7 @@ STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Widt
 		if (!m_bIsFullscreen && m_windowRect.Width() == rcMonitor.Width() && m_windowRect.Height() == rcMonitor.Height()) {
 			SwitchFullScreen();
 		} else if (m_bIsFullscreen && (m_windowRect.Width() != rcMonitor.Width() || m_windowRect.Height() != rcMonitor.Height())) {
-			DLog(L"CMpcVideoRenderer::SetWindowPosition() : Switch from fullscreen");
+			DLog("CMpcVideoRenderer::SetWindowPosition() : Switch from fullscreen");
 			m_bIsFullscreen = false;
 
 			if (m_hWnd) {
@@ -1618,7 +1610,7 @@ HRESULT CMpcVideoRenderer::Redraw()
 void CMpcVideoRenderer::DoAfterChangingDevice()
 {
 	if (m_pInputPin->IsConnected() == TRUE && m_pSink) {
-		DLog(L"CMpcVideoRenderer::DoAfterChangingDevice()");
+		DLog("CMpcVideoRenderer::DoAfterChangingDevice()");
 		m_bValidBuffer = false;
 		auto pPin = (IPin*)m_pInputPin;
 		m_pInputPin->AddRef();

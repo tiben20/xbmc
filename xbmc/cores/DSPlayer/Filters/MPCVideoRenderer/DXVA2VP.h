@@ -21,6 +21,7 @@
 #pragma once
 
 #include <dxva2api.h>
+#include "DSUtil/DSUtil.h"
 
 class VideoSampleBuffer
 {

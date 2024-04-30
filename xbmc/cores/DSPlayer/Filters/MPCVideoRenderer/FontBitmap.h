@@ -21,6 +21,7 @@
 #pragma once
 
 #include "D3DCommon.h"
+#include "DSUtil/DSUtil.h"
 
 #ifndef FONTBITMAP_MODE
 #define FONTBITMAP_MODE 2
@@ -298,13 +299,13 @@ public:
 #endif
 			&m_pD2D1Factory);*/
 		HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(m_pD2D1Factory), &m_pD2D1Factory);
-		DLogIf(FAILED(hr), L"D2D1CreateFactory() failed with error {}", HR2Str(hr));
+		DLogIf(FAILED(hr), "D2D1CreateFactory() failed with error {}", WToA(HR2Str(hr)));
 
 		if (SUCCEEDED(hr)) {
 			IDWriteFactory* pDWriteFactory;
 			hr = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(m_pDWriteFactory), reinterpret_cast<IUnknown**>(&pDWriteFactory));
 			m_pDWriteFactory = pDWriteFactory;
-			DLogIf(FAILED(hr), L"DWriteCreateFactory() failed with error {}", HR2Str(hr));
+			DLogIf(FAILED(hr), "DWriteCreateFactory() failed with error {}", WToA(HR2Str(hr)));
 		}
 
 		if (SUCCEEDED(hr)) {
@@ -315,7 +316,7 @@ public:
 				IID_IWICImagingFactory,
 				(LPVOID*)&m_pWICFactory
 			);
-			DLogIf(FAILED(hr), L"CoCreateInstance(WICImagingFactory) failed with error {}", HR2Str(hr));
+			DLogIf(FAILED(hr), "CoCreateInstance(WICImagingFactory) failed with error {}", WToA(HR2Str(hr)));
 		}
 	}
 

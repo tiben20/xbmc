@@ -201,7 +201,7 @@ static HRESULT CreateVertexBuffer(ID3D11Device* pDevice, ID3D11Buffer** ppVertex
 	D3D11_SUBRESOURCE_DATA InitData = { Vertices, 0, 0 };
 
 	HRESULT hr = pDevice->CreateBuffer(&BufferDesc, &InitData, ppVertexBuffer);
-	DLogIf(FAILED(hr), L"CreateVertexBuffer() : CreateBuffer() failed with error {}", HR2Str(hr));
+	DLogIf(FAILED(hr), "CreateVertexBuffer() : CreateBuffer() failed with error {}", WToA(HR2Str(hr)));
 
 	return hr;
 }
@@ -304,7 +304,7 @@ HRESULT CDX11VideoProcessor::AlphaBlt(
 
 		pRenderTargetView->Release();
 	}
-	DLogIf(FAILED(hr), L"AlphaBlt() : CreateRenderTargetView() failed with error {}", HR2Str(hr));
+	DLogIf(FAILED(hr), "AlphaBlt() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)));
 
 	return hr;
 }
@@ -485,7 +485,7 @@ static bool ToggleHDR(const DisplayConfig_t& displayConfig, const BOOL bEnableAd
 	setColorState.enableAdvancedColor = bEnableAdvancedColor;
 
 	const auto ret = DisplayConfigSetDeviceInfo(&setColorState.header);
-	DLogIf(ERROR_SUCCESS != ret, L"ToggleHDR() : DisplayConfigSetDeviceInfo({}) failed with error {}", bEnableAdvancedColor, HR2Str(HRESULT_FROM_WIN32(ret)));
+	DLogIf(ERROR_SUCCESS != ret, "ToggleHDR() : DisplayConfigSetDeviceInfo({}) failed with error {}", bEnableAdvancedColor, WToA(HR2Str(HRESULT_FROM_WIN32(ret))));
 
 	if (ret == ERROR_SUCCESS && beforeModeOpt.has_value()) {
 		auto afterModeOpt = GetCurrentDisplayMode(displayConfig.displayName);
@@ -499,7 +499,7 @@ static bool ToggleHDR(const DisplayConfig_t& displayConfig, const BOOL bEnableAd
 					 afterMode.dmPelsWidth, afterMode.dmPelsHeight, afterMode.dmDisplayFrequency);
 
 				auto ret = ChangeDisplaySettingsExW(displayConfig.displayName, &beforeMode, nullptr, CDS_FULLSCREEN, nullptr);
-				DLogIf(DISP_CHANGE_SUCCESSFUL != ret, L"ToggleHDR() : ChangeDisplaySettingsExW() failed with error {}", HR2Str(HRESULT_FROM_WIN32(ret)));
+				DLogIf(DISP_CHANGE_SUCCESSFUL != ret, "ToggleHDR() : ChangeDisplaySettingsExW() failed with error {}", WToA(HR2Str(HRESULT_FROM_WIN32(ret))));
 			}
 		}
 	}
@@ -516,7 +516,7 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 
 			if (ac.advancedColorSupported && ac.advancedColorEnabled != state) {
 				const auto ret = ToggleHDR(displayConfig, state);
-				DLogIf(!ret, L"CDX11VideoProcessor::~CDX11VideoProcessor() : Toggle HDR {} for '{}' failed", state ? L"ON" : L"OFF", displayName);
+				DLogIf(!ret, "CDX11VideoProcessor::~CDX11VideoProcessor() : Toggle HDR {} for '{}' failed", state ? "ON" : "OFF", WToA(displayName));
 			}
 		}
 	}
@@ -1122,7 +1122,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	}
 
 	HRESULT hr2 = m_D3D11VP.InitVideoDevice(pDevice, m_pDeviceContext.Get(), m_VendorId);
-	DLogIf(FAILED(hr2), L"CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error {}", HR2Str(hr2));
+	DLogIf(FAILED(hr2), "CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error {}", WToA(HR2Str(hr2)));
 
 	D3D11_SAMPLER_DESC SampDesc = {};
 	SampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -1205,14 +1205,14 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	SetCallbackDevice();
 
 	HRESULT hr3 = m_Font3D.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
-	DLogIf(FAILED(hr3), L"m_Font3D.InitDeviceObjects() failed with error {}", HR2Str(hr3));
+	DLogIf(FAILED(hr3), "m_Font3D.InitDeviceObjects() failed with error {}", WToA(HR2Str(hr3)));
 	if (SUCCEEDED(hr3)) {
 		hr3 = m_StatsBackground.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
 		hr3 = m_Rect3D.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
 		hr3 = m_Underlay.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
 		hr3 = m_Lines.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
 		hr3 = m_SyncLine.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
-		DLogIf(FAILED(hr3), L"Geometric primitives InitDeviceObjects() failed with error {}", HR2Str(hr3));
+		DLogIf(FAILED(hr3), "Geometric primitives InitDeviceObjects() failed with error {}", WToA(HR2Str(hr3)));
 	}
 	ASSERT(S_OK == hr3);
 
@@ -1332,7 +1332,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 		bCreateSwapChain = true;
 		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(GetDevice, m_hWnd, &desc1, &fullscreenDesc, nullptr, &m_pDXGISwapChain1);
 		bCreateSwapChain = false;
-		DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd(fullscreen) failed with error {}", HR2Str(hr));
+		DLogIf(FAILED(hr), "CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd(fullscreen) failed with error {}", WToA(HR2Str(hr)));
 
 		m_lastFullscreenHMonitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY);
 	}
@@ -1358,7 +1358,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 			m_windowRect.Width(), m_windowRect.Height(), desc1.Width, desc1.Height);
 
 		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(GetDevice, m_hWnd, &desc1, nullptr, nullptr, &m_pDXGISwapChain1);
-		DLogIf(FAILED(hr), L"CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd() failed with error {}", HR2Str(hr));
+		DLogIf(FAILED(hr), "CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd() failed with error {}", WToA(HR2Str(hr)));
 
 		m_lastFullscreenHMonitor = nullptr;
 	}
@@ -1431,7 +1431,7 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 				CLog::LogF(LOGINFO,"HandleHDRToggle() : {}, {}", bNeedToggleOn, bNeedToggleOff);
 				if (bNeedToggleOn) {
 					bRet = ToggleHDR(displayConfig, TRUE);
-					DLogIf(!bRet, L"CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR ON failed");
+					DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR ON failed");
 
 					if (bRet) {
 						CStdStringW deviceName(mi.szDevice);
@@ -1442,7 +1442,7 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 					}
 				} else if (bNeedToggleOff) {
 					bRet = ToggleHDR(displayConfig, FALSE);
-					DLogIf(!bRet, L"CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
+					DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
 
 					if (bRet) {
 						CStdStringW deviceName(mi.szDevice);
@@ -1472,7 +1472,7 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 			if (ac.advancedColorSupported && ac.advancedColorEnabled &&
 					(!bWindowsHDREnabled || (m_iHdrToggleDisplay == HDRTD_OnOff || m_iHdrToggleDisplay == HDRTD_OnOff_Fullscreen && m_bIsFullscreen))) {
 				bRet = ToggleHDR(displayConfig, FALSE);
-				DLogIf(!bRet, L"CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
+				DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
 
 				if (bRet) {
 					CStdStringW deviceName(mi.szDevice);
@@ -1685,7 +1685,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 
 			if (resId.length()>0) {
 				EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSCorrection, resId));
-				DLogIf(m_pPSCorrection, L"CDX11VideoProcessor::InitMediaType() m_pPSCorrection('{}') created", m_strCorrection);
+				DLogIf(m_pPSCorrection, "CDX11VideoProcessor::InitMediaType() m_pPSCorrection('{}') created", WToA(m_strCorrection));
 			}
 		}
 		else {
@@ -2124,8 +2124,8 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 					SetShaderConvertColorParams();
 				}
 				if (bRGBtoLMSChanged || bMMRChanged) {
-					DLogIf(bRGBtoLMSChanged, L"CDX11VideoProcessor::CopySample() : DoVi rgb_to_lms_matrix is changed");
-					DLogIf(bMMRChanged, L"CDX11VideoProcessor::CopySample() : DoVi has_mmr is changed");
+					DLogIf(bRGBtoLMSChanged, "CDX11VideoProcessor::CopySample() : DoVi rgb_to_lms_matrix is changed");
+					DLogIf(bMMRChanged, "CDX11VideoProcessor::CopySample() : DoVi has_mmr is changed");
 					UpdateConvertColorShader();
 				}
 				if (bMappingCurvesChanged) {
@@ -2358,13 +2358,13 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		if (m_currentSwapChainColorSpace != colorSpace) {
 			if (m_hdr10.bValid) {
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
-				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", HR2Str(hr));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", WToA(HR2Str(hr)));
 
 				m_lastHdr10 = m_hdr10;
 				UpdateStatsStatic();
 			} else if (m_lastHdr10.bValid) {
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
-				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(lastHdr) failed with error {}", HR2Str(hr));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(lastHdr) failed with error {}", WToA(HR2Str(hr)));
 			} else {
 				m_lastHdr10.bValid = true;
 
@@ -2379,7 +2379,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 				m_lastHdr10.hdr10.MaxMasteringLuminance = m_DoviMaxMasteringLuminance ? m_DoviMaxMasteringLuminance : 1000 * 10000; // 1000 nits
 				m_lastHdr10.hdr10.MinMasteringLuminance = m_DoviMinMasteringLuminance ? m_DoviMinMasteringLuminance : 50;           // 0.005 nits
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
-				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(Display P3 standard) failed with error {}", HR2Str(hr));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(Display P3 standard) failed with error {}", WToA(HR2Str(hr)));
 
 				UpdateStatsStatic();
 			}
@@ -2388,7 +2388,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			if (SUCCEEDED(swapChain4->CheckColorSpaceSupport(colorSpace, &colorSpaceSupport))
 					&& (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) == DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) {
 				hr = swapChain4->SetColorSpace1(colorSpace);
-				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetColorSpace1() failed with error {}", HR2Str(hr));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetColorSpace1() failed with error {}", WToA(HR2Str(hr)));
 				if (SUCCEEDED(hr)) {
 					m_currentSwapChainColorSpace = colorSpace;
 				}
@@ -2396,7 +2396,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		} else if (m_hdr10.bValid) {
 			if (memcmp(&m_hdr10.hdr10, &m_lastHdr10.hdr10, sizeof(m_hdr10.hdr10)) != 0) {
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
-				DLogIf(FAILED(hr), L"CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", HR2Str(hr));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", WToA(HR2Str(hr)));
 
 				m_lastHdr10 = m_hdr10;
 				UpdateStatsStatic();
@@ -2407,7 +2407,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	DX::DeviceResources::Get()->GetOutput(&pDXGIOutput);
 	if (m_bVBlankBeforePresent && pDXGIOutput) {
 		hr = pDXGIOutput->WaitForVBlank();
-		DLogIf(FAILED(hr), L"WaitForVBlank failed with error {}", HR2Str(hr));
+		DLogIf(FAILED(hr), "WaitForVBlank failed with error {}", WToA(HR2Str(hr)));
 	}
 
 	SyncFrameToStreamTime(frameStartTime);
@@ -2487,7 +2487,7 @@ HRESULT CDX11VideoProcessor::FillBlack()
 	g_bPresent = true;
 	hr = GetSwapChain->Present(1, 0);
 	g_bPresent = false;
-	DLogIf(FAILED(hr), L"CDX11VideoProcessor::FillBlack() : Present() failed with error {}", HR2Str(hr));
+	DLogIf(FAILED(hr), "CDX11VideoProcessor::FillBlack() : Present() failed with error {}", WToA(HR2Str(hr)));
 
 	if (hr == DXGI_ERROR_INVALID_CALL && m_pFilter->m_bIsD3DFullscreen) {
 		InitSwapChain();
@@ -2760,7 +2760,7 @@ HRESULT CDX11VideoProcessor::ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2
 		if (resizerX == resizerY) {
 			// one pass resize
 			hr = TextureResizeShader(Tex, pRenderTarget, srcRect, dstRect, resizerX, rotation, m_bFlip);
-			DLogIf(FAILED(hr), L"CDX11VideoProcessor::ResizeShaderPass() : failed with error {}", WToA(HR2Str(hr)).c_str());
+			DLogIf(FAILED(hr), "CDX11VideoProcessor::ResizeShaderPass() : failed with error {}", WToA(HR2Str(hr)).c_str());
 
 			return hr;
 		}
@@ -2806,7 +2806,7 @@ HRESULT CDX11VideoProcessor::ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2
 		}
 	}
 
-	DLogIf(FAILED(hr), L"CDX11VideoProcessor::ResizeShaderPass() : failed with error {}", WToA(HR2Str(hr)).c_str());
+	DLogIf(FAILED(hr), "CDX11VideoProcessor::ResizeShaderPass() : failed with error {}", WToA(HR2Str(hr)).c_str());
 
 	return hr;
 }
@@ -3011,7 +3011,7 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 		hr = ResizeShaderPass(*pInputTexture, pRenderTarget, rSrc, dstRect, rotation);
 	}
 
-	DLogIf(FAILED(hr), L"CDX9VideoProcessor::Process() : failed with error {}", HR2Str(hr));
+	DLogIf(FAILED(hr), "CDX9VideoProcessor::Process() : failed with error {}", WToA(HR2Str(hr)));
 
 	return hr;
 }
@@ -3967,7 +3967,7 @@ STDMETHODIMP CDX11VideoProcessor::SetAlphaBitmap(const MFVideoAlphaBitmap *pBmpP
 		}
 
 		hr = m_TexAlphaBitmap.CheckCreate(GetDevice, DXGI_FORMAT_B8G8R8A8_UNORM, bm.bmWidth, bm.bmHeight, Tex2D_DefaultShader);
-		DLogIf(FAILED(hr), L"CDX11VideoProcessor::SetAlphaBitmap() : CheckCreate() failed with error {}", HR2Str(hr));
+		DLogIf(FAILED(hr), "CDX11VideoProcessor::SetAlphaBitmap() : CheckCreate() failed with error {}", WToA(HR2Str(hr)));
 		if (S_OK == hr) {
 			m_pDeviceContext->UpdateSubresource(m_TexAlphaBitmap.pTexture.Get(), 0, nullptr, bm.bmBits, bm.bmWidthBytes, 0);
 		}

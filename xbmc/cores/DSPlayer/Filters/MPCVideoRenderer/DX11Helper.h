@@ -22,7 +22,7 @@
 
 #include <d3d11_1.h>
 #include "rendering/dx/DeviceResources.h"
-
+#include "Helper.h"
 enum Tex2DType {
 	Tex2D_Default,
 	Tex2D_DefaultRTarget,

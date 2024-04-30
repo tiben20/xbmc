@@ -21,6 +21,7 @@
 #pragma once
 
 #include <d3dcommon.h>
+#include "DSUtil/DSUtil.h"
 
 struct PS_COLOR_TRANSFORM {
 	DirectX::XMFLOAT4 cm_r;

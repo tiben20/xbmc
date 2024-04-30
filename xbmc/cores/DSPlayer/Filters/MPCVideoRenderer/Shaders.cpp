@@ -52,9 +52,9 @@ HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefin
 
 		if (pErrorBlob) {
 			CStdStringA strErrorMsgs((char*)pErrorBlob->GetBufferPointer(), pErrorBlob->GetBufferSize());
-			DLog(AToW(strErrorMsgs));
+			DLog(strErrorMsgs);
 		} else {
-			DLog(L"Unexpected compiler error");
+			DLog("Unexpected compiler error");
 		}
 	}
 
@@ -107,7 +107,7 @@ void ShaderGetPixels(
 			}
 		}
 	}
-	DLog(L"ConvertColorShader: frame consists of %f planes", planes);
+	DLog("ConvertColorShader: frame consists of %f planes", planes);
 
 	const bool packed422 = (fmtParams.cformat == CF_YUY2 || fmtParams.cformat == CF_Y210 || fmtParams.cformat == CF_Y216);
 	const bool blendDeint420 = (blendDeinterlace && fmtParams.Subsampling == 420);
@@ -119,23 +119,23 @@ void ShaderGetPixels(
 		case DXVA2_VideoChromaSubsampling_Cosited:
 			strChromaPos = "+float2(dx*0.5,dy*0.5)";
 			strChromaPos2 = "+float2(-0.25,-0.25)";
-			DLog(L"ConvertColorShader: chroma location - Co-sited");
+			DLog("ConvertColorShader: chroma location - Co-sited");
 			break;
 		case DXVA2_VideoChromaSubsampling_MPEG1:
 			//strChromaPos = "";
 			strChromaPos2 = "+float2(-0.5,-0.5)";
-			DLog(L"ConvertColorShader: chroma location - MPEG-1");
+			DLog("ConvertColorShader: chroma location - MPEG-1");
 			break;
 		case DXVA2_VideoChromaSubsampling_MPEG2:
 		default:
 			strChromaPos = "+float2(dx*0.5,0)";
 			strChromaPos2 = "+float2(-0.25,-0.5)";
-			DLog(L"ConvertColorShader: chroma location - MPEG-2");
+			DLog("ConvertColorShader: chroma location - MPEG-2");
 		}
 	}
 	else if (fmtParams.Subsampling == 422) {
 		strChromaPos = "+float2(dx*0.5,0)";
-		DLog(L"ConvertColorShader: chroma location - YUV 4:2:2");
+		DLog("ConvertColorShader: chroma location - YUV 4:2:2");
 	}
 
 	if (chromaScaling == CHROMA_CatmullRom && fmtParams.Subsampling == 422) {
@@ -566,7 +566,7 @@ HRESULT GetShaderConvertColor(
 	const bool blendDeinterlace,
 	ID3DBlob** ppCode)
 {
-	DLog(L"GetShaderConvertColor() started for {} {}x{} extfmt:{:#010x} chroma:{}", fmtParams.str, texW, texH, exFmt.value, chromaScaling);
+	DLog("GetShaderConvertColor() started for {} {}x{} extfmt:{:#010x} chroma:{}", WToA(fmtParams.str), texW, texH, exFmt.value, chromaScaling);
 
 	CStdStringA code;
 	HRESULT hr = S_OK;

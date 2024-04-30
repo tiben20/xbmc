@@ -22,7 +22,6 @@
 
 #include "stdafx.h"
 #include "Helper.h"
-#include "DX9Helper.h"
 
 #include "DXVA2VP.h"
 #include "rendering/dx/DirectXHelper.h"
@@ -54,7 +53,7 @@ int GetBitDepth(const D3DFORMAT format)
 
 BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& videodesc, UINT preferredDeintTech, D3DFORMAT& outputFmt)
 {
-	DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() started for device {}", DXVA2VPDeviceToString(devguid));
+	DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() started for device {}", WToA(DXVA2VPDeviceToString(devguid)));
 	CheckPointer(m_pDXVA2_VPService, FALSE);
 
 	HRESULT hr = S_OK;
@@ -64,7 +63,7 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 	D3DFORMAT* formats = nullptr;
 	hr = m_pDXVA2_VPService->GetVideoProcessorRenderTargets(devguid, &videodesc, &count, &formats);
 	if (FAILED(hr)) {
-		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : GetVideoProcessorRenderTargets() failed with error {}", HR2Str(hr));
+		DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : GetVideoProcessorRenderTargets() failed with error {}", WToA(HR2Str(hr)));
 		return FALSE;
 	}
 #ifdef _DEBUG
@@ -72,9 +71,10 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 		CStdStringW dbgstr = L"DXVA2-VP output formats:";
 		for (UINT j = 0; j < count; j++) {
 			dbgstr.append(L"\n  ");
+			
 			dbgstr.append(D3DFormatToString(formats[j]));
 		}
-		DLog(dbgstr);
+		DLog(WToA(dbgstr));
 	}
 #endif
 
@@ -106,43 +106,43 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 	CoTaskMemFree(formats);
 	if (index >= count) {
 		outputFmt = D3DFMT_UNKNOWN;
-		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : FAILED. Device doesn't support desired output format");
+		DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : FAILED. Device doesn't support desired output format");
 		return FALSE;
 	}
-	DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : select {} for output", D3DFormatToString(outputFmt));
+	DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : select {} for output", WToA(D3DFormatToString(outputFmt)));
 
 	// Query video processor capabilities.
 	hr = m_pDXVA2_VPService->GetVideoProcessorCaps(devguid, &videodesc, outputFmt, &m_DXVA2VPcaps);
 	if (FAILED(hr)) {
-		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : GetVideoProcessorCaps() failed with error {}", HR2Str(hr));
+		DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : GetVideoProcessorCaps() failed with error {}", WToA(HR2Str(hr)));
 		return FALSE;
 	}
 	if (preferredDeintTech) {
 		if (!(m_DXVA2VPcaps.DeinterlaceTechnology & preferredDeintTech)) {
-			DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : skip this device, need improved deinterlacing");
+			DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : skip this device, need improved deinterlacing");
 			return FALSE;
 		}
 		if (m_DXVA2VPcaps.NumForwardRefSamples > 0) {
-			DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : skip this device, ForwardRefSamples are not supported");
+			DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : skip this device, ForwardRefSamples are not supported");
 			return FALSE;
 		}
 	}
 	// Check to see if the device is hardware device.
 	if (!(m_DXVA2VPcaps.DeviceCaps & DXVA2_VPDev_HardwareDevice)) {
-		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : The DXVA2 device isn't a hardware device");
+		DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : The DXVA2 device isn't a hardware device");
 		return FALSE;
 	}
 	// Check to see if the device supports all the VP operations we want.
 	const UINT VIDEO_REQUIED_OP = DXVA2_VideoProcess_YUV2RGB | DXVA2_VideoProcess_StretchX | DXVA2_VideoProcess_StretchY;
 	if ((m_DXVA2VPcaps.VideoProcessorOperations & VIDEO_REQUIED_OP) != VIDEO_REQUIED_OP) {
-		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : The DXVA2 device doesn't support the YUV2RGB & Stretch operations");
+		DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : The DXVA2 device doesn't support the YUV2RGB & Stretch operations");
 		return FALSE;
 	}
 
 	// Finally create a video processor device.
 	hr = m_pDXVA2_VPService->CreateVideoProcessor(devguid, &videodesc, outputFmt, 0, &m_pDXVA2_VP);
 	if (FAILED(hr)) {
-		DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : CreateVideoProcessor failed with error {}", HR2Str(hr));
+		DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : CreateVideoProcessor failed with error {}", WToA(HR2Str(hr)));
 		return FALSE;
 	}
 
@@ -177,7 +177,7 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_MotionVectorSteered)    { dbgstr.append(L" MotionVectorSteered,"); }
 		if (m_DXVA2VPcaps.DeinterlaceTechnology & DXVA2_DeinterlaceTech_InverseTelecine)        { dbgstr.append(L" InverseTelecine"); }
 		dbgstr = dbgstr.TrimRight(',');
-		DLog(dbgstr);
+		DLog(WToA(dbgstr));
 		}
 #endif
 
@@ -186,10 +186,10 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 		if (m_DXVA2VPcaps.ProcAmpControlCaps & (1 << i)) {
 			hr = m_pDXVA2_VPService->GetProcAmpRange(devguid, &videodesc, outputFmt, 1 << i, &m_DXVA2ProcAmpRanges[i]);
 			if (FAILED(hr)) {
-				DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : GetProcAmpRange() failed with error {}", HR2Str(hr));
+				DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : GetProcAmpRange() failed with error {}", WToA(HR2Str(hr)));
 				return FALSE;
 			}
-			DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : ProcAmpRange({}) : {:7.2f}, {:6.2f}, {:6.2f}, {:4.2f}",
+			DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : ProcAmpRange({}) : {:7.2f}, {:6.2f}, {:6.2f}, {:4.2f}",
 				i, DXVA2FixedToFloat(m_DXVA2ProcAmpRanges[i].MinValue), DXVA2FixedToFloat(m_DXVA2ProcAmpRanges[i].MaxValue),
 				DXVA2FixedToFloat(m_DXVA2ProcAmpRanges[i].DefaultValue), DXVA2FixedToFloat(m_DXVA2ProcAmpRanges[i].StepSize));
 		}
@@ -234,7 +234,7 @@ BOOL CDXVA2VP::CreateDXVA2VPDevice(const GUID& devguid, const DXVA2_VideoDesc& v
 	m_BltParams.DetailFilterChroma.Threshold = DFilterValues[4];
 	m_BltParams.DetailFilterChroma.Radius    = DFilterValues[5];
 
-	DLog(L"CDX9VideoProcessor::CreateDXVA2VPDevice() : create {} processor ", GUIDtoWString(devguid));
+	DLog("CDX9VideoProcessor::CreateDXVA2VPDevice() : create {} processor ", WToA(GUIDtoWString(devguid)));
 
 	return TRUE;
 }
@@ -245,7 +245,7 @@ HRESULT CDXVA2VP::InitVideoService(IDirect3DDevice9* pDevice, DWORD vendorId)
 
 	// Create DXVA2 Video Processor Service.
 	HRESULT hr = DXVA2CreateVideoService(pDevice, IID_IDirectXVideoProcessorService, (VOID**)&m_pDXVA2_VPService);
-	DLogIf(FAILED(hr), L"CDXVA2VP::InitVideoService() : DXVA2CreateVideoService() failed with error {}", HR2Str(hr));
+	DLogIf(FAILED(hr), "CDXVA2VP::InitVideoService() : DXVA2CreateVideoService() failed with error {}", WToA(HR2Str(hr)));
 
 	m_VendorId = vendorId;
 
@@ -290,7 +290,7 @@ HRESULT CDXVA2VP::InitVideoProcessor(
 	GUID* guids = nullptr;
 	hr = m_pDXVA2_VPService->GetVideoProcessorDeviceGuids(&videodesc, &count, &guids);
 	if (FAILED(hr)) {
-		DLog(L"CDXVA2VP::InitVideoProcessor() : GetVideoProcessorDeviceGuids() failed with error {}", HR2Str(hr));
+		DLog("CDXVA2VP::InitVideoProcessor() : GetVideoProcessorDeviceGuids() failed with error {}", WToA(HR2Str(hr)));
 		return hr;
 	}
 
@@ -305,7 +305,7 @@ HRESULT CDXVA2VP::InitVideoProcessor(
 		nullptr
 	);
 	if (FAILED(hr)) {
-		DLog(L"CDXVA2VP::InitVideoProcessor() : Create test input surface failed with error {}", HR2Str(hr));
+		DLog("CDXVA2VP::InitVideoProcessor() : Create test input surface failed with error {}", WToA(HR2Str(hr)));
 		return hr;
 	}
 
@@ -420,7 +420,7 @@ IDirect3DSurface9* CDXVA2VP::GetInputSurface()
 			ppSurface,
 			nullptr
 		);
-		DLogIf(FAILED(hr), L"CDXVA2VP::GetInputSurface() : CreateSurface failed with error {}", HR2Str(hr));
+		DLogIf(FAILED(hr), "CDXVA2VP::GetInputSurface() : CreateSurface failed with error {}", WToA(HR2Str(hr)));
 		if (S_OK == hr) {
 			IDirect3DDevice9* pDevice;
 			if (S_OK == (*ppSurface)->GetDevice(&pDevice)) {
@@ -496,7 +496,7 @@ HRESULT CDXVA2VP::Process(IDirect3DSurface9* pRenderTarget, const DXVA2_SampleFo
 	}
 
 	HRESULT hr = m_pDXVA2_VP->VideoProcessBlt(pRenderTarget, &m_BltParams, m_VideoSamples.Data(), m_VideoSamples.Size(), nullptr);
-	DLogIf(FAILED(hr), L"CDXVA2VP::Process() : VideoProcessBlt() failed with error {}", HR2Str(hr));
+	DLogIf(FAILED(hr), "CDXVA2VP::Process() : VideoProcessBlt() failed with error {}", WToA(HR2Str(hr)));
 
 	return hr;
 }

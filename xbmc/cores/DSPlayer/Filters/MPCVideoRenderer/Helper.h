@@ -62,7 +62,7 @@ struct ScalingShaderResId {
 	const wchar_t* const description;
 };
 
-LPCWSTR GetNameAndVersion();
+CStdStringA GetNameAndVersion();
 
 CStdStringW MediaType2Str(const CMediaType *pmt);
 

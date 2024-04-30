@@ -4,14 +4,10 @@ set(SOURCES CPUInfo2.cpp
 			D3D11Font.cpp
 			D3D11Geometry.cpp
 			D3D11VP.cpp
-			D3D9Font.cpp
-			D3D9Geometry.cpp
 			DisplayConfig.cpp
 			DSResource.cpp
 			DX11Helper.cpp
 			DX11VideoProcessor.cpp
-			DX9Helper.cpp
-			DX9VideoProcessor.cpp
 			DXVA2VP.cpp
 			Helper.cpp
 			MediaSampleSideData.cpp
@@ -34,15 +30,11 @@ set(HEADERS atlredef.h
 			D3D11Font.h
 			D3D11Geometry.h
 			D3D11VP.h
-			D3D9Font.h
-			D3D9Geometry.h
 			D3DCommon.h
 			DisplayConfig.h
 			DSResource.h
 			DX11Helper.h
 			DX11VideoProcessor.h
-			DX9Helper.h
-			DX9VideoProcessor.h
 			DXVA2VP.h
 			FontBitmap.h
 			FrameStats.h

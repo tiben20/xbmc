@@ -74,12 +74,12 @@ void ComboBox_SelectByItemData(HWND hWnd, int nIDComboBox, LONG_PTR data)
 CVRMainPPage::CVRMainPPage(LPUNKNOWN lpunk, HRESULT* phr) :
 	CBasePropertyPage(L"MainProp", lpunk, IDD_MAINPROPPAGE, IDS_MAINPROPPAGE_TITLE)
 {
-	DLog(L"CVRMainPPage()");
+	DLog("CVRMainPPage()");
 }
 
 CVRMainPPage::~CVRMainPPage()
 {
-	DLog(L"~CVRMainPPage()");
+	DLog("~CVRMainPPage()");
 }
 
 void CVRMainPPage::SetControls()
@@ -242,7 +242,6 @@ HRESULT CVRMainPPage::OnActivate()
 	SendDlgItemMessageW(m_hwnd, IDC_SLIDER1, TBM_SETRANGE, 0, MAKELONG(0, 2));
 	SendDlgItemMessageW(m_hwnd, IDC_SLIDER1, TBM_SETTICFREQ, 1, 0);
 
-	SetDlgItemTextW(m_hwnd, IDC_EDIT2, GetNameAndVersion());
 
 	SetControls();
 
@@ -461,12 +460,12 @@ HRESULT CVRMainPPage::OnApplyChanges()
 CVRInfoPPage::CVRInfoPPage(LPUNKNOWN lpunk, HRESULT* phr) :
 	CBasePropertyPage(L"InfoProp", lpunk, IDD_INFOPROPPAGE, IDS_INFOPROPPAGE_TITLE)
 {
-	DLog(L"CVRInfoPPage()");
+	DLog("CVRInfoPPage()");
 }
 
 CVRInfoPPage::~CVRInfoPPage()
 {
-	DLog(L"~CVRInfoPPage()");
+	DLog("~CVRInfoPPage()");
 
 	if (m_hMonoFont) {
 		DeleteObject(m_hMonoFont);
@@ -528,8 +527,6 @@ HRESULT CVRInfoPPage::OnActivate()
 {
 	// set m_hwnd for CWindow
 	m_hwnd = m_hwnd;
-
-	SetDlgItemTextW(m_hwnd, IDC_EDIT2, GetNameAndVersion());
 
 	// init monospace font
 	LOGFONTW lf = {};

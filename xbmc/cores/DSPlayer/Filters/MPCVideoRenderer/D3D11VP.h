@@ -22,6 +22,7 @@
 
 #include <d3d11.h>
 #include "windowing/windows/WinSystemWin32DX.h"
+#include "DSUtil/DSUtil.h"
 
 class VideoTextureBuffer
 {

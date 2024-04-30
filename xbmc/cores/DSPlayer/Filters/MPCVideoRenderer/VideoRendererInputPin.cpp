@@ -56,7 +56,7 @@ STDMETHODIMP CVideoRendererInputPin::NonDelegatingQueryInterface(REFIID riid, vo
 
 STDMETHODIMP CVideoRendererInputPin::GetAllocator(IMemAllocator **ppAllocator)
 {
-	DLog(L"CVideoRendererInputPin::GetAllocator()");
+	DLog("CVideoRendererInputPin::GetAllocator()");
 
 	if (m_bDXVA || m_bD3D11) {
 		// Renderer shouldn't manage allocator for DXVA/D3D11
@@ -102,7 +102,7 @@ STDMETHODIMP CVideoRendererInputPin::GetAllocatorRequirements(ALLOCATOR_PROPERTI
 
 STDMETHODIMP CVideoRendererInputPin::ReceiveConnection(IPin* pConnector, const AM_MEDIA_TYPE* pmt)
 {
-	DLog(L"CVideoRendererInputPin::ReceiveConnection()");
+	DLog("CVideoRendererInputPin::ReceiveConnection()");
 
 	CAutoLock cObjectLock(m_pLock);
 
@@ -185,7 +185,7 @@ STDMETHODIMP CVideoRendererInputPin::GetAvailableSurfaceTypeByIndex(DWORD dwType
 STDMETHODIMP CVideoRendererInputPin::SetSurfaceType(DXVA2_SurfaceType dwType)
 {
 	m_bDXVA = (dwType == DXVA2_SurfaceType_DecoderRenderTarget);
-	DLogIf(m_bDXVA, L"CVideoRendererInputPin::SetSurfaceType() : set surface type for DXVA2 decoder");
+	DLogIf(m_bDXVA, "CVideoRendererInputPin::SetSurfaceType() : set surface type for DXVA2 decoder");
 	return S_OK;
 }
 
@@ -200,7 +200,7 @@ STDMETHODIMP CVideoRendererInputPin::ActivateD3D11Decoding(ID3D11Device *pDevice
 		}
 	}
 	m_bD3D11 = (hr == S_OK);
-	DLog(L"CVideoRendererInputPin::ActivateD3D11Decoding() : {}", m_bD3D11 ? L"completed successfully" : L"failed");
+	DLog("CVideoRendererInputPin::ActivateD3D11Decoding() : {}", m_bD3D11 ? "completed successfully" : "failed");
 	return hr;
 }
 
@@ -211,7 +211,7 @@ UINT STDMETHODCALLTYPE CVideoRendererInputPin::GetD3D11AdapterIndex()
 
 void CVideoRendererInputPin::SetNewMediaType(const CMediaType& mt)
 {
-	DLog(L"CVideoRendererInputPin::SetNewMediaType()");
+	DLog("CVideoRendererInputPin::SetNewMediaType()");
 
 	SAFE_DELETE(m_pNewMT);
 	if (m_pCustomAllocator) {

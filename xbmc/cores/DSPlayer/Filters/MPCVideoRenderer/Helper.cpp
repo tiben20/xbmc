@@ -48,9 +48,9 @@ CStdStringW GetVersionStr()
 	return version;
 }
 
-LPCWSTR GetNameAndVersion()
+CStdStringA GetNameAndVersion()
 {
-	static CStdStringW version = L"MPC Video Renderer " + GetVersionStr();
+	static CStdStringA version = "MPC Video Renderer ";
 
 	return version.c_str();
 }
@@ -66,22 +66,22 @@ CStdStringW MediaType2Str(const CMediaType *pmt)
 	CStdStringW str(L"MajorType : ");
 	str.append((pmt->majortype == MEDIATYPE_Video) ? L"Video" : L"unknown");
 
-	str.AppendFormat(L"\nSubType   : {}", FmtParams.str);
+	str.AppendFormat(L"\nSubType   : %s", FmtParams.str);
 
 	str.append(L"\nFormatType: ");
 	if (pmt->formattype == FORMAT_VideoInfo2) {
 		str.append(L"VideoInfo2");
 		const VIDEOINFOHEADER2* vih2 = (VIDEOINFOHEADER2*)pmt->pbFormat;
-		str.AppendFormat(L"\nBimapSize : {} x {}", vih2->bmiHeader.biWidth, vih2->bmiHeader.biHeight);
-		str.AppendFormat(L"\nSourceRect: ({}, {}, {}, {})", vih2->rcSource.left, vih2->rcSource.top, vih2->rcSource.right, vih2->rcSource.bottom);
-		str.AppendFormat(L"\nSizeImage : {} bytes", vih2->bmiHeader.biSizeImage);
+		str.AppendFormat(L"\nBimapSize : %i x %i", vih2->bmiHeader.biWidth, vih2->bmiHeader.biHeight);
+		str.AppendFormat(L"\nSourceRect: (%i, %i, %i, %i)", vih2->rcSource.left, vih2->rcSource.top, vih2->rcSource.right, vih2->rcSource.bottom);
+		str.AppendFormat(L"\nSizeImage : %u bytes", vih2->bmiHeader.biSizeImage);
 	}
 	else if (pmt->formattype == FORMAT_VideoInfo) {
 		str.append(L"VideoInfo");
 		const VIDEOINFOHEADER* vih = (VIDEOINFOHEADER*)pmt->pbFormat;
-		str.AppendFormat(L"\nBimapSize : {} x {}", vih->bmiHeader.biWidth, vih->bmiHeader.biHeight);
-		str.AppendFormat(L"\nSourceRect: ({}, {}, {}, {})", vih->rcSource.left, vih->rcSource.top, vih->rcSource.right, vih->rcSource.bottom);
-		str.AppendFormat(L"\nSizeImage : {} bytes", vih->bmiHeader.biSizeImage);
+		str.AppendFormat(L"\nBimapSize : %i x %i", vih->bmiHeader.biWidth, vih->bmiHeader.biHeight);
+		str.AppendFormat(L"\nSourceRect: (%i, %i, %i, %i)", vih->rcSource.left, vih->rcSource.top, vih->rcSource.right, vih->rcSource.bottom);
+		str.AppendFormat(L"\nSizeImage : %u bytes", vih->bmiHeader.biSizeImage);
 	}
 	else {
 		str.append(L"unknown");
