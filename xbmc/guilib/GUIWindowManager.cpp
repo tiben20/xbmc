@@ -1348,6 +1348,7 @@ bool CGUIWindowManager::Render()
 {
   assert(CServiceBroker::GetAppMessenger()->IsProcessThread());
   CSingleExit lock(CServiceBroker::GetWinSystem()->GetGfxContext());
+  bool triggerRender = false;
 
 #if HAS_DS_PLAYER
   CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->RenderToTexture(RENDER_LAYER_UNDER);
@@ -1362,13 +1363,15 @@ bool CGUIWindowManager::Render()
     RenderPass();
     hasRendered = true;
   }
-  else if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_FILL_VIEWPORT_ON_CHANGE || CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR))
+  else if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_FILL_VIEWPORT_ON_CHANGE )
   {
     if (!dirtyRegions.empty())
     {
       RenderPass();
       hasRendered = true;
     }
+    else
+      triggerRender = true;
   }
   else
   {
@@ -1382,6 +1385,11 @@ bool CGUIWindowManager::Render()
       hasRendered = true;
     }
     CServiceBroker::GetWinSystem()->GetGfxContext().ResetScissors();
+  }
+  if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->ReadyDS(DIRECTSHOW_RENDERER_MPCVR) && triggerRender)
+  {
+    RenderPass();
+    hasRendered = true;
   }
 
   if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiVisualizeDirtyRegions)

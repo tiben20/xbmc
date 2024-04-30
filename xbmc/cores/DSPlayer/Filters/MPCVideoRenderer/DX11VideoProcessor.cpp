@@ -2282,6 +2282,8 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		hr = Process(CMPCVRRenderer::Get()->GetIntermediateTarget().Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
 	}
 
+	m_pDeviceContext->OMSetRenderTargets(1, &pRTView, nullptr);
+
 	if (!m_pPSHalfOUtoInterlace) {
 		DrawSubtitles(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
