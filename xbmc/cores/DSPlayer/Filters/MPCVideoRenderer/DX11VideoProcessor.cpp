@@ -1117,12 +1117,12 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	hr = DX::DeviceResources::Get()->GetAdapter()->GetDesc(&dxgiAdapterDesc);
 	if (SUCCEEDED(hr)) {
 		m_VendorId = dxgiAdapterDesc.VendorId;
-		m_strAdapterDescription.Format(L"{} ({:04X}:{:04X})", dxgiAdapterDesc.Description, dxgiAdapterDesc.VendorId, dxgiAdapterDesc.DeviceId);
+		m_strAdapterDescription.Format(L"%s (%u:%u)", dxgiAdapterDesc.Description, dxgiAdapterDesc.VendorId, dxgiAdapterDesc.DeviceId);
 		CLog::LogF(LOGINFO,"Graphics DXGI adapter: {}", WToA(m_strAdapterDescription).c_str());
 	}
 
 	HRESULT hr2 = m_D3D11VP.InitVideoDevice(pDevice, m_pDeviceContext.Get(), m_VendorId);
-	DLogIf(FAILED(hr2), "CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error {}", WToA(HR2Str(hr2)));
+	DLogIf(FAILED(hr2), "CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error %s", WToA(HR2Str(hr2)));
 
 	D3D11_SAMPLER_DESC SampDesc = {};
 	SampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -2270,6 +2270,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	CMPCVRRenderer::Get()->GetVideoRect(src, dst, vw);
 	m_renderRect = Com::SmartRect(vw.x1,vw.y1, vw.x2,vw.y2);
 	m_videoRect = Com::SmartRect(dst.x1, dst.y1, dst.x2, dst.y2);
+	m_windowRect = Com::SmartRect(vw.x1, vw.y1, vw.x2, vw.y2);
 	if (oldrect != m_videoRect)
 	{
 		UpdateTexures();
@@ -2344,7 +2345,9 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	m_RenderStats.paintticks = tick3 - tick1;
 
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
-	if (SUCCEEDED(GetSwapChain->QueryInterface(IID_PPV_ARGS(&swapChain4)))) {
+	//temporary added i think we will only do hdr manipulation from kodi
+	const auto bHdrOutput = m_bHdrPassthroughSupport && m_bHdrPassthrough && (SourceIsHDR() || m_bVPUseRTXVideoHDR);
+	if (bHdrOutput && SUCCEEDED(GetSwapChain->QueryInterface(IID_PPV_ARGS(&swapChain4)))) {
 		if (m_hdr10.bValid) {
 			if (m_DoviMaxMasteringLuminance > m_hdr10.hdr10.MaxMasteringLuminance) {
 				m_hdr10.hdr10.MaxMasteringLuminance = m_DoviMaxMasteringLuminance;
@@ -2353,18 +2356,18 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 				m_hdr10.hdr10.MinMasteringLuminance = m_DoviMinMasteringLuminance;
 			}
 		}
-
+		
 		const DXGI_COLOR_SPACE_TYPE colorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
 		if (m_currentSwapChainColorSpace != colorSpace) {
 			if (m_hdr10.bValid) {
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
-				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", WToA(HR2Str(hr)));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error %s", WToA(HR2Str(hr)));
 
 				m_lastHdr10 = m_hdr10;
 				UpdateStatsStatic();
 			} else if (m_lastHdr10.bValid) {
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
-				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(lastHdr) failed with error {}", WToA(HR2Str(hr)));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(lastHdr) failed with error %s", WToA(HR2Str(hr)));
 			} else {
 				m_lastHdr10.bValid = true;
 
@@ -2379,7 +2382,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 				m_lastHdr10.hdr10.MaxMasteringLuminance = m_DoviMaxMasteringLuminance ? m_DoviMaxMasteringLuminance : 1000 * 10000; // 1000 nits
 				m_lastHdr10.hdr10.MinMasteringLuminance = m_DoviMinMasteringLuminance ? m_DoviMinMasteringLuminance : 50;           // 0.005 nits
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_lastHdr10.hdr10);
-				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(Display P3 standard) failed with error {}", WToA(HR2Str(hr)));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(Display P3 standard) failed with error %s", WToA(HR2Str(hr)));
 
 				UpdateStatsStatic();
 			}
@@ -2388,7 +2391,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			if (SUCCEEDED(swapChain4->CheckColorSpaceSupport(colorSpace, &colorSpaceSupport))
 					&& (colorSpaceSupport & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) == DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT) {
 				hr = swapChain4->SetColorSpace1(colorSpace);
-				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetColorSpace1() failed with error {}", WToA(HR2Str(hr)));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetColorSpace1() failed with error %s", WToA(HR2Str(hr)));
 				if (SUCCEEDED(hr)) {
 					m_currentSwapChainColorSpace = colorSpace;
 				}
@@ -2396,7 +2399,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		} else if (m_hdr10.bValid) {
 			if (memcmp(&m_hdr10.hdr10, &m_lastHdr10.hdr10, sizeof(m_hdr10.hdr10)) != 0) {
 				hr = swapChain4->SetHDRMetaData(DXGI_HDR_METADATA_TYPE_HDR10, sizeof(DXGI_HDR_METADATA_HDR10), &m_hdr10.hdr10);
-				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error {}", WToA(HR2Str(hr)));
+				DLogIf(FAILED(hr), "CDX11VideoProcessor::Render() : SetHDRMetaData(hdr) failed with error %s", WToA(HR2Str(hr)));
 
 				m_lastHdr10 = m_hdr10;
 				UpdateStatsStatic();
@@ -2407,7 +2410,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	DX::DeviceResources::Get()->GetOutput(&pDXGIOutput);
 	if (m_bVBlankBeforePresent && pDXGIOutput) {
 		hr = pDXGIOutput->WaitForVBlank();
-		DLogIf(FAILED(hr), "WaitForVBlank failed with error {}", WToA(HR2Str(hr)));
+		DLogIf(FAILED(hr), "WaitForVBlank failed with error %s", WToA(HR2Str(hr)));
 	}
 
 	SyncFrameToStreamTime(frameStartTime);
@@ -3234,7 +3237,7 @@ HRESULT CDX11VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned* pSize)
 HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 {
 	str = L"DirectX 11";
-	str.Format(L"\nGraphics adapter: {}", m_strAdapterDescription);
+	str.Format(L"\nGraphics adapter: %s", m_strAdapterDescription);
 	str.append(L"\nVideoProcessor  : ");
 	if (m_D3D11VP.IsReady()) {
 		D3D11_VIDEO_PROCESSOR_CAPS caps;
@@ -3242,7 +3245,7 @@ HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 		D3D11_VIDEO_PROCESSOR_RATE_CONVERSION_CAPS rateConvCaps;
 		m_D3D11VP.GetVPParams(caps, rateConvIndex, rateConvCaps);
 
-		str.Format(L"D3D11, RateConversion_{}", rateConvIndex);
+		str.Format(L"D3D11, RateConversion_%u", rateConvIndex);
 
 		str.AppendFormat(L"\nDeinterlaceTech.:");
 		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_BLEND)               str.AppendFormat(L" Blend,");
@@ -3252,7 +3255,7 @@ HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_INVERSE_TELECINE)                str.AppendFormat(L" Inverse Telecine,");
 		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION)           str.AppendFormat(L" Frame Rate Conversion");
 		str = str.TrimRight(',');
-		str.Format(L"\nReference Frames: Past {}, Future {}", rateConvCaps.PastFrames, rateConvCaps.FutureFrames);
+		str.Format(L"\nReference Frames: Past %u, Future %u", rateConvCaps.PastFrames, rateConvCaps.FutureFrames);
 	} else {
 		str.append(L"Shaders");
 	}
@@ -3262,16 +3265,16 @@ HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
 	if (m_pPostScaleShaders.size()) {
 		str.append(L"\n\nPost scale pixel shaders:");
 		for (const auto& pshader : m_pPostScaleShaders) {
-			str.Format(L"\n  {}", pshader.name);
+			str.Format(L"\n  %s", pshader.name);
 		}
 	}
 
 #ifdef _DEBUG
 	str.append(L"\n\nDEBUG info:");
-	str.Format(L"\nSource tex size: {}x{}", m_srcWidth, m_srcHeight);
-	str.Format(L"\nSource rect    : {},{},{},{} - {}x{}", m_srcRect.left, m_srcRect.top, m_srcRect.right, m_srcRect.bottom, m_srcRect.Width(), m_srcRect.Height());
-	str.Format(L"\nVideo rect     : {},{},{},{} - {}x{}", m_videoRect.left, m_videoRect.top, m_videoRect.right, m_videoRect.bottom, m_videoRect.Width(), m_videoRect.Height());
-	str.Format(L"\nWindow rect    : {},{},{},{} - {}x{}", m_windowRect.left, m_windowRect.top, m_windowRect.right, m_windowRect.bottom, m_windowRect.Width(), m_windowRect.Height());
+	str.Format(L"\nSource tex size: %dx%d", m_srcWidth, m_srcHeight);
+	str.Format(L"\nSource rect    : %d,%d,%d,%d - %dx%d", m_srcRect.left, m_srcRect.top, m_srcRect.right, m_srcRect.bottom, m_srcRect.Width(), m_srcRect.Height());
+	str.Format(L"\nVideo rect     : %d,%d,%d,%d - %dx%d", m_videoRect.left, m_videoRect.top, m_videoRect.right, m_videoRect.bottom, m_videoRect.Width(), m_videoRect.Height());
+	str.Format(L"\nWindow rect    : %d,%d,%d,%d - %dx%d", m_windowRect.left, m_windowRect.top, m_windowRect.right, m_windowRect.bottom, m_windowRect.Width(), m_windowRect.Height());
 
 	if (GetDevice) {
 		std::vector<std::pair<const DXGI_FORMAT, UINT>> formatsYUV = {
@@ -3882,7 +3885,8 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 
 		m_StatsBackground.Draw(pRenderTargetView, rtSize);
 
-		hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, str.c_str());
+		//hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, str.c_str());
+		hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, (m_windowRect.Height()/2), m_dwStatsTextColor, str.c_str());
 		static int col = m_StatsRect.right;
 		if (--col < m_StatsRect.left) {
 			col = m_StatsRect.right;

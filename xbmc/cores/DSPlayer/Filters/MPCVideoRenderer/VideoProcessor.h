@@ -23,8 +23,6 @@
 #include <evr9.h>
 #include "DisplayConfig.h"
 #include "FrameStats.h"
-//kodi
-#include "MpcSharedRender.h"
 
 enum : int {
 	VP_DX9 = 9,
@@ -45,7 +43,6 @@ class CVideoProcessor
 protected:
 	long m_nRefCount = 1;
 	CMpcVideoRenderer* m_pFilter = nullptr;
-	CMpcSharedRender* m_pSharedRenderer;
 	// Settings
 	bool m_bShowStats                      = false;
 	int  m_iResizeStats                    = 0;

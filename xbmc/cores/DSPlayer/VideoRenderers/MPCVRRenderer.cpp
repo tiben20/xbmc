@@ -89,15 +89,20 @@ bool CMPCVRRenderer::Flush(bool saveBuffers)
 void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
 {
 
-  if (clear)
-    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
+  //if (clear)
+  //  CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
   //DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
   ManageRenderArea();
   //m_sourceRect source of the video
   //m_destRect destination rectangle
   //GetScreenRect screen rectangle
-  DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_IntermediateTarget.Get());
+  if (DX::DeviceResources::Get()->GetBackBuffer().GetWidth() == m_IntermediateTarget.GetWidth() && DX::DeviceResources::Get()->GetBackBuffer().GetHeight() == m_IntermediateTarget.GetHeight() )
+    DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_IntermediateTarget.Get());
+  else
+  {
+    CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+  }
 
   //DX::Windowing()->SetAlphaBlendEnable(true);
   
