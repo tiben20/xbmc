@@ -120,6 +120,7 @@ bool CRenderDSManager::Configure(unsigned int width, unsigned int height, unsign
     m_renderState = STATE_CONFIGURING;
     m_stateEvent.Reset();
     m_bWaitingForRenderOnDS = true;
+
   }
 
   if (!m_stateEvent.Wait(1000ms))
@@ -249,6 +250,15 @@ void CRenderDSManager::EndRender()
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(0);
 }
 
+void CRenderDSManager::SetVideoSettings(const CVideoSettings& settings)
+{
+  std::unique_lock<CCriticalSection> lock(m_statelock);
+  if (m_pRenderer)
+  {
+    m_pRenderer->SetVideoSettings(settings);
+  }
+}
+
 
 void CRenderDSManager::PreInit(DIRECTSHOW_RENDERER renderer)
 {
@@ -365,10 +375,8 @@ RESOLUTION CRenderDSManager::GetResolution()
   CSingleExit lock(m_statelock);
   if (m_renderState == STATE_UNCONFIGURED)
     return res;
-#if TODO
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
-    res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, CONF_FLAGS_STEREO_MODE_MASK(m_flags));
-#endif
+    res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, m_height, !m_stereomode.empty());
   return res;
 }
 
@@ -476,6 +484,24 @@ void CRenderDSManager::UpdateDisplayLatency()
 
 void CRenderDSManager::UpdateResolution()
 {
+  if (m_bTriggerUpdateResolution)
+  {
+    if (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo() && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot())
+    {
+      if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && m_fps > 0.0f)
+      {
+        //todo add stereo mode here
+        RESOLUTION res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, m_height, false);
+
+        CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(res, false);
+        UpdateDisplayLatency(); 
+        if (m_pRenderer)
+          m_pRenderer->Update();
+      }
+      m_bTriggerUpdateResolution = false;
+    }
+    m_playerPort->VideoParamsChange();
+  }
 #if TODO
   if (m_bTriggerDisplayChange)
   {
@@ -486,22 +512,6 @@ void CRenderDSManager::UpdateResolution()
       UpdateDisplayLatency();
     }
     m_bTriggerDisplayChange = false;
-    m_playerPort->VideoParamsChange();
-  }
-  if (m_bTriggerUpdateResolution)
-  {
-    if (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo() && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot())
-    {
-      if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && m_fps > 0.0f)
-      {
-        if (m_Resolution == RES_INVALID)
-          m_Resolution = CResolutionUtils::ChooseBestResolution(m_fps, m_width, CONF_FLAGS_STEREO_MODE_MASK(m_flags) != 0);
-
-        CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(m_Resolution);
-        UpdateDisplayLatency();
-      }
-      m_bTriggerUpdateResolution = false;
-    }
     m_playerPort->VideoParamsChange();
   }
 #endif

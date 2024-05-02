@@ -93,7 +93,8 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_hReadyEvent(true),
   m_pGraphThread(this),
   m_bEof(false),
-  m_renderManager(this)
+  m_renderManager(this),
+  m_outboundEvents(std::make_unique<CJobQueue>(false, 1, CJob::PRIORITY_NORMAL))
 {
   m_CurrentVideoRenderer = DIRECTSHOW_RENDERER_UNDEF;
   m_pAllocatorCallback = nullptr;
@@ -171,6 +172,11 @@ CDSPlayer::~CDSPlayer()
 #endif
 
   SetVisibleScreenArea(m_lastActiveVideoRect);
+
+  while (m_outboundEvents->IsProcessing())
+  {
+    CThread::Sleep(10ms);
+  }
 
   CLog::Log(LOGINFO, "{} DSPlayer is now closed", __FUNCTION__);
 }
@@ -660,6 +666,11 @@ void CDSPlayer::SetRenderOnDS(bool bRender)
     SetDSWndVisible(bRender);
 }
 
+void CDSPlayer::VideoParamsChange()
+{
+  PostMessage(new CDSMsg(CDSMsg::PLAYER_AV_CHANGE));
+}
+
 LRESULT CALLBACK CDSPlayer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   switch (uMsg)
@@ -811,6 +822,16 @@ void CDSPlayer::HandleMessages()
         pMsg->Set();
         pMsg->Release();
         break;
+      }
+      if (pMsg->IsType(CDSMsg::PLAYER_AV_CHANGE))
+      {
+        CServiceBroker::GetDataCacheCore().SignalAudioInfoChange();
+        CServiceBroker::GetDataCacheCore().SignalVideoInfoChange();
+        CServiceBroker::GetDataCacheCore().SignalSubtitleInfoChange();
+        /*IPlayerCallback* cb = &m_callback;
+        m_outboundEvents->Submit([=]() {
+          cb->OnAVChange();
+          });*/
       }
       if (pMsg->IsType(CDSMsg::GENERAL_SET_WINDOW_POS))
       {
@@ -1409,6 +1430,8 @@ void CDSPlayer::FlushRenderer()
 
 void CDSPlayer::SetRenderViewMode(int mode, float zoom, float par, float shift, bool stretch)
 {
+  m_processInfo->GetVideoSettingsLocked().SetViewMode(mode, zoom, par, shift, stretch);
+  m_renderManager.SetVideoSettings(m_processInfo->GetVideoSettings());
   m_renderManager.SetViewMode(mode);
 }
 
@@ -1463,6 +1486,18 @@ void CDSPlayer::OnLostDisplay()
 
 void CDSPlayer::OnResetDisplay()
 {
+}
+
+CVideoSettings CDSPlayer::GetVideoSettings() const
+{
+  return m_processInfo->GetVideoSettings();
+}
+
+void CDSPlayer::SetVideoSettings(CVideoSettings& settings)
+{
+  m_processInfo->SetVideoSettings(settings);
+  m_renderManager.SetVideoSettings(settings);
+  //TODO add subtitle activation and delay
 }
 
 void CDSPlayer::UpdateProcessInfo(int index)

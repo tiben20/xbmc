@@ -51,6 +51,7 @@ public:
     PLAYER_STOP,
     PLAYER_UPDATE_TIME,
     PLAYER_PLAYBACK_STARTED,
+    PLAYER_AV_CHANGE,
 
     // TODO: DVD needs some refactoring
     PLAYER_DVD_MOUSE_MOVE,

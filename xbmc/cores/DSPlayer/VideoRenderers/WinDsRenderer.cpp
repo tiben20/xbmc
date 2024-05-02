@@ -135,7 +135,7 @@ bool CWinDsRenderer::Configure(unsigned int width, unsigned int height, unsigned
   // calculate the input frame aspect ratio
   CalculateFrameAspectRatio(d_width, d_height);
 
-  SetViewMode(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_ViewMode);
+  SetViewMode(m_videoSettings.m_ViewMode);
   ManageRenderArea();
 
   m_bConfigured = true;

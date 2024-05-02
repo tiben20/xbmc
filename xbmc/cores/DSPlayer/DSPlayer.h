@@ -214,6 +214,9 @@ public:
 
   virtual bool IsCaching() const override { return false; }
 
+  CVideoSettings GetVideoSettings() const override;
+  void SetVideoSettings(CVideoSettings& settings) override;
+
   //CDSPlayer
   CDVDClock& GetClock() { return m_pClock; }
   IPlayerCallback& GetPlayerCallback() { return m_callback; }
@@ -251,6 +254,7 @@ public:
   bool m_isMadvr;
 
   CProcessInfo* m_processInfo;
+  std::unique_ptr<CJobQueue> m_outboundEvents;
 
   static void PostMessage(CDSMsg* msg, bool wait = true)
   {
@@ -279,7 +283,7 @@ public:
 protected:
   void SetDSWndVisible(bool bVisible) override;
   void SetRenderOnDS(bool bRender) override;
-  void VideoParamsChange() override { };
+  void VideoParamsChange() override;
   void GetDebugInfo(std::string &audio, std::string &video, std::string &general) override;
 
   void StopThread(bool bWait = true)

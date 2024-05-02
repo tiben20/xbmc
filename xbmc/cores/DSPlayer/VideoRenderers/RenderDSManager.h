@@ -87,6 +87,8 @@ public:
   void DisplayChange(bool bExternalChange);
   void EndRender();
   
+  void SetVideoSettings(const CVideoSettings& settings);
+
 protected:
 
   void PresentSingle(bool clear, DWORD flags, DWORD alpha);
@@ -127,6 +129,7 @@ protected:
   unsigned int m_flags;
   float m_fps;
   bool m_bPreInit;
+  std::string m_stereomode;
 
   CEvent m_flushEvent;
   IRenderDSMsg *m_playerPort;

@@ -43,7 +43,9 @@
 #include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
 #include "windowing/windows/WinSystemWin32DX.h"
-
+#include "guilib/GUIComponent.h"
+#include "guilib/GUIWindowManager.h"
+#include "GUIInfoManager.h"
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
 
@@ -3784,7 +3786,20 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	if (m_windowRect.IsRectEmpty()) {
 		return E_ABORT;
 	}
+	
+#if 1
 
+	CStdStringW str;
+	str.reserve(700);
+	CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
+	str.Format(L"FPS:%4.3f\n",CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
+	str.AppendFormat(L"RenderRect: x1:%u x2:%u y1:%u y2:%u\n", m_renderRect.left,m_renderRect.right, m_renderRect.top, m_renderRect.bottom);
+	str.AppendFormat(L"Video Rect: x1:%u x2:%u y1:%u y2:%u\n", m_videoRect.left, m_videoRect.right, m_videoRect.top, m_videoRect.bottom);
+	str.AppendFormat(L"Window Rect: x1:%u x2:%u y1:%u y2:%u\n", m_windowRect.left, m_windowRect.right, m_windowRect.top, m_windowRect.bottom);
+	
+	str.AppendFormat(L"BackBuffer Size: width:%u height:%u\n", DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight());
+
+#else
 	CStdStringW str;
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
@@ -3875,7 +3890,7 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 		m_RenderStats.t5 * 1000 / GetPreciseTicksPerSecond(),
 		m_RenderStats.t6 * 1000 / GetPreciseTicksPerSecond());
 #endif
-
+#endif
 	ID3D11RenderTargetView* pRenderTargetView = nullptr;
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	D3DSetDebugName(pRenderTargetView, "MPC RenderTarget DrawStats");
