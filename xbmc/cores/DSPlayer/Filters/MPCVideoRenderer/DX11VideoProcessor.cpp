@@ -3787,7 +3787,8 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 		return E_ABORT;
 	}
 	
-#if 1
+//for scaling debug
+#if 0
 
 	CStdStringW str;
 	str.reserve(700);
@@ -3897,8 +3898,9 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 
 	if (S_OK == hr) {
 		SIZE rtSize = m_windowRect.Size();
-
+#if 0 //removed i dont like it but will put back
 		m_StatsBackground.Draw(pRenderTargetView, rtSize);
+#endif
 
 		//hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, str.c_str());
 		hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, (m_windowRect.Height()/2), m_dwStatsTextColor, str.c_str());
@@ -3906,6 +3908,7 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 		if (--col < m_StatsRect.left) {
 			col = m_StatsRect.right;
 		}
+#if 0 //removed i dont like it but will put back
 		m_Rect3D.Set({ col, m_StatsRect.bottom - 11, col + 5, m_StatsRect.bottom - 1 }, rtSize, D3DCOLOR_XRGB(128, 255, 128));
 		m_Rect3D.Draw(pRenderTargetView, rtSize);
 
@@ -3921,6 +3924,7 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 			m_SyncLine.UpdateVertexBuffer();
 			m_SyncLine.Draw();
 		}
+#endif
 		pRenderTargetView->Release();
 	}
 

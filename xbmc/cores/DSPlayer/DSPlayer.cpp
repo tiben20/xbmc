@@ -431,15 +431,6 @@ void CDSPlayer::GetVideoStreamInfo(int streamId, VideoStreamInfo& info) const
   std::unique_lock<CCriticalSection> lock(m_content.m_section);
   std::string strStreamName;
 
-  if (streamId == CURRENT_STREAM)
-    streamId = m_content.m_videoIndex;
-
-  if (streamId < 0 || streamId > GetVideoStreamCount() - 1)
-  {
-    info.valid = false;
-    return;
-  }
-
   if (CStreamsManager::Get())
     CStreamsManager::Get()->GetVideoStreamName(strStreamName);
 

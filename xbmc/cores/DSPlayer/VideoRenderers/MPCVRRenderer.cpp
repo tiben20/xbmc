@@ -122,9 +122,10 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
   m_sourceRect.y1 = 0;
   m_sourceRect.y2 = height;
   m_fps = fps;
-  
+  CalculateFrameAspectRatio(width, height);
   SetViewMode(m_videoSettings.m_ViewMode);
   CreateIntermediateTarget(width, height, false);
+
   return true;
 }
 
