@@ -588,7 +588,7 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 	ReleaseDevice();
 
 	CLog::LogF(LOGINFO,"{} Settings device ",__FUNCTION__);
-
+	
 	HRESULT hr = SetDevice(GetDevice, false);
 
 
@@ -1020,6 +1020,12 @@ void CDX11VideoProcessor::UpdateScalingStrings()
 
 void CDX11VideoProcessor::SetGraphSize()
 {
+	//on initialisation window rect is not set yet so set it now
+	if (m_windowRect.IsRectEmpty())
+	{
+		auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
+		m_windowRect = Com::SmartRect(0, 0, winSystem->GetWidth(), winSystem->GetHeight());
+	}
 	if (m_pDeviceContext && !m_windowRect.IsRectEmpty()) {
 		SIZE rtSize = m_windowRect.Size();
 
@@ -1092,7 +1098,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 {
 	HRESULT hr = S_OK;
 
-	CLog::LogF(LOGINFO,"{} CDX11VideoProcessor::SetDevice()", __FUNCTION__);
+	CLog::LogF(LOGINFO,"CDX11VideoProcessor::SetDevice()");
 
 	ReleaseSwapChain();
 	//reset everything that is not from kodi
@@ -1107,6 +1113,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 		CLog::LogF(LOGERROR, "{} CreateDeferredContext1 failed",__FUNCTION__);
 		return hr;
 	}
+	CLog::LogF(LOGINFO, "{} CreateDeferredContext1 succeeded",__FUNCTION__);
 	DXGI_SWAP_CHAIN_DESC1 desc;
 	GetSwapChain->GetDesc1(&desc);
 		
@@ -2252,17 +2259,9 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		m_FieldDrawn = field;
 	}
 
-#if 0//using kodi backbuffer
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	
-	HRESULT hr = GetSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"CDX11VideoProcessor::Render() : GetBuffer() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return hr;
-	}
-#else
+
 	HRESULT hr = S_OK;
-#endif
+
 	uint64_t tick1 = GetPreciseTick();
 	float fColor[4];
 	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::NONE);
@@ -3902,8 +3901,9 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 		m_StatsBackground.Draw(pRenderTargetView, rtSize);
 #endif
 
-		//hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, str.c_str());
-		hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, (m_windowRect.Height()/2), m_dwStatsTextColor, str.c_str());
+		hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, str.c_str());
+		//I use this one for scaling
+		//hr = m_Font3D.Draw2DText(pRenderTargetView, rtSize, m_StatsTextPoint.x, (m_windowRect.Height()/2), m_dwStatsTextColor, str.c_str());
 		static int col = m_StatsRect.right;
 		if (--col < m_StatsRect.left) {
 			col = m_StatsRect.right;

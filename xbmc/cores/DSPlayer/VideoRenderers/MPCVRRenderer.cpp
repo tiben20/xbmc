@@ -89,9 +89,9 @@ bool CMPCVRRenderer::Flush(bool saveBuffers)
 void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
 {
 
-  //if (clear)
-  //  CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
-  //DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
+  if (clear)
+    CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
+  DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
   ManageRenderArea();
   //m_sourceRect source of the video
@@ -104,7 +104,7 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
     CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
   }
 
-  //DX::Windowing()->SetAlphaBlendEnable(true);
+  DX::Windowing()->SetAlphaBlendEnable(true);
   
 }
 
