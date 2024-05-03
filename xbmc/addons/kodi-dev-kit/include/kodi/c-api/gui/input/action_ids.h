@@ -753,6 +753,9 @@ enum ADDON_ACTION
   /// @brief <b>`604`</b>: Analog thumbstick move, vertical axis, down; see ADDON_ACTION_ANALOG_MOVE
   ADDON_ACTION_ANALOG_MOVE_Y_DOWN = 604,
 
+  //temp for dsplayer debug
+    ADDON_ACTION_SWITCH_PLAYER_DS = 605,
+
   /// @brief <b>`998`</b>: ERROR action is used to play an error sound.
   ADDON_ACTION_ERROR = 998,
 

@@ -515,6 +515,9 @@ constexpr const int ACTION_ANALOG_MOVE_Y_UP = 603;
 //!< analog thumbstick move, vertical axis, down; see ACTION_ANALOG_MOVE
 constexpr const int ACTION_ANALOG_MOVE_Y_DOWN = 604;
 
+//temp for dsplayer debug
+constexpr const int ACTION_SWITCH_PLAYER_DS = 605;
+
 ///@}
 
 // The NOOP action can be specified to disable an input event. This is

@@ -26,6 +26,7 @@
 <keymap>
   <global>
     <keyboard>
+      <g>switchplayerds</g>
       <p>Play</p>
       <q>Queue</q>
       <f>FastForward</f>

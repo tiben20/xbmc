@@ -1285,6 +1285,13 @@ bool CApplication::OnAction(const CAction &action)
     }
   }
 
+  if (action.GetID() == ACTION_SWITCH_PLAYER_DS)
+  {
+    const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
+    bool defaultplayer = settings->GetBool(CSettings::SETTING_DSPLAYER_DEFAULTVIDEOPLAYER);
+    settings->SetBool(CSettings::SETTING_DSPLAYER_DEFAULTVIDEOPLAYER, !defaultplayer);
+    CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, "Default player changed", !defaultplayer ? " Dsplayer" : "VideoPlayer");
+  }
 
   if (action.GetID() == ACTION_SWITCH_PLAYER)
   {

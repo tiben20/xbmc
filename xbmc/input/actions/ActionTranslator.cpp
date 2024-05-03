@@ -130,6 +130,7 @@ static const std::map<ActionName, ActionID> ActionMappings = {
     {"play", ACTION_PLAYER_PLAY},
     {"playpause", ACTION_PLAYER_PLAYPAUSE},
     {"switchplayer", ACTION_SWITCH_PLAYER},
+    {"switchplayerds", ACTION_SWITCH_PLAYER_DS },//temp
     {"delete", ACTION_DELETE_ITEM},
     {"copy", ACTION_COPY_ITEM},
     {"move", ACTION_MOVE_ITEM},
