@@ -46,6 +46,8 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "GUIInfoManager.h"
+#include "Filters/RendererSettings.h"
+
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
 
@@ -2290,7 +2292,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		DrawSubtitles(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
 
-	if (m_bShowStats) {
+	if (g_dsSettings.pRendererSettings->displayStats > 0) {
 		hr = DrawStats(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
 
@@ -2468,7 +2470,7 @@ HRESULT CDX11VideoProcessor::FillBlack()
 	m_pDeviceContext.Get()->ClearRenderTargetView(pRenderTargetView, ClearColor);
 	pRenderTargetView->Release();
 
-	if (m_bShowStats) {
+	if (g_dsSettings.pRendererSettings->displayStats > 0) {
 		hr = DrawStats(pBackBuffer.Get());
 	}
 
@@ -3787,24 +3789,24 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	}
 	
 //for scaling debug
-#if 0
-
 	CStdStringW str;
-	str.reserve(700);
-	CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
-	str.Format(L"FPS:%4.3f\n",CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
-	str.AppendFormat(L"RenderRect: x1:%u x2:%u y1:%u y2:%u\n", m_renderRect.left,m_renderRect.right, m_renderRect.top, m_renderRect.bottom);
-	str.AppendFormat(L"Video Rect: x1:%u x2:%u y1:%u y2:%u\n", m_videoRect.left, m_videoRect.right, m_videoRect.top, m_videoRect.bottom);
-	str.AppendFormat(L"Window Rect: x1:%u x2:%u y1:%u y2:%u\n", m_windowRect.left, m_windowRect.right, m_windowRect.top, m_windowRect.bottom);
-	
-	str.AppendFormat(L"BackBuffer Size: width:%u height:%u\n", DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight());
+	if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_2)
+	{
+		str.reserve(700);
+		CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
+		str.Format(L"FPS:%4.3f\n", CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
+		str.AppendFormat(L"RenderRect: x1:%u x2:%u y1:%u y2:%u\n", m_renderRect.left, m_renderRect.right, m_renderRect.top, m_renderRect.bottom);
+		str.AppendFormat(L"Video Rect: x1:%u x2:%u y1:%u y2:%u\n", m_videoRect.left, m_videoRect.right, m_videoRect.top, m_videoRect.bottom);
+		str.AppendFormat(L"Window Rect: x1:%u x2:%u y1:%u y2:%u\n", m_windowRect.left, m_windowRect.right, m_windowRect.top, m_windowRect.bottom);
 
-#else
-	CStdStringW str;
+		str.AppendFormat(L"BackBuffer Size: width:%u height:%u\n", DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight());
+	}
+	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_1)
+	{
 	str.reserve(700);
 	str.assign(m_strStatsHeader);
 	str.append(m_strStatsDispInfo);
-	str.AppendFormat(L"\nGraph. Adapter: %s", m_strAdapterDescription);
+	str.AppendFormat(L"\nGraph. Adapter: %s", m_strAdapterDescription.c_str());
 
 	wchar_t frametype = (m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
 	str.AppendFormat(L"\n %4.3f %c,%4.3f", m_pFilter->m_FrameStats.GetAverageFps(), frametype, m_pFilter->m_DrawStats.GetAverageFps());
@@ -3890,7 +3892,13 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 		m_RenderStats.t5 * 1000 / GetPreciseTicksPerSecond(),
 		m_RenderStats.t6 * 1000 / GetPreciseTicksPerSecond());
 #endif
-#endif
+	}
+	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_1)
+	{
+
+		str.reserve(700);
+		str = L"Not done yet:\n";
+	}
 	ID3D11RenderTargetView* pRenderTargetView = nullptr;
 	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 	D3DSetDebugName(pRenderTargetView, "MPC RenderTarget DrawStats");

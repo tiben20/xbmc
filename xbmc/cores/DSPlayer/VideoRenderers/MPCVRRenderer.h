@@ -106,5 +106,7 @@ protected:
   unsigned m_renderOrientation = 0;
   
   CD3DTexture m_IntermediateTarget;
+  std::shared_ptr<COutputShader> m_outputShader;
+
   CRect GetScreenRect() const;
 };

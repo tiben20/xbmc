@@ -24362,15 +24362,15 @@ msgid "Stats hidden"
 msgstr ""
 
 msgctxt "#55012"
-msgid "Stats minimal"
+msgid "Stats MPCVR Style"
 msgstr ""
 
 msgctxt "#55013"
-msgid "Stats medium"
+msgid "Stats Scaling debug"
 msgstr ""
 
 msgctxt "#55014"
-msgid "Stats large"
+msgid "Other renderer info..."
 msgstr ""
 
 msgctxt "#55015"
