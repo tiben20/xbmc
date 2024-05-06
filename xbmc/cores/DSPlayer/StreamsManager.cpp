@@ -1579,7 +1579,10 @@ void CStreamsManager::FormatStreamName(CStreamDetail& s)
 CSubtitleManager::CSubtitleManager(CStreamsManager* pStreamManager) :
 m_dll(), m_pStreamManager(pStreamManager), m_rtSubtitleDelay(0)
 {
-  m_dll.Load();
+  if (!m_dll.Load())
+  {
+    CLog::Log(LOGERROR, "{} Failed to load libsubs.dll", __FUNCTION__);
+  }
 
   memset(&m_subtitleMediaType, 0, sizeof(AM_MEDIA_TYPE));
   m_subtitleMediaType.majortype = MEDIATYPE_Subtitle;
