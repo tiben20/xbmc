@@ -3,6 +3,7 @@
 #include "ISubManager.h"
 #include "../subpic/ISubPic.h"
 #include "../subtitles/STS.h"
+#include "wrl/client.h"
 
 class CRenderedTextSubtitle;
 
@@ -11,7 +12,7 @@ extern BOOL g_overrideUserStyles;
 class CSubManager: public ISubManager
 {
 public:
-  CSubManager(IDirect3DDevice9* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr);
+  CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr);
   ~CSubManager(void);
 
   void SetEnable(bool enable);
@@ -25,14 +26,16 @@ public:
   void SetSizes(Com::SmartRect window, Com::SmartRect video);
 
   void StopThread();
-  void StartThread(IDirect3DDevice9* pD3DDevice);
+  void StartThread(ID3D11Device1* pD3DDevice);
+
+  void SetDeviceContext(ID3D11DeviceContext1* pDevContext);
 
   //load internal subtitles through TextPassThruFilter
   HRESULT InsertPassThruFilter(IGraphBuilder* pGB);
   HRESULT LoadExternalSubtitle(const wchar_t* subPath, ISubStream** pSubPic);
   HRESULT SetSubPicProviderToInternal();
 
-  HRESULT GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect);
+  HRESULT AlphaBlt(Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect);
 
   void Free();
 
@@ -64,7 +67,7 @@ private:
   Com::SmartPtr<ISubPicAllocator> m_pAllocator;
 
   Com::SmartQIPtr<IAMStreamSelect> m_pSS; //graph filter with subtitles
-  IDirect3DDevice9* m_d3DDev;
+  Microsoft::WRL::ComPtr<ID3D11Device1> m_d3DDev;
   Com::SmartPtr<ISubStream> m_pInternalSubStream;
   ISubPicProvider* m_pSubPicProvider; // save when changing d3d device
 

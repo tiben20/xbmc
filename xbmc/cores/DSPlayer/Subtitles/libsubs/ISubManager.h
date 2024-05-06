@@ -74,8 +74,9 @@ namespace Com {
   class SmartSize;
   template<class T> class SmartPtr;
 }
-interface IDirect3DDevice9;
-interface IDirect3DTexture9;
+interface ID3D11Device1;
+interface ID3D11DeviceContext1;
+interface ID3D11Texture2D;
 interface IGraphBuilder;
 typedef LONGLONG REFERENCE_TIME;
 
@@ -90,12 +91,12 @@ public:
   virtual void SetSubPicProvider(ISubStream* pSubStream) = 0;
   virtual void SetStyle(SSubStyle* style, bool bOverride) = 0;
   virtual void StopThread() = 0;
-  virtual void StartThread(IDirect3DDevice9* pD3DDevice) = 0;
+  virtual void StartThread(ID3D11Device1* pD3DDevice) = 0;
+  virtual void SetDeviceContext(ID3D11DeviceContext1* pD3DDevice) = 0;
   virtual HRESULT InsertPassThruFilter(IGraphBuilder* pGB) = 0;
   virtual HRESULT LoadExternalSubtitle(const wchar_t* subPath, ISubStream** pSubPic) = 0;
   virtual HRESULT SetSubPicProviderToInternal() = 0;
-  virtual HRESULT GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& 
-    renderRect) = 0;
+  virtual HRESULT AlphaBlt(Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect) = 0;
   virtual void Free() = 0;
   virtual HRESULT GetStreamTitle(ISubStream* pSubStream, wchar_t **subTitle) = 0;
 };

@@ -1621,15 +1621,14 @@ void CSubtitleManager::Initialize()
   CLog::Log(LOGINFO, "{} enabled libsubs.dl", __FUNCTION__);
   // Log manager for the DLL
   m_Log.reset(new ILogImpl());
-  //TODO
-  return;
+
   m_dll.CreateD3D11SubtitleManager(DX::DeviceResources().Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
 
   if (!pManager)
     return;
-#if TODO
-  m_pManager.reset(pManager, std::bind2nd(std::not_fn(DeleteSubtitleManager), m_dll));
-#endif
+  
+  //m_pManager.reset(pManager, std::bind2nd(std::not_fn(DeleteSubtitleManager), m_dll));
+  m_pManager.reset(pManager);
 
   SSubStyle style; //auto default on constructor
 
@@ -1638,7 +1637,7 @@ void CSubtitleManager::Initialize()
   style.alpha[0] = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.alpha");
   //CHANGED FROM RES_PAL_4x3
   CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(RES_CUSTOM, true);
-  style.fontSize = (float)(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_HEIGHT)) * 50.0 / 72.0;
+  style.fontSize = 42;// (float)(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_HEIGHT)) * 50.0 / 72.0;
 
   int fontStyle = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_STYLE);
   switch (fontStyle)
@@ -1670,6 +1669,10 @@ void CSubtitleManager::Initialize()
 
   std::wstring fontName;
   g_charsetConverter.utf8ToW(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString("subtitles.dsfont"), fontName);
+  if (fontName.length() == 0)
+  {
+    fontName = L"Arial";
+  }
   style.fontName = (wchar_t *)CoTaskMemAlloc(fontName.length() * sizeof(wchar_t) + 2);
   if (style.fontName)
     wcscpy_s(style.fontName, fontName.length() + 1, fontName.c_str());
@@ -1690,6 +1693,17 @@ bool CSubtitleManager::Ready()
   return (!!m_pManager);
 }
 
+HRESULT CSubtitleManager::AlphaBlt(ID3D11DeviceContext1* pDevContext, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
+{
+
+  if (m_pManager)
+  {
+    m_pManager->SetDeviceContext(pDevContext);
+    return m_pManager->AlphaBlt(pSrc, pDest, renderRect);
+  }
+  return E_FAIL;
+}
+
 void CSubtitleManager::StopThread()
 {
   if (!m_subtitleStreams.empty() && m_pManager)
@@ -1699,7 +1713,7 @@ void CSubtitleManager::StopThread()
 void CSubtitleManager::StartThread()
 {
   if (!m_subtitleStreams.empty() && m_pManager)
-    m_pManager->StartThread(CGraphFilters::Get()->GetD3DDevice());
+    m_pManager->StartThread(DX::DeviceResources::Get()->GetD3DDevice());
 }
 
 void CSubtitleManager::Unload()
@@ -1728,13 +1742,6 @@ void CSubtitleManager::SetTime(REFERENCE_TIME rtNow)
 {
   if (m_pManager)
     m_pManager->SetTime(rtNow - m_rtSubtitleDelay);
-}
-
-HRESULT CSubtitleManager::GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
-{
-  if (m_pManager)
-    return m_pManager->GetTexture(pTexture, pSrc, pDest, renderRect);
-  return E_FAIL;
 }
 
 void CSubtitleManager::SetSizes(Com::SmartRect window, Com::SmartRect video)

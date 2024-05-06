@@ -62,6 +62,7 @@ public:
 class CDX11SubPicAllocator : public ISubPicAllocatorImpl, public CCritSec
 {
 	ID3D11Device* m_pDevice;
+	ID3D11DeviceContext1* m_pDeviceContext;
 	Com::SmartSize m_maxsize;
 
 	Com::SmartPtr<ID3D11Texture2D> m_pOutputTexture;
@@ -70,13 +71,15 @@ class CDX11SubPicAllocator : public ISubPicAllocatorImpl, public CCritSec
 	Com::SmartPtr<ID3D11Buffer> m_pVertexBuffer;
 	Com::SmartPtr<ID3D11SamplerState> m_pSamplerPoint;
 	Com::SmartPtr<ID3D11SamplerState> m_pSamplerLinear;
-
+	
+	void FreeTextures();
 	bool Alloc(bool fStatic, ISubPic** ppSubPic) override;
 
 	HRESULT CreateOutputTex();
 	void CreateBlendState();
 	void CreateOtherStates();
 	void ReleaseAllStates();
+	
 
 public:
 	static CCritSec ms_SurfaceQueueLock;
@@ -92,6 +95,7 @@ public:
 	void ClearCache();
 
 	// ISubPicAllocator
+	STDMETHODIMP SetDeviceContext(IUnknown* pDev) override;
 	STDMETHODIMP ChangeDevice(IUnknown* pDev) override;
 	STDMETHODIMP SetMaxTextureSize(SIZE MaxTextureSize) override;
 	STDMETHODIMP_(void) SetInverseAlpha(bool bInverted) override;

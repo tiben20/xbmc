@@ -39,7 +39,6 @@ class DllLibSubsInterface
 {
 public:
   virtual ~DllLibSubsInterface() {}
-  virtual bool CreateSubtitleManager(IDirect3DDevice9* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager) = 0;
   virtual bool CreateD3D11SubtitleManager(ID3D11Device1* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager) = 0;
   virtual bool DeleteSubtitleManager(ISubManager * pManager) = 0;
 };
@@ -60,16 +59,9 @@ class DllLibSubs : public DllDynamic, DllLibSubsInterface
    * @return A HRESULT code
    * @remark The ISubManager interface _MUST_ be released by calling DeleteSubtitleManager. Don't use delete on it
    */
-  DEFINE_METHOD5(bool, CreateSubtitleManager, (IDirect3DDevice9 * p1, SIZE p2, ILog* p3, SSubSettings p4, ISubManager ** p5)) ///< Caller take ownership of ISubManager
-  /** @brief Delete the subtitle manager
-   * @param[in] p1 Pointer to ISubManager allocated by CreateSubtitleManager
-   * @return A HRESULT code
-   * @remark The ISubManager interface _MUST_ be allocated by CreateSubtitleManager
-   */
   DEFINE_METHOD1(bool, DeleteSubtitleManager, (ISubManager* p1))
   
   BEGIN_METHOD_RESOLVE()
-    RESOLVE_METHOD(CreateSubtitleManager)
     RESOLVE_METHOD(CreateD3D11SubtitleManager)
     RESOLVE_METHOD(DeleteSubtitleManager)
   END_METHOD_RESOLVE()

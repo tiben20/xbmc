@@ -49,6 +49,7 @@ ILog* g_log = NULL;
 
 bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
 {
+  logger->Log(LOGINFO, "Starting CreateD3D11SubtitleManager");
   if (!logger)
     return false;
   if (!pManager)
@@ -63,7 +64,7 @@ bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger,
 
   HRESULT hr = S_OK;
   //TODO d3d11
-  //*pManager = new CSubManager(d3DDev, size, settings, hr);
+  *pManager = new CSubManager(pDevice, size, settings, hr);
   if (FAILED(hr))
   {
     delete* pManager;
@@ -75,7 +76,7 @@ bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger,
   return true;
 }
 
-bool CreateSubtitleManager(IDirect3DDevice9* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
+/*bool CreateSubtitleManager(IDirect3DDevice9* d3DDev, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
 {
   if (!logger)
     return false;
@@ -100,7 +101,7 @@ bool CreateSubtitleManager(IDirect3DDevice9* d3DDev, SIZE size, ILog* logger, SS
   }
 
   return true;
-}
+}*/
 
 bool DeleteSubtitleManager(ISubManager * pManager)
 {

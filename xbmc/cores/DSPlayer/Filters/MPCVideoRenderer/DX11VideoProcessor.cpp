@@ -2237,11 +2237,16 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	CheckPointer(m_TexSrcVideo.pTexture, E_FAIL);
 	CheckPointer(GetSwapChain, E_FAIL);
 
+	if (CStreamsManager::Get() && CStreamsManager::Get()->SubtitleManager)
+		CStreamsManager::Get()->SubtitleManager->SetTime(frameStartTime);
+
 	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
 	{
 		// Configure Render Manager
 		float fps;
 		fps = 10000000.0 / m_rtAvgTimePerFrame;
+		if (CStreamsManager::Get()->SubtitleManager)
+			CStreamsManager::Get()->SubtitleManager->SetTimePerFrame(m_rtAvgTimePerFrame);
 		g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
 		CLog::Log(LOGINFO, "{} Render manager configured (FPS: {}) {} {} {} {}", __FUNCTION__, fps, m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY);
 	}
@@ -2288,10 +2293,12 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 
 	m_pDeviceContext->OMSetRenderTargets(1, &pRTView, nullptr);
 
+	
 	if (!m_pPSHalfOUtoInterlace) {
 		DrawSubtitles(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
 
+	//Draw stats
 	if (g_dsSettings.pRendererSettings->displayStats > 0) {
 		hr = DrawStats(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
@@ -2866,7 +2873,11 @@ HRESULT CDX11VideoProcessor::FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRen
 
 void CDX11VideoProcessor::DrawSubtitles(ID3D11Texture2D* pRenderTarget)
 {
-	if (m_pFilter->m_pSub11CallBack) {
+	//draw subs
+	// Subtitle drawing
+
+	if (CStreamsManager::Get()->SubtitleManager)
+	{
 		ID3D11RenderTargetView* pRenderTargetView;
 		HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
 		D3DSetDebugName(pRenderTargetView, "MPC RenderTarget DrawSubtitles");
@@ -2877,14 +2888,17 @@ void CDX11VideoProcessor::DrawSubtitles(ID3D11Texture2D* pRenderTarget)
 			const auto rtStart = m_pFilter->m_rtStartTime + m_rtStart;
 
 			// Set render target and shaders
+			
 			m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
 			m_pDeviceContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
 			m_pDeviceContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
 			m_pDeviceContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
 
+			Com::SmartRect pSrc, pDst;
+			CStreamsManager::Get()->SubtitleManager->AlphaBlt(m_pDeviceContext.Get(), pSrc, pDst, m_windowRect);
 			// call the function for drawing subtitles
-			hr = m_pFilter->m_pSub11CallBack->Render11(rtStart, 0, m_rtAvgTimePerFrame, rDstVid, rDstVid, rSrcPri,
-													   1., m_iStereo3dTransform == 1 ? m_nStereoSubtitlesOffsetInPixels : 0);
+			/*hr = m_pFilter->m_pSub11CallBack->Render11(rtStart, 0, m_rtAvgTimePerFrame, rDstVid, rDstVid, rSrcPri,
+													   1., m_iStereo3dTransform == 1 ? m_nStereoSubtitlesOffsetInPixels : 0);*/
 
 			pRenderTargetView->Release();
 		}

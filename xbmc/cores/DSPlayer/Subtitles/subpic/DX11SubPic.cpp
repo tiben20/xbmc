@@ -20,7 +20,8 @@
 #include "stdafx.h"
 #include "DX11SubPic.h"
 #include <DirectXMath.h>
-
+#include "..\libsubs\libsubs.h"
+#include "wrl/client.h"
 #define ENABLE_DUMP_SUBPIC 0
 
 struct VERTEX {
@@ -68,7 +69,7 @@ void fill_u32(void* dst, uint32_t c, size_t count)
 #define ALIGN(x, a)           __ALIGN_MASK(x,(decltype(x))(a)-1)
 #define __ALIGN_MASK(x, mask) (((x)+(mask))&~(mask))
 
-#if _DEBUG & ENABLE_DUMP_SUBPIC
+#if 1
 static HRESULT SaveToBMP(BYTE* src, const UINT src_pitch, const UINT width, const UINT height, const UINT bitdepth, const wchar_t* filename)
 {
 	if (!src || !filename) {
@@ -335,6 +336,8 @@ CDX11SubPicAllocator::CDX11SubPicAllocator(ID3D11Device1* pDevice, SIZE maxsize)
 	CreateOtherStates();
 }
 
+CCritSec CDX11SubPicAllocator::ms_SurfaceQueueLock;
+
 CDX11SubPicAllocator::~CDX11SubPicAllocator()
 {
 	ReleaseAllStates();
@@ -363,6 +366,12 @@ void CDX11SubPicAllocator::ClearCache()
 }
 
 // ISubPicAllocator
+
+STDMETHODIMP_(HRESULT __stdcall) CDX11SubPicAllocator::SetDeviceContext(IUnknown* pDev)
+{
+	m_pDeviceContext = (ID3D11DeviceContext1*)pDev;
+	return S_OK;
+}
 
 STDMETHODIMP CDX11SubPicAllocator::ChangeDevice(IUnknown* pDev)
 {
@@ -531,8 +540,8 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 		EXECUTE_ASSERT(copyRect.IntersectRect(copyRect, &subpicRect));
 	}
 
-	Com::SmartPtr<ID3D11DeviceContext> pDeviceContext;
-	m_pDevice->GetImmediateContext(&pDeviceContext);
+	//Com::SmartPtr<ID3D11DeviceContext> pDeviceContext;
+	//m_pDevice->GetImmediateContext(&pDeviceContext);
 
 	D3D11_TEXTURE2D_DESC texDesc = {};
 	m_pOutputTexture->GetDesc(&texDesc);
@@ -541,7 +550,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	if (texDesc.Usage == D3D11_USAGE_DYNAMIC) {
 		// workaround for an Intel driver bug where frequent UpdateSubresource calls caused high memory consumption
 		D3D11_MAPPED_SUBRESOURCE mr;
-		hr = pDeviceContext->Map(m_pOutputTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
+		hr = m_pDeviceContext->Map(m_pOutputTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
 		if (SUCCEEDED(hr)) {
 			BYTE* dst = (BYTE*)mr.pData + mr.RowPitch * copyRect.top + (copyRect.left * 4);
 			const UINT copyW_bytes = copyRect.Width() * 4;
@@ -551,12 +560,12 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 				src += memPic.w;
 				dst += mr.RowPitch;
 			}
-			pDeviceContext->Unmap(m_pOutputTexture, 0);
+			m_pDeviceContext->Unmap(m_pOutputTexture, 0);
 		}
 	}
 	else {
 		D3D11_BOX dstBox = { copyRect.left, copyRect.top, 0, copyRect.right, copyRect.bottom, 1 };
-		pDeviceContext->UpdateSubresource(m_pOutputTexture, 0, &dstBox, src, memPic.w * 4, 0);
+		m_pDeviceContext->UpdateSubresource1(m_pOutputTexture, 0, &dstBox, src, memPic.w * 4, 0, D3D11_COPY_DISCARD);
 	}
 
 	const float src_dx = 1.0f / texDesc.Width;
@@ -585,23 +594,23 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	};
 
 	D3D11_MAPPED_SUBRESOURCE mr;
-	hr = pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
+	hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
 	memcpy(mr.pData, &Vertices, sizeof(Vertices));
-	pDeviceContext->Unmap(m_pVertexBuffer, 0);
+	m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
 
 	UINT Stride = sizeof(VERTEX);
 	UINT Offset = 0;
-	pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
-	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
+	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	pDeviceContext->PSSetSamplers(0, 1, &(stretching ? m_pSamplerLinear : m_pSamplerPoint));
-	pDeviceContext->PSSetShaderResources(0, 1, &m_pOutputShaderResource);
+	m_pDeviceContext->PSSetSamplers(0, 1, &(stretching ? m_pSamplerLinear : m_pSamplerPoint));
+	m_pDeviceContext->PSSetShaderResources(0, 1, &m_pOutputShaderResource);
 
-	pDeviceContext->OMSetBlendState(m_pAlphaBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+	m_pDeviceContext->OMSetBlendState(m_pAlphaBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 	D3D11_VIEWPORT vp;
 	vp.TopLeftX = dstRect.left;
@@ -610,15 +619,15 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	vp.Height   = dstRect.Height();
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
-	pDeviceContext->RSSetViewports(1, &vp);
+	m_pDeviceContext->RSSetViewports(1, &vp);
 
-	pDeviceContext->Draw(4, 0);
-
-#if _DEBUG & ENABLE_DUMP_SUBPIC
+	m_pDeviceContext->Draw(4, 0);
+	g_log->Log(LOGINFO, "Rendered subtitles");
+#if 0
 	{
 		static int counter = 0;
-		CString filepath;
-		filepath.Format(L"C:\\Temp\\subpictex%04d.bmp", counter++);
+		CStdStringW filepath;
+		filepath.Format(L"C:\\temp\\subpictex%04d.bmp", counter++);
 		DumpTexture2D(pDeviceContext, m_pOutputTexture, filepath);
 	}
 #endif
@@ -627,6 +636,25 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 }
 
 // ISubPicAllocatorImpl
+
+void CDX11SubPicAllocator::FreeTextures()
+{
+	// Clear the allocator of any remaining subpics
+	/*CAutoLock Lock(&ms_SurfaceQueueLock);
+	for (std::list<CDX9SubPic*>::iterator pos = m_AllocatedSurfaces.begin(); pos != m_AllocatedSurfaces.end(); )
+	{
+		CDX9SubPic* pSubPic = *pos; pos++;
+		pSubPic->m_pAllocator = NULL;
+		delete pSubPic;
+	}
+	m_AllocatedSurfaces.clear();
+
+	for (std::list<Com::SmartPtrForList<IDirect3DSurface9>>::iterator it = m_FreeSurfaces.begin();
+		it != m_FreeSurfaces.end(); it++)
+		it->FullRelease();
+
+	m_FreeSurfaces.clear();*/
+}
 
 bool CDX11SubPicAllocator::Alloc(bool fStatic, ISubPic** ppSubPic)
 {

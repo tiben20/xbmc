@@ -27,6 +27,8 @@
 #include <list>
 #pragma pack(push, 1)
 #include <D3D9.h>
+#include <D3D11.h>
+#include <D3D11_1.h>
 
 struct SubPicDesc
 {
@@ -71,7 +73,7 @@ ISubPic : public IUnknown
   STDMETHOD (Lock) (SubPicDesc& spd /*[out]*/) PURE;
   STDMETHOD (Unlock) (RECT* pDirtyRect /*[in]*/) PURE;
 
-  STDMETHOD (GetTexture) (Com::SmartPtr<IDirect3DTexture9>&  pTexture) PURE;
+  //STDMETHOD (GetTexture) (Com::SmartPtr<IDirect3DTexture9>&  pTexture) PURE;
   STDMETHOD (AlphaBlt) (RECT* pSrc, RECT* pDst, SubPicDesc* pTarget = NULL /*[in]*/) PURE;
   STDMETHOD (GetSourceAndDest) (SIZE* pSize /*[in]*/, RECT* pRcSource /*[out]*/, RECT* pRcDest /*[out]*/) PURE;
   STDMETHOD (SetVirtualTextureSize) (const SIZE pSize, const POINT pTopLeft) PURE;
@@ -154,7 +156,7 @@ public:
   STDMETHODIMP Unlock(RECT* pDirtyRect) = 0;
 
   STDMETHODIMP AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget) = 0;
-  STDMETHODIMP GetTexture(Com::SmartPtr<IDirect3DTexture9>&  pTexture) = 0;
+  //STDMETHODIMP GetTexture(Com::SmartPtr<IDirect3DTexture9>&  pTexture) = 0;
 
   STDMETHODIMP SetVirtualTextureSize (const SIZE pSize, const POINT pTopLeft);
   STDMETHODIMP GetSourceAndDest(SIZE* pSize, RECT* pRcSource, RECT* pRcDest);
@@ -181,8 +183,9 @@ ISubPicAllocator : public IUnknown
   STDMETHOD (AllocDynamic) (ISubPic** ppSubPic /*[out]*/) PURE;
 
   STDMETHOD_(bool, IsDynamicWriteOnly) () PURE;
-
+  
   STDMETHOD (ChangeDevice) (IUnknown* pDev) PURE;
+  STDMETHOD (SetDeviceContext) (IUnknown* pDev) PURE;
   STDMETHOD (SetMaxTextureSize) (SIZE MaxTextureSize) PURE;
 
   STDMETHOD_(void, SetInverseAlpha)(bool bInverted) PURE;
@@ -217,6 +220,7 @@ public:
   STDMETHODIMP GetStatic(ISubPic** ppSubPic);
   STDMETHODIMP AllocDynamic(ISubPic** ppSubPic);
   STDMETHODIMP_(bool) IsDynamicWriteOnly();
+  STDMETHODIMP SetDeviceContext(IUnknown* pDev);
   STDMETHODIMP ChangeDevice(IUnknown* pDev);
   STDMETHODIMP SetMaxTextureSize(SIZE MaxTextureSize) { return E_NOTIMPL; };
 

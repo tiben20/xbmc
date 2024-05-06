@@ -2,7 +2,7 @@
 #include "SubManager.h"
 #include <d3d9.h>
 #include "..\subpic\ISubPic.h"
-#include "..\subpic\DX9SubPic.h"
+#include "..\subpic\DX11SubPic.h"
 #include <moreuuids.h>
 #include "..\subtitles\VobSubFile.h"
 #include "..\subtitles\RTS.h"
@@ -13,8 +13,8 @@
 
 BOOL g_overrideUserStyles;
 
-CSubManager::CSubManager(IDirect3DDevice9* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr) :
-  m_d3DDev(d3DDev), m_iSubtitleSel(-1), m_rtNow(-1), m_lastSize(size),
+CSubManager::CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr) :
+  m_d3DDev(d3DDev), m_iSubtitleSel(-1), m_rtNow(-1), m_lastSize(size),m_fps(0),
   m_rtTimePerFrame(0), m_bOverrideStyle(false), m_pSubPicProvider(NULL)
 {
   if (! d3DDev)
@@ -30,21 +30,8 @@ CSubManager::CSubManager(IDirect3DDevice9* d3DDev, SIZE size, SSubSettings setti
   m_settings.textureSize = settings.textureSize;*/
   m_settings = settings;
 
-  if (! m_settings.forcePowerOfTwoTextures)
-  {
-    // Test if GC can handle no power of two textures
-    D3DCAPS9 caps;
-    d3DDev->GetDeviceCaps(&caps);
-    if ((caps.TextureCaps & D3DPTEXTURECAPS_POW2) == D3DPTEXTURECAPS_POW2)
-    {
-      m_settings.forcePowerOfTwoTextures = true;
-      //g_log->Log(LOGNOTICE, "%s Forced usage of power of two textures.", __FUNCTION__);
-    }
-  }
-
-  g_log->Log(LOGDEBUG, "%s texture size %dx%d, buffer ahead: %d, pow2tex: %d", __FUNCTION__, m_settings.textureSize.cx,
-    m_settings.textureSize.cy, m_settings.bufferAhead, m_settings.forcePowerOfTwoTextures);
-  m_pAllocator = (new CDX9SubPicAllocator(d3DDev, m_settings.textureSize, m_settings.forcePowerOfTwoTextures));
+  //g_log->Log(LOGDEBUG, "texture size {}x{}, buffer ahead: {}", m_settings.textureSize.cx, m_settings.textureSize.cy, m_settings.bufferAhead);
+  m_pAllocator = (new CDX11SubPicAllocator(d3DDev, m_settings.textureSize));
   hr = S_OK;
   if (m_settings.bufferAhead > 0)
     m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator, &hr));
@@ -65,7 +52,7 @@ void CSubManager::StopThread()
   m_pSubPicQueue.reset();
 }
 
-void CSubManager::StartThread(IDirect3DDevice9* pD3DDevice)
+void CSubManager::StartThread(ID3D11Device1* pD3DDevice)
 {
   HRESULT hr = S_OK;
   m_d3DDev = pD3DDevice;
@@ -76,6 +63,11 @@ void CSubManager::StartThread(IDirect3DDevice9* pD3DDevice)
     m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator, &hr));
 
   m_pSubPicQueue->SetSubPicProvider(m_pSubPicProvider);
+}
+
+void CSubManager::SetDeviceContext(ID3D11DeviceContext1* pDevContext)
+{
+  m_pAllocator->SetDeviceContext(pDevContext);
 }
 
 void CSubManager::SetStyle(SSubStyle* style, bool bOverride)
@@ -172,7 +164,8 @@ void CSubManager::SetTime(REFERENCE_TIME rtNow)
   m_pSubPicQueue->SetTime(m_rtNow);
 }
 
-HRESULT CSubManager::GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
+
+/*HRESULT CSubManager::GetTexture(Com::SmartPtr<ID3D11Texture2D>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
 {
   if (m_iSubtitleSel < 0)
     return E_INVALIDARG;
@@ -186,7 +179,7 @@ HRESULT CSubManager::GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com:
   Com::SmartSize renderSize(renderRect.right, renderRect.bottom);
   if (m_lastSize != renderSize && renderRect.right > 0 && renderRect.bottom > 0)
   { 
-    m_pAllocator->ChangeDevice(m_d3DDev);
+    m_pAllocator->ChangeDevice(m_d3DDev.Get());
     m_pAllocator->SetCurSize(renderSize);
     m_pAllocator->SetCurVidRect(renderRect);
     if (m_pSubPicQueue)
@@ -201,15 +194,12 @@ HRESULT CSubManager::GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com:
   {
     if (SUCCEEDED (pSubPic->GetSourceAndDest(&renderSize, pSrc, pDest)))
     {
-      /*TRACE(L"Got source/dest rect: %d %d %d %d | %d %d %d %d with render size %d %d", pSrc.left, pSrc.top, pSrc.Width(), pSrc.Height(),
-        pDest.left, pDest.top, pDest.Width(), pDest.Height(),
-        renderSize.cx, renderSize.cy);*/
       return pSubPic->GetTexture(pTexture);
     }
   }
 
   return E_FAIL;
-}
+}*/
 
 static bool IsTextPin(IPin* pPin)
 {
@@ -373,6 +363,43 @@ HRESULT CSubManager::SetSubPicProviderToInternal()
   
   SetSubPicProvider(m_pInternalSubStream);
   return S_OK;
+}
+
+HRESULT CSubManager::AlphaBlt(Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
+{
+  if (m_iSubtitleSel < 0)
+    return E_INVALIDARG;
+
+  if (m_rtTimePerFrame > 0 && m_pSubPicQueue.get())
+  {
+    m_fps = 10000000.0 / m_rtTimePerFrame;
+    m_pSubPicQueue->SetFPS(m_fps);
+  }
+
+  Com::SmartSize renderSize(renderRect.right, renderRect.bottom);
+  if (m_lastSize != renderSize && renderRect.right > 0 && renderRect.bottom > 0)
+  {
+    m_pAllocator->ChangeDevice(m_d3DDev.Get());
+    m_pAllocator->SetCurSize(renderSize);
+    m_pAllocator->SetCurVidRect(renderRect);
+    if (m_pSubPicQueue)
+    {
+      m_pSubPicQueue->Invalidate(m_rtNow + 100000000);
+    }
+    m_lastSize = renderSize;
+  }
+
+  Com::SmartPtr<ISubPic> pSubPic;
+  if (m_pSubPicQueue->LookupSubPic(m_rtNow, pSubPic))
+  {
+    if (SUCCEEDED(pSubPic->GetSourceAndDest(&renderSize, pSrc, pDest)))
+    {
+      return pSubPic->AlphaBlt(pSrc, pDest);
+    }
+  }
+
+
+  return E_FAIL;
 }
 
 void CSubManager::SetTextureSize( Com::SmartSize& pSize )

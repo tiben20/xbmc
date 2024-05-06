@@ -292,6 +292,11 @@ STDMETHODIMP ISubPicAllocatorImpl::ChangeDevice(IUnknown* pDev)
   return S_OK;
 }
 
+STDMETHODIMP ISubPicAllocatorImpl::SetDeviceContext(IUnknown* pDev)
+{
+  
+  return S_OK;
+}
 
 //
 // ISubPicProviderImpl
