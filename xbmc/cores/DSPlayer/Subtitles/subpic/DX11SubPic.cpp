@@ -518,6 +518,7 @@ void CDX11SubPicAllocator::ReleaseAllStates()
 	m_pVertexBuffer.Release();
 	m_pSamplerPoint.Release();
 	m_pSamplerLinear.Release();
+
 }
 
 HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRect& dirtyRect, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect)
