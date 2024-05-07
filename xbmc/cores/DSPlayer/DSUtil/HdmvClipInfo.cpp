@@ -283,7 +283,7 @@ HRESULT CHdmvClipInfo::ReadPlaylist(LPCTSTR strFile, REFERENCE_TIME& rtDuration,
     ReadDword();
     ReadShort();
     dwTemp       = ReadShort();
-    nPlaylistItems = std::min((SHORT)dwTemp, (SHORT)5);  // Main movie should be more than 5 parts...
+    nPlaylistItems = min((SHORT)dwTemp, (SHORT)5);  // Main movie should be more than 5 parts...
     ReadShort();
 
     dwPos    += 10;

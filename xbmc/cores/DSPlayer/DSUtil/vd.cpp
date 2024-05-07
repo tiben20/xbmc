@@ -84,7 +84,7 @@ bool BitBltFromI420ToI420(int w, int h, BYTE* dsty, BYTE* dstu, BYTE* dstv, int 
   }
   else
   {
-    int pitch = std::min(abs(srcpitch), abs(dstpitch));
+    int pitch = min(abs(srcpitch), abs(dstpitch));
 
     for(int y = 0; y < h; y++, srcy += srcpitch, dsty += dstpitch)
       memcpy(dsty, srcy, pitch);
@@ -92,7 +92,7 @@ bool BitBltFromI420ToI420(int w, int h, BYTE* dsty, BYTE* dstu, BYTE* dstv, int 
     srcpitch >>= 1;
     dstpitch >>= 1;
 
-    pitch = std::min(abs(srcpitch), abs(dstpitch));
+    pitch = min(abs(srcpitch), abs(dstpitch));
 
     for(int y = 0; y < h; y+=2, srcu += srcpitch, dstu += dstpitch)
       memcpy(dstu, srcu, pitch);
@@ -137,7 +137,7 @@ bool BitBltFromYUY2ToYUY2(int w, int h, BYTE* dst, int dstpitch, BYTE* src, int 
   }
   else
   {
-    int pitch = std::min(abs(srcpitch), abs(dstpitch));
+    int pitch = min(abs(srcpitch), abs(dstpitch));
 
     for(int y = 0; y < h; y++, src += srcpitch, dst += dstpitch)
       memcpy(dst, src, pitch);
