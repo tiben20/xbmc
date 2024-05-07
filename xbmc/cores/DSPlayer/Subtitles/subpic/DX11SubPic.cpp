@@ -353,6 +353,7 @@ void CDX11SubPicAllocator::GetStats(int& _nFree, int& _nAlloc)
 
 void CDX11SubPicAllocator::ClearCache()
 {
+	g_log->Log(LOGINFO, "CDX11SubPicAllocator::ClearCache");
 	// Clear the allocator of any remaining subpics
 	CAutoLock Lock(&ms_SurfaceQueueLock);
 	for (auto& pSubPic : m_AllocatedSurfaces) {
@@ -375,6 +376,7 @@ STDMETHODIMP_(HRESULT __stdcall) CDX11SubPicAllocator::SetDeviceContext(IUnknown
 
 STDMETHODIMP CDX11SubPicAllocator::ChangeDevice(IUnknown* pDev)
 {
+	g_log->Log(LOGINFO, "CDX11SubPicAllocator::ChangeDevice");
 	ClearCache();
 	Com::SmartQIPtr<ID3D11Device> pDevice = pDev;
 	if (!pDevice) {
@@ -424,6 +426,7 @@ STDMETHODIMP_(void) CDX11SubPicAllocator::SetInverseAlpha(bool bInverted)
 
 HRESULT CDX11SubPicAllocator::CreateOutputTex()
 {
+	g_log->Log(LOGINFO, "CDX11SubPicAllocator::CreateOutputTex");
 	bool bDynamicTex = false;
 
 	Com::SmartQIPtr<IDXGIDevice> pDxgiDevice;
@@ -481,6 +484,7 @@ HRESULT CDX11SubPicAllocator::CreateOutputTex()
 
 void CDX11SubPicAllocator::CreateBlendState()
 {
+	g_log->Log(LOGINFO, "CDX11SubPicAllocator::CreateBlendState");
 	D3D11_BLEND_DESC bdesc = {};
 	bdesc.RenderTarget[0].BlendEnable = TRUE;
 	bdesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
@@ -495,6 +499,7 @@ void CDX11SubPicAllocator::CreateBlendState()
 
 void CDX11SubPicAllocator::CreateOtherStates()
 {
+	g_log->Log(LOGINFO, "CDX11SubPicAllocator::CreateOtherStates");
 	D3D11_BUFFER_DESC BufferDesc = { sizeof(VERTEX) * 4, D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 	EXECUTE_ASSERT(S_OK == m_pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pVertexBuffer));
 
@@ -528,6 +533,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	if (!m_pOutputTexture) {
 		hr = CreateOutputTex();
 		if (FAILED(hr)) {
+			g_log->Log(LOGERROR, "CDX11SubPicAllocator::Render CreateOutputTex");
 			return hr;
 		}
 	}
@@ -541,9 +547,6 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 		EXECUTE_ASSERT(copyRect.IntersectRect(copyRect, &subpicRect));
 	}
 
-	//Com::SmartPtr<ID3D11DeviceContext> pDeviceContext;
-	//m_pDevice->GetImmediateContext(&pDeviceContext);
-
 	D3D11_TEXTURE2D_DESC texDesc = {};
 	m_pOutputTexture->GetDesc(&texDesc);
 
@@ -552,11 +555,13 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 		// workaround for an Intel driver bug where frequent UpdateSubresource calls caused high memory consumption
 		D3D11_MAPPED_SUBRESOURCE mr;
 		hr = m_pDeviceContext->Map(m_pOutputTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
-		if (SUCCEEDED(hr)) {
+		if (SUCCEEDED(hr))
+		{
 			BYTE* dst = (BYTE*)mr.pData + mr.RowPitch * copyRect.top + (copyRect.left * 4);
 			const UINT copyW_bytes = copyRect.Width() * 4;
 			UINT copyH = copyRect.Height();
-			while (copyH-- > 0) {
+			while (copyH-- > 0)
+			{
 				memcpy(dst, src, copyW_bytes);
 				src += memPic.w;
 				dst += mr.RowPitch;
@@ -623,7 +628,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	m_pDeviceContext->RSSetViewports(1, &vp);
 
 	m_pDeviceContext->Draw(4, 0);
-	g_log->Log(LOGINFO, "Rendered subtitles");
+	//g_log->Log(LOGINFO, "Rendered subtitles");
 #if 0
 	{
 		static int counter = 0;

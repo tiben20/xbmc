@@ -2228,7 +2228,7 @@ void CSimpleTextSubtitle::ChangeUnknownStylesToDefault()
       if (it2 == unknown.end())
       {
         if(fReport)
-          g_log->Log(LOGWARNING, "%s Unknown style found: \"%s\", changed to \"Default\"!", __FUNCTION__, stse.style);
+          g_log->Log(LOGWARNING, "CSimpleTextSubtitle::ChangeUnknownStylesToDefault Unknown style found: \"%s\", changed to \"Default\"!", stse.style);
 
         unknown[stse.style] = NULL;
       } else
@@ -2773,7 +2773,7 @@ bool CSimpleTextSubtitle::Open(CTextFile* f, int CharSet, CStdString name)
       if(size() > 0)
       {
         int n = CountLines(f, pos, f->GetPosition());
-        g_log->Log(LOGERROR, "%s Syntax error at line %d!", __FUNCTION__, n + 1);
+        g_log->Log(LOGERROR, "CSimpleTextSubtitle::Open Syntax error at line %d!", n + 1);
         Empty();
         break;
       }
