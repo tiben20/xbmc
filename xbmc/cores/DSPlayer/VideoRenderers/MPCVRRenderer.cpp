@@ -16,6 +16,7 @@
 #include "utils/log.h"
 #include "windowing/GraphicContext.h"
 
+
 using namespace Microsoft::WRL;
 
 
@@ -27,6 +28,10 @@ std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 
 CMPCVRRenderer::CMPCVRRenderer()
 {
+  CShaderFileLoader* shader;
+  shader = new CShaderFileLoader(L"H:\\KodiDSPlayer\\system\\shaders\\mpcvr\\AdaptiveSharpen.hlsl");
+  ShaderDesc desc;
+  bool res = shader->Compile(desc, true);
 }
 
 CMPCVRRenderer::~CMPCVRRenderer()

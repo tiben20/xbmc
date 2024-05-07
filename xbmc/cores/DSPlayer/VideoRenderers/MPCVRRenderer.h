@@ -10,11 +10,10 @@
 #include "VideoRenderers/ColorManager.h"
 #include "VideoRenderers/DebugInfo.h"
 #include "VideoRenderers/RenderInfo.h"
-#include "VideoRenderers/VideoShaders/WinVideoFilter.h"
 #include "cores/VideoSettings.h"
 #include "guilib/D3DResource.h"
 #include "../VideoPlayer/VideoRenderers/BaseRenderer.h"
-
+#include "Filters/MPCVideoRenderer/ShadersLoader.h"
 #include <vector>
 
 #include <d3d11_4.h>
@@ -106,7 +105,6 @@ protected:
   unsigned m_renderOrientation = 0;
   
   CD3DTexture m_IntermediateTarget;
-  std::shared_ptr<COutputShader> m_outputShader;
 
   CRect GetScreenRect() const;
 };

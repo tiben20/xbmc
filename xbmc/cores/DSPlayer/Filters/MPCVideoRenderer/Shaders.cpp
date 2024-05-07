@@ -27,6 +27,39 @@
 #include "DSUtil/DSUtil.h"
 #include "DSResource.h"
 
+HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName, ID3DInclude* d3dinc)
+{
+	static HMODULE s_hD3dcompilerDll = LoadLibraryW(L"d3dcompiler_47.dll");
+	static pD3DCompile s_fnD3DCompile = nullptr;
+
+	if (s_hD3dcompilerDll && !s_fnD3DCompile) {
+		s_fnD3DCompile = (pD3DCompile)GetProcAddress(s_hD3dcompilerDll, "D3DCompile");
+	}
+
+	if (!s_fnD3DCompile) {
+		return E_FAIL;
+	}
+
+	ID3DBlob* pErrorBlob = nullptr;
+	HRESULT hr = s_fnD3DCompile(srcCode.c_str(), srcCode.size(), sourceName, nullptr, d3dinc, entryPoint, target, 0, 0, ppShaderBlob, &pErrorBlob);
+
+	if (FAILED(hr)) {
+		SAFE_RELEASE(*ppShaderBlob);
+
+		if (pErrorBlob) {
+			std::string strErrorMsgs((char*)pErrorBlob->GetBufferPointer(), pErrorBlob->GetBufferSize());
+			CLog::Log(LOGERROR,strErrorMsgs.c_str());
+		}
+		else {
+			CLog::Log(LOGERROR, "Unexpected compiler error");
+		}
+	}
+
+	SAFE_RELEASE(pErrorBlob);
+
+	return hr;
+}
+
 HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
 {
 	//ASSERT(*ppShaderBlob == nullptr);
