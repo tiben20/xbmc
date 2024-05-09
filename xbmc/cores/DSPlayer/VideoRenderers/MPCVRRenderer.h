@@ -14,6 +14,7 @@
 #include "guilib/D3DResource.h"
 #include "../VideoPlayer/VideoRenderers/BaseRenderer.h"
 #include "Filters/MPCVideoRenderer/ShadersLoader.h"
+#include "Filters/MPCVideoRenderer/ShadersXmlLoader.h"
 #include <vector>
 
 #include <d3d11_4.h>
@@ -82,6 +83,8 @@ public:
   DEBUG_INFO_VIDEO GetDebugInfo(int idx) { return {}; }
 
   CRenderCapture* GetRenderCapture() { return nullptr; }
+
+  void LoadShaders();
 protected:
 
   bool CreateIntermediateTarget(unsigned int width,

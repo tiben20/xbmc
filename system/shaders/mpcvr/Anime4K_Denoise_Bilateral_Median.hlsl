@@ -1,22 +1,16 @@
 // 移植自 https://github.com/bloc97/Anime4K/blob/master/glsl/Denoise/Anime4K_Denoise_Bilateral_Median.glsl
 
 
-//!MPC SCALER
-//!VERSION 1
-//!OUTPUT_WIDTH INPUT_WIDTH
-//!OUTPUT_HEIGHT INPUT_HEIGHT
+//!MAGPIE SHADER
+//!VERSION 4
 
-//!CONSTANT
-//!VALUE INPUT_PT_X
-float inputPtX;
 
-//!CONSTANT
-//!VALUE INPUT_PT_Y
-float inputPtY;
-
-//!CONSTANT
-//!MIN 1e-5
+//!PARAMETER
+//!LABEL Strength
 //!DEFAULT 0.1
+//!MIN 0.01
+//!MAX 5
+//!STEP 0.01
 float intensitySigma;
 
 //!TEXTURE
@@ -25,8 +19,7 @@ Texture2D INPUT;
 //!TEXTURE
 //!WIDTH INPUT_WIDTH
 //!HEIGHT INPUT_HEIGHT
-//!FORMAT R16_FLOAT
-Texture2D lumaTex;
+Texture2D OUTPUT;
 
 //!SAMPLER
 //!FILTER POINT
@@ -34,22 +27,10 @@ SamplerState sam;
 
 
 //!PASS 1
-//!BIND INPUT
-//!SAVE lumaTex
-
-float get_luma(float3 rgba) {
-	return dot(float3(0.299, 0.587, 0.114), rgba);
-}
-
-float4 Pass1(float2 pos) {
-	return float4(get_luma(INPUT.Sample(sam, pos).rgb), 0.0, 0.0, 0.0);
-}
-
-
-//!PASS 2
-//!BIND INPUT, lumaTex
-
-#pragma warning(disable: 3557)
+//!IN INPUT
+//!OUT OUTPUT
+//!BLOCK_SIZE 8
+//!NUM_THREADS 64
 
 #define INTENSITY_SIGMA intensitySigma //Intensity window size, higher is stronger denoise, must be a positive real number
 #define SPATIAL_SIGMA 1.0 //Spatial window size, higher is stronger denoise, must be a positive real number.
@@ -63,15 +44,23 @@ float4 Pass1(float2 pos) {
 
 #define GETOFFSET(i) int2(int(i % KERNELSIZE) - KERNELHALFSIZE, int(i / KERNELSIZE) - KERNELHALFSIZE)
 
+float get_luma(float3 rgb) {
+	return dot(float3(0.299, 0.587, 0.114), rgb);
+}
+
 float gaussian(float x, float s, float m) {
 	float scaled = (x - m) / s;
 	return exp(-0.5 * scaled * scaled);
 }
 
 float3 getMedian(float3 v[KERNELLEN], float w[KERNELLEN], float n) {
+	float3 result = float3(0, 0, 0);
+
+	[unroll]
 	for (uint i = 0; i < KERNELLEN; i++) {
 		float w_above = 0.0;
 		float w_below = 0.0;
+		[unroll]
 		for (uint j = 0; j < KERNELLEN; j++) {
 			if (v[j].x > v[i].x) {
 				w_above += w[j];
@@ -81,30 +70,42 @@ float3 getMedian(float3 v[KERNELLEN], float w[KERNELLEN], float n) {
 		}
 
 		if ((n - w_above) / n >= 0.5 && w_below / n <= 0.5) {
-			return v[i];
+			result = v[i];
+			break;
 		}
 	}
 
-	return float3(0, 0, 0);
+	return result;
 }
 
-float4 Pass2(float2 pos) {
+void Pass1(uint2 blockStart, uint3 threadId) {
+	uint2 gxy = Rmp8x8(threadId.x) + blockStart;
+	
+	const uint2 outputSize = GetOutputSize();
+	if (gxy.x >= outputSize.x || gxy.y >= outputSize.y) {
+		return;
+	}
+
+	float2 inputPt = GetInputPt();
+	float2 pos = (gxy + 0.5f) * inputPt;
+
 	float3 histogram_v[KERNELLEN];
 	float histogram_l[KERNELLEN];
 	float histogram_w[KERNELLEN];
 	float n = 0.0;
 
-	float vc = lumaTex.Sample(sam, pos).x;
+	float vc = get_luma(INPUT.SampleLevel(sam, pos, 0).rgb);
 
 	float is = pow(vc + 0.0001, INTENSITY_POWER_CURVE) * INTENSITY_SIGMA;
 	float ss = SPATIAL_SIGMA;
 
 	uint i;
 
+	[unroll]
 	for (i = 0; i < KERNELLEN; i++) {
-		float2 ipos = pos + GETOFFSET(i) * float2(inputPtX, inputPtY);
-		histogram_v[i] = INPUT.Sample(sam, ipos).rgb;
-		histogram_l[i] = lumaTex.Sample(sam, ipos).x;
+		int2 ipos = GETOFFSET(i);
+		histogram_v[i] = INPUT.SampleLevel(sam, pos + ipos * inputPt, 0).rgb;
+		histogram_l[i] = get_luma(histogram_v[i]);
 		histogram_w[i] = gaussian(histogram_l[i], is, vc) * gaussian(length(ipos), ss, 0.0);
 		n += histogram_w[i];
 	}
@@ -113,12 +114,15 @@ float4 Pass2(float2 pos) {
 		float histogram_wn[KERNELLEN];
 		n = 0.0;
 
+		[unroll]
 		for (i = 0; i < KERNELLEN; i++) {
 			histogram_wn[i] = 0.0;
 		}
 
+		[unroll]
 		for (i = 0; i < KERNELLEN; i++) {
 			histogram_wn[i] += gaussian(0.0, HISTOGRAM_REGULARIZATION, 0.0) * histogram_w[i];
+			[unroll]
 			for (uint j = (i + 1); j < KERNELLEN; j++) {
 				float d = gaussian(histogram_l[j], HISTOGRAM_REGULARIZATION, histogram_l[i]);
 				histogram_wn[j] += d * histogram_w[i];
@@ -127,8 +131,9 @@ float4 Pass2(float2 pos) {
 			n += histogram_wn[i];
 		}
 
-		return float4(getMedian(histogram_v, histogram_wn, n), 1);
+		OUTPUT[gxy] = float4(getMedian(histogram_v, histogram_wn, n), 1);
+		return;
 	}
 
-	return float4(getMedian(histogram_v, histogram_w, n), 1);
+	OUTPUT[gxy] = float4(getMedian(histogram_v, histogram_w, n), 1);
 }

@@ -29,6 +29,7 @@
 #include <mutex>
 #include <filesystem>
 #include <regex>
+#include "utils/CharsetConverter.h"
 //#include "Utility.h"
 //#include "FileUtility.h"
 #include "filesystem/file.h"
@@ -42,14 +43,10 @@
 #include "shaders.h"
 #include "winternl.h"
 #include <istream>
-#include <yas/mem_streams.hpp>
-#include <yas/binary_oarchive.hpp>
-#include <yas/binary_iarchive.hpp>
-#include <yas/types/std/pair.hpp>
-#include <yas/types/std/string.hpp>
-#include <yas/types/std/vector.hpp>
+#include "YasHelper.h"
 #include "d3dcompiler.h"
 #pragma comment( lib, "bcrypt.lib" )
+
 using namespace std::literals::string_literals;
 
 struct HandleCloser { void operator()(HANDLE h) noexcept { assert(h != INVALID_HANDLE_VALUE); if (h) CloseHandle(h); } };
@@ -83,139 +80,50 @@ bool ReadFile(const wchar_t* fileName, std::vector<BYTE>& result)
 	return true;
 }
 
-template<typename Archive>
-void serialize(Archive& ar, Microsoft::WRL::ComPtr<ID3DBlob>& o) {
-	SIZE_T size = 0;
-	ar& size;
-	HRESULT hr = D3DCreateBlob(size, &o);
-	if (FAILED(hr)) {
+namespace yas::detail {
+
+	// winrt::com_ptr<ID3DBlob>
+	template<std::size_t F>
+	struct serializer<
+		type_prop::not_a_fundamental,
+		ser_case::use_internal_serializer,
+		F,
 		
-		throw new std::exception();
-	}
+		Microsoft::WRL::ComPtr<ID3DBlob>
+	> {
+		template<typename Archive>
+		static Archive& save(Archive& ar, const Microsoft::WRL::ComPtr<ID3DBlob>& blob) {
+			uint32_t size = (uint32_t)blob->GetBufferSize();
+			ar& size;
 
-	BYTE* buf = (BYTE*)o->GetBufferPointer();
-	for (SIZE_T i = 0; i < size; ++i) {
-		ar& (*buf++);
-	}
+			ar.write(blob->GetBufferPointer(), size);
+
+			return ar;
+		}
+
+		template<typename Archive>
+		static Archive& load(Archive& ar, Microsoft::WRL::ComPtr<ID3DBlob>& blob) {
+			uint32_t size = 0;
+			ar& size;
+			HRESULT hr = D3DCreateBlob(size, &blob);
+			if (FAILED(hr)) {
+				
+				throw new std::exception();
+			}
+
+			ar.read(blob->GetBufferPointer(), size);
+
+			return ar;
+		}
+	};
+
 }
 
 template<typename Archive>
-void serialize(Archive& ar, const Microsoft::WRL::ComPtr<ID3DBlob>& o) {
-	SIZE_T size = o->GetBufferSize();
-	ar& size;
-
-	BYTE* buf = (BYTE*)o->GetBufferPointer();
-	for (SIZE_T i = 0; i < size; ++i) {
-		ar& (*buf++);
-	}
+void serialize(Archive& ar, ShaderParameterDesc& o) {
+	ar& o.name& o.label& o.constant;
 }
 
-template<typename Archive>
-void serialize(Archive& ar, const ShaderConstantDesc& o) {
-	size_t index = o.defaultValue.index();
-	ar& index;
-
-	if (index == 0) {
-		ar& std::get<0>(o.defaultValue);
-	}
-	else {
-		ar& std::get<1>(o.defaultValue);
-	}
-
-	ar& o.label;
-
-	index = o.maxValue.index();
-	ar& index;
-	if (index == 1) {
-		ar& std::get<1>(o.maxValue);
-	}
-	else if (index == 2) {
-		ar& std::get<2>(o.maxValue);
-	}
-
-	index = o.minValue.index();
-	ar& index;
-	if (index == 1) {
-		ar& std::get<1>(o.minValue);
-	}
-	else if (index == 2) {
-		ar& std::get<2>(o.minValue);
-	}
-
-	index = o.currentValue.index();
-	ar& index;
-	if (index == 0) {
-		ar& std::get<0>(o.currentValue);
-	}
-	else {
-		ar& std::get<1>(o.currentValue);
-	}
-
-	
-
-	ar& o.name& o.type;
-}
-
-template<typename Archive>
-void serialize(Archive& ar, ShaderConstantDesc& o) {
-	size_t index = 0;
-	ar& index;
-
-	if (index == 0) {
-		o.defaultValue.emplace<0>();
-		ar& std::get<0>(o.defaultValue);
-	}
-	else {
-		o.defaultValue.emplace<1>();
-		ar& std::get<1>(o.defaultValue);
-	}
-
-	ar& o.label;
-
-	ar& index;
-	if (index == 0) {
-		o.maxValue.emplace<0>();
-	}
-	else if (index == 1) {
-		o.maxValue.emplace<1>();
-		ar& std::get<1>(o.maxValue);
-	}
-	else {
-		o.maxValue.emplace<2>();
-		ar& std::get<2>(o.maxValue);
-	}
-
-	ar& index;
-	if (index == 0) {
-		o.minValue.emplace<0>();
-	}
-	else if (index == 1) {
-		o.minValue.emplace<1>();
-		ar& std::get<1>(o.minValue);
-	}
-	else {
-		o.minValue.emplace<2>();
-		ar& std::get<2>(o.minValue);
-	}
-
-
-	ar& index;
-	if (index == 0) {
-		o.currentValue.emplace<0>();
-		ar& std::get<0>(o.currentValue);
-	}
-	else {
-		o.currentValue.emplace<1>();
-		ar& std::get<1>(o.currentValue);
-	}
-	
-	ar& o.name& o.type;
-}
-
-template<typename Archive>
-void serialize(Archive& ar, ShaderValueConstantDesc& o) {
-	ar& o.name& o.type& o.valueExpr;
-}
 
 template<typename Archive>
 void serialize(Archive& ar, ShaderIntermediateTextureDesc& o) {
@@ -229,31 +137,17 @@ void serialize(Archive& ar, ShaderSamplerDesc& o) {
 
 template<typename Archive>
 void serialize(Archive& ar, ShaderPassDesc& o) {
-	ar& o.inputs& o.outputs& o.cso;
+	ar& o.cso& o.inputs& o.outputs& o.numThreads[0] & o.numThreads[1] & o.numThreads[2] & o.blockSize& o.desc& o.isPSStyle;
 }
 
 template<typename Archive>
 void serialize(Archive& ar, ShaderDesc& o) {
-	ar& o.outSizeExpr& o.shaderDescription& o.constants& o.valueConstants& o.dynamicValueConstants& o.textures& o.samplers& o.passes;
+	ar& o.name& o.params& o.textures& o.samplers& o.passes& o.flags;
 }
 
-std::wstring UTF8ToUTF16(std::string_view str)
-{
-	int convertResult = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
-	if (convertResult <= 0) {
+static constexpr const uint32_t MAX_CACHE_COUNT = 127;
 
-		assert(false);
-		return {};
-	}
-	std::wstring r(convertResult + 10, L'\0');
-	convertResult = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), &r[0], (int)r.size());
-	if (convertResult <= 0) {
-		assert(false);
-		return {};
-	}
-
-	return std::wstring(r.begin(), r.begin() + convertResult);
-}
+static constexpr const uint32_t EFFECT_CACHE_VERSION = 13;
 
 std::wstring ConvertFileName(const wchar_t* fileName)
 {
@@ -341,92 +235,98 @@ bool Hasher::Hash(void* data, size_t len, std::vector<BYTE>& result) {
 	return true;
 }
 
-std::wstring ShaderCache::_GetCacheFileName(const wchar_t* fileName, std::string_view hash)
+std::wstring ShaderCache::_GetCacheFileName(const wchar_t* fileName, std::wstring_view hash)
 {
 	std::wstring fname = ConvertFileName(fileName);
+	
 
-	std::wstring fhash = UTF8ToUTF16(hash);
 	std::wstring fsuffix = _SUFFIX;
 
-	return fmt::format(L"special://temp//cache//{}_{}.{}", fname, fhash, fsuffix);
+	return fmt::format(L"special://temp//cache//{}_{}.{}", fname, hash, fsuffix);
 }
 
-void ShaderCache::_AddToMemCache(const std::wstring& cacheFileName, const ShaderDesc& desc) {
-	_memCache[cacheFileName] = desc;
+void ShaderCache::_AddToMemCache(const std::wstring& cacheFileName, const ShaderDesc& desc)
+{
+	_memCache[cacheFileName] = { desc, ++_lastAccess };
 
-	if (_memCache.size() > _MAX_CACHE_COUNT) {
+	if (_memCache.size() > MAX_CACHE_COUNT)
+	{
+		assert(_memCache.size() == MAX_CACHE_COUNT + 1);
+
 		// clear half of the memory cache
-		auto it = _memCache.begin();
-		std::advance(it, _memCache.size() / 2);
-		_memCache.erase(_memCache.begin(), it);
+		std::array<uint32_t, MAX_CACHE_COUNT + 1> access{};
+		std::transform(_memCache.begin(), _memCache.end(), access.begin(),
+			[](const auto& pair) {return pair.second.second; });
 
-		
+		auto midIt = access.begin() + access.size() / 2;
+		std::nth_element(access.begin(), midIt, access.end());
+		const uint32_t mid = *midIt;
+
+		for (auto it = _memCache.begin(); it != _memCache.end();) {
+			if (it->second.second < mid) {
+				it = _memCache.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+		CLog::Log(LOGINFO,"Memory cache cleared");
 	}
 }
 
+bool ShaderCache::_LoadFromMemCache(const std::wstring& cacheFileName, ShaderDesc& desc)
+{
+	auto it = _memCache.find(cacheFileName);
+	if (it != _memCache.end()) {
+		desc = it->second.first;
+		it->second.second = ++_lastAccess;
+		CLog::Log(LOGINFO, "_LoadFromMemCache {}",WToA(cacheFileName));
+		return true;
+	}
+	return false;
+}
 
-bool ShaderCache::Load(const wchar_t* fileName, std::string_view hash, ShaderDesc& desc)
+
+bool ShaderCache::Load(const wchar_t* fileName, std::wstring_view hash, ShaderDesc& desc)
 {
 	std::wstring cacheFileName = _GetCacheFileName(fileName, hash);
 
-	auto it = _memCache.find(cacheFileName);
-	if (it != _memCache.end()) {
-		desc = it->second;
+	if (_LoadFromMemCache(cacheFileName, desc))
+	{
 		return true;
 	}
+
 	XFILE::CFile fle;
 	
-	if (fle.Exists(WToA(cacheFileName)))
-	  cacheFileName = cacheFileName;
+	if (!fle.Exists(WToA(cacheFileName)))
+		return false;
 	
-	if (cacheFileName == L"")
-			return false;
-
-	std::vector<BYTE> buf;
-	if (!ReadFile(cacheFileName.c_str(), buf) || buf.empty()) {
-		return false;
-	}
-
-	if (buf.size() < 100) {
-		return false;
-	}
-
-	// Format: HASH-VERSION-FL-{BODY}
-
-	// check hash
-	std::vector<BYTE> bufHash;
 	
-	if (!Hasher::GetInstance().Hash(
-		buf.data() + Hasher::GetInstance().GetHashLength(),
-		buf.size() - Hasher::GetInstance().GetHashLength(),
-		bufHash
-	))
+	if (!fle.Open(WToA(cacheFileName)))
+		return false;
+
+	int64_t length = fle.GetLength();
+
+	void* pData = malloc(length);
+	if (fle.Read(pData, length) != length)
 	{
+		free(pData);
 		return false;
 	}
+	std::vector<BYTE> buf(static_cast<BYTE*>(pData), static_cast<BYTE*>(pData) + length);
 
-	if (std::memcmp(buf.data(), bufHash.data(), bufHash.size()) != 0)
-	{
-		
+	/*if (!ReadFile(cacheFileName.c_str(), buf) || buf.empty()) {
 		return false;
-	}
+	}*/
 
-	try
-	{
-		yas::mem_istream mi(buf.data() + bufHash.size(), buf.size() - bufHash.size());
+
+	try {
+		yas::mem_istream mi(buf.data(), buf.size());
 		yas::binary_iarchive<yas::mem_istream, yas::binary> ia(mi);
 
-		// vérifier la version
-		UINT version;
-		ia& version;
-		if (version != _VERSION) {
-			
-			return false;
-		}
 		ia& desc;
 	}
 	catch (...) {
-		
 		desc = {};
 		return false;
 	}
@@ -437,28 +337,32 @@ bool ShaderCache::Load(const wchar_t* fileName, std::string_view hash, ShaderDes
 	return true;
 }
 
-void ShaderCache::Save(const wchar_t* fileName, std::string_view hash, const ShaderDesc& desc)
+void ShaderCache::Save(const wchar_t* fileName, std::wstring_view hash, const ShaderDesc& desc)
 {
 
 
 	// Format: HASH-VERSION-FL-{BODY}
 	std::vector<BYTE> buf;
 	buf.reserve(4096);
-	buf.resize(Hasher::GetInstance().GetHashLength());
-	std::stringstream s;
 	try
 	{
 	  yas::vector_ostream os(buf);
 		yas::binary_oarchive<yas::vector_ostream<BYTE>, yas::binary> oa(os);
-
-		oa& _VERSION;
 		oa& desc;
 	}
 	catch (...) {
 		
 		return;
 	}
-	
+	std::wstring cacheFileName = _GetCacheFileName(fileName, hash);
+	XFILE::CFile fle;
+	if (fle.OpenForWrite(WToA(cacheFileName)))
+	{
+		fle.Write(buf.data(), buf.size());
+	}
+
+	_AddToMemCache(cacheFileName, desc);
+	return;
 	
 	// fill HASH
 	std::vector<BYTE> bufHash;
@@ -506,14 +410,7 @@ void ShaderCache::Save(const wchar_t* fileName, std::string_view hash, const Sha
 		}
 	}
 
-	std::wstring cacheFileName = _GetCacheFileName(fileName, hash);
-	XFILE::CFile fle;
-	if (fle.OpenForWrite(WToA(cacheFileName)))
-	{
-		fle.Write(buf.data(), buf.size());
-	}
-
-	_AddToMemCache(cacheFileName, desc);
+	
 
 	
 }

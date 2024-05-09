@@ -31,6 +31,7 @@
 #include <map>
 #include <variant>
 #include "bcrypt.h"
+#include <parallel_hashmap/phmap.h>
 
 class Hasher
 {
@@ -64,18 +65,20 @@ public:
 		return instance;
 	}
 
-	bool Load(const wchar_t* fileName, std::string_view hash, ShaderDesc& desc);
+	bool Load(const wchar_t* fileName, std::wstring_view hash, ShaderDesc& desc);
 
-	void Save(const wchar_t* fileName, std::string_view hash, const ShaderDesc& desc);
+	void Save(const wchar_t* fileName, std::wstring_view hash, const ShaderDesc& desc);
+
+	static std::wstring GetHash(std::string_view source,const phmap::flat_hash_map<std::wstring, float>* inlineParams = nullptr);
+	static std::wstring GetHash(std::string& source, const phmap::flat_hash_map<std::wstring, float>* inlineParams = nullptr);
 
 private:
 	void _AddToMemCache(const std::wstring& cacheFileName, const ShaderDesc& desc);
+	bool _LoadFromMemCache(const std::wstring& cacheFileName, ShaderDesc& desc);
 
-	std::unordered_map<std::wstring, ShaderDesc> _memCache;
+	phmap::flat_hash_map<std::wstring, std::pair<ShaderDesc, UINT>> _memCache;
 
-	static constexpr const size_t _MAX_CACHE_COUNT = 100;
-
-	static std::wstring _GetCacheFileName(const wchar_t* fileName, std::string_view hash);
+	static std::wstring _GetCacheFileName(const wchar_t* fileName, std::wstring_view hash);
 
 	// extension de fichier cache?Compiled mpc-hc scaler
 	static constexpr const wchar_t* _SUFFIX = L"mpcx";
@@ -83,4 +86,5 @@ private:
 	// cached version
 	// It will be updated when the cache file structure changes, invalidating all old caches
 	static constexpr const UINT _VERSION = 1;
+	UINT _lastAccess = 0;
 };

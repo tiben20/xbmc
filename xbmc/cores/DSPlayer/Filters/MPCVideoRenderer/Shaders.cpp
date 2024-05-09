@@ -60,6 +60,50 @@ HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR
 	return hr;
 }
 
+HRESULT CompileComputeShader(
+	std::string_view hlsl,
+	const char* entryPoint,
+	ID3DBlob** blob,
+	const char* sourceName,
+	ID3DInclude* include,
+	const std::vector<std::pair<std::string, std::string>>& macros,
+	bool warningsAreErrors
+) {
+	Microsoft::WRL::ComPtr<ID3DBlob> errorMsgs = nullptr;
+
+	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_ALL_RESOURCES_BOUND;
+	if (warningsAreErrors) {
+		flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
+	}
+
+#ifdef _DEBUG
+	flags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG;
+#else
+	flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif // _DEBUG
+
+	std::unique_ptr<D3D_SHADER_MACRO[]> mc(new D3D_SHADER_MACRO[macros.size() + 1]);
+	for (UINT i = 0; i < macros.size(); ++i) {
+		mc[i] = { macros[i].first.c_str(), macros[i].second.c_str() };
+	}
+	mc[macros.size()] = { nullptr,nullptr };
+
+	HRESULT hr = D3DCompile(hlsl.data(), hlsl.size(), sourceName, mc.get(), include,
+		entryPoint, "cs_5_0", flags, 0, blob, errorMsgs.ReleaseAndGetAddressOf());
+	if (FAILED(hr)) {
+		if (errorMsgs) {
+			CLog::Log(LOGERROR,(const char*)errorMsgs->GetBufferPointer());
+		}
+		return E_FAIL;
+	}
+
+	if (errorMsgs) {
+		CLog::Log(LOGERROR, (const char*)errorMsgs->GetBufferPointer());
+	}
+
+	return S_OK;
+}
+
 HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
 {
 	//ASSERT(*ppShaderBlob == nullptr);

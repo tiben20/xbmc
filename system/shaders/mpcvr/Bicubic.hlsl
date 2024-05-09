@@ -1,49 +1,48 @@
 // Bicubic 插值算法
-// 移植自 https://github.com/libretro/common-shaders/blob/master/bicubic/shaders/bicubic-normal.cg
+// 移植自 https://github.com/ActualMandM/cemu_graphic_packs/blob/468d165cf27dae13a06e8bdc3d588d0af775ad91/Filters/Bicubic/output.glsl
 
-//!MPC SCALER
-//!VERSION 1
-//!SCALER_TYPE UPSCALER
-//!DESCRIPTION Simple bicubic scaler fast with one pass
-
-//!CONSTANT
-//!VALUE INPUT_PT_X
-float inputPtX;
-
-//!CONSTANT
-//!VALUE INPUT_PT_Y
-float inputPtY;
+//!MAGPIE SHADER
+//!VERSION 4
 
 
-//!CONSTANT
-//!LABEL Sharper arg 1
-//!DEFAULT 0.333333
+//!PARAMETER
+//!LABEL B
+//!DEFAULT 0.33
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 
 float paramB;
 
-//!CONSTANT
-//!LABEL Sharper arg 2
-//!DEFAULT 0.333333
+//!PARAMETER
+//!LABEL C
+//!DEFAULT 0.33
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 
 float paramC;
 
 //!TEXTURE
 Texture2D INPUT;
 
+//!TEXTURE
+Texture2D OUTPUT;
+
 //!SAMPLER
-//!FILTER POINT
+//!FILTER LINEAR
 SamplerState sam;
 
 
 //!PASS 1
-//!BIND INPUT
+//!STYLE PS
+//!IN INPUT
+//!OUT OUTPUT
 
+float weight(float x) {
+	const float B = paramB;
+	const float C = paramC;
 
-float weight(float x, float B, float C) {
 	float ax = abs(x);
 
 	if (ax < 1.0) {
@@ -56,45 +55,60 @@ float weight(float x, float B, float C) {
 }
 
 float4 weight4(float x) {
-	float B = paramB;
-	float C = paramC;
-
-
 	return float4(
-		weight(x - 2.0, B, C),
-		weight(x - 1.0, B, C),
-		weight(x, B, C),
-		weight(x + 1.0, B, C)
+		weight(x - 2.0),
+		weight(x - 1.0),
+		weight(x),
+		weight(x + 1.0)
 	);
-}
-
-float3 line_run(float ypos, float4 xpos, float4 linetaps) {
-	return INPUT.Sample(sam, float2(xpos.r, ypos)).rgb * linetaps.r
-		+ INPUT.Sample(sam, float2(xpos.g, ypos)).rgb * linetaps.g
-		+ INPUT.Sample(sam, float2(xpos.b, ypos)).rgb * linetaps.b
-		+ INPUT.Sample(sam, float2(xpos.a, ypos)).rgb * linetaps.a;
 }
 
 
 float4 Pass1(float2 pos) {
-	float2 f = frac(pos / float2(inputPtX, inputPtY) + 0.5);
+	const float2 inputPt = GetInputPt();
+	const float2 inputSize = GetInputSize();
 
-	float4 linetaps = weight4(1.0 - f.x);
-	float4 columntaps = weight4(1.0 - f.y);
+	pos *= inputSize;
+	float2 pos1 = floor(pos - 0.5) + 0.5;
+	float2 f = pos - pos1;
+
+	float4 rowtaps = weight4(1 - f.x);
+	float4 coltaps = weight4(1 - f.y);
 
 	// make sure all taps added together is exactly 1.0, otherwise some (very small) distortion can occur
-	linetaps /= linetaps.r + linetaps.g + linetaps.b + linetaps.a;
-	columntaps /= columntaps.r + columntaps.g + columntaps.b + columntaps.a;
+	rowtaps /= rowtaps.r + rowtaps.g + rowtaps.b + rowtaps.a;
+	coltaps /= coltaps.r + coltaps.g + coltaps.b + coltaps.a;
 
-	// !!!change the current coordinates
-	pos -= (f + 1) * float2(inputPtX, inputPtY);
+	float2 uv1 = pos1 * inputPt;
+	float2 uv0 = uv1 - inputPt;
+	float2 uv2 = uv1 + inputPt;
+	float2 uv3 = uv2 + inputPt;
 
-	float4 xpos = float4(pos.x, pos.x + inputPtX, pos.x + 2 * inputPtX, pos.x + 3 * inputPtX);
+	float u_weight_sum = rowtaps.y + rowtaps.z;
+	float u_middle_offset = rowtaps.z * inputPt.x / u_weight_sum;
+	float u_middle = uv1.x + u_middle_offset;
 
-	// final sum and weight normalization
-	return float4(line_run(pos.y, xpos, linetaps) * columntaps.r
-		+ line_run(pos.y + inputPtY, xpos, linetaps) * columntaps.g
-		+ line_run(pos.y + 2 * inputPtY, xpos, linetaps) * columntaps.b
-		+ line_run(pos.y + 3 * inputPtY, xpos, linetaps) * columntaps.a,
-		1);
+	float v_weight_sum = coltaps.y + coltaps.z;
+	float v_middle_offset = coltaps.z * inputPt.y / v_weight_sum;
+	float v_middle = uv1.y + v_middle_offset;
+
+	int2 coord_top_left = int2(max(uv0 * inputSize, 0.5));
+	int2 coord_bottom_right = int2(min(uv3 * inputSize, inputSize - 0.5));
+
+	float3 top = INPUT.Load(int3(coord_top_left, 0)).rgb * rowtaps.x;
+	top += INPUT.SampleLevel(sam, float2(u_middle, uv0.y), 0).rgb * u_weight_sum;
+	top += INPUT.Load(int3(coord_bottom_right.x, coord_top_left.y, 0)).rgb * rowtaps.w;
+	float3 total = top * coltaps.x;
+
+	float3 middle = INPUT.SampleLevel(sam, float2(uv0.x, v_middle), 0).rgb * rowtaps.x;
+	middle += INPUT.SampleLevel(sam, float2(u_middle, v_middle), 0).rgb * u_weight_sum;
+	middle += INPUT.SampleLevel(sam, float2(uv3.x, v_middle), 0).rgb * rowtaps.w;
+	total += middle * v_weight_sum;
+
+	float3 bottom = INPUT.Load(int3(coord_top_left.x, coord_bottom_right.y, 0)).rgb * rowtaps.x;
+	bottom += INPUT.SampleLevel(sam, float2(u_middle, uv3.y), 0).rgb * u_weight_sum;
+	bottom += INPUT.Load(int3(coord_bottom_right, 0)).rgb * rowtaps.w;
+	total += bottom * coltaps.w;
+
+	return float4(total, 1);
 }

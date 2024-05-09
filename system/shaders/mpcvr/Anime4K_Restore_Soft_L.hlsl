@@ -1,30 +1,17 @@
 // 移植自 https://github.com/bloc97/Anime4K/blob/master/glsl/Restore/Anime4K_Restore_CNN_Soft_L.glsl
 
-//!MPC SCALER
-//!VERSION 1
-//!OUTPUT_WIDTH INPUT_WIDTH
-//!OUTPUT_HEIGHT INPUT_HEIGHT
-
-
-//!CONSTANT
-//!VALUE INPUT_PT_X
-float inputPtX;
-
-//!CONSTANT
-//!VALUE INPUT_PT_Y
-float inputPtY;
+//!MAGPIE SHADER
+//!VERSION 4
+//!SORT_NAME Anime4K_Restore_Soft_2
 
 
 //!TEXTURE
 Texture2D INPUT;
 
-//!SAMPLER
-//!FILTER POINT
-SamplerState sam;
-
-//!SAMPLER
-//!FILTER LINEAR
-SamplerState sam1;
+//!TEXTURE
+//!WIDTH INPUT_WIDTH
+//!HEIGHT INPUT_HEIGHT
+Texture2D OUTPUT;
 
 //!TEXTURE
 //!WIDTH INPUT_WIDTH
@@ -50,66 +37,117 @@ Texture2D tex3;
 //!FORMAT R16G16B16A16_FLOAT
 Texture2D tex4;
 
+//!SAMPLER
+//!FILTER POINT
+SamplerState sam;
+
 
 //!PASS 1
-//!BIND INPUT
-//!SAVE tex1, tex2
+//!DESC Conv-4x3x3x3
+//!IN INPUT
+//!OUT tex1, tex2
+//!BLOCK_SIZE 16
+//!NUM_THREADS 64
 
-void Pass1(float2 pos, out float4 target1, out float4 target2) {
-	// [ a, d, g ]
-	// [ b, e, h ]
-	// [ c, f, i ]
-	float3 a = INPUT.Sample(sam, pos + float2(-inputPtX, -inputPtY)).rgb;
-	float3 b = INPUT.Sample(sam, pos + float2(-inputPtX, 0)).rgb;
-	float3 c = INPUT.Sample(sam, pos + float2(-inputPtX, inputPtY)).rgb;
-	float3 d = INPUT.Sample(sam, pos + float2(0, -inputPtY)).rgb;
-	float3 e = INPUT.Sample(sam, pos).rgb;
-	float3 f = INPUT.Sample(sam, pos + float2(0, inputPtY)).rgb;
-	float3 g = INPUT.Sample(sam, pos + float2(inputPtX, -inputPtY)).rgb;
-	float3 h = INPUT.Sample(sam, pos + float2(inputPtX, 0)).rgb;
-	float3 i = INPUT.Sample(sam, pos + float2(inputPtX, inputPtY)).rgb;
+void Pass1(uint2 blockStart, uint3 threadId) {
+	uint2 gxy = (Rmp8x8(threadId.x) << 1) + blockStart;
+	uint2 inputSize = GetInputSize();
+	if (gxy.x >= inputSize.x || gxy.y >= inputSize.y) {
+		return;
+	}
 
-	target1 = mul(a, float3x4(-0.2676983, -0.1694746, 0.7231928, -0.050193843, 0.1850188, -0.4749505, 0.07632266, 0.17824799, 0.026348969, -0.213702, -0.16420218, -0.066780016));
-	target1 += mul(b, float3x4(-0.09888135, -0.079641104, 0.51160043, 0.53629893, -0.1368544, -0.07092336, 0.18622977, 0.6388427, 0.19499005, 0.06811229, -0.31991923, 0.088302985));
-	target1 += mul(c, float3x4(0.06487055, -0.1591197, -0.29304126, -0.428903, 0.1966732, 0.11229865, 0.089009434, 0.23463708, -0.22231965, -0.008649182, 0.3317394, 0.10976113));
-	target1 += mul(d, float3x4(0.40386826, -0.09486362, -0.058931742, -0.1341693, -0.28993917, -0.09050739, 0.28094417, 0.31630108, -0.02661985, -0.24368657, 0.096867286, 0.05391612));
-	target1 += mul(e, float3x4(0.05631564, 0.34576723, -0.5587978, 0.16213721, 0.12679785, 0.18991663, -0.24762277, -0.33682153, -0.22863568, 0.20517963, 0.20418519, 0.12087338));
-	target1 += mul(f, float3x4(-0.17579688, 0.18395603, -0.014987654, 0.30243605, -0.12778279, -0.07003458, -0.5353068, -0.39372426, 0.2676877, 0.255503, -0.29737592, -0.30513638));
-	target1 += mul(g, float3x4(0.799834, -0.023603538, 0.19820727, -0.11204286, -0.1566225, -0.1937577, -0.030266436, -0.10107911, 0.023661222, 0.16879195, 0.046644643, 0.09485681));
-	target1 += mul(h, float3x4(-0.014675849, -0.110290475, -0.28381273, -0.06814732, 0.2067597, 0.20925248, -0.24068354, -0.5096708, -0.09384791, 0.10593733, 0.0672362, -0.06924161));
-	target1 += mul(i, float3x4(0.05908883, 0.099426664, -0.20916614, -0.17044452, -0.091960385, 0.3218613, 0.41635308, -0.36125022, -0.012630896, -0.37540653, 0.018497325, -0.100674420));
-	target1 += float4(-0.55533427, -0.05231614, -0.032685343, -0.027457517);
+	float2 inputPt = GetInputPt();
+	uint i, j;
 
-	target2 = mul(a, float3x4(0.09844753, -0.19389127, 0.029695928, 0.3805915, 0.1353029, 0.027786473, 0.15621242, 0.09383762, -0.1097243, 0.021245124, -0.016402386, 0.09129394));
-	target2 += mul(b, float3x4(0.3038283, 0.03778846, 0.1898852, 0.23949303, -0.34829387, 0.20485392, 0.60560244, 0.4089768, -0.260066, 0.42611003, 0.19227165, 0.03948586));
-	target2 += mul(c, float3x4(-0.033990905, 0.17583308, -0.2235879, 0.47376296, -0.1001787, 0.72851896, -0.056391567, -0.056544185, 0.0966166, -0.016663829, -0.15151545, -0.14227313));
-	target2 += mul(d, float3x4(-0.16544957, 0.05889452, -0.3277256, -0.42792717, 0.32491356, -0.39113912, 0.16600312, -0.3097514, 0.27907088, -0.22553465, 0.048548058, -0.08310438));
-	target2 += mul(e, float3x4(0.03992136, 0.17895368, 0.16562924, -0.536188, -0.25868654, -0.4869832, 0.2591772, -0.5191932, 0.020162001, -0.41568524, 0.4776641, 0.019298514));
-	target2 += mul(f, float3x4(0.14911795, -0.5984171, -0.18241958, 0.5472136, -0.69194865, 0.033839397, 0.13408412, 0.09503547, -0.21318413, 0.53743845, 0.080091774, -0.1369053));
-	target2 += mul(g, float3x4(-0.038978565, 0.40742934, 0.20107205, -0.3550106, 0.227634, -0.16101603, -0.45037574, 0.23192371, 0.17923234, -0.13692904, 0.10395048, 0.3124129));
-	target2 += mul(h, float3x4(-0.059144646, -0.22531863, -0.024704054, -0.20749553, 0.58086175, -0.32206532, -0.5130457, -0.14057957, 0.24317528, 0.088735096, -0.44098017, -0.16980846));
-	target2 += mul(i, float3x4(-0.30321437, 0.17502202, 0.1910563, -0.10118702, 0.1465326, 0.3852395, -0.31210947, 0.18236226, -0.23306467, -0.28551704, -0.2982589, 0.072740674));
-	target2 += float4(0.029685514, 0.066621915, 0.03600017, -0.03497038);
+	float3 src[4][4];
+	[unroll]
+	for (i = 0; i <= 2; i += 2) {
+		[unroll]
+		for (j = 0; j <= 2; j += 2) {
+			float2 tpos = (gxy + uint2(i, j)) * inputPt;
+			const float4 sr = INPUT.GatherRed(sam, tpos);
+			const float4 sg = INPUT.GatherGreen(sam, tpos);
+			const float4 sb = INPUT.GatherBlue(sam, tpos);
+
+			// w z
+			// x y
+			src[i][j] = float3(sr.w, sg.w, sb.w);
+			src[i][j + 1] = float3(sr.x, sg.x, sb.x);
+			src[i + 1][j] = float3(sr.z, sg.z, sb.z);
+			src[i + 1][j + 1] = float3(sr.y, sg.y, sb.y);
+		}
+	}
+
+	[unroll]
+	for (i = 1; i <= 2; ++i) {
+		[unroll]
+		for (j = 1; j <= 2; ++j) {
+			uint2 destPos = gxy + uint2(i - 1, j - 1);
+
+			if (i != 1 || j != 1) {
+				if (destPos.x >= inputSize.x || destPos.y >= inputSize.y) {
+					continue;
+				}
+			}
+
+			float4 target1 = mul(src[i - 1][j - 1], float3x4(-0.2676983, -0.1694746, 0.7231928, -0.050193843, 0.1850188, -0.4749505, 0.07632266, 0.17824799, 0.026348969, -0.213702, -0.16420218, -0.066780016));
+			target1 += mul(src[i - 1][j], float3x4(-0.09888135, -0.079641104, 0.51160043, 0.53629893, -0.1368544, -0.07092336, 0.18622977, 0.6388427, 0.19499005, 0.06811229, -0.31991923, 0.088302985));
+			target1 += mul(src[i - 1][j + 1], float3x4(0.06487055, -0.1591197, -0.29304126, -0.428903, 0.1966732, 0.11229865, 0.089009434, 0.23463708, -0.22231965, -0.008649182, 0.3317394, 0.10976113));
+			target1 += mul(src[i][j - 1], float3x4(0.40386826, -0.09486362, -0.058931742, -0.1341693, -0.28993917, -0.09050739, 0.28094417, 0.31630108, -0.02661985, -0.24368657, 0.096867286, 0.05391612));
+			target1 += mul(src[i][j], float3x4(0.05631564, 0.34576723, -0.5587978, 0.16213721, 0.12679785, 0.18991663, -0.24762277, -0.33682153, -0.22863568, 0.20517963, 0.20418519, 0.12087338));
+			target1 += mul(src[i][j + 1], float3x4(-0.17579688, 0.18395603, -0.014987654, 0.30243605, -0.12778279, -0.07003458, -0.5353068, -0.39372426, 0.2676877, 0.255503, -0.29737592, -0.30513638));
+			target1 += mul(src[i + 1][j - 1], float3x4(0.799834, -0.023603538, 0.19820727, -0.11204286, -0.1566225, -0.1937577, -0.030266436, -0.10107911, 0.023661222, 0.16879195, 0.046644643, 0.09485681));
+			target1 += mul(src[i + 1][j], float3x4(-0.014675849, -0.110290475, -0.28381273, -0.06814732, 0.2067597, 0.20925248, -0.24068354, -0.5096708, -0.09384791, 0.10593733, 0.0672362, -0.06924161));
+			target1 += mul(src[i + 1][j + 1], float3x4(0.05908883, 0.099426664, -0.20916614, -0.17044452, -0.091960385, 0.3218613, 0.41635308, -0.36125022, -0.012630896, -0.37540653, 0.018497325, -0.100674420));
+			target1 += float4(-0.55533427, -0.05231614, -0.032685343, -0.027457517);
+
+			float4 target2 = mul(src[i - 1][j - 1], float3x4(0.09844753, -0.19389127, 0.029695928, 0.3805915, 0.1353029, 0.027786473, 0.15621242, 0.09383762, -0.1097243, 0.021245124, -0.016402386, 0.09129394));
+			target2 += mul(src[i - 1][j], float3x4(0.3038283, 0.03778846, 0.1898852, 0.23949303, -0.34829387, 0.20485392, 0.60560244, 0.4089768, -0.260066, 0.42611003, 0.19227165, 0.03948586));
+			target2 += mul(src[i - 1][j + 1], float3x4(-0.033990905, 0.17583308, -0.2235879, 0.47376296, -0.1001787, 0.72851896, -0.056391567, -0.056544185, 0.0966166, -0.016663829, -0.15151545, -0.14227313));
+			target2 += mul(src[i][j - 1], float3x4(-0.16544957, 0.05889452, -0.3277256, -0.42792717, 0.32491356, -0.39113912, 0.16600312, -0.3097514, 0.27907088, -0.22553465, 0.048548058, -0.08310438));
+			target2 += mul(src[i][j], float3x4(0.03992136, 0.17895368, 0.16562924, -0.536188, -0.25868654, -0.4869832, 0.2591772, -0.5191932, 0.020162001, -0.41568524, 0.4776641, 0.019298514));
+			target2 += mul(src[i][j + 1], float3x4(0.14911795, -0.5984171, -0.18241958, 0.5472136, -0.69194865, 0.033839397, 0.13408412, 0.09503547, -0.21318413, 0.53743845, 0.080091774, -0.1369053));
+			target2 += mul(src[i + 1][j - 1], float3x4(-0.038978565, 0.40742934, 0.20107205, -0.3550106, 0.227634, -0.16101603, -0.45037574, 0.23192371, 0.17923234, -0.13692904, 0.10395048, 0.3124129));
+			target2 += mul(src[i + 1][j], float3x4(-0.059144646, -0.22531863, -0.024704054, -0.20749553, 0.58086175, -0.32206532, -0.5130457, -0.14057957, 0.24317528, 0.088735096, -0.44098017, -0.16980846));
+			target2 += mul(src[i + 1][j + 1], float3x4(-0.30321437, 0.17502202, 0.1910563, -0.10118702, 0.1465326, 0.3852395, -0.31210947, 0.18236226, -0.23306467, -0.28551704, -0.2982589, 0.072740674));
+			target2 += float4(0.029685514, 0.066621915, 0.03600017, -0.03497038);
+
+			tex1[destPos] = target1;
+			tex2[destPos] = target2;
+		}
+	}
 }
 
 
 //!PASS 2
-//!BIND tex1, tex2
-//!SAVE tex3, tex4
+//!DESC Conv-4x3x3x16
+//!IN tex1, tex2
+//!OUT tex3, tex4
+//!BLOCK_SIZE 8
+//!NUM_THREADS 64
 
-void Pass2(float2 pos, out float4 target1, out float4 target2) {
+void Pass2(uint2 blockStart, uint3 threadId) {
+	uint2 gxy = Rmp8x8(threadId.x) + blockStart;
+	uint2 inputSize = GetInputSize();
+	if (gxy.x >= inputSize.x || gxy.y >= inputSize.y) {
+		return;
+	}
+
+	float2 inputPt = GetInputPt();
+	float2 pos = (gxy + 0.5f) * inputPt;
+
 	// [ a, d, g ]
 	// [ b, e, h ]
 	// [ c, f, i ]
-	float4 a1 = tex1.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b1 = tex1.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c1 = tex1.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d1 = tex1.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e1 = tex1.Sample(sam, pos);
-	float4 f1 = tex1.Sample(sam, pos + float2(0, inputPtY));
-	float4 g1 = tex1.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h1 = tex1.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i1 = tex1.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a1 = tex1.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b1 = tex1.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c1 = tex1.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d1 = tex1.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e1 = tex1.SampleLevel(sam, pos, 0);
+	float4 f1 = tex1.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g1 = tex1.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h1 = tex1.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i1 = tex1.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
 	float4 na1 = max(-a1, 0);
 	float4 nb1 = max(-b1, 0);
@@ -131,15 +169,15 @@ void Pass2(float2 pos, out float4 target1, out float4 target2) {
 	h1 = max(h1, 0);
 	i1 = max(i1, 0);
 
-	float4 a2 = tex2.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b2 = tex2.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c2 = tex2.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d2 = tex2.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e2 = tex2.Sample(sam, pos);
-	float4 f2 = tex2.Sample(sam, pos + float2(0, inputPtY));
-	float4 g2 = tex2.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h2 = tex2.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i2 = tex2.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a2 = tex2.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b2 = tex2.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c2 = tex2.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d2 = tex2.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e2 = tex2.SampleLevel(sam, pos, 0);
+	float4 f2 = tex2.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g2 = tex2.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h2 = tex2.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i2 = tex2.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
 	float4 na2 = max(-a2, 0);
 	float4 nb2 = max(-b2, 0);
@@ -161,7 +199,7 @@ void Pass2(float2 pos, out float4 target1, out float4 target2) {
 	h2 = max(h2, 0);
 	i2 = max(i2, 0);
 
-	target1 = mul(a1, float4x4(0.20989326, 0.020975577, -0.005522964, -0.10013134, 0.013517254, -0.03347422, 0.40903455, 0.013940953, 0.01066957, 0.2569982, -0.018764338, -0.37931216, -0.20921241, -0.3565134, 0.1776639, 0.081515394));
+	float4 target1 = mul(a1, float4x4(0.20989326, 0.020975577, -0.005522964, -0.10013134, 0.013517254, -0.03347422, 0.40903455, 0.013940953, 0.01066957, 0.2569982, -0.018764338, -0.37931216, -0.20921241, -0.3565134, 0.1776639, 0.081515394));
 	target1 += mul(b1, float4x4(-0.2555968, -0.05024504, 0.046776827, 0.38626888, -0.21787676, 0.0013136056, -0.13391882, 0.00022813173, -0.042842478, -0.10413157, -0.008385445, -0.11843704, 0.062092766, -0.40029097, 0.31873867, -0.19030346));
 	target1 += mul(c1, float4x4(-0.19435422, -0.56006145, 0.050693467, -0.8857939, -0.0677575, -0.30498, 0.012069988, 0.026757652, -0.16890685, 0.04575225, -0.08477036, -0.018015383, 0.0002810964, 0.0772843, 0.00017034424, -0.228497));
 	target1 += mul(d1, float4x4(0.092564344, 0.061863884, -0.13135873, 0.10290956, 0.1670116, -0.08312144, -0.020718448, 0.06729496, -0.06338295, -0.09972319, 0.18505506, -0.2622095, 0.045575716, 0.12836345, -0.22356766, 0.28924033));
@@ -199,7 +237,7 @@ void Pass2(float2 pos, out float4 target1, out float4 target2) {
 	target1 += mul(ni2, float4x4(-0.09518274, 0.036228243, -0.2145168, 0.090918355, -0.20793489, 0.19843313, 0.06701371, -0.11499378, -0.033398125, -0.020169621, 0.057314273, 0.0027613493, -0.11993404, 0.12495525, -0.0151242195, 0.1896457));
 	target1 += float4(-0.045150407, -0.034128085, 0.10230384, 0.074793644);
 
-	target2 = mul(a1, float4x4(0.10541986, -0.27021417, 0.30589217, -0.06793019, 0.0712113, -0.5818028, -0.09057832, 0.009519015, -0.07754299, 0.009050975, -0.08283811, -0.078837596, -0.008200866, 0.53291875, 0.22918138, 0.09433025));
+	float4 target2 = mul(a1, float4x4(0.10541986, -0.27021417, 0.30589217, -0.06793019, 0.0712113, -0.5818028, -0.09057832, 0.009519015, -0.07754299, 0.009050975, -0.08283811, -0.078837596, -0.008200866, 0.53291875, 0.22918138, 0.09433025));
 	target2 += mul(b1, float4x4(0.35867104, 0.17056245, 0.28573632, 0.45787787, 0.054377224, 0.30656826, -0.13864343, 0.13956884, -0.052365527, -0.17660435, -0.14363506, -0.11313267, -0.15472592, -0.011637987, 0.3057005, 0.40122506));
 	target2 += mul(c1, float4x4(-0.42738816, -0.13046122, -0.4223082, 0.32663476, -0.14648326, 0.056164477, 0.09366789, -0.046335716, 0.00401621, -0.008206323, -0.075975314, 0.046879925, 0.04891574, 0.08912198, 0.32541895, 0.014354832));
 	target2 += mul(d1, float4x4(0.105501, -0.06999185, -0.023181506, 0.13587391, -0.10643463, 0.061667755, 0.24508677, 0.33984032, -0.1698376, -0.05051473, -0.29430416, -0.06635265, -0.031917162, 0.046488285, 0.17973569, -0.025048103));
@@ -236,26 +274,41 @@ void Pass2(float2 pos, out float4 target1, out float4 target2) {
 	target2 += mul(nh2, float4x4(0.16019078, -0.20631735, -0.018190302, 0.0647328, -0.04840569, 0.083106056, -0.13247506, -0.2112572, -0.10423932, -0.12388437, 0.1951962, 0.15236832, -0.075027406, -0.12183809, -0.07161853, -0.24558437));
 	target2 += mul(ni2, float4x4(-0.06832158, 0.06699966, -0.17887384, 0.025053928, 0.22054252, -0.03332688, -0.089027286, -0.0743864, -0.019737093, 0.1890527, 0.3194981, -0.014847898, 0.0616053, -0.046331815, -0.013838972, -0.19598661));
 	target2 += float4(0.0031252617, 0.028414045, -0.018389644, 0.011216021);
+
+	tex3[gxy] = target1;
+	tex4[gxy] = target2;
 }
 
 
 //!PASS 3
-//!BIND tex3, tex4
-//!SAVE tex1, tex2
+//!DESC Conv-4x3x3x16
+//!IN tex3, tex4
+//!OUT tex1, tex2
+//!BLOCK_SIZE 8
+//!NUM_THREADS 64
 
-void Pass3(float2 pos, out float4 target1, out float4 target2) {
+void Pass3(uint2 blockStart, uint3 threadId) {
+	uint2 gxy = Rmp8x8(threadId.x) + blockStart;
+	uint2 inputSize = GetInputSize();
+	if (gxy.x >= inputSize.x || gxy.y >= inputSize.y) {
+		return;
+	}
+
+	float2 inputPt = GetInputPt();
+	float2 pos = (gxy + 0.5f) * inputPt;
+
 	// [ a, d, g ]
 	// [ b, e, h ]
 	// [ c, f, i ]
-	float4 a1 = tex3.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b1 = tex3.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c1 = tex3.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d1 = tex3.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e1 = tex3.Sample(sam, pos);
-	float4 f1 = tex3.Sample(sam, pos + float2(0, inputPtY));
-	float4 g1 = tex3.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h1 = tex3.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i1 = tex3.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a1 = tex3.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b1 = tex3.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c1 = tex3.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d1 = tex3.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e1 = tex3.SampleLevel(sam, pos, 0);
+	float4 f1 = tex3.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g1 = tex3.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h1 = tex3.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i1 = tex3.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
 	float4 na1 = max(-a1, 0);
 	float4 nb1 = max(-b1, 0);
@@ -277,15 +330,15 @@ void Pass3(float2 pos, out float4 target1, out float4 target2) {
 	h1 = max(h1, 0);
 	i1 = max(i1, 0);
 
-	float4 a2 = tex4.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b2 = tex4.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c2 = tex4.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d2 = tex4.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e2 = tex4.Sample(sam, pos);
-	float4 f2 = tex4.Sample(sam, pos + float2(0, inputPtY));
-	float4 g2 = tex4.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h2 = tex4.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i2 = tex4.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a2 = tex4.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b2 = tex4.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c2 = tex4.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d2 = tex4.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e2 = tex4.SampleLevel(sam, pos, 0);
+	float4 f2 = tex4.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g2 = tex4.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h2 = tex4.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i2 = tex4.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
 	float4 na2 = max(-a2, 0);
 	float4 nb2 = max(-b2, 0);
@@ -307,7 +360,7 @@ void Pass3(float2 pos, out float4 target1, out float4 target2) {
 	h2 = max(h2, 0);
 	i2 = max(i2, 0);
 
-	target1 = mul(a1, float4x4(0.1156422, 0.13656664, 0.23103227, -0.09881847, -0.13118152, 0.063764885, -0.1902535, 0.12580052, -0.057555363, 0.0015611092, 0.009383415, 0.0028447553, -0.12577637, 0.06707094, 0.05323591, 0.087465174));
+	float4 target1 = mul(a1, float4x4(0.1156422, 0.13656664, 0.23103227, -0.09881847, -0.13118152, 0.063764885, -0.1902535, 0.12580052, -0.057555363, 0.0015611092, 0.009383415, 0.0028447553, -0.12577637, 0.06707094, 0.05323591, 0.087465174));
 	target1 += mul(b1, float4x4(0.023715734, 0.15901619, 0.010465818, -0.05401794, 0.12822664, -0.079860024, -0.107430205, -0.09094713, 0.11440009, -0.069189526, 0.1377121, -0.02780827, -0.2594948, -0.008447683, -0.052618783, 0.0995311));
 	target1 += mul(c1, float4x4(0.014655754, 0.0976315, -0.10425098, 0.06731683, -0.07336922, -0.09931748, -0.074338034, 0.014602733, 0.0761052, -0.14147633, 0.057346404, -0.10485628, 0.008160006, -0.14553718, -0.14069714, -0.106754564));
 	target1 += mul(d1, float4x4(-0.18000032, 0.2654082, 0.07008131, -0.21326934, -0.11475177, 0.110427424, -0.09757059, -0.068473235, 0.14004572, -0.1257574, -0.18653339, -0.0546973, -0.04573617, 0.0062926346, -0.111400455, 0.20940857));
@@ -345,7 +398,7 @@ void Pass3(float2 pos, out float4 target1, out float4 target2) {
 	target1 += mul(ni2, float4x4(0.023911275, -0.03754323, 0.17444386, 0.08616114, 0.21406639, -0.15029684, 0.09355591, -0.2486941, 0.11913366, -0.16174106, -0.10907662, 0.107935205, -0.20745984, -0.06180981, -0.019558005, -0.24215329));
 	target1 += float4(-0.16255508, -0.041602854, 0.09628627, 0.12747966);
 
-	target2 = mul(a1, float4x4(0.14002717, 0.058876935, 0.20110254, 0.08939276, 0.03416418, 0.0011943586, 0.042772148, -0.00071322336, -0.115944035, 0.04220234, -0.34941152, -0.01974448, -0.0860279, 0.062355816, -0.023853427, 0.02757322));
+	float4 target2 = mul(a1, float4x4(0.14002717, 0.058876935, 0.20110254, 0.08939276, 0.03416418, 0.0011943586, 0.042772148, -0.00071322336, -0.115944035, 0.04220234, -0.34941152, -0.01974448, -0.0860279, 0.062355816, -0.023853427, 0.02757322));
 	target2 += mul(b1, float4x4(0.07400734, 0.19251242, 0.22637455, -0.12530822, -0.17724502, -0.022523593, -0.15113536, 0.065425, 0.101782374, -0.014717139, -0.098752305, 0.080687046, -0.1023507, 0.019614108, 0.01754361, 0.017383952));
 	target2 += mul(c1, float4x4(-0.044900224, -0.04213899, 0.0073328684, 0.16705592, -0.051043745, -0.115500204, -0.07567362, 0.07818187, 0.26050508, 0.20679274, 0.04177571, 0.059024576, -0.12510507, -0.051585447, -0.007354538, 0.041514263));
 	target2 += mul(d1, float4x4(0.19596866, -0.085393354, 0.03522195, 0.070734546, -0.10047298, 0.033123884, -0.030003218, -0.060309574, 0.11121212, 0.038920198, -0.09097313, 0.020515997, 0.082481235, 0.08472773, -0.007372676, 0.020294813));
@@ -382,26 +435,41 @@ void Pass3(float2 pos, out float4 target1, out float4 target2) {
 	target2 += mul(nh2, float4x4(0.118060954, -0.24267668, -0.0098548755, -0.04774737, -8.479728e-05, 0.11292645, -0.05507332, -0.20990159, -0.16743746, -0.17963362, -0.14095132, 0.19843975, -0.032164577, -0.21628135, -0.12668937, -0.008645119));
 	target2 += mul(ni2, float4x4(0.11424831, -0.19821498, 0.016948126, 0.0033053497, 0.24253003, 0.24522384, -0.13992928, 0.08576702, -0.15157521, -0.08158828, 0.07676344, -0.08844756, -0.02293248, -0.052961793, 0.08597288, -0.07834255));
 	target2 += float4(-0.07366732, -0.06278686, 0.11547288, -0.04786791);
+
+	tex1[gxy] = target1;
+	tex2[gxy] = target2;
 }
 
 
 //!PASS 4
-//!BIND tex1, tex2
-//!SAVE tex3, tex4
+//!DESC Conv-4x3x3x16
+//!IN tex1, tex2
+//!OUT tex3, tex4
+//!BLOCK_SIZE 8
+//!NUM_THREADS 64
 
-void Pass4(float2 pos, out float4 target1, out float4 target2) {
+void Pass4(uint2 blockStart, uint3 threadId) {
+	uint2 gxy = Rmp8x8(threadId.x) + blockStart;
+	uint2 inputSize = GetInputSize();
+	if (gxy.x >= inputSize.x || gxy.y >= inputSize.y) {
+		return;
+	}
+
+	float2 inputPt = GetInputPt();
+	float2 pos = (gxy + 0.5f) * inputPt;
+
 	// [ a, d, g ]
 	// [ b, e, h ]
 	// [ c, f, i ]
-	float4 a1 = tex1.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b1 = tex1.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c1 = tex1.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d1 = tex1.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e1 = tex1.Sample(sam, pos);
-	float4 f1 = tex1.Sample(sam, pos + float2(0, inputPtY));
-	float4 g1 = tex1.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h1 = tex1.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i1 = tex1.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a1 = tex1.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b1 = tex1.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c1 = tex1.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d1 = tex1.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e1 = tex1.SampleLevel(sam, pos, 0);
+	float4 f1 = tex1.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g1 = tex1.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h1 = tex1.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i1 = tex1.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
 	float4 na1 = max(-a1, 0);
 	float4 nb1 = max(-b1, 0);
@@ -423,15 +491,15 @@ void Pass4(float2 pos, out float4 target1, out float4 target2) {
 	h1 = max(h1, 0);
 	i1 = max(i1, 0);
 
-	float4 a2 = tex2.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b2 = tex2.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c2 = tex2.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d2 = tex2.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e2 = tex2.Sample(sam, pos);
-	float4 f2 = tex2.Sample(sam, pos + float2(0, inputPtY));
-	float4 g2 = tex2.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h2 = tex2.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i2 = tex2.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a2 = tex2.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b2 = tex2.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c2 = tex2.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d2 = tex2.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e2 = tex2.SampleLevel(sam, pos, 0);
+	float4 f2 = tex2.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g2 = tex2.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h2 = tex2.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i2 = tex2.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
 	float4 na2 = max(-a2, 0);
 	float4 nb2 = max(-b2, 0);
@@ -453,7 +521,7 @@ void Pass4(float2 pos, out float4 target1, out float4 target2) {
 	h2 = max(h2, 0);
 	i2 = max(i2, 0);
 
-	target1 = mul(a1, float4x4(0.012843345, 0.047590222, 0.0052741203, 0.017328946, 0.06774971, -0.028615275, 0.030839639, 0.053735327, -0.093057916, 0.08288735, 0.02991863, -0.040167376, 0.11699043, 0.062987246, 0.038180597, 0.11130321));
+	float4 target1 = mul(a1, float4x4(0.012843345, 0.047590222, 0.0052741203, 0.017328946, 0.06774971, -0.028615275, 0.030839639, 0.053735327, -0.093057916, 0.08288735, 0.02991863, -0.040167376, 0.11699043, 0.062987246, 0.038180597, 0.11130321));
 	target1 += mul(b1, float4x4(0.047898952, 0.013089616, 0.13206771, 0.053474475, -0.24849094, -0.13717765, -0.14899106, 0.032647215, -0.111574546, -0.017941473, 0.017136412, -0.04121033, 0.04825172, -0.07243479, -0.30205736, -0.009043054));
 	target1 += mul(c1, float4x4(-0.006104078, -0.056147296, -0.05430816, -0.012150009, -0.12583707, -0.06810525, -0.18965304, -0.03767409, 0.038220566, 0.12901759, 0.14772348, -0.011318772, 0.10613474, -0.011039028, -0.017407915, -0.035597485));
 	target1 += mul(d1, float4x4(0.070510425, 0.07079898, 0.063229784, 0.12203576, -0.08330366, 0.14733653, 0.1879776, 0.038365003, -0.112844236, 0.039776023, 0.1109856, -0.013311713, -0.039772045, 0.055393253, 0.13704132, -0.017909162));
@@ -491,7 +559,7 @@ void Pass4(float2 pos, out float4 target1, out float4 target2) {
 	target1 += mul(ni2, float4x4(-0.01343636, -0.015147329, -0.12101166, 0.04787181, 0.088516094, -0.0716172, 0.012281597, -0.01175244, -0.036102388, -0.16996604, 0.0068835146, 0.16938321, -0.019361602, -0.07008898, -0.111906745, -0.008676077));
 	target1 += float4(0.03128986, -0.070663765, -0.056307543, -0.043389197);
 
-	target2 = mul(a1, float4x4(-0.010251427, -0.045750465, 0.016315231, -0.008768869, 0.017431414, 0.080067836, 0.025827147, 0.10838066, 0.0024869177, -0.034495536, 0.09772538, 0.07213915, 0.016637174, 0.040788822, -0.022752339, 0.10970543));
+	float4 target2 = mul(a1, float4x4(-0.010251427, -0.045750465, 0.016315231, -0.008768869, 0.017431414, 0.080067836, 0.025827147, 0.10838066, 0.0024869177, -0.034495536, 0.09772538, 0.07213915, 0.016637174, 0.040788822, -0.022752339, 0.10970543));
 	target2 += mul(b1, float4x4(0.11526194, 0.09676918, -0.04237834, -0.2271947, 0.12261753, -0.24500768, 0.10468346, 0.13780572, -0.009849901, 0.023189532, 0.0011982447, 0.04185303, 0.045187697, 0.06505389, 0.096869685, -0.1784324));
 	target2 += mul(c1, float4x4(0.04672689, 0.13536161, -0.1818021, -0.20668268, 0.07533596, -0.032177944, -0.024819814, 0.036118865, 0.012960037, -0.04256549, 0.03154665, 0.10697645, 0.0455828, 0.15624708, 0.0880299, -0.044446476));
 	target2 += mul(d1, float4x4(-0.03187084, -0.04798656, 0.05435525, -0.060023244, -0.02988392, -0.13252808, -0.13699181, -0.013882888, 0.052836955, -0.051288467, -0.048392758, -0.02818318, -0.045959223, -0.0385304, -0.113381095, 0.048340388));
@@ -528,75 +596,92 @@ void Pass4(float2 pos, out float4 target1, out float4 target2) {
 	target2 += mul(nh2, float4x4(-0.06388332, 0.0813248, 0.1583895, -0.17604364, 0.02474024, 0.09227594, -0.07166613, -0.046409506, -0.20977338, 0.058364637, -0.014288648, 0.23180534, -0.03359222, 0.03962627, -0.011652336, 0.08433068));
 	target2 += mul(ni2, float4x4(-0.05829235, -0.026256828, 0.051615473, -0.082805336, 0.06738748, -0.093329325, -0.03197624, 0.067339435, -0.06104219, 0.119381785, 0.10763423, -0.31583574, 0.003745323, 0.14953502, -0.009772352, -0.05511591));
 	target2 += float4(-0.014193535, -0.035853464, -0.0019574068, 0.035060503);
+
+	tex3[gxy] = target1;
+	tex4[gxy] = target2;
 }
 
 
 //!PASS 5
-//!BIND INPUT, tex3, tex4
+//!DESC Conv-3x3x3x16
+//!IN INPUT, tex3, tex4
+//!OUT OUTPUT
+//!BLOCK_SIZE 8
+//!NUM_THREADS 64
 
-float4 Pass5(float2 pos) {
+void Pass5(uint2 blockStart, uint3 threadId) {
+	uint2 gxy = Rmp8x8(threadId.x) + blockStart;
+	
+	const uint2 outputSize = GetOutputSize();
+	if (gxy.x >= outputSize.x || gxy.y >= outputSize.y) {
+		return;
+	}
+
+	float2 inputPt = GetInputPt();
+	float2 pos = (gxy + 0.5f) * inputPt;
+
 	// [ a, d, g ]
 	// [ b, e, h ]
 	// [ c, f, i ]
-	float4 a1 = tex3.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b1 = tex3.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c1 = tex3.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d1 = tex3.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e1 = tex3.Sample(sam, pos);
-	float4 f1 = tex3.Sample(sam, pos + float2(0, inputPtY));
-	float4 g1 = tex3.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h1 = tex3.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i1 = tex3.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a1 = tex3.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b1 = tex3.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c1 = tex3.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d1 = tex3.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e1 = tex3.SampleLevel(sam, pos, 0);
+	float4 f1 = tex3.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g1 = tex3.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h1 = tex3.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i1 = tex3.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
-	float4 a2 = tex4.Sample(sam, pos + float2(-inputPtX, -inputPtY));
-	float4 b2 = tex4.Sample(sam, pos + float2(-inputPtX, 0));
-	float4 c2 = tex4.Sample(sam, pos + float2(-inputPtX, inputPtY));
-	float4 d2 = tex4.Sample(sam, pos + float2(0, -inputPtY));
-	float4 e2 = tex4.Sample(sam, pos);
-	float4 f2 = tex4.Sample(sam, pos + float2(0, inputPtY));
-	float4 g2 = tex4.Sample(sam, pos + float2(inputPtX, -inputPtY));
-	float4 h2 = tex4.Sample(sam, pos + float2(inputPtX, 0));
-	float4 i2 = tex4.Sample(sam, pos + float2(inputPtX, inputPtY));
+	float4 a2 = tex4.SampleLevel(sam, pos + float2(-inputPt.x, -inputPt.y), 0);
+	float4 b2 = tex4.SampleLevel(sam, pos + float2(-inputPt.x, 0), 0);
+	float4 c2 = tex4.SampleLevel(sam, pos + float2(-inputPt.x, inputPt.y), 0);
+	float4 d2 = tex4.SampleLevel(sam, pos + float2(0, -inputPt.y), 0);
+	float4 e2 = tex4.SampleLevel(sam, pos, 0);
+	float4 f2 = tex4.SampleLevel(sam, pos + float2(0, inputPt.y), 0);
+	float4 g2 = tex4.SampleLevel(sam, pos + float2(inputPt.x, -inputPt.y), 0);
+	float4 h2 = tex4.SampleLevel(sam, pos + float2(inputPt.x, 0), 0);
+	float4 i2 = tex4.SampleLevel(sam, pos + float2(inputPt.x, inputPt.y), 0);
 
-	float4 result = mul(max(a1, 0), float4x4(-0.01858372, 0.017144108, 0.02794388, 0.0, 0.0129101565, -0.0073674284, -0.011766938, 0.0, 0.01970984, 0.01209068, 0.009530311, 0.0, -0.009190449, -0.006996753, -0.0038750458, 0.0));
-	result += mul(max(b1, 0), float4x4(0.15856947, 0.10162126, 0.08489005, 0.0, 0.038381726, -0.017771017, -0.03226132, 0.0, -0.011787879, -0.0152445, -0.007564454, 0.0, 0.055921376, 0.08389841, 0.08452836, 0.0));
-	result += mul(max(c1, 0), float4x4(0.026705442, -0.0070655374, -0.018199183, 0.0, 0.016254421, -0.025398912, -0.03461042, 0.0, 0.03950644, 0.06586101, 0.0707467, 0.0, -0.03793455, -0.04957139, -0.04777402, 0.0));
-	result += mul(max(d1, 0), float4x4(-0.115341224, -0.04463122, -0.016549354, 0.0, -0.059433736, -0.04303295, -0.042805545, 0.0, 0.010830498, -0.011057443, -0.0141014, 0.0, 0.067396216, 0.06553637, 0.06705378, 0.0));
-	result += mul(max(e1, 0), float4x4(-0.12767975, -0.19935511, -0.20109995, 0.0, 0.11554901, 0.11426503, 0.11161185, 0.0, -0.22092125, -0.22041021, -0.2142712, 0.0, -0.06326996, -0.061314825, -0.059039716, 0.0));
-	result += mul(max(f1, 0), float4x4(0.007717391, -0.046238754, -0.056983955, 0.0, 0.021419598, 0.0036924274, -0.00033630748, 0.0, 0.053556852, 0.0824714, 0.08295022, 0.0, -0.09881205, -0.043157153, -0.040801782, 0.0));
-	result += mul(max(g1, 0), float4x4(0.0052828738, 0.049702674, 0.056108, 0.0, 0.009478552, 0.010345037, 0.0094180945, 0.0, -0.010412882, 0.0006965096, 0.0021917222, 0.0, -0.010701383, -0.023212843, -0.024252625, 0.0));
-	result += mul(max(h1, 0), float4x4(0.07542127, 0.0739301, 0.06642962, 0.0, -0.08054489, -0.037553925, -0.026762033, 0.0, 0.09727509, 0.102272816, 0.097533874, 0.0, 0.01325714, -0.004582272, -0.006647532, 0.0));
-	result += mul(max(i1, 0), float4x4(0.03005975, 0.017012767, 0.007840201, 0.0, -0.028650383, -0.0019064787, 0.01083078, 0.0, -0.071352504, -0.019919744, -0.008299795, 0.0, 0.023253804, 0.042413715, 0.04681489, 0.0));
-	result += mul(max(a2, 0), float4x4(-0.052201163, -0.021727808, -0.020888992, 0.0, 0.008365179, -0.016546093, -0.0111018475, 0.0, -0.06236095, -0.019278256, -0.021443967, 0.0, 0.0029381379, -0.0033039588, -0.006425339, 0.0));
-	result += mul(max(b2, 0), float4x4(0.02397296, -0.041659098, -0.050882675, 0.0, -0.013487, 0.0067506596, 0.005435185, 0.0, 0.066447854, 0.13331215, 0.13754861, 0.0, 0.028300207, -0.0048033795, -0.010058485, 0.0));
-	result += mul(max(c2, 0), float4x4(0.08140248, 0.018564016, 0.0036607496, 0.0, -0.0112075955, 0.0022339798, 0.0045722146, 0.0, -0.045716517, -0.0076076477, -0.0016939791, 0.0, -0.030486025, -0.07539711, -0.07185734, 0.0));
-	result += mul(max(d2, 0), float4x4(-0.0155724995, 0.048904862, 0.059412133, 0.0, -0.013894624, -0.0061430936, -0.011662488, 0.0, -0.0052947477, -0.0176474, -0.018611705, 0.0, 0.022075793, 0.031703226, 0.026735537, 0.0));
-	result += mul(max(e2, 0), float4x4(-0.18287502, -0.18703277, -0.18331653, 0.0, -0.08616293, -0.011741755, -0.009296464, 0.0, -0.054274965, 0.016794622, 0.022522328, 0.0, 0.06965258, 0.08260611, 0.08285337, 0.0));
-	result += mul(max(f2, 0), float4x4(0.08107809, 0.0336241, 0.025449684, 0.0, -0.031931, 0.01179566, 0.019694995, 0.0, 0.025930194, 0.042288166, 0.04673656, 0.0, -0.14357394, -0.11003491, -0.094090074, 0.0));
-	result += mul(max(g2, 0), float4x4(0.007188181, 0.050626095, 0.050705966, 0.0, -0.008030409, -0.018670242, -0.019766346, 0.0, 0.014874803, -0.03657919, -0.034044486, 0.0, -0.011178416, -0.004358302, -0.013611815, 0.0));
-	result += mul(max(h2, 0), float4x4(0.07987872, 0.11399873, 0.12089382, 0.0, -0.01514355, 0.0068139364, 0.010206274, 0.0, -0.0005701044, -0.011158322, 0.006484812, 0.0, 0.002018227, 0.043359682, 0.042987905, 0.0));
-	result += mul(max(i2, 0), float4x4(0.0017806455, -0.0015697709, -0.0018252691, 0.0, 0.0058658062, 0.021681193, 0.028615465, 0.0, -0.054827355, -0.04541651, -0.027485048, 0.0, -0.017649114, 0.017717479, 0.027309911, 0.0));
-	result += mul(max(-a1, 0), float4x4(0.02555098, -0.0028983613, -0.005134733, 0.0, -0.0029332284, 0.015552135, 0.022189403, 0.0, -0.019786593, -0.0031676649, -0.0014604586, 0.0, 0.06648065, 0.0672302, 0.04586375, 0.0));
-	result += mul(max(-b1, 0), float4x4(-0.06674696, 0.002328631, 0.014039355, 0.0, -0.03636718, 0.014560653, 0.028076636, 0.0, 0.042305287, 0.015249338, 0.0136925895, 0.0, 0.033586804, 0.00701501, -0.011588751, 0.0));
-	result += mul(max(-c1, 0), float4x4(-0.039022632, 0.015240631, 0.02699061, 0.0, -0.02614261, 0.0051843156, 0.012590042, 0.0, 0.015304643, -0.022641543, -0.030434309, 0.0, 0.016862666, 0.020819275, 0.022333218, 0.0));
-	result += mul(max(-d1, 0), float4x4(0.08056982, 0.026592938, 0.009744146, 0.0, 0.08762212, 0.10150359, 0.09662005, 0.0, -0.044551965, -0.016349116, -0.014629014, 0.0, -0.014341297, -0.030914815, -0.038747486, 0.0));
-	result += mul(max(-e1, 0), float4x4(-0.048734166, 0.019775594, 0.03124684, 0.0, -0.2345022, -0.23639877, -0.22958128, 0.0, 0.12412277, 0.10245112, 0.10389806, 0.0, -0.0030797734, -0.01989389, -0.02020691, 0.0));
-	result += mul(max(-f1, 0), float4x4(-0.0133485105, 0.029644802, 0.041630358, 0.0, 0.041081797, 0.059993293, 0.060033485, 0.0, -0.02155099, -0.035306025, -0.03838472, 0.0, 0.017466968, -0.01866363, -0.004764589, 0.0));
-	result += mul(max(-g1, 0), float4x4(0.0030783121, -0.04064586, -0.04504904, 0.0, -0.023528632, -0.029308239, -0.022441925, 0.0, 0.020095564, 0.018979732, 0.015117934, 0.0, 0.008429918, 0.021180628, 0.020137152, 0.0));
-	result += mul(max(-h1, 0), float4x4(0.0012200709, 0.013313984, 0.014122978, 0.0, 0.08750284, 0.038747437, 0.027102578, 0.0, -0.09627132, -0.09706183, -0.09405641, 0.0, -0.05180081, -0.03555434, -0.021694236, 0.0));
-	result += mul(max(-i1, 0), float4x4(-0.022396728, -0.018316073, -0.01250564, 0.0, 0.045423746, 0.025315331, 0.010639915, 0.0, 0.05618814, 0.022210265, 0.014195103, 0.0, -0.014828652, -0.010245087, 0.0020570823, 0.0));
-	result += mul(max(-a2, 0), float4x4(0.046651457, 0.001333767, -0.003572458, 0.0, -0.0077845114, -0.012861641, -0.015116351, 0.0, 0.01338984, 0.029198132, 0.026183384, 0.0, 0.0014878022, 0.020025207, 0.024829973, 0.0));
-	result += mul(max(-b2, 0), float4x4(-0.09506711, -0.06541528, -0.051106647, 0.0, 0.02552611, 0.01181497, 0.0020236392, 0.0, 0.03234602, -0.03153924, -0.035502207, 0.0, -0.034516744, 0.00018784113, 0.0085376045, 0.0));
-	result += mul(max(-c2, 0), float4x4(-0.05945615, -0.0046793907, 0.011128929, 0.0, -0.0061961384, -0.0040663416, -0.010319631, 0.0, 0.044197917, -0.033448357, -0.04109943, 0.0, -0.04109929, 0.006773195, 0.016976412, 0.0));
-	result += mul(max(-d2, 0), float4x4(0.02855516, -0.033051047, -0.04864978, 0.0, -0.06393814, -0.082921155, -0.0730681, 0.0, -0.058905125, -0.038639963, -0.027698845, 0.0, -0.013616608, -0.007876684, -0.006182652, 0.0));
-	result += mul(max(-e2, 0), float4x4(0.15423118, 0.14667909, 0.14534634, 0.0, 0.1485341, 0.096721016, 0.0820024, 0.0, 0.1263968, 0.088775866, 0.083860956, 0.0, 0.04213644, 0.020989005, 0.010447147, 0.0));
-	result += mul(max(-f2, 0), float4x4(-0.068275765, -0.018390667, -0.011452603, 0.0, 0.03738383, 0.019398715, 0.005998161, 0.0, -0.0011161854, -0.039955888, -0.04444185, 0.0, 0.052985556, 0.017621813, 0.009551621, 0.0));
-	result += mul(max(-g2, 0), float4x4(0.01387326, -0.0033411914, -0.009420935, 0.0, -0.034494568, -0.019219222, -0.009562797, 0.0, 0.0074023325, 0.022065453, 0.027121471, 0.0, 0.00019609048, -0.0042242454, 2.0403608e-05, 0.0));
-	result += mul(max(-h2, 0), float4x4(-0.015793918, -0.024342488, -0.037188973, 0.0, 0.004534637, -0.025236975, -0.028567247, 0.0, -0.055682972, -0.054670315, -0.06584981, 0.0, 0.043045517, -0.0075941198, -0.014196169, 0.0));
-	result += mul(max(-i2, 0), float4x4(0.0132598495, 0.01775289, 0.017206183, 0.0, 0.010604703, -0.007352816, -0.017301153, 0.0, 0.030967329, 0.027615465, 0.0145311365, 0.0, 0.008636854, -0.033379406, -0.042725433, 0.0));
-	result += float4(-0.0056639817, -0.0017339308, -0.0011913306, 0.0);
+	float3 result = mul(max(a1, 0), float4x3(-0.01858372, 0.017144108, 0.02794388, 0.0129101565, -0.0073674284, -0.011766938, 0.01970984, 0.01209068, 0.009530311, -0.009190449, -0.006996753, -0.0038750458));
+	result += mul(max(b1, 0), float4x3(0.15856947, 0.10162126, 0.08489005, 0.038381726, -0.017771017, -0.03226132, -0.011787879, -0.0152445, -0.007564454, 0.055921376, 0.08389841, 0.08452836));
+	result += mul(max(c1, 0), float4x3(0.026705442, -0.0070655374, -0.018199183, 0.016254421, -0.025398912, -0.03461042, 0.03950644, 0.06586101, 0.0707467, -0.03793455, -0.04957139, -0.04777402));
+	result += mul(max(d1, 0), float4x3(-0.115341224, -0.04463122, -0.016549354, -0.059433736, -0.04303295, -0.042805545, 0.010830498, -0.011057443, -0.0141014, 0.067396216, 0.06553637, 0.06705378));
+	result += mul(max(e1, 0), float4x3(-0.12767975, -0.19935511, -0.20109995, 0.11554901, 0.11426503, 0.11161185, -0.22092125, -0.22041021, -0.2142712, -0.06326996, -0.061314825, -0.059039716));
+	result += mul(max(f1, 0), float4x3(0.007717391, -0.046238754, -0.056983955, 0.021419598, 0.0036924274, -0.00033630748, 0.053556852, 0.0824714, 0.08295022, -0.09881205, -0.043157153, -0.040801782));
+	result += mul(max(g1, 0), float4x3(0.0052828738, 0.049702674, 0.056108, 0.009478552, 0.010345037, 0.0094180945, -0.010412882, 0.0006965096, 0.0021917222, -0.010701383, -0.023212843, -0.024252625));
+	result += mul(max(h1, 0), float4x3(0.07542127, 0.0739301, 0.06642962, -0.08054489, -0.037553925, -0.026762033, 0.09727509, 0.102272816, 0.097533874, 0.01325714, -0.004582272, -0.006647532));
+	result += mul(max(i1, 0), float4x3(0.03005975, 0.017012767, 0.007840201, -0.028650383, -0.0019064787, 0.01083078, -0.071352504, -0.019919744, -0.008299795, 0.023253804, 0.042413715, 0.04681489));
+	result += mul(max(a2, 0), float4x3(-0.052201163, -0.021727808, -0.020888992, 0.008365179, -0.016546093, -0.0111018475, -0.06236095, -0.019278256, -0.021443967, 0.0029381379, -0.0033039588, -0.006425339));
+	result += mul(max(b2, 0), float4x3(0.02397296, -0.041659098, -0.050882675, -0.013487, 0.0067506596, 0.005435185, 0.066447854, 0.13331215, 0.13754861, 0.028300207, -0.0048033795, -0.010058485));
+	result += mul(max(c2, 0), float4x3(0.08140248, 0.018564016, 0.0036607496, -0.0112075955, 0.0022339798, 0.0045722146, -0.045716517, -0.0076076477, -0.0016939791, -0.030486025, -0.07539711, -0.07185734));
+	result += mul(max(d2, 0), float4x3(-0.0155724995, 0.048904862, 0.059412133, -0.013894624, -0.0061430936, -0.011662488, -0.0052947477, -0.0176474, -0.018611705, 0.022075793, 0.031703226, 0.026735537));
+	result += mul(max(e2, 0), float4x3(-0.18287502, -0.18703277, -0.18331653, -0.08616293, -0.011741755, -0.009296464, -0.054274965, 0.016794622, 0.022522328, 0.06965258, 0.08260611, 0.08285337));
+	result += mul(max(f2, 0), float4x3(0.08107809, 0.0336241, 0.025449684, -0.031931, 0.01179566, 0.019694995, 0.025930194, 0.042288166, 0.04673656, -0.14357394, -0.11003491, -0.094090074));
+	result += mul(max(g2, 0), float4x3(0.007188181, 0.050626095, 0.050705966, -0.008030409, -0.018670242, -0.019766346, 0.014874803, -0.03657919, -0.034044486, -0.011178416, -0.004358302, -0.013611815));
+	result += mul(max(h2, 0), float4x3(0.07987872, 0.11399873, 0.12089382, -0.01514355, 0.0068139364, 0.010206274, -0.0005701044, -0.011158322, 0.006484812, 0.002018227, 0.043359682, 0.042987905));
+	result += mul(max(i2, 0), float4x3(0.0017806455, -0.0015697709, -0.0018252691, 0.0058658062, 0.021681193, 0.028615465, -0.054827355, -0.04541651, -0.027485048, -0.017649114, 0.017717479, 0.027309911));
+	result += mul(max(-a1, 0), float4x3(0.02555098, -0.0028983613, -0.005134733, -0.0029332284, 0.015552135, 0.022189403, -0.019786593, -0.0031676649, -0.0014604586, 0.06648065, 0.0672302, 0.04586375));
+	result += mul(max(-b1, 0), float4x3(-0.06674696, 0.002328631, 0.014039355, -0.03636718, 0.014560653, 0.028076636, 0.042305287, 0.015249338, 0.0136925895, 0.033586804, 0.00701501, -0.011588751));
+	result += mul(max(-c1, 0), float4x3(-0.039022632, 0.015240631, 0.02699061, -0.02614261, 0.0051843156, 0.012590042, 0.015304643, -0.022641543, -0.030434309, 0.016862666, 0.020819275, 0.022333218));
+	result += mul(max(-d1, 0), float4x3(0.08056982, 0.026592938, 0.009744146, 0.08762212, 0.10150359, 0.09662005, -0.044551965, -0.016349116, -0.014629014, -0.014341297, -0.030914815, -0.038747486));
+	result += mul(max(-e1, 0), float4x3(-0.048734166, 0.019775594, 0.03124684, -0.2345022, -0.23639877, -0.22958128, 0.12412277, 0.10245112, 0.10389806, -0.0030797734, -0.01989389, -0.02020691));
+	result += mul(max(-f1, 0), float4x3(-0.0133485105, 0.029644802, 0.041630358, 0.041081797, 0.059993293, 0.060033485, -0.02155099, -0.035306025, -0.03838472, 0.017466968, -0.01866363, -0.004764589));
+	result += mul(max(-g1, 0), float4x3(0.0030783121, -0.04064586, -0.04504904, -0.023528632, -0.029308239, -0.022441925, 0.020095564, 0.018979732, 0.015117934, 0.008429918, 0.021180628, 0.020137152));
+	result += mul(max(-h1, 0), float4x3(0.0012200709, 0.013313984, 0.014122978, 0.08750284, 0.038747437, 0.027102578, -0.09627132, -0.09706183, -0.09405641, -0.05180081, -0.03555434, -0.021694236));
+	result += mul(max(-i1, 0), float4x3(-0.022396728, -0.018316073, -0.01250564, 0.045423746, 0.025315331, 0.010639915, 0.05618814, 0.022210265, 0.014195103, -0.014828652, -0.010245087, 0.0020570823));
+	result += mul(max(-a2, 0), float4x3(0.046651457, 0.001333767, -0.003572458, -0.0077845114, -0.012861641, -0.015116351, 0.01338984, 0.029198132, 0.026183384, 0.0014878022, 0.020025207, 0.024829973));
+	result += mul(max(-b2, 0), float4x3(-0.09506711, -0.06541528, -0.051106647, 0.02552611, 0.01181497, 0.0020236392, 0.03234602, -0.03153924, -0.035502207, -0.034516744, 0.00018784113, 0.0085376045));
+	result += mul(max(-c2, 0), float4x3(-0.05945615, -0.0046793907, 0.011128929, -0.0061961384, -0.0040663416, -0.010319631, 0.044197917, -0.033448357, -0.04109943, -0.04109929, 0.006773195, 0.016976412));
+	result += mul(max(-d2, 0), float4x3(0.02855516, -0.033051047, -0.04864978, -0.06393814, -0.082921155, -0.0730681, -0.058905125, -0.038639963, -0.027698845, -0.013616608, -0.007876684, -0.006182652));
+	result += mul(max(-e2, 0), float4x3(0.15423118, 0.14667909, 0.14534634, 0.1485341, 0.096721016, 0.0820024, 0.1263968, 0.088775866, 0.083860956, 0.04213644, 0.020989005, 0.010447147));
+	result += mul(max(-f2, 0), float4x3(-0.068275765, -0.018390667, -0.011452603, 0.03738383, 0.019398715, 0.005998161, -0.0011161854, -0.039955888, -0.04444185, 0.052985556, 0.017621813, 0.009551621));
+	result += mul(max(-g2, 0), float4x3(0.01387326, -0.0033411914, -0.009420935, -0.034494568, -0.019219222, -0.009562797, 0.0074023325, 0.022065453, 0.027121471, 0.00019609048, -0.0042242454, 2.0403608e-05));
+	result += mul(max(-h2, 0), float4x3(-0.015793918, -0.024342488, -0.037188973, 0.004534637, -0.025236975, -0.028567247, -0.055682972, -0.054670315, -0.06584981, 0.043045517, -0.0075941198, -0.014196169));
+	result += mul(max(-i2, 0), float4x3(0.0132598495, 0.01775289, 0.017206183, 0.010604703, -0.007352816, -0.017301153, 0.030967329, 0.027615465, 0.0145311365, 0.008636854, -0.033379406, -0.042725433));
+	result += float3(-0.0056639817, -0.0017339308, -0.0011913306);
 
-	result += INPUT.Sample(sam, pos);
+	result += INPUT.SampleLevel(sam, pos, 0).rgb;
 
-	return float4(result.rgb, 1);
+	OUTPUT[gxy] = float4(result, 1);
 }

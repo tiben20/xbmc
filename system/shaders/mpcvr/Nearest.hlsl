@@ -1,19 +1,20 @@
-//!MPC SCALER
-//!VERSION 1
-//!SCALER_TYPE UPSCALER
-//!DESCRIPTION Nearest point upscaler
+//!MAGPIE SHADER
+//!VERSION 4
 
 //!TEXTURE
 Texture2D INPUT;
+
+//!TEXTURE
+Texture2D OUTPUT;
 
 //!SAMPLER
 //!FILTER POINT
 SamplerState sam;
 
-
 //!PASS 1
-//!BIND INPUT
-
+//!STYLE PS
+//!IN INPUT
+//!OUT OUTPUT
 float4 Pass1(float2 pos) {
-	return INPUT.Sample(sam, pos);
+	return INPUT.SampleLevel(sam, pos, 0);
 }

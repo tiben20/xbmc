@@ -2895,10 +2895,8 @@ void CDX11VideoProcessor::DrawSubtitles(ID3D11Texture2D* pRenderTarget)
 			m_pDeviceContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
 
 			Com::SmartRect pSrc, pDst;
+			//sending the devicecontext to the subtitlemanager he will draw directly with it
 			CStreamsManager::Get()->SubtitleManager->AlphaBlt(m_pDeviceContext.Get(), pSrc, pDst, m_windowRect);
-			// call the function for drawing subtitles
-			/*hr = m_pFilter->m_pSub11CallBack->Render11(rtStart, 0, m_rtAvgTimePerFrame, rDstVid, rDstVid, rSrcPri,
-													   1., m_iStereo3dTransform == 1 ? m_nStereoSubtitlesOffsetInPixels : 0);*/
 
 			pRenderTargetView->Release();
 		}

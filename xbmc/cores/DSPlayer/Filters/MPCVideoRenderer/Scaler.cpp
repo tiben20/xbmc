@@ -212,11 +212,11 @@ CD3D12DynamicScaler::CD3D12DynamicScaler(std::wstring filename,bool *res)
   CShaderFileLoader* shader;
   shader = new CShaderFileLoader(filename);
   m_pDesc = {};
-  res = (bool*)shader->Compile(m_pDesc,true);
+  /*res = (bool*)shader->Compile(m_pDesc, true);
   for (int dd = 0 ; dd < m_pDesc.constants.size(); dd++)
   {
     m_pDesc.constants.at(dd).currentValue = m_pDesc.constants.at(dd).defaultValue;
-  }
+  }*/
     
   m_pScaler = new CD3D11Scaler(L"DynamicScaler");
   
@@ -304,16 +304,16 @@ void CD3D12DynamicScaler::Render(Com::SmartRect dstrect, CD3DTexture& dest, CD3D
     if (ss.currentValue.index() != 0)
     {
       //sometimes value are in monostate so cant extract need to fix in the shaders loader
-      if (ss.type == ShaderConstantType::Int)
+      if (ss.type == ShaderParameterDesc::Int)
         params.push_back(std::get<int>(ss.currentValue));
-      if (ss.type == ShaderConstantType::Float)
+      if (ss.type == ShaderParameterDesc::Float)
         params.push_back(std::get<float>(ss.currentValue));
     }
     else
     {
-      if (ss.type == ShaderConstantType::Int)
+      if (ss.type == ShaderParameterDesc::Int)
         params.push_back(std::get<int>(ss.defaultValue));
-      if (ss.type == ShaderConstantType::Float)
+      if (ss.type == ShaderParameterDesc::Float)
         params.push_back(std::get<float>(ss.defaultValue));
     }
   }
@@ -326,13 +326,13 @@ void CD3D12DynamicScaler::Render(Com::SmartRect dstrect, CD3DTexture& dest, CD3D
     else if (ss.valueExpr == "INPUT_PT_Y")
       params.push_back(inputy);
     else if (ss.valueExpr == "INPUT_HEIGHT")
-      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)m_srcRect.Height()) : DWParam((float)m_srcRect.Height()));
+      params.push_back(ss.type == ShaderParameterDesc::Int ? DWParam((int)m_srcRect.Height()) : DWParam((float)m_srcRect.Height()));
     else if (ss.valueExpr == "INPUT_WIDTH")
-      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)m_srcRect.Width()) : DWParam((float)m_srcRect.Width()));
+      params.push_back(ss.type == ShaderParameterDesc::Int ? DWParam((int)m_srcRect.Width()) : DWParam((float)m_srcRect.Width()));
     else if (ss.valueExpr == "OUTPUT_WIDTH")
-      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)dstrect.Width()) : DWParam((float)dstrect.Width()));
+      params.push_back(ss.type == ShaderParameterDesc::Int ? DWParam((int)dstrect.Width()) : DWParam((float)dstrect.Width()));
     else if (ss.valueExpr == "OUTPUT_HEIGHT")
-      params.push_back(ss.type == ShaderConstantType::Int ? DWParam((int)dstrect.Height()) : DWParam((float)dstrect.Height()));
+      params.push_back(ss.type == ShaderParameterDesc::Int ? DWParam((int)dstrect.Height()) : DWParam((float)dstrect.Height()));
     else if (ss.valueExpr == "OUTPUT_PT_X")
       params.push_back(outputx);
     else if (ss.valueExpr == "OUTPUT_PT_Y")

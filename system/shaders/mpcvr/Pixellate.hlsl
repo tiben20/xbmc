@@ -1,28 +1,14 @@
 // 移植自 https://github.com/libretro/common-shaders/blob/master/interpolation/shaders/pixellate.cg
 
-//!MPC SCALER
-//!VERSION 1
-//!SCALER_TYPE UPSCALER
-//!DESCRIPTION Pixellate Shader from libretro
+//!MAGPIE SHADER
+//!VERSION 4
 
-//!CONSTANT
-//!VALUE INPUT_PT_X
-float inputPtX;
-
-//!CONSTANT
-//!VALUE INPUT_PT_Y
-float inputPtY;
-
-//!CONSTANT
-//!VALUE OUTPUT_PT_X
-float outputPtX;
-
-//!CONSTANT
-//!VALUE OUTPUT_PT_Y
-float outputPtY;
 
 //!TEXTURE
 Texture2D INPUT;
+
+//!TEXTURE
+Texture2D OUTPUT;
 
 //!SAMPLER
 //!FILTER POINT
@@ -30,22 +16,24 @@ SamplerState sam;
 
 
 //!PASS 1
-//!BIND INPUT
+//!STYLE PS
+//!IN INPUT
+//!OUT OUTPUT
 
 float4 Pass1(float2 pos) {
-	float2 texelSize = { inputPtX, inputPtY };
+	float2 texelSize = GetInputPt();
 
-	float2 range = float2(outputPtX, outputPtY) / 2.0 * 0.999;
+	float2 range = GetOutputPt() / 2.0f * 0.999f;
 
 	float left = pos.x - range.x;
 	float top = pos.y + range.y;
 	float right = pos.x + range.x;
 	float bottom = pos.y - range.y;
 
-	float3 topLeftColor = INPUT.Sample(sam, (floor(float2(left, top) / texelSize) + 0.5) * texelSize).rgb;
-	float3 bottomRightColor = INPUT.Sample(sam, (floor(float2(right, bottom) / texelSize) + 0.5) * texelSize).rgb;
-	float3 bottomLeftColor = INPUT.Sample(sam, (floor(float2(left, bottom) / texelSize) + 0.5) * texelSize).rgb;
-	float3 topRightColor = INPUT.Sample(sam, (floor(float2(right, top) / texelSize) + 0.5) * texelSize).rgb;
+	float3 topLeftColor = INPUT.SampleLevel(sam, (floor(float2(left, top) / texelSize) + 0.5) * texelSize, 0).rgb;
+	float3 bottomRightColor = INPUT.SampleLevel(sam, (floor(float2(right, bottom) / texelSize) + 0.5) * texelSize, 0).rgb;
+	float3 bottomLeftColor = INPUT.SampleLevel(sam, (floor(float2(left, bottom) / texelSize) + 0.5) * texelSize, 0).rgb;
+	float3 topRightColor = INPUT.SampleLevel(sam, (floor(float2(right, top) / texelSize) + 0.5) * texelSize, 0).rgb;
 
 	float2 border = clamp(round(pos / texelSize) * texelSize, float2(left, bottom), float2(right, top));
 

@@ -31,6 +31,8 @@ public:
 
   static void clear();
 
+  static std::string UTF16ToUTF8(std::wstring_view str);
+  static std::wstring UTF8ToUTF16(std::string_view str);
   /**
    * Convert UTF-8 string to UTF-32 string.
    * No RTL logical-visual transformation is performed.

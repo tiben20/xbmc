@@ -23,131 +23,145 @@
 	This shader variant is pre-configured with screen curvature
 */
 
-//!MPC SCALER
-//!VERSION 1
-//!SCALER_TYPE POST
-//!DESCRIPTION CRT-interlaced made by cgwg, Themaister and DOLLS
+//!MAGPIE SHADER
+//!VERSION 4
+//!USE_DYNAMIC
 
-//!CONSTANT
-//!VALUE INPUT_WIDTH
-float inputWidth;
 
-//!CONSTANT
-//!VALUE INPUT_HEIGHT
-float inputHeight;
-
-//!CONSTANT
-//!VALUE OUTPUT_WIDTH
-float outputWidth;
-
-//!CONSTANT
-//!VALUE 1 / SCALE_Y
-float rcpScaleY;
-
-//!CONSTANT
-//!DYNAMIC
-//!VALUE FRAME_COUNT
-int frameCount;
-
-//!CONSTANT
+//!PARAMETER
+//!LABEL Target Gamma
 //!DEFAULT 2.4
 //!MIN 0.1
 //!MAX 5
+//!STEP 0.01
 float CRTGamma;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Monitor Gamma
 //!DEFAULT 2.2
 //!MIN 0.1
 //!MAX 5
+//!STEP 0.01
 float monitorGamma;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Distance
 //!DEFAULT 1.5
 //!MIN 0.1
 //!MAX 3.0
+//!STEP 0.01
 float distance;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Curvature
 //!DEFAULT 1
 //!MIN 0
 //!MAX 1
+//!STEP 1
 int curvature;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Curvature Radius
 //!DEFAULT 2
 //!MIN 0.1
 //!MAX 10
+//!STEP 0.1
 float radius;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Corner Size
 //!DEFAULT 0.03
-//!MIN 0.001
+//!MIN 0
 //!MAX 1.0
+//!STEP 0.01
 float cornerSize;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Corner Smoothness
 //!DEFAULT 1000
 //!MIN 80
 //!MAX 2000
+//!STEP 1
 int cornerSmooth;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Horizontal Tilt
 //!DEFAULT 0
 //!MIN -0.5
 //!MAX 0.5
+//!STEP 0.01
 float xTilt;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Vertical Tilt
 //!DEFAULT 0
 //!MIN -0.5
 //!MAX 0.5
+//!STEP 0.01
 float yTilt;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Horizontal Overscan
 //!DEFAULT 100
 //!MIN -125
 //!MAX 125
+//!STEP 1
 int overScanX;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Vertical Overscan
 //!DEFAULT 100
 //!MIN -125
 //!MAX 125
+//!STEP 1
 int overScanY;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Dot Mask
 //!DEFAULT 0.3
 //!MIN 0
 //!MAX 0.3
+//!STEP 0.01
 float dotMask;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Sharpness
 //!DEFAULT 1
 //!MIN 1
 //!MAX 3
+//!STEP 1
 int sharper;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Weight
 //!DEFAULT 0.3
 //!MIN 0.1
 //!MAX 0.5
+//!STEP 0.01
 float scanlineWeight;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Luminance Boost
 //!DEFAULT 0
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 float lum;
 
-//!CONSTANT
-//!DEFAULT 1
+//!PARAMETER
+//!LABEL Interlacing
+//!DEFAULT 0
 //!MIN 0
 //!MAX 1
+//!STEP 1
 int interlace;
 
 
 //!TEXTURE
 Texture2D INPUT;
+
+//!TEXTURE
+Texture2D OUTPUT;
 
 //!SAMPLER
 //!FILTER POINT
@@ -155,7 +169,11 @@ SamplerState sam;
 
 
 //!PASS 1
-//!BIND INPUT
+//!STYLE PS
+//!IN INPUT
+//!OUT OUTPUT
+
+#pragma warning(disable: 3571) // X3571: pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them
 
 // Use the older, purely gaussian beam profile; uncomment for speed
 // #define USEGAUSSIAN
@@ -164,7 +182,7 @@ SamplerState sam;
 #define FIX(c) max(abs(c), 1e-5)
 #define PI 3.141592653589
 
-#define TEX2D(c) pow(INPUT.Sample(sam, (c)), CRTGamma)
+#define TEX2D(c) pow(INPUT.SampleLevel(sam, (c), 0), CRTGamma)
 
 
 // aspect ratio
@@ -243,12 +261,15 @@ float4 scanlineWeights(float distance1, float4 color) {
 }
 
 float4 Pass1(float2 pos) {
+	const uint2 outputSize = GetOutputSize();
+	const uint2 inputSize = GetInputSize();
+
 	float4 sin_cos_angle = { sin(float2(xTilt, yTilt)), cos(float2(xTilt, yTilt)) };
 	float3 stretch = maxscale(sin_cos_angle);
-	float2 TextureSize = float2(sharper * inputWidth, inputHeight);
+	float2 TextureSize = float2(sharper * inputSize.x, inputSize.y);
 	// Resulting X pixel-coordinate of the pixel we're drawing.
-	float mod_factor = pos.x * outputWidth;
-	float2 ilfac = { 1.0, clamp(floor(inputHeight / (200.0 * (-4 * interlace + 5))), 1.0, 2.0)};
+	float mod_factor = pos.x * outputSize.x;
+	float2 ilfac = { 1.0, clamp(floor(inputSize.y / (200.0 * (-4 * interlace + 5))), 1.0, 2.0)};
 	float2 one = ilfac / TextureSize;
 
 	// Here's a helpful diagram to keep in mind while trying to
@@ -292,11 +313,11 @@ float4 Pass1(float2 pos) {
 
 	// Of all the pixels that are mapped onto the texel we are
 	// currently rendering, which pixel are we currently rendering?
-	float2 ilfloat = float2(0.0, ilfac.y > 1.5 ? fmod(frameCount, 2.0) : 0.0);
+	float2 ilfloat = float2(0.0, ilfac.y > 1.5 ? fmod(GetFrameCount(), 2.0) : 0.0);
 
 	float2 ratio_scale = (xy * TextureSize - 0.5 + ilfloat) / ilfac;
 
-	float filter = rcpScaleY;
+	float filter = rcp(GetScale().y);
 	float2 uv_ratio = frac(ratio_scale);
 
 	// Snap to the center of the underlying texel.

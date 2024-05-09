@@ -115,7 +115,7 @@ public:
   void Unload();
   
   std::wstring GetScalerName() { return m_pFilename; }
-  void SetShaderConstants(std::vector<ShaderConstantDesc> consts) { m_pDesc.constants = consts; }
+  void SetShaderConstants(std::vector<ShaderParameterDesc> consts) { m_pDesc.params = consts; }
 
 private:
   CD3D11Scaler* m_pScaler;

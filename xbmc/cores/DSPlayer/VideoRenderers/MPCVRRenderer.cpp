@@ -28,10 +28,7 @@ std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 
 CMPCVRRenderer::CMPCVRRenderer()
 {
-  CShaderFileLoader* shader;
-  shader = new CShaderFileLoader(L"H:\\KodiDSPlayer\\system\\shaders\\mpcvr\\AdaptiveSharpen.hlsl");
-  ShaderDesc desc;
-  bool res = shader->Compile(desc, true);
+  LoadShaders();
 }
 
 CMPCVRRenderer::~CMPCVRRenderer()
@@ -45,6 +42,12 @@ void CMPCVRRenderer::Release()
   m_IntermediateTarget.Release();
 }
 
+void CMPCVRRenderer::LoadShaders()
+{
+  CShadersXmlLoader* ss = new CShadersXmlLoader("");
+  
+  
+}
 
 void CMPCVRRenderer::Render(int index,
                            int index2,
@@ -185,6 +188,8 @@ void CMPCVRRenderer::SetVideoSettings(const CVideoSettings& settings)
 {
   CLog::Log(LOGDEBUG, "{}", __FUNCTION__);
 }
+
+
 
 bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
                                              unsigned height,

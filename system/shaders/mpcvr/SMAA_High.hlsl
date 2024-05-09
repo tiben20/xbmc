@@ -1,25 +1,15 @@
-//!MPC SCALER
-//!VERSION 1
+//!MAGPIE SHADER
+//!VERSION 4
+//!SORT_NAME SMAA_2
 
-
-//!CONSTANT
-//!VALUE INPUT_WIDTH
-float inputWidth;
-
-//!CONSTANT
-//!VALUE INPUT_HEIGHT
-float inputHeight;
-
-//!CONSTANT
-//!VALUE INPUT_PT_X
-float inputPtX;
-
-//!CONSTANT
-//!VALUE INPUT_PT_Y
-float inputPtY;
 
 //!TEXTURE
 Texture2D INPUT;
+
+//!TEXTURE
+//!WIDTH INPUT_WIDTH
+//!HEIGHT INPUT_HEIGHT
+Texture2D OUTPUT;
 
 //!TEXTURE
 //!WIDTH INPUT_WIDTH
@@ -34,11 +24,13 @@ Texture2D edgesTex;
 Texture2D blendTex;
 
 //!TEXTURE
-//!SOURCE SMAA_AreaTex.dds
+//!SOURCE AreaTex.dds
+//!FORMAT R8G8B8A8_UNORM
 Texture2D areaTex;
 
 //!TEXTURE
-//!SOURCE SMAA_SearchTex.dds
+//!SOURCE SearchTex.dds
+//!FORMAT R8_UNORM
 Texture2D searchTex;
 
 //!SAMPLER
@@ -52,30 +44,37 @@ SamplerState LinearSampler;
 
 //!COMMON
 
-#define SMAA_RT_METRICS float4(inputPtX, inputPtY, inputWidth, inputHeight)
+#define SMAA_RT_METRICS float4(GetInputPt(), GetInputSize())
 #define SMAA_LINEAR_SAMPLER LinearSampler
 #define SMAA_POINT_SAMPLER PointSampler
 #define SMAA_PRESET_HIGH
 #include "SMAA.hlsli"
 
 //!PASS 1
-//!BIND INPUT
-//!SAVE edgesTex
+//!DESC Luma Edge Detection
+//!STYLE PS
+//!IN INPUT
+//!OUT edgesTex
 
-float4 Pass1(float2 pos) {
-	return float4(SMAALumaEdgeDetectionPS(pos, INPUT), 0, 1);
+float2 Pass1(float2 pos) {
+	return SMAALumaEdgeDetectionPS(pos, INPUT);
 }
 
 //!PASS 2
-//!BIND edgesTex, areaTex, searchTex
-//!SAVE blendTex
+//!DESC Blending Weight Calculation
+//!STYLE PS
+//!IN edgesTex, areaTex, searchTex
+//!OUT blendTex
 
 float4 Pass2(float2 pos) {
 	return SMAABlendingWeightCalculationPS(pos, edgesTex, areaTex, searchTex, 0);
 }
 
 //!PASS 3
-//!BIND INPUT, blendTex
+//!DESC Neighborhood Blending
+//!STYLE PS
+//!IN INPUT, blendTex
+//!OUT OUTPUT
 
 float4 Pass3(float2 pos) {
 	return SMAANeighborhoodBlendingPS(pos, INPUT, blendTex);

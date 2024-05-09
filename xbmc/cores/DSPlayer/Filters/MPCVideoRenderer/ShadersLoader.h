@@ -22,7 +22,7 @@
 
 #pragma once
 
-
+#include <array>
 #include <vector>
 #include <string>
 #include <rpc.h>
@@ -33,35 +33,71 @@
 #include <wrl/client.h>
 #include <dxgiformat.h>
 #include <d3d11.h>
+#include <parallel_hashmap/phmap.h>
 
-#define SCALERCOMPILE_VERSION 1
+#define SCALERCOMPILE_VERSION 4
+
+struct ShaderIntermediateTextureFormatDesc {
+	const char* name;
+	DXGI_FORMAT dxgiFormat;
+	uint32_t nChannel;
+	const char* srvTexelType;
+	const char* uavTexelType;
+};
+
+static constexpr ShaderIntermediateTextureFormatDesc FORMAT_DESCS[] = {
+		{"R32G32B32A32_FLOAT", DXGI_FORMAT_R32G32B32A32_FLOAT, 4, "float4", "float4"},
+		{"R16G16B16A16_FLOAT", DXGI_FORMAT_R16G16B16A16_FLOAT, 4, "float4", "float4"},
+		{"R16G16B16A16_UNORM", DXGI_FORMAT_R16G16B16A16_UNORM, 4, "float4", "unorm float4"},
+		{"R16G16B16A16_SNORM", DXGI_FORMAT_R16G16B16A16_SNORM, 4, "float4", "snorm float4"},
+		{"R32G32_FLOAT", DXGI_FORMAT_R32G32_FLOAT, 2, "float2", "float2"},
+		{"R10G10B10A2_UNORM", DXGI_FORMAT_R10G10B10A2_UNORM, 4, "float4", "unorm float4"},
+		{"R11G11B10_FLOAT", DXGI_FORMAT_R11G11B10_FLOAT, 3, "float3", "float3"},
+		{"R8G8B8A8_UNORM", DXGI_FORMAT_R8G8B8A8_UNORM, 4, "float4", "unorm float4"},
+		{"R8G8B8A8_SNORM", DXGI_FORMAT_R8G8B8A8_SNORM, 4, "float4", "snorm float4"},
+		{"R16G16_FLOAT", DXGI_FORMAT_R16G16_FLOAT, 2, "float2", "float2"},
+		{"R16G16_UNORM", DXGI_FORMAT_R16G16_UNORM, 2, "float2", "unorm float2"},
+		{"R16G16_SNORM", DXGI_FORMAT_R16G16_SNORM, 2, "float2", "snorm float2"},
+		{"R32_FLOAT" ,DXGI_FORMAT_R32_FLOAT, 1, "float", "float"},
+		{"R8G8_UNORM", DXGI_FORMAT_R8G8_UNORM, 2, "float2", "unorm float2"},
+		{"R8G8_SNORM", DXGI_FORMAT_R8G8_SNORM, 2, "float2", "snorm float2"},
+		{"R16_FLOAT", DXGI_FORMAT_R16_FLOAT, 1, "float", "float"},
+		{"R16_UNORM", DXGI_FORMAT_R16_UNORM, 1, "float", "unorm float"},
+		{"R16_SNORM", DXGI_FORMAT_R16_SNORM,1, "float", "snorm float"},
+		{"R8_UNORM", DXGI_FORMAT_R8_UNORM, 1, "float", "unorm float"},
+		{"R8_SNORM", DXGI_FORMAT_R8_SNORM, 1, "float", "snorm float"},
+		{"UNKNOWN", DXGI_FORMAT_UNKNOWN, 4, "float4", "float4"}
+};
 
 enum class ShaderIntermediateTextureFormat {
-	R8_UNORM,
-	R16_UNORM,
-	R16_FLOAT,
-	R8G8_UNORM,
-	B5G6R5_UNORM,
-	R16G16_UNORM,
-	R16G16_FLOAT,
-	R8G8B8A8_UNORM,
-	B8G8R8A8_UNORM,
-	R10G10B10A2_UNORM,
-	R32_FLOAT,
-	R11G11B10_FLOAT,
-	R32G32_FLOAT,
-	R16G16B16A16_UNORM,
+	R32G32B32A32_FLOAT,
 	R16G16B16A16_FLOAT,
-	R32G32B32A32_FLOAT
+	R16G16B16A16_UNORM,
+	R16G16B16A16_SNORM,
+	R32G32_FLOAT,
+	R10G10B10A2_UNORM,
+	R11G11B10_FLOAT,
+	R8G8B8A8_UNORM,
+	R8G8B8A8_SNORM,
+	R16G16_FLOAT,
+	R16G16_UNORM,
+	R16G16_SNORM,
+	R32_FLOAT,
+	R8G8_UNORM,
+	R8G8_SNORM,
+	R16_FLOAT,
+	R16_UNORM,
+	R16_SNORM,
+	R8_UNORM,
+	R8_SNORM,
+	UNKNOWN
 };
 
 struct ShaderIntermediateTextureDesc {
 	std::pair<std::string, std::string> sizeExpr;
-	ShaderIntermediateTextureFormat format = ShaderIntermediateTextureFormat::B8G8R8A8_UNORM;
+	ShaderIntermediateTextureFormat format = ShaderIntermediateTextureFormat::UNKNOWN;
 	std::string name;
 	std::string source;
-
-	static const DXGI_FORMAT DXGI_FORMAT_MAP[16];
 };
 
 enum class ShaderSamplerFilterType {
@@ -80,47 +116,64 @@ struct ShaderSamplerDesc {
 	std::string name;
 };
 
-enum class ShaderConstantType {
-	Float,
-	Int
+template <typename T>
+struct ShaderConstant {
+	T defaultValue;
+	T minValue;
+	T maxValue;
+	T step;
 };
 
-struct ShaderValueConstantDesc {
-	std::string name;
-	ShaderConstantType type = ShaderConstantType::Float;
-	std::string valueExpr;
-};
-
-struct ShaderConstantDesc {
+struct ShaderParameterDesc {
 	std::string name;
 	std::string label;
-	ShaderConstantType type = ShaderConstantType::Float;
-	std::variant<float, int> defaultValue;
-	std::variant<std::monostate, float, int> minValue;
-	std::variant<std::monostate, float, int> maxValue;
-	std::variant<float, int> currentValue;
+	std::variant<ShaderConstant<float>, ShaderConstant<int>> constant;
 };
 
+//should we use smallvector from magpie
 struct ShaderPassDesc {
-	std::vector<UINT> inputs;
-	std::vector<UINT> outputs;
 	Microsoft::WRL::ComPtr<ID3DBlob> cso;
+	std::vector<uint32_t> inputs;
+	std::vector<uint32_t> outputs;
+	std::array<uint32_t, 3> numThreads{};
+	std::pair<uint32_t, uint32_t> blockSize{};
+	std::string desc;
+	bool isPSStyle = false;
+};
+
+struct ShaderFlags {
+	// Input
+	static constexpr const uint32_t InlineParams = 1;
+	static constexpr const uint32_t FP16 = 1 << 1;
+	// output
+	// This shader requires frame number and mouse position
+	static constexpr const uint32_t UseDynamic = 1 << 4;
 };
 
 struct ShaderDesc {
-	// The output used to calculate the effect, a null value means that any size output is supported
-	std::pair<std::string, std::string> outSizeExpr;
+	std::string name;
+	std::string sortName;	// For UI use only
 
-	std::string shaderDescription;
+	const std::pair<std::string, std::string>& GetOutputSizeExpr() const noexcept {
+		return textures[1].sizeExpr;
+	}
 
-	std::vector<ShaderConstantDesc> constants;
-	std::vector<ShaderValueConstantDesc> valueConstants;
-	std::vector<ShaderValueConstantDesc> dynamicValueConstants;
-
+	std::vector<ShaderParameterDesc> params;
+	// 0: INPUT
+	// 1: OUTPUT
+	// > 1: intermediate texture
 	std::vector<ShaderIntermediateTextureDesc> textures;
 	std::vector<ShaderSamplerDesc> samplers;
-
 	std::vector<ShaderPassDesc> passes;
+
+	uint32_t flags = 0;	// ShaderFlags
+};
+
+struct ShaderCompilerFlags {
+	static constexpr const uint32_t NoCache = 1;
+	static constexpr const uint32_t SaveSources = 1 << 1;
+	static constexpr const uint32_t WarningsAreErrors = 1 << 2;
+	static constexpr const uint32_t NoCompile = 1 << 3;
 };
 
 class CShaderFileLoader : public ID3DInclude
@@ -132,9 +185,9 @@ public:
 	}
 
 	~CShaderFileLoader() {};
-	bool Compile(ShaderDesc& desc,bool useCache);
+	uint32_t Compile(ShaderDesc& desc, uint32_t flags, const phmap::flat_hash_map<std::wstring, float>* inlineParams);
 	std::string GetScalerType(std::wstring filename);
-	std::vector<ShaderConstantDesc> GetScalerOptions(std::wstring filename);
+	std::vector<ShaderParameterDesc> GetScalerOptions(std::wstring filename);
 	std::string GetScalerDescription(std::wstring filename);
 
 	// ID3DInclude interface

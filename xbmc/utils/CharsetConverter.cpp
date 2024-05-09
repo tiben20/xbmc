@@ -802,6 +802,49 @@ bool CCharsetConverter::utf8To(const std::string& strDestCharset, const std::str
   return CInnerConverter::customConvert(UTF8_SOURCE, strDestCharset, utf8StringSrc, stringDst);
 }
 
+std::string CCharsetConverter::UTF16ToUTF8(std::wstring_view str)
+{
+  if (str.empty()) {
+    return {};
+  }
+
+  int convertResult = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(),
+    nullptr, 0, nullptr, nullptr);
+  if (convertResult <= 0) {
+    assert(false);
+    return {};
+  }
+
+  std::string result(convertResult + 10, L'\0');
+  convertResult = WideCharToMultiByte(CP_UTF8, 0, str.data(), (int)str.size(),
+    result.data(), (int)result.size(), nullptr, nullptr);
+  if (convertResult <= 0) {
+    assert(false);
+    return {};
+  }
+
+  result.resize(convertResult);
+  return result;
+}
+
+std::wstring CCharsetConverter::UTF8ToUTF16(std::string_view str)
+{
+  int convertResult = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), nullptr, 0);
+  if (convertResult <= 0) {
+
+    assert(false);
+    return {};
+  }
+  std::wstring r(convertResult + 10, L'\0');
+  convertResult = MultiByteToWideChar(CP_UTF8, 0, str.data(), (int)str.size(), &r[0], (int)r.size());
+  if (convertResult <= 0) {
+    assert(false);
+    return {};
+  }
+
+  return std::wstring(r.begin(), r.begin() + convertResult);
+}
+
 bool CCharsetConverter::utf8To(const std::string& strDestCharset, const std::string& utf8StringSrc, std::u16string& utf16StringDst)
 {
   return CInnerConverter::customConvert(UTF8_SOURCE, strDestCharset, utf8StringSrc, utf16StringDst);

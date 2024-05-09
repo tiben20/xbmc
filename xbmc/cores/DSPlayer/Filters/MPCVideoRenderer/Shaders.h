@@ -62,6 +62,16 @@ HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR
 
 HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppCode);
 
+HRESULT CompileComputeShader(
+	std::string_view hlsl,
+	const char* entryPoint,
+	ID3DBlob** blob,
+	const char* sourceName = nullptr,
+	ID3DInclude* include = nullptr,
+	const std::vector<std::pair<std::string, std::string>>& macros = {},
+	bool warningsAreErrors = false
+);
+
 HRESULT GetShaderConvertColor(
 	const bool bDX11,
 	const UINT width,

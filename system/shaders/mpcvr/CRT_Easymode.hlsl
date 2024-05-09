@@ -30,140 +30,151 @@
 	- Stagger: 3
 */
 
-//!MPC SCALER
-//!VERSION 1
-//!SCALER_TYPE POST
-//!DESCRIPTION A flat CRT shader ideally for 1080p or higher displays.
+//!MAGPIE SHADER
+//!VERSION 4
 
 
-//!CONSTANT
-//!VALUE INPUT_PT_X
-float inputPtX;
-
-//!CONSTANT
-//!VALUE INPUT_PT_Y
-float inputPtY;
-
-//!CONSTANT
-//!VALUE INPUT_WIDTH
-float inputWidth;
-
-//!CONSTANT
-//!VALUE INPUT_HEIGHT
-float inputHeight;
-
-//!CONSTANT
-//!VALUE OUTPUT_WIDTH
-float outputWidth;
-
-//!CONSTANT
-//!VALUE OUTPUT_HEIGHT
-float outputHeight;
-
-//!CONSTANT
+//!PARAMETER
+//!LABEL Sharpness Horizontal
 //!DEFAULT 0.5
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 float sharpnessH;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Sharpness Vertical
 //!DEFAULT 1
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 float sharpnessV;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Mask Strength
 //!DEFAULT 0.3
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 float maskStrength;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Mask Dot Width
 //!DEFAULT 1
 //!MIN 1
 //!MAX 100
+//!STEP 1
 int maskDotWidth;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Mask Dot Height
 //!DEFAULT 1
 //!MIN 1
 //!MAX 100
+//!STEP 1
 int maskDotHeight;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Mask Stagger
 //!DEFAULT 0
 //!MIN 0
 //!MAX 100
+//!STEP 1
 int maskStagger;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Mask Size
 //!DEFAULT 1
 //!MIN 1
 //!MAX 100
+//!STEP 1
 int maskSize;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Strength
 //!DEFAULT 1
 //!MIN 0
 //!MAX 1
+//!STEP 1
 float scanlineStrength;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Beam Width Min
 //!DEFAULT 1.5
 //!MIN 0.5
 //!MAX 5
+//!STEP 0.1
 float scanlineBeamWidthMin;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Beam Width Max
 //!DEFAULT 1.5
 //!MIN 0.5
 //!MAX 5
+//!STEP 0.1
 float scanlineBeamWidthMax;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Brightness Min
 //!DEFAULT 0.35
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 float scanlineBrightMin;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Brightness Max
 //!DEFAULT 0.65
 //!MIN 0
 //!MAX 1
+//!STEP 0.01
 float scanlineBrightMax;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Scanline Cutoff
 //!DEFAULT 400
 //!MIN 1
 //!MAX 1000
+//!STEP 1
 int scanlineCutoff;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Gamma Input
 //!DEFAULT 2
 //!MIN 0.1
 //!MAX 5
+//!STEP 0.01
 float gammaInput;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Gamma Output
 //!DEFAULT 1.8
 //!MIN 0.1
 //!MAX 5
+//!STEP 0.01
 float gammaOutput;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Brightness Boost
 //!DEFAULT 1.2
 //!MIN 1
 //!MAX 2
+//!STEP 0.01
 float brightBoost;
 
-//!CONSTANT
+//!PARAMETER
+//!LABEL Dilation
 //!DEFAULT 1
 //!MIN 0
 //!MAX 1
+//!STEP 1
 int dilation;
 
 //!TEXTURE
 Texture2D INPUT;
+
+//!TEXTURE
+Texture2D OUTPUT;
 
 //!SAMPLER
 //!FILTER POINT
@@ -171,11 +182,15 @@ SamplerState sam;
 
 
 //!PASS 1
-//!BIND INPUT
+//!STYLE PS
+//!IN INPUT
+//!OUT OUTPUT
+
+#pragma warning(disable: 3571) // X3571: pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them
 
 #define FIX(c) max(abs(c), 1e-5)
 #define PI 3.141592653589
-#define TEX2D(c) dilate(INPUT.Sample(sam, c))
+#define TEX2D(c) dilate(INPUT.SampleLevel(sam, c, 0))
 #define mod(x,y) (x - y * trunc(x/y))
 
 // Set to 0 to use linear filter and gain speed
@@ -201,7 +216,8 @@ float curve_distance(float x, float sharp) {
 }
 
 float4x4 get_color_matrix(float2 co) {
-	return float4x4(TEX2D(co - float2(inputPtX, 0)), TEX2D(co), TEX2D(co + float2(inputPtX, 0)), TEX2D(co + float2(2.0 * inputPtX, 0)));
+	float2 inputPt = GetInputPt();
+	return float4x4(TEX2D(co - float2(inputPt.x, 0)), TEX2D(co), TEX2D(co + float2(inputPt.x, 0)), TEX2D(co + float2(2.0 * inputPt.x, 0)));
 }
 
 float3 filter_lanczos(float4 coeffs, float4x4 color_matrix) {
@@ -215,8 +231,14 @@ float3 filter_lanczos(float4 coeffs, float4x4 color_matrix) {
 }
 
 float4 Pass1(float2 pos) {
-	float2 pix_co = pos * float2(inputWidth, inputHeight) - float2(0.5, 0.5);
-	float2 tex_co = (floor(pix_co) + 0.5) * float2(inputPtX, inputPtY);
+	float2 inputPt = GetInputPt();
+	int2 inputSize = GetInputSize();
+	int2 outputSize = GetOutputSize();
+	float2 outputPt = GetOutputPt();
+
+	float2 pix_co = pos * inputSize - 0.5f;
+	
+	float2 tex_co = (floor(pix_co) + 0.5) * inputPt;
 	float2 dist = frac(pix_co);
 	float curve_x;
 	float3 col, col2;
@@ -231,12 +253,12 @@ float4 Pass1(float2 pos) {
 	coeffs /= dot(coeffs, 1.0);
 
 	col = filter_lanczos(coeffs, get_color_matrix(tex_co));
-	col2 = filter_lanczos(coeffs, get_color_matrix(tex_co + float2(0, inputPtY)));
+	col2 = filter_lanczos(coeffs, get_color_matrix(tex_co + float2(0, inputPt.y)));
 #else
 	curve_x = curve_distance(dist.x, sharpnessH);
 
-	col = lerp(TEX2D(tex_co).rgb, TEX2D(tex_co + float2(inputPtX, 0)).rgb, curve_x);
-	col2 = lerp(TEX2D(tex_co + float2(0, inputPtY)).rgb, TEX2D(tex_co + float2(inputPtX, inputPtY)).rgb, curve_x);
+	col = lerp(TEX2D(tex_co).rgb, TEX2D(tex_co + float2(inputPt.x, 0)).rgb, curve_x);
+	col2 = lerp(TEX2D(tex_co + float2(0, inputPt.y)).rgb, TEX2D(tex_co + float2(inputPt.x, inputPt.y)).rgb, curve_x);
 #endif
 
 	col = lerp(col, col2, curve_distance(dist.y, sharpnessV));
@@ -246,10 +268,10 @@ float4 Pass1(float2 pos) {
 	float bright = (max(col.r, max(col.g, col.b)) + luma) / 2.0;
 	float scan_bright = clamp(bright, scanlineBrightMin, scanlineBrightMax);
 	float scan_beam = clamp(bright * scanlineBeamWidthMax, scanlineBeamWidthMin, scanlineBeamWidthMax);
-	float scan_weight = 1.0 - pow(cos(pos.y * 2.0 * PI * inputHeight) * 0.5 + 0.5, scan_beam) * scanlineStrength;
+	float scan_weight = 1.0 - pow(cos(pos.y * 2.0 * PI * inputSize.y) * 0.5 + 0.5, scan_beam) * scanlineStrength;
 
 	float mask = 1.0 - maskStrength;
-	float2 mod_fac = floor(pos * float2(outputWidth, outputHeight) / float2(maskSize, maskDotHeight * maskSize));
+	float2 mod_fac = floor(pos * outputSize / float2(maskSize, maskDotHeight * maskSize));
 	int dot_no = int(mod((mod_fac.x + mod(mod_fac.y, 2.0) * maskStagger) / maskDotWidth, 3.0));
 	float3 mask_weight;
 
@@ -257,7 +279,7 @@ float4 Pass1(float2 pos) {
 	else if (dot_no == 1) mask_weight = float3(mask, 1.0, mask);
 	else mask_weight = float3(mask, mask, 1.0);
 
-	if (inputHeight >= scanlineCutoff) scan_weight = 1.0;
+	if (inputSize.y >= scanlineCutoff) scan_weight = 1.0;
 
 	col2 = col.rgb;
 	col *= scan_weight;
