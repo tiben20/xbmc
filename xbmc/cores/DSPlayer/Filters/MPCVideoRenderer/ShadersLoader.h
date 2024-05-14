@@ -69,6 +69,12 @@ static constexpr ShaderIntermediateTextureFormatDesc FORMAT_DESCS[] = {
 		{"UNKNOWN", DXGI_FORMAT_UNKNOWN, 4, "float4", "float4"}
 };
 
+union Constant32 {
+	float floatVal;
+	uint32_t uintVal;
+	int intVal;
+};
+
 enum class ShaderIntermediateTextureFormat {
 	R32G32B32A32_FLOAT,
 	R16G16B16A16_FLOAT,
@@ -174,6 +180,26 @@ struct ShaderCompilerFlags {
 	static constexpr const uint32_t SaveSources = 1 << 1;
 	static constexpr const uint32_t WarningsAreErrors = 1 << 2;
 	static constexpr const uint32_t NoCompile = 1 << 3;
+};
+
+enum class ScalingType {
+	Normal, // Scale represents the zoom factor
+	Fit, // Scale represents the ratio relative to the maximum proportional scaling that the screen can accommodate
+	Absolute, // Scale represents the target size (unit is pixels)
+	Fill // Fill the screen, the Scale parameter is not used at this time
+};
+
+struct ShaderOption {
+	std::wstring name;
+	phmap::flat_hash_map<std::wstring, float> parameters;
+	ScalingType scalingType = ScalingType::Normal;
+	std::pair<float, float> scale = { 1.0f,1.0f };
+	uint32_t flags = 0;	// EffectOptionFlags
+
+	bool HasScale() const noexcept {
+		return scalingType != ScalingType::Normal ||
+			std::abs(scale.first - 1.0f) > 1e-5 || std::abs(scale.second - 1.0f) > 1e-5;
+	}
 };
 
 class CShaderFileLoader : public ID3DInclude

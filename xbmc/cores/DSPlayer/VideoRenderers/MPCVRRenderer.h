@@ -14,12 +14,14 @@
 #include "guilib/D3DResource.h"
 #include "../VideoPlayer/VideoRenderers/BaseRenderer.h"
 #include "Filters/MPCVideoRenderer/ShadersLoader.h"
-#include "Filters/MPCVideoRenderer/ShadersXmlLoader.h"
+#include "Filters/MPCVideoRenderer/ShaderFactory.h"
+#include "Filters/MPCVideoRenderer/scaler.h"
 #include <vector>
 
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
 
+class CD3D11DynamicScaler;
 
 class CMPCVRRenderer : public CBaseRenderer
 {
@@ -85,6 +87,23 @@ public:
   CRenderCapture* GetRenderCapture() { return nullptr; }
 
   void LoadShaders();
+  void InitShaders();
+
+  void Start(uint32_t passcount);
+  void Stop();
+  void OnBeginEffects();
+  void OnEndEffects();
+  void OnEndPass();
+
+  //samples,shader and unorderer access views saved in maps to not duplicate access views
+  ID3D11SamplerState* GetSampler(D3D11_FILTER filterMode, D3D11_TEXTURE_ADDRESS_MODE addressMode);
+  ID3D11ShaderResourceView* GetShaderResourceView(ID3D11Texture2D* texture);
+
+  ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Texture2D* texture);
+
+  ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Buffer* buffer, uint32_t numElements, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
+
+  CD3DTexture GetIntermediateTexture() { return m_IntermediateTarget; }
 protected:
 
   bool CreateIntermediateTarget(unsigned int width,
@@ -106,7 +125,17 @@ protected:
   unsigned m_viewWidth = 0;
   unsigned m_viewHeight = 0;
   unsigned m_renderOrientation = 0;
-  
+
+  Microsoft::WRL::ComPtr<ID3D11Query> m_pDisjointQuery;
+  Microsoft::WRL::ComPtr<ID3D11Query> m_pStartQuery;
+  std::vector<Microsoft::WRL::ComPtr<ID3D11Query>> m_pPassQueries;
+  uint32_t m_pPasses;
+  uint32_t m_pCurrentPasses = 0;
+  std::vector<CD3D11DynamicScaler*> m_pShaders;
+  phmap::flat_hash_map<std::pair<D3D11_FILTER, D3D11_TEXTURE_ADDRESS_MODE>, Microsoft::WRL::ComPtr<ID3D11SamplerState>> m_pSamplers;
+  phmap::flat_hash_map<ID3D11Texture2D*, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pShaderRSV;
+  phmap::flat_hash_map<void*, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> m_pUAVViews;
+
   CD3DTexture m_IntermediateTarget;
 
   CRect GetScreenRect() const;

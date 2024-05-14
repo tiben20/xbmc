@@ -188,6 +188,32 @@ CD3DTexture::~CD3DTexture()
   delete[] m_data;
 }
 
+bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT format, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */, std::string sDebugName)
+{
+  m_width = width;
+  m_height = height;
+  m_mipLevels = 1;
+  // create the texture
+  Release();
+  if (format == DXGI_FORMAT_UNKNOWN)
+    format = DXGI_FORMAT_B8G8R8A8_UNORM; // DXGI_FORMAT_UNKNOWN
+  m_usage = D3D11_USAGE_DEFAULT;
+  m_bindFlags = bindFlags;
+  m_cpuFlags = 0;
+  if (!CreateInternal(pixels, srcPitch))
+  {
+    CLog::LogF(LOGERROR, "failed to create texture.");
+    return false;
+  }
+#if defined(_DEBUG)
+  D3DSetDebugName(m_texture.Get(), sDebugName.c_str());
+#endif
+
+  Register();
+
+  return true;
+}
+
 bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE usage, DXGI_FORMAT format, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */, std::string sDebugName)
 {
   m_width = width;
@@ -205,7 +231,7 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE us
     return false;
   }
 
-  m_cpuFlags = 0;
+  m_cpuFlags = usage;
   if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
   {
     m_cpuFlags |= D3D11_CPU_ACCESS_WRITE;
@@ -214,7 +240,7 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE us
   }
   
   m_format = format;
-  m_usage = usage;
+  m_usage = D3D11_USAGE_DEFAULT;
 
   m_bindFlags = 0; // D3D11_BIND_SHADER_RESOURCE;
   if (D3D11_USAGE_DEFAULT == usage && DX::Windowing()->IsFormatSupport(format, D3D11_FORMAT_SUPPORT_RENDER_TARGET))

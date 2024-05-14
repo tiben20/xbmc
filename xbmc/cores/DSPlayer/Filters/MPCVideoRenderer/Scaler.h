@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Original developed by Minigraph author James Stanard
  *
  * (C) 2022 Ti-BEN
@@ -25,6 +25,18 @@
 #include <vector>
 #include "ShadersLoader.h"
 #include "guilib/D3DResource.h"
+#include "DSUtil/Geometry.h"
+#include "SmallVector.h"
+#include "VideoRenderers/MPCVRRenderer.h"
+#pragma push_macro("_UNICODE")
+#undef _UNICODE
+#pragma warning(push)
+#pragma warning(disable: 4310)
+#include "Include/MuParser/muParser.h"
+#pragma warning(push)
+#pragma pop_macro("_UNICODE")
+#pragma comment(lib, "muparser.lib")
+
 
 __declspec(align(16)) struct CONSTANT_BUFFER_4F_4int {
   DirectX::XMFLOAT4 size0;
@@ -46,6 +58,57 @@ struct ScalerConfigInt
   int Value;
 };
 
+class CMPCVRRenderer;
+class CD3DDSShader : public ID3DResource
+{
+public:
+  CD3DDSShader();
+  virtual ~CD3DDSShader();
+  bool Create(const ShaderDesc& desc, const ShaderOption& option);
+  void Release();
+  bool SetFloatArray(LPCSTR handle, const float* val, unsigned int count);
+  bool SetMatrix(LPCSTR handle, const float* mat);
+  bool SetTechnique(LPCSTR handle);
+  bool SetTexture(LPCSTR handle, CD3DTexture& texture);
+  bool SetResources(LPCSTR handle, ID3D11ShaderResourceView** ppSRViews, size_t count);
+  bool SetConstantBuffer(LPCSTR handle, ID3D11Buffer* buffer);
+  bool SetScalar(LPCSTR handle, float value);
+  bool Begin(UINT* passes, DWORD flags);
+  bool BeginPass(UINT pass);
+  bool EndPass();
+  bool End();
+  
+  void Draw(CMPCVRRenderer* renderer);
+
+  ID3DX11Effect* Get() const { return m_effect.Get(); }
+
+  void OnDestroyDevice(bool fatal) override;
+  void OnCreateDevice() override;
+
+private:
+
+  std::string m_effectString;
+  DefinesMap m_defines;
+  Microsoft::WRL::ComPtr<ID3DX11Effect> m_effect;
+  Microsoft::WRL::ComPtr<ID3DX11EffectTechnique> m_techniquie;
+  Microsoft::WRL::ComPtr<ID3DX11EffectPass> m_currentPass;
+
+  SmallVector<ID3D11SamplerState*> _samplers;
+  SmallVector<CD3DTexture> _textures;
+  std::vector<SmallVector<ID3D11ShaderResourceView*>> _srvs;
+  // 后半部分为空，用于解绑
+  std::vector<SmallVector<ID3D11UnorderedAccessView*>> _uavs;
+
+  SmallVector<Constant32, 32> _constants;
+  Microsoft::WRL::ComPtr<ID3D11Buffer> m_pConstantBuffer;
+
+  std::vector<Microsoft::WRL::ComPtr<ID3D11ComputeShader>> _shaders;
+
+  SmallVector<std::pair<uint32_t, uint32_t>> _dispatches;
+
+  SIZE CalcOutputSize(const std::pair<std::string, std::string>& outputSizeExpr, const ShaderOption& option, SIZE scalingWndSize, SIZE inputSize, mu::Parser& exprParser);
+  bool InitializeConstants(const ShaderDesc& desc, const ShaderOption& option, SIZE inputSize, SIZE outputSize);
+};
 
 class CD3D11Scaler
 {
@@ -104,22 +167,26 @@ private:
 };
 
 
-class CD3D12DynamicScaler
+class CD3D11DynamicScaler
 {
 public:
-  CD3D12DynamicScaler(std::wstring filename,bool *res);
-  ~CD3D12DynamicScaler();
+  CD3D11DynamicScaler(std::wstring filename,bool *res);
+  ~CD3D11DynamicScaler();
 
   void Init(DXGI_FORMAT srcfmt, Com::SmartRect src, Com::SmartRect dst);
+  void Init();
   void Render(Com::SmartRect dstrect, CD3DTexture& dest, CD3DTexture& source);
   void Unload();
   
   std::wstring GetScalerName() { return m_pFilename; }
   void SetShaderConstants(std::vector<ShaderParameterDesc> consts) { m_pDesc.params = consts; }
 
+  void Draw(CMPCVRRenderer* renderer) { m_pScaler->Draw(renderer); };
 private:
-  CD3D11Scaler* m_pScaler;
+  CD3DDSShader* m_pScaler;
+  ShaderOption m_pOption = {};
   ShaderDesc m_pDesc = {};
+  CD3DEffect m_effect;
   Com::SmartRect m_srcRect;
   std::wstring m_pFilename;
   Microsoft::WRL::ComPtr< ID3D11Buffer> m_pConstantBuffer;
