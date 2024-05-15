@@ -46,7 +46,7 @@ void CMPCVRRenderer::LoadShaders()
 {
   bool res;
 
-  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(L"special://xbmc/system/shaders/mpcvr/Bicubic.hlsl", &res);
+  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(L"special://xbmc/system/shaders/mpcvr/Anime4K_Restore_L.hlsl", &res);
   
   m_pShaders.push_back(cur);
   
@@ -260,9 +260,9 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
     m_pShaders.at(idx)->Draw(this);
   }
   OnEndEffects();
-
+  
   if (DX::DeviceResources::Get()->GetBackBuffer().GetWidth() == m_IntermediateTarget.GetWidth() && DX::DeviceResources::Get()->GetBackBuffer().GetHeight() == m_IntermediateTarget.GetHeight() )
-    DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_IntermediateTarget.Get());
+    DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_pShaders[0]->GetOutputSurface().Get());
   else
   {
     CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
@@ -378,7 +378,7 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
   srcRect.right = m_IntermediateTarget.GetWidth();
   srcRect.bottom = m_IntermediateTarget.GetHeight();
   InitShaders();
-  Start(1);
+  Start(5);
   //m_pShaders.at(0)->Init(DXGI_FORMAT_R8G8B8A8_UNORM, srcRect, srcRect);
   return true;
 }

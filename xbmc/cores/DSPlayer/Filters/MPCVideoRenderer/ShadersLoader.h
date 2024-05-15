@@ -222,6 +222,5 @@ public:
 private:
 	
 	std::wstring m_pFile;
-	
 };
 

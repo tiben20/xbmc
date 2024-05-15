@@ -1786,6 +1786,7 @@ uint32_t CShaderFileLoader::Compile(ShaderDesc& desc, uint32_t flags, const phma
 		CLog::Log(LOGERROR, "couldn't read for compile {}", WToA(currentpath).c_str());
 		return false;
 	}
+	
 	bool noCompile = flags & ShaderCompilerFlags::NoCompile;
 	bool noCache = noCompile || (flags & ShaderCompilerFlags::NoCache);
 
