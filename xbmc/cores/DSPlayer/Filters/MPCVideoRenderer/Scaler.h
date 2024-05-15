@@ -66,7 +66,9 @@ public:
   CD3DScaler();
   virtual ~CD3DScaler();
   bool Create(const ShaderDesc& desc, const ShaderOption& option);
+  bool IsCreated() { return m_bCreated; };
   void Release();
+  void ReleaseResource();
   
   void Draw(CMPCVRRenderer* renderer);
 
@@ -79,8 +81,7 @@ public:
       return m_pTextures[1];
   }
 private:
-
-  std::string m_effectString;
+  bool m_bCreated;
   SmallVector<ID3D11SamplerState*> m_pSamplers;
   SmallVector<CD3DTexture> m_pTextures;
   std::vector<SmallVector<ID3D11ShaderResourceView*>> m_pSRVs;

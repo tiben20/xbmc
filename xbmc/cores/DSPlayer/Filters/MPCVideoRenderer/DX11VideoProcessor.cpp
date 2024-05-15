@@ -3067,6 +3067,7 @@ void CDX11VideoProcessor::Reset(bool bForceWindowed)
 	ReleaseSwapChain();
 	//m_pDXGIFactory2= nullptr;
 	ReleaseDevice();
+	CMPCVRRenderer::Get()->Reset();
 
 	m_pDXGIFactory1 = nullptr;
 	m_bKodiResizeBuffers = true;

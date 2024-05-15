@@ -95,6 +95,7 @@ public:
   void OnEndEffects();
   void OnEndPass();
 
+  void Reset();
   //samples,shader and unorderer access views saved in maps to not duplicate access views
   ID3D11SamplerState* GetSampler(D3D11_FILTER filterMode, D3D11_TEXTURE_ADDRESS_MODE addressMode);
   ID3D11ShaderResourceView* GetShaderResourceView(ID3D11Texture2D* texture);

@@ -46,7 +46,7 @@ void CMPCVRRenderer::LoadShaders()
 {
   bool res;
 
-  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(L"special://xbmc/system/shaders/mpcvr/Anime4K_Restore_L.hlsl", &res);
+  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(L"special://xbmc/system/shaders/mpcvr/Bicubic.hlsl", &res);
   
   m_pShaders.push_back(cur);
   
@@ -107,6 +107,16 @@ void CMPCVRRenderer::OnEndPass()
     return;
 
   DX::DeviceResources::Get()->GetD3DContext()->End(m_pPassQueries[m_pCurrentPasses++].Get());
+}
+
+void CMPCVRRenderer::Reset()
+{
+  m_pDisjointQuery = nullptr;
+  m_pStartQuery = nullptr;
+  m_pPassQueries.clear();
+  m_IntermediateTarget.Release();
+  
+  
 }
 
 ID3D11SamplerState* CMPCVRRenderer::GetSampler(D3D11_FILTER filterMode, D3D11_TEXTURE_ADDRESS_MODE addressMode)
@@ -254,6 +264,9 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //m_sourceRect source of the video
   //m_destRect destination rectangle
   //GetScreenRect screen rectangle
+  if (!(DX::DeviceResources::Get()->GetBackBuffer().GetWidth() == m_IntermediateTarget.GetWidth() && DX::DeviceResources::Get()->GetBackBuffer().GetHeight() == m_IntermediateTarget.GetHeight()))
+    CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+
   OnBeginEffects();
   for (int idx = 0; idx < m_pShaders.size(); idx++)
   {
@@ -261,12 +274,9 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   }
   OnEndEffects();
   
-  if (DX::DeviceResources::Get()->GetBackBuffer().GetWidth() == m_IntermediateTarget.GetWidth() && DX::DeviceResources::Get()->GetBackBuffer().GetHeight() == m_IntermediateTarget.GetHeight() )
-    DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_pShaders[0]->GetOutputSurface().Get());
-  else
-  {
-    CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
-  }
+  
+  DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_pShaders[0]->GetOutputSurface().Get());
+  
 
   DX::Windowing()->SetAlphaBlendEnable(true);
   

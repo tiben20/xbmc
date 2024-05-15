@@ -61,6 +61,7 @@ const DXGI_FORMAT DXGI_FORMAT_MAPPING[16] = {
 
 CD3DScaler::CD3DScaler()
 {
+  m_bCreated = false;
 //add initialisation
 }
 
@@ -81,20 +82,22 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
 
   exprParser.DefineConst("OUTPUT_WIDTH", outputSize.cx);
   exprParser.DefineConst("OUTPUT_HEIGHT", outputSize.cy);
-  m_pSamplers.resize(desc.samplers.size());
-  for (UINT i = 0; i < m_pSamplers.size(); ++i) {
-    const ShaderSamplerDesc& samDesc = desc.samplers[i];
-    m_pSamplers[i] = CMPCVRRenderer::Get()->GetSampler(
-      samDesc.filterType == ShaderSamplerFilterType::Linear ? D3D11_FILTER_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_POINT,
-      samDesc.addressType == ShaderSamplerAddressType::Clamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP
-    );
+  if (m_pSamplers.size() == 0)
+  {
+    m_pSamplers.resize(desc.samplers.size());
+    for (UINT i = 0; i < m_pSamplers.size(); ++i) {
+      const ShaderSamplerDesc& samDesc = desc.samplers[i];
+      m_pSamplers[i] = CMPCVRRenderer::Get()->GetSampler(
+        samDesc.filterType == ShaderSamplerFilterType::Linear ? D3D11_FILTER_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_POINT,
+        samDesc.addressType == ShaderSamplerAddressType::Clamp ? D3D11_TEXTURE_ADDRESS_CLAMP : D3D11_TEXTURE_ADDRESS_WRAP
+      );
 
-    if (!m_pSamplers[i]) {
-      CLog::Log(LOGERROR,"Failed to create sampler{}", samDesc.name);
-      return false;
+      if (!m_pSamplers[i]) {
+        CLog::Log(LOGERROR, "Failed to create sampler{}", samDesc.name);
+        return false;
+      }
     }
   }
-
   // 创建中间纹理
   // 第一个为 INPUT，第二个为 OUTPUT
   m_pTextures.resize(desc.textures.size());
@@ -224,6 +227,7 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
     m_pNullSRV.push_back(nullptr);
     m_pNullUAV.push_back(nullptr);
   }
+  m_bCreated = true;
   return true;
 }
 
@@ -232,6 +236,19 @@ void CD3DScaler::Release()
 {
   Unregister();
   OnDestroyDevice(false);
+}
+
+void CD3DScaler::ReleaseResource()
+{
+  m_pNullSRV.clear();
+  m_pNullUAV.clear();
+  m_pDispatches.clear();
+  m_pTextures.clear();
+  m_pSRVs.clear();
+  m_pUAVs.clear();
+  m_pConstants.clear();
+  m_pConstantBuffer = nullptr;
+  m_pComputeShaders.clear();
 }
 
 void CD3DScaler::OnDestroyDevice(bool fatal)
@@ -468,7 +485,9 @@ CD3D11DynamicScaler::CD3D11DynamicScaler(std::wstring filename,bool *res)
 
 void CD3D11DynamicScaler::Init()
 {
-  bool res = m_pScaler->Create(m_pDesc, m_pOption);
+  if (m_pScaler->IsCreated())
+    m_pScaler->ReleaseResource();
+  m_pScaler->Create(m_pDesc, m_pOption);
 }
 
 void CD3D11DynamicScaler::Unload()
