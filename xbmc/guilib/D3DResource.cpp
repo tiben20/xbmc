@@ -188,7 +188,7 @@ CD3DTexture::~CD3DTexture()
   delete[] m_data;
 }
 
-bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT format, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */, std::string sDebugName)
+bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT format, std::string sDebugName, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */)
 {
   m_width = width;
   m_height = height;

@@ -378,7 +378,8 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
   srcRect.right = m_IntermediateTarget.GetWidth();
   srcRect.bottom = m_IntermediateTarget.GetHeight();
   InitShaders();
-  Start(5);
+  
+  Start(m_pShaders.at(0)->GetNumberPasses());
   //m_pShaders.at(0)->Init(DXGI_FORMAT_R8G8B8A8_UNORM, srcRect, srcRect);
   return true;
 }

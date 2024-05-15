@@ -102,7 +102,7 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
   m_pTextures[0] = CMPCVRRenderer::Get()->GetIntermediateTarget();
 
   // 创建输出纹理，格式始终是 DXGI_FORMAT_R8G8B8A8_UNORM
-  m_pTextures[1].Create(outputSize.cx, outputSize.cy, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, FORMAT_DESCS[(uint32_t)desc.textures[1].format].dxgiFormat);
+  m_pTextures[1].Create(outputSize.cx, outputSize.cy, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, FORMAT_DESCS[(uint32_t)desc.textures[1].format].dxgiFormat,"Shader Output Texture");
     /*= DirectXHelper::CreateTexture2D(
     DX::DeviceResources::GetD3DDevice(),
     FORMAT_DESCS[(uint32_t)desc.textures[1].format].dxgiFormat,
@@ -120,7 +120,9 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
   for (size_t i = 2; i < desc.textures.size(); ++i) {
     const ShaderIntermediateTextureDesc& texDesc = desc.textures[i];
 
-    if (!texDesc.source.empty()) {
+    if (!texDesc.source.empty())
+    {
+      CLog::Log(LOGINFO, "{} Loading texture from file", __FUNCTION__);
       // Load texture from file
 #if TODO
       size_t delimPos = desc.name.find_last_of('\\');
@@ -164,22 +166,11 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
         return false;
       }
 
-      if (!m_pTextures[i].Create(texSize.cx, texSize.cy, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, FORMAT_DESCS[(UINT)texDesc.format].dxgiFormat))
+      if (!m_pTextures[i].Create(texSize.cx, texSize.cy, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, FORMAT_DESCS[(UINT)texDesc.format].dxgiFormat,texDesc.name))
       {
         CLog::Log(LOGERROR, "Failed to create texture");
         return false;
       }
-        /*= DirectXHelper::CreateTexture2D(
-        deviceResources.GetD3DDevice(),
-        ShaderHelper::FORMAT_DESCS[(UINT)texDesc.format].dxgiFormat,
-        texSize.cx,
-        texSize.cy,
-        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
-      );
-      if (!m_pTextures[i]) {
-        CLog::Log(LOGERROR,"创建纹理失败");
-        return false;
-      }*/
     }
   }
 
@@ -188,7 +179,6 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
   m_pUAVs.resize(desc.passes.size());
   for (UINT i = 0; i < m_pComputeShaders.size(); ++i) {
     const ShaderPassDesc& passDesc = desc.passes[i];
-#if 1
     HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateComputeShader(
       passDesc.cso->GetBufferPointer(), passDesc.cso->GetBufferSize(), nullptr, m_pComputeShaders[i].ReleaseAndGetAddressOf());
     if (FAILED(hr))
@@ -214,32 +204,7 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
         return false;
       }
     }
-#else
-    HRESULT hr = deviceResources.GetD3DDevice()->CreateComputeShader(
-      passDesc.cso->GetBufferPointer(), passDesc.cso->GetBufferSize(), nullptr, m_pComputeShaders[i].put());
-    if (FAILED(hr)) {
-      Logger::Get().ComError("创建计算着色器失败", hr);
-      return false;
-    }
 
-    m_pSRVs[i].resize(passDesc.inputs.size());
-    for (UINT j = 0; j < passDesc.inputs.size(); ++j) {
-      auto srv = m_pSRVs[i][j] = descriptorStore.GetShaderResourceView(m_pTextures[passDesc.inputs[j]].get());
-      if (!srv) {
-        CLog::Log(LOGERROR,"GetShaderResourceView 失败");
-        return false;
-      }
-    }
-
-    m_pUAVs[i].resize(passDesc.outputs.size() * 2);
-    for (UINT j = 0; j < passDesc.outputs.size(); ++j) {
-      auto uav = m_pUAVs[i][j] = descriptorStore.GetUnorderedAccessView(m_pTextures[passDesc.outputs[j]].get());
-      if (!uav) {
-        CLog::Log(LOGERROR,"GetUnorderedAccessView 失败");
-        return false;
-      }
-    }
-#endif
     D3D11_TEXTURE2D_DESC outputDesc;
     m_pTextures[passDesc.outputs[0]].GetDesc(&outputDesc);
     m_pDispatches.emplace_back(
@@ -249,10 +214,16 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
   }
 
   if (!InitializeConstants(desc, option, inputSize, outputSize)) {
-    CLog::Log(LOGERROR,"_InitializeConstants 失败");
+    CLog::Log(LOGERROR,"_InitializeConstants fail");
     return false;
   }
 
+  //Creating null ptr for drawing, if we dont the device context will launch a warning that the input is still bound
+  for (int x = 0; x < m_pSRVs.size(); x++)
+  {
+    m_pNullSRV.push_back(nullptr);
+    m_pNullUAV.push_back(nullptr);
+  }
   return true;
 }
 
@@ -450,10 +421,14 @@ void CD3DScaler::Draw(CMPCVRRenderer* renderer)
   DX::DeviceResources::Get()->GetD3DContext()->CSSetSamplers(0, (UINT)m_pSamplers.size(), m_pSamplers.data());
     for (uint32_t i = 0; i < m_pDispatches.size(); ++i)
     {
+      DX::DeviceResources::Get()->GetD3DContext()->CSSetShaderResources(0, m_pNullSRV.size(), m_pNullSRV.data());
+      DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, m_pNullUAV.size(), m_pNullUAV.data(), nullptr);
+
       DX::DeviceResources::Get()->GetD3DContext()->CSSetShader(m_pComputeShaders[i].Get(), nullptr, 0);
 
       DX::DeviceResources::Get()->GetD3DContext()->CSSetShaderResources(0, (UINT)m_pSRVs[i].size(), m_pSRVs[i].data());
       UINT uavCount = (UINT)m_pUAVs[i].size() / 2;
+      
       DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, uavCount, m_pUAVs[i].data(), nullptr);
 
       DX::DeviceResources::Get()->GetD3DContext()->Dispatch(m_pDispatches[i].first, m_pDispatches[i].second, 1);

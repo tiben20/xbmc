@@ -74,8 +74,9 @@ public:
   void OnCreateDevice() override;
   CD3DTexture GetOutputSurface()
   {
-    int idx = m_pTextures.size() - 1;
-    return m_pTextures[idx];
+    //the output is always the second texture in the array
+    if (m_pTextures[1].Get())
+      return m_pTextures[1];
   }
 private:
 
@@ -85,6 +86,8 @@ private:
   std::vector<SmallVector<ID3D11ShaderResourceView*>> m_pSRVs;
   std::vector<SmallVector<ID3D11UnorderedAccessView*>> m_pUAVs;
 
+  std::vector<ID3D11ShaderResourceView*> m_pNullSRV;
+  std::vector<ID3D11UnorderedAccessView*> m_pNullUAV;
   SmallVector<Constant32, 32> m_pConstants;
   Microsoft::WRL::ComPtr<ID3D11Buffer> m_pConstantBuffer;
 
@@ -110,6 +113,8 @@ public:
 
   void Draw(CMPCVRRenderer* renderer) { m_pScaler->Draw(renderer); };
   CD3DTexture GetOutputSurface() { return m_pScaler->GetOutputSurface(); };
+
+  int GetNumberPasses() { return m_pDesc.passes.size(); };
 private:
   CD3DScaler* m_pScaler;
   ShaderOption m_pOption = {};
