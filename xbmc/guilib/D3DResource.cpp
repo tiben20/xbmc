@@ -902,7 +902,7 @@ bool CD3DBuffer::Map(void **data)
   if (m_buffer)
   {
     D3D11_MAPPED_SUBRESOURCE resource;
-    if (SUCCEEDED(DX::DeviceResources::Get()->GetD3DContext()->Map(m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resource)))
+    if (SUCCEEDED(DX::DeviceResources::Get()->GetD3DContext()->Map(m_buffer.Get(), 0, D3D11_MAP_READ_WRITE, 0, &resource)))
     {
       *data = resource.pData;
       return true;

@@ -62,6 +62,7 @@ const DXGI_FORMAT DXGI_FORMAT_MAPPING[16] = {
 CD3DScaler::CD3DScaler()
 {
   m_bCreated = false;
+  m_bUpdateBuffer = false;
 //add initialisation
 }
 
@@ -73,8 +74,10 @@ CD3DScaler::~CD3DScaler()
 bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
 {
   SIZE inputSize, outputSize;
-  inputSize = { (LONG)DX::Windowing()->GetBackBuffer().GetWidth(), (LONG)DX::Windowing()->GetBackBuffer().GetHeight() };
+  inputSize = { (LONG)CMPCVRRenderer::Get()->GetInputTexture().GetWidth(), (LONG)CMPCVRRenderer::Get()->GetInputTexture().GetHeight() };
+  
   outputSize = { (LONG)DX::Windowing()->GetBackBuffer().GetWidth(), (LONG)DX::Windowing()->GetBackBuffer().GetHeight() };
+
   static mu::Parser exprParser;
   exprParser.DefineConst("INPUT_WIDTH", inputSize.cx);
   exprParser.DefineConst("INPUT_HEIGHT", inputSize.cy);
@@ -85,7 +88,8 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
   if (m_pSamplers.size() == 0)
   {
     m_pSamplers.resize(desc.samplers.size());
-    for (UINT i = 0; i < m_pSamplers.size(); ++i) {
+    for (UINT i = 0; i < m_pSamplers.size(); ++i)
+    {
       const ShaderSamplerDesc& samDesc = desc.samplers[i];
       m_pSamplers[i] = CMPCVRRenderer::Get()->GetSampler(
         samDesc.filterType == ShaderSamplerFilterType::Linear ? D3D11_FILTER_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_POINT,
@@ -98,27 +102,16 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
       }
     }
   }
-  // 创建中间纹理
-  // 第一个为 INPUT，第二个为 OUTPUT
+
+
+  // Set the input as the input used by mpcvr
+  // array 0 is the input array 1 the final output which will be copied to backbuffer later
+  // The first one is INPUT, the second one is OUTPUT
   m_pTextures.resize(desc.textures.size());
   
-  m_pTextures[0] = CMPCVRRenderer::Get()->GetIntermediateTarget();
-
-  // 创建输出纹理，格式始终是 DXGI_FORMAT_R8G8B8A8_UNORM
+  m_pTextures[0] = CMPCVRRenderer::Get()->GetInputTexture();
+  
   m_pTextures[1].Create(outputSize.cx, outputSize.cy, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, FORMAT_DESCS[(uint32_t)desc.textures[1].format].dxgiFormat,"Shader Output Texture");
-    /*= DirectXHelper::CreateTexture2D(
-    DX::DeviceResources::GetD3DDevice(),
-    FORMAT_DESCS[(uint32_t)desc.textures[1].format].dxgiFormat,
-    outputSize.cx,
-    outputSize.cy,
-    D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS
-  );
-
-  *inOutTexture = m_pTextures[1].get();
-  if (!*inOutTexture) {
-    CLog::Log(LOGERROR,"创建输出纹理失败");
-    return false;
-  }*/
 
   for (size_t i = 2; i < desc.textures.size(); ++i) {
     const ShaderIntermediateTextureDesc& texDesc = desc.textures[i];
@@ -261,6 +254,11 @@ void CD3DScaler::OnCreateDevice()
   
 }
 
+void CD3DScaler::SetOption(ShaderOption option)
+{
+  m_bUpdateBuffer = true;
+}
+
 SIZE CD3DScaler::CalcOutputSize(const std::pair<std::string, std::string>& outputSizeExpr, const ShaderOption& option, SIZE scalingWndSize, SIZE inputSize, mu::Parser& exprParser)
 {
   SIZE outputSize{};
@@ -318,6 +316,22 @@ SIZE CD3DScaler::CalcOutputSize(const std::pair<std::string, std::string>& outpu
   return outputSize;
 }
 
+void CD3DScaler::ChangeConstant(Constant32 pParam,int index)
+{
+  m_pConstants[index].floatVal = pParam.floatVal;
+  D3D11_BUFFER_DESC bd{};
+  bd.ByteWidth = 4 * (UINT)m_pConstants.size();
+  bd.Usage = D3D11_USAGE_DEFAULT;
+  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+
+  D3D11_SUBRESOURCE_DATA initData{};
+  initData.pSysMem = m_pConstants.data();
+  
+
+  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&bd, &initData, m_pConstantBuffer.ReleaseAndGetAddressOf());
+}
+
 bool CD3DScaler::InitializeConstants(const ShaderDesc& desc, const ShaderOption& option, SIZE inputSize, SIZE outputSize)
 {
   const bool isInlineParams = desc.flags & ShaderFlags::InlineParams;
@@ -368,7 +382,7 @@ bool CD3DScaler::InitializeConstants(const ShaderDesc& desc, const ShaderOption&
       }
     }
   }
-
+  
   if (!isInlineParams) {
     for (UINT i = 0; i < desc.params.size(); ++i) {
       const auto& paramDesc = desc.params[i];
@@ -433,26 +447,36 @@ bool CD3DScaler::InitializeConstants(const ShaderDesc& desc, const ShaderOption&
 
 void CD3DScaler::Draw(CMPCVRRenderer* renderer)
 {
+  if (m_bUpdateBuffer)
+  {
+    Constant32 param{};
+    param.floatVal = 0.7f;
+    
+    ChangeConstant(param, 10);
+    m_bUpdateBuffer = false;
+  }
   ID3D11Buffer* t = m_pConstantBuffer.Get();
+
   DX::DeviceResources::Get()->GetD3DContext()->CSSetConstantBuffers(0, 1, &t);
+
   DX::DeviceResources::Get()->GetD3DContext()->CSSetSamplers(0, (UINT)m_pSamplers.size(), m_pSamplers.data());
-    for (uint32_t i = 0; i < m_pDispatches.size(); ++i)
-    {
-      DX::DeviceResources::Get()->GetD3DContext()->CSSetShaderResources(0, m_pNullSRV.size(), m_pNullSRV.data());
-      DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, m_pNullUAV.size(), m_pNullUAV.data(), nullptr);
+  for (uint32_t i = 0; i < m_pDispatches.size(); ++i)
+  {
+    DX::DeviceResources::Get()->GetD3DContext()->CSSetShaderResources(0, m_pNullSRV.size(), m_pNullSRV.data());
+    DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, m_pNullUAV.size(), m_pNullUAV.data(), nullptr);
 
-      DX::DeviceResources::Get()->GetD3DContext()->CSSetShader(m_pComputeShaders[i].Get(), nullptr, 0);
+    DX::DeviceResources::Get()->GetD3DContext()->CSSetShader(m_pComputeShaders[i].Get(), nullptr, 0);
 
-      DX::DeviceResources::Get()->GetD3DContext()->CSSetShaderResources(0, (UINT)m_pSRVs[i].size(), m_pSRVs[i].data());
-      UINT uavCount = (UINT)m_pUAVs[i].size() / 2;
-      
-      DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, uavCount, m_pUAVs[i].data(), nullptr);
+    DX::DeviceResources::Get()->GetD3DContext()->CSSetShaderResources(0, (UINT)m_pSRVs[i].size(), m_pSRVs[i].data());
+    UINT uavCount = (UINT)m_pUAVs[i].size() / 2;
 
-      DX::DeviceResources::Get()->GetD3DContext()->Dispatch(m_pDispatches[i].first, m_pDispatches[i].second, 1);
+    DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, uavCount, m_pUAVs[i].data(), nullptr);
 
-      DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, uavCount, m_pUAVs[i].data() + uavCount, nullptr);
-      renderer->OnEndPass();
-    }
+    DX::DeviceResources::Get()->GetD3DContext()->Dispatch(m_pDispatches[i].first, m_pDispatches[i].second, 1);
+
+    DX::DeviceResources::Get()->GetD3DContext()->CSSetUnorderedAccessViews(0, uavCount, m_pUAVs[i].data() + uavCount, nullptr);
+    renderer->OnEndPass();
+  }
 
 }
 

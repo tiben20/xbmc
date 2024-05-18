@@ -58,7 +58,6 @@ public:
   bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps);
   CD3DTexture& GetIntermediateTarget();
 
-
   // Feature support
   virtual bool SupportsMultiPassRendering() override { return false; }
   virtual bool Supports(ERENDERFEATURE feature) const override { return false; }
@@ -105,6 +104,9 @@ public:
   ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Buffer* buffer, uint32_t numElements, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
   CD3DTexture GetIntermediateTexture() { return m_IntermediateTarget; }
+  CD3DTexture GetInputTexture() { return m_InputTarget; }
+  bool CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format);
+  
 protected:
 
   bool CreateIntermediateTarget(unsigned int width,
@@ -137,6 +139,7 @@ protected:
   phmap::flat_hash_map<ID3D11Texture2D*, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pShaderRSV;
   phmap::flat_hash_map<void*, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> m_pUAVViews;
 
+  CD3DTexture m_InputTarget;
   CD3DTexture m_IntermediateTarget;
 
   CRect GetScreenRect() const;

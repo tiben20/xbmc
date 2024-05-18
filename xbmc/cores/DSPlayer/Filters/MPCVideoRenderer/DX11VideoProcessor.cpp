@@ -2283,15 +2283,15 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	{
 		UpdateTexures();
 	}
-	ID3D11RenderTargetView* pRTView = CMPCVRRenderer::Get()->GetIntermediateTarget().GetRenderTarget();
-	DX::DeviceResources::Get()->GetImmediateContext()->ClearRenderTargetView(pRTView, fColor);
-	DX::DeviceResources::Get()->GetImmediateContext()->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+	//ID3D11RenderTargetView* pRTView = CMPCVRRenderer::Get()->GetIntermediateTarget().GetRenderTarget();
+	//DX::DeviceResources::Get()->GetImmediateContext()->ClearRenderTargetView(pRTView, fColor);
+	//DX::DeviceResources::Get()->GetImmediateContext()->ClearDepthStencilView(DX::DeviceResources::Get()->GetDSV(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 
 	if (!m_renderRect.IsRectEmpty()) {
 		hr = Process(CMPCVRRenderer::Get()->GetIntermediateTarget().Get(), m_srcRect, m_videoRect, m_FieldDrawn == 2);
 	}
-
-	m_pDeviceContext->OMSetRenderTargets(1, &pRTView, nullptr);
+	return hr;
+	//m_pDeviceContext->OMSetRenderTargets(1, &pRTView, nullptr);
 
 	
 	if (!m_pPSHalfOUtoInterlace) {
@@ -2318,38 +2318,6 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 			m_pAlphaBitmapVertex.Get(), &VP,
 			m_pSamplerLinear.Get());
 	}
-
-#if 0
-	{ // Tearing test (very non-optimal implementation, use only for tests)
-		static int nTearingPos = 0;
-
-		ID3D11RenderTargetView* pRenderTargetView;
-		if (S_OK == GetDevice->CreateRenderTargetView(pBackBuffer, nullptr, &pRenderTargetView)) {
-			CD3D11Rectangle d3d11rect;
-			HRESULT hr2 = d3d11rect.InitDeviceObjects(GetDevice, DX::DeviceResources::Get()->GetImmediateContext());
-
-			const SIZE szWindow = m_windowRect.Size();
-			RECT rcTearing;
-
-			rcTearing.left = nTearingPos;
-			rcTearing.top = 0;
-			rcTearing.right = rcTearing.left + 4;
-			rcTearing.bottom = szWindow.cy;
-			hr2 = d3d11rect.Set(rcTearing, szWindow, D3DCOLOR_XRGB(255, 0, 0));
-			hr2 = d3d11rect.Draw(pRenderTargetView, szWindow);
-
-			rcTearing.left = (rcTearing.right + 15) % szWindow.cx;
-			rcTearing.right = rcTearing.left + 4;
-			hr2 = d3d11rect.Set(rcTearing, szWindow, D3DCOLOR_XRGB(255, 0, 0));
-			hr2 = d3d11rect.Draw(pRenderTargetView, szWindow);
-
-			pRenderTargetView->Release();
-			d3d11rect.InvalidateDeviceObjects();
-
-			nTearingPos = (nTearingPos + 7) % szWindow.cx;
-		}
-	}
-#endif
 
 	uint64_t tick3 = GetPreciseTick();
 	m_RenderStats.paintticks = tick3 - tick1;
@@ -2942,7 +2910,26 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 	else {
 		pInputTexture = &m_TexSrcVideo;
 	}
-
+	
+	if (CMPCVRRenderer::Get()->CreateInputTarget(pInputTexture->desc.Width, pInputTexture->desc.Height, pInputTexture->desc.Format))
+	{
+		
+		m_pDeviceContext->CopyResource(CMPCVRRenderer::Get()->GetInputTexture().Get(), pInputTexture->pTexture.Get());
+		Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
+		if (FAILED(m_pDeviceContext->FinishCommandList(true, &pCommandList)))
+		{
+			CLog::LogF(LOGERROR, "failed to finish command queue.");
+			return E_FAIL;
+		}
+		else
+		{
+			D3DSetDebugName(pCommandList.Get(), "CommandList mpc deferred context");
+			DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), false);
+		}
+		return S_OK;
+	}
+	return E_FAIL;
+#if 0
 	if (numSteps) {
 		UINT step = 0;
 		Tex2D_t* pTex = m_TexsPostScale.GetFirstTex();
@@ -3028,8 +3015,9 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 	else {
 		hr = ResizeShaderPass(*pInputTexture, pRenderTarget, rSrc, dstRect, rotation);
 	}
-
-	DLogIf(FAILED(hr), "CDX9VideoProcessor::Process() : failed with error {}", WToA(HR2Str(hr)));
+#endif
+	if (FAILED(hr))
+		CLog::Log(LOGERROR,"{} : failed with error {}",__FUNCTION__, WToA(HR2Str(hr)));
 
 	return hr;
 }

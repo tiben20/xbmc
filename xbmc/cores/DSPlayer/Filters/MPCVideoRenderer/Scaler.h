@@ -37,27 +37,6 @@
 #pragma pop_macro("_UNICODE")
 #pragma comment(lib, "muparser.lib")
 
-
-__declspec(align(16)) struct CONSTANT_BUFFER_4F_4int {
-  DirectX::XMFLOAT4 size0;
-  DirectX::XMFLOAT4 fArg;
-  DirectX::XMINT4 iArg;
-  DirectX::XMFLOAT2 fInternalArg;
-  DirectX::XMINT2 iInternalArg;
-};
-
-struct ScalerConfigFloat
-{
-  std::wstring Name;
-  float Value;
-};
-
-struct ScalerConfigInt
-{
-  std::wstring Name;
-  int Value;
-};
-
 class CMPCVRRenderer;
 
 class CD3DScaler : public ID3DResource
@@ -74,6 +53,9 @@ public:
 
   void OnDestroyDevice(bool fatal) override;
   void OnCreateDevice() override;
+
+  void SetOption(ShaderOption option);
+
   CD3DTexture GetOutputSurface()
   {
     //the output is always the second texture in the array
@@ -81,23 +63,26 @@ public:
       return m_pTextures[1];
   }
 private:
+  bool m_bUpdateBuffer;
   bool m_bCreated;
   SmallVector<ID3D11SamplerState*> m_pSamplers;
   SmallVector<CD3DTexture> m_pTextures;
   std::vector<SmallVector<ID3D11ShaderResourceView*>> m_pSRVs;
   std::vector<SmallVector<ID3D11UnorderedAccessView*>> m_pUAVs;
+  std::vector<Microsoft::WRL::ComPtr<ID3D11ComputeShader>> m_pComputeShaders;
+  SmallVector<std::pair<uint32_t, uint32_t>> m_pDispatches;
 
+  //those are only used to avoid warnings from d3d11 device
   std::vector<ID3D11ShaderResourceView*> m_pNullSRV;
   std::vector<ID3D11UnorderedAccessView*> m_pNullUAV;
+
+  //constant buffer and options
   SmallVector<Constant32, 32> m_pConstants;
   Microsoft::WRL::ComPtr<ID3D11Buffer> m_pConstantBuffer;
 
-  std::vector<Microsoft::WRL::ComPtr<ID3D11ComputeShader>> m_pComputeShaders;
-
-  SmallVector<std::pair<uint32_t, uint32_t>> m_pDispatches;
-
   SIZE CalcOutputSize(const std::pair<std::string, std::string>& outputSizeExpr, const ShaderOption& option, SIZE scalingWndSize, SIZE inputSize, mu::Parser& exprParser);
   bool InitializeConstants(const ShaderDesc& desc, const ShaderOption& option, SIZE inputSize, SIZE outputSize);
+  void ChangeConstant(Constant32 pParam, int index);
 };
 
 class CD3D11DynamicScaler
@@ -116,6 +101,16 @@ public:
   CD3DTexture GetOutputSurface() { return m_pScaler->GetOutputSurface(); };
 
   int GetNumberPasses() { return m_pDesc.passes.size(); };
+  void TestConsts()
+  {
+    if (std::holds_alternative<ShaderConstant<float>>(m_pDesc.params[0].constant))
+    {
+      ShaderConstant<float> constf;
+      constf = std::get<ShaderConstant<float>>(m_pDesc.params[0].constant);
+      
+    }
+    m_pScaler->SetOption(m_pOption);
+  };
 private:
   CD3DScaler* m_pScaler;
   ShaderOption m_pOption = {};

@@ -56,7 +56,7 @@ void CMPCVRRenderer::InitShaders()
 {
   for (int idx = 0; idx < m_pShaders.size(); idx++)
   {
-    m_pShaders.at(idx)->Init();
+    m_pShaders[idx]->Init();
   }
   
 }
@@ -207,6 +207,33 @@ ID3D11UnorderedAccessView* CMPCVRRenderer::GetUnorderedAccessView(ID3D11Buffer* 
   return m_pUAVViews.emplace(buffer, std::move(uav)).first->second.Get();
 }
 
+bool CMPCVRRenderer::CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format)
+{
+  // don't create new one if it exists with requested size and format
+  if (m_InputTarget.Get() && m_InputTarget.GetFormat() == format &&
+    m_InputTarget.GetWidth() == width && m_InputTarget.GetHeight() == height)
+    return true;
+
+  if (m_InputTarget.Get())
+    m_InputTarget.Release();
+
+  CLog::LogF(LOGDEBUG, "{} creating input target {}x{} format {}.", __FUNCTION__, width, height,
+    DX::DXGIFormatToString(format));
+
+  if (!m_InputTarget.Create(width, height, 1,
+    D3D11_USAGE_DEFAULT, format, nullptr, 0U, "CMPCVRRenderer input Target"))
+  {
+    CLog::LogF(LOGERROR, "input target creation failed.");
+    return false;
+  }
+
+  InitShaders();
+
+  Start(m_pShaders.at(0)->GetNumberPasses());
+
+  return true;
+}
+
 void CMPCVRRenderer::Render(int index,
                            int index2,
                            CD3DTexture& target,
@@ -260,10 +287,17 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
+  //m_pShaders[0]->TestConsts();
+
   ManageRenderArea();
+  if (!m_InputTarget.Get())
+    return;
   //m_sourceRect source of the video
   //m_destRect destination rectangle
   //GetScreenRect screen rectangle
+  //destRect destination
+  //m_sourceWidth
+  //m_sourceHeight
   if (!(DX::DeviceResources::Get()->GetBackBuffer().GetWidth() == m_IntermediateTarget.GetWidth() && DX::DeviceResources::Get()->GetBackBuffer().GetHeight() == m_IntermediateTarget.GetHeight()))
     CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
 
@@ -298,6 +332,7 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
   m_fps = fps;
   CalculateFrameAspectRatio(width, height);
   SetViewMode(m_videoSettings.m_ViewMode);
+  //CreateInputTarget(m_sourceWidth, m_sourceHeight);
   CreateIntermediateTarget(width, height, false);
 
   return true;
@@ -387,9 +422,9 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
   srcRect.top = 0; srcRect.left = 0;
   srcRect.right = m_IntermediateTarget.GetWidth();
   srcRect.bottom = m_IntermediateTarget.GetHeight();
-  InitShaders();
+
   
-  Start(m_pShaders.at(0)->GetNumberPasses());
+  
   //m_pShaders.at(0)->Init(DXGI_FORMAT_R8G8B8A8_UNORM, srcRect, srcRect);
   return true;
 }
