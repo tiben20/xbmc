@@ -31,15 +31,6 @@
 #include "utils/CharsetConverter.h"
 #include "DSUtil/DSUtil.h"
 
-DirectX::XMFLOAT4 CreateFloat4(int width, int height)
-{
-  float x = (float)width;
-  float y = (float)height;
-  float z = (float)1 / width;
-  float w = (float)1 / height;
-  return { x,y,z,w };
-}
-
 const DXGI_FORMAT DXGI_FORMAT_MAPPING[16] = {
   DXGI_FORMAT_R8_UNORM,
   DXGI_FORMAT_R16_UNORM,
@@ -184,7 +175,11 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
     }
 
     m_pSRVs[i].resize(passDesc.inputs.size());
-    for (UINT j = 0; j < passDesc.inputs.size(); ++j) {
+    for (UINT j = 0; j < passDesc.inputs.size(); ++j)
+    {
+      UINT debugindex;
+      debugindex = passDesc.inputs[j];
+      CLog::Log(LOGDEBUG, "{} creating shader resource view index {} and texture array size is {}",__FUNCTION__, passDesc.inputs[j], m_pTextures.size());
       auto srv = m_pSRVs[i][j] = CMPCVRRenderer::Get()->GetShaderResourceView(m_pTextures[passDesc.inputs[j]].Get());
       if (!srv) {
         CLog::Log(LOGERROR, "GetShaderResourceView failed");
@@ -257,6 +252,19 @@ void CD3DScaler::OnCreateDevice()
 void CD3DScaler::SetOption(ShaderOption option)
 {
   m_bUpdateBuffer = true;
+}
+
+void CD3DScaler::ResetOutputTexture(UINT width, UINT height,DXGI_FORMAT fmt)
+{
+  if (m_pTextures.size() > 0 && m_pTextures[1].Get())
+  {
+    m_pTextures[1].Release();
+    m_pTextures[1].Create(width, height, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, fmt, "Shader Output Texture");
+    auto srv = CMPCVRRenderer::Get()->GetShaderResourceView(m_pTextures[1].Get());
+    auto uav = CMPCVRRenderer::Get()->GetUnorderedAccessView(m_pTextures[1].Get());
+    
+  }
+  
 }
 
 SIZE CD3DScaler::CalcOutputSize(const std::pair<std::string, std::string>& outputSizeExpr, const ShaderOption& option, SIZE scalingWndSize, SIZE inputSize, mu::Parser& exprParser)
@@ -520,6 +528,12 @@ void CD3D11DynamicScaler::Unload()
     //m_pScaler->FreeDynTexture();
   m_pScaler = nullptr;
 }
+void CD3D11DynamicScaler::ResetOutputTexture(UINT width, UINT height, DXGI_FORMAT fmt)
+{
+  m_pScaler->ReleaseResource();
+  m_pScaler->Create(m_pDesc, m_pOption);
+}
+
 CD3D11DynamicScaler::~CD3D11DynamicScaler()
 {
   Unload();

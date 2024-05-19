@@ -112,16 +112,7 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pDoviCurvesConstantBuffer;
 
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderUpscaleX;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderUpscaleY;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderDownscaleX;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pShaderDownscaleY;
-
-	std::vector<ExternalPixelShader11_t> m_pPreScaleShaders;
-	std::vector<ExternalPixelShader11_t> m_pPostScaleShaders;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pPostScaleConstants;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSHalfOUtoInterlace;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSFinalPass;
 
 	//Microsoft::WRL::ComPtr<IDXGIFactory2>   m_pDXGIFactory2;
 	//Microsoft::WRL::ComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
@@ -211,9 +202,6 @@ public:
 private:
 	void ReleaseVP();
 	void ReleaseDevice();
-	void ReleaseSwapChain();
-
-	UINT GetPostScaleSteps();
 
 	HRESULT CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, std::string resid);
 	void SetShaderConvertColorParams();
@@ -223,7 +211,7 @@ private:
 
 	void UpdateTexParams(int cdepth);
 	void UpdateRenderRect();
-	void UpdateScalingStrings();
+
 
 	void SetGraphSize() override;
 
@@ -274,24 +262,13 @@ public:
 
 	void Flush() override;
 
-	void ClearPreScaleShaders() override;
-	void ClearPostScaleShaders() override;
-
-	HRESULT AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode) override;
-	HRESULT AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode) override;
-
 private:
 	void UpdateTexures();
-	void UpdatePostScaleTexures();
-	void UpdateUpscalingShaders();
-	void UpdateDownscalingShaders();
 	HRESULT UpdateConvertColorShader();
 	void UpdateBitmapShader();
 
 	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 	HRESULT ConvertColorPass(ID3D11Texture2D* pRenderTarget);
-	HRESULT ResizeShaderPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const int rotation);
-	HRESULT FinalPass(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect);
 
 	void DrawSubtitles(ID3D11Texture2D* pRenderTarget);
 	HRESULT Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);

@@ -1442,20 +1442,6 @@ STDMETHODIMP CMpcVideoRenderer::Flt_SetBool(LPCSTR field, bool value)
 		return S_OK;
 	}
 
-	if (!strcmp(field, "cmd_clearPreScaleShaders") && value) {
-		CAutoLock cRendererLock(&m_RendererLock);
-
-		m_VideoProcessor->ClearPreScaleShaders();
-		return S_OK;
-	}
-
-	if (!strcmp(field, "cmd_clearPostScaleShaders") && value) {
-		CAutoLock cRendererLock(&m_RendererLock);
-
-		m_VideoProcessor->ClearPostScaleShaders();
-		return S_OK;
-	}
-
 	if (!strcmp(field, "statsEnable")) {
 		m_Sets.bShowStats = value;
 		m_VideoProcessor->SetShowStats(m_Sets.bShowStats);
@@ -1546,32 +1532,6 @@ STDMETHODIMP CMpcVideoRenderer::Flt_SetBin(LPCSTR field, LPVOID value, int size)
 				p += chunksize;
 			}
 		};
-
-		if (!strcmp(field, "cmd_addPreScaleShader")) {
-			CStdStringW shaderName;
-			CStdStringA shaderCode;
-
-			ReadShaderData(shaderName, shaderCode);
-
-			if (shaderCode.size()) {
-				CAutoLock cRendererLock(&m_RendererLock);
-
-				return m_VideoProcessor->AddPreScaleShader(shaderName, shaderCode);
-			}
-		}
-
-		if (!strcmp(field, "cmd_addPostScaleShader")) {
-			CStdStringW shaderName;
-			CStdStringA shaderCode;
-
-			ReadShaderData(shaderName, shaderCode);
-
-			if (shaderCode.size()) {
-				CAutoLock cRendererLock(&m_RendererLock);
-
-				return m_VideoProcessor->AddPostScaleShader(shaderName, shaderCode);
-			}
-		}
 	}
 
 	return E_INVALIDARG;

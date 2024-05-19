@@ -133,8 +133,6 @@ protected:
 	CStdStringW m_strStatsHDR;
 	CStdStringW m_strStatsPresent;
 	int m_iSrcFromGPU = 0;
-	const wchar_t* m_strShaderX = nullptr;
-	const wchar_t* m_strShaderY = nullptr;
 	int m_StatsFontH = 14;
 	RECT m_StatsRect = { 10, 10, 10 + 5 + 63*8 + 3, 10 + 5 + 18*17 + 3 };
 	const POINT m_StatsTextPoint = { 10 + 5, 10 + 5};
@@ -197,12 +195,6 @@ public:
 	bool GetFlip() { return m_bFlip; }
 	void SetFlip(bool value) { m_bFlip = value; }
 	virtual void SetStereo3dTransform(int value) = 0;
-
-	virtual void ClearPreScaleShaders() = 0;
-	virtual void ClearPostScaleShaders() = 0;
-
-	virtual HRESULT AddPreScaleShader(const CStdStringW& name, const CStdStringA& srcCode) = 0;
-	virtual HRESULT AddPostScaleShader(const CStdStringW& name, const CStdStringA& srcCode) = 0;
 
 	virtual HRESULT GetCurentImage(long *pDIBImage) = 0;
 	virtual HRESULT GetDisplayedImage(BYTE **ppDib, unsigned *pSize) = 0;

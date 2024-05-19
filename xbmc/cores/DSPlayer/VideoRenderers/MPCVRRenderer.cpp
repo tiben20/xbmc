@@ -287,8 +287,6 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
-  //m_pShaders[0]->TestConsts();
-
   ManageRenderArea();
   if (!m_InputTarget.Get())
     return;
@@ -298,8 +296,10 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //destRect destination
   //m_sourceWidth
   //m_sourceHeight
-  if (!(DX::DeviceResources::Get()->GetBackBuffer().GetWidth() == m_IntermediateTarget.GetWidth() && DX::DeviceResources::Get()->GetBackBuffer().GetHeight() == m_IntermediateTarget.GetHeight()))
-    CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+  if (!(m_destRect.Width() == m_IntermediateTarget.GetWidth() && m_destRect.Height() == m_IntermediateTarget.GetHeight()))
+    CreateIntermediateTarget(m_destRect.Width(), m_destRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+    //CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+
 
   OnBeginEffects();
   for (int idx = 0; idx < m_pShaders.size(); idx++)
@@ -308,9 +308,16 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   }
   OnEndEffects();
   
-  
-  DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_pShaders[0]->GetOutputSurface().Get());
-  
+  D3D11_BOX srcBox = {};
+  srcBox.left = m_destRect.x1;
+  srcBox.top = m_destRect.y1;
+  srcBox.front = 0;
+  srcBox.right = m_destRect.x2;
+  srcBox.bottom = m_destRect.y2;
+  srcBox.back = 1;
+  //DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_pShaders[0]->GetOutputSurface().Get());
+  DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(DX::DeviceResources::Get()->GetBackBuffer().Get(), 0, 
+                                                                     m_destRect.x1 ,m_destRect.y1,0, m_pShaders[0]->GetOutputSurface().Get(),0, &srcBox);
 
   DX::Windowing()->SetAlphaBlendEnable(true);
   
@@ -412,20 +419,16 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
   CLog::LogF(LOGDEBUG, "{} creating intermediate target {}x{} format {}.", __FUNCTION__, width, height,
              DX::DXGIFormatToString(format));
 
-  if (!m_IntermediateTarget.Create(DX::Windowing()->GetBackBuffer().GetWidth(), DX::Windowing()->GetBackBuffer().GetHeight(), 1,
+  if (!m_IntermediateTarget.Create(width,height, 1,
                                    dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT, format,nullptr,0U,"CMPCVRRenderer Intermediate Target"))
   {
     CLog::LogF(LOGERROR, "intermediate target creation failed.");
     return false;
   }
-  Com::SmartRect srcRect;
-  srcRect.top = 0; srcRect.left = 0;
-  srcRect.right = m_IntermediateTarget.GetWidth();
-  srcRect.bottom = m_IntermediateTarget.GetHeight();
-
+  //only reset if 
+  if (m_InputTarget.Get())
+  m_pShaders[0]->ResetOutputTexture(width, height, format);
   
-  
-  //m_pShaders.at(0)->Init(DXGI_FORMAT_R8G8B8A8_UNORM, srcRect, srcRect);
   return true;
 }
 

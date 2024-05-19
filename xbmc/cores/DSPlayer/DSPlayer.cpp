@@ -806,7 +806,7 @@ void CDSPlayer::HandleMessages()
     if (msg.message == WM_GRAPHMESSAGE)
     {
       CDSMsg* pMsg = reinterpret_cast<CDSMsg *>(msg.lParam);
-      CLog::Log(LOGDEBUG, "{} Message received : {} on thread 0x{}", __FUNCTION__, pMsg->GetMessageType(), m_threadID);
+      //CLog::Log(LOGDEBUG, "{} Message received : {} on thread 0x{}", __FUNCTION__, pMsg->GetMessageType(), m_threadID);
 
       if (CDSPlayer::PlayerState == DSPLAYER_CLOSED || CDSPlayer::PlayerState == DSPLAYER_LOADING)
       {

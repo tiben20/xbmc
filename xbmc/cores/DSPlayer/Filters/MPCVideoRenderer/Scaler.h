@@ -62,6 +62,8 @@ public:
     if (m_pTextures[1].Get())
       return m_pTextures[1];
   }
+  void ResetOutputTexture(UINT width, UINT height,DXGI_FORMAT fmt);
+
 private:
   bool m_bUpdateBuffer;
   bool m_bCreated;
@@ -111,6 +113,8 @@ public:
     }
     m_pScaler->SetOption(m_pOption);
   };
+  void ResetOutputTexture(UINT width, UINT height, DXGI_FORMAT fmt);
+
 private:
   CD3DScaler* m_pScaler;
   ShaderOption m_pOption = {};
