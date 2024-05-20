@@ -60,15 +60,6 @@ void CDSSettings::Initialize()
   CStdStringA videoRender;
   videoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER);
 
-  if (videoRender.ToLower() == "evr")
-  {
-    isEVR = true;
-    pRendererSettings = new CEVRRendererSettings();
-  }
-
-  if (videoRender.ToLower() == "vmr9")
-    pRendererSettings = new CVMR9RendererSettings();
-
   if (videoRender.ToLower() == "madvr")
     pRendererSettings = new CMADVRRendererSettings();
   
@@ -133,22 +124,6 @@ void CDSSettings::LoadConfig()
   
     // Misc
     XMLUtils::GetBoolean(pElement, "DisableDesktopComposition", pRendererSettings->disableDesktopComposition);
-  }
-
-  pElement = pRootElement->FirstChildElement((isEVR) ? "evrsettings" : "vmr9settings");
-  if (pElement)
-  {
-    if (isEVR)
-    {
-      CEVRRendererSettings *pSettings = (CEVRRendererSettings *) pRendererSettings;
-      XMLUtils::GetBoolean(pElement, "HighColorResolution", pSettings->highColorResolution);
-      XMLUtils::GetBoolean(pElement, "EnableFrameTimeCorrection", pSettings->enableFrameTimeCorrection);
-      XMLUtils::GetInt(pElement, "OutputRange", (int &) pSettings->outputRange, 0, 1);
-      XMLUtils::GetInt(pElement, "Buffers", pSettings->buffers, 4, 60);
-    } else {
-      CVMR9RendererSettings * pSettings = (CVMR9RendererSettings *) pRendererSettings;
-      XMLUtils::GetBoolean(pElement, "MixerMode", pSettings->mixerMode);
-    }
   }
 
   // Subtitles

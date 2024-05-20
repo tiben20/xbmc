@@ -16,8 +16,13 @@
 #include "utils/log.h"
 #include "windowing/GraphicContext.h"
 #include "d3d11_1.h"
+#include <Filters/MPCVideoRenderer/DSResource.h>
+#include "guilib/GUIShaderDX.h"
+
+#define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 
 using namespace Microsoft::WRL;
+
 
 
 std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
@@ -54,6 +59,32 @@ void CMPCVRRenderer::LoadShaders()
 
 void CMPCVRRenderer::InitShaders()
 {
+  CD3DDSPixelShader shdr;
+  LPVOID data;
+  DWORD size;
+  D3D11_INPUT_ELEMENT_DESC Layout[] = {
+  {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+  {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+  };
+
+  if (!shdr.LoadFromFile(IDF_VS_11_SIMPLE))
+    CLog::Log(LOGERROR, "{} failed loading {}", __FUNCTION__, IDF_VS_11_SIMPLE);
+
+  data = shdr.GetData();
+  size = shdr.GetSize();
+
+  GetDevice->CreateVertexShader(data, size, nullptr, &m_pVS_Simple);
+  GetDevice->CreateInputLayout(Layout, std::size(Layout), data, size, &m_pVSimpleInputLayout);
+
+  if (!shdr.LoadFromFile(IDF_PS_11_SIMPLE))
+    CLog::Log(LOGERROR, "{} failed loading {}", __FUNCTION__, IDF_VS_11_SIMPLE);
+
+  data = shdr.GetData();
+  size = shdr.GetSize();
+
+  GetDevice->CreatePixelShader(data,size,nullptr,&m_pPS_Simple);
+
+
   for (int idx = 0; idx < m_pShaders.size(); idx++)
   {
     m_pShaders[idx]->Init();
@@ -107,6 +138,144 @@ void CMPCVRRenderer::OnEndPass()
     return;
 
   DX::DeviceResources::Get()->GetD3DContext()->End(m_pPassQueries[m_pCurrentPasses++].Get());
+}
+
+HRESULT CMPCVRRenderer::FillVertexBuffer(const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip)
+{
+  DS_VERTEX Vertices[4];
+  FillVertices(Vertices, srcW, srcH, srcRect, iRotation, bFlip);
+
+  D3D11_MAPPED_SUBRESOURCE mr;
+  HRESULT hr = DX::DeviceResources::Get()->GetD3DContext()->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
+  if (FAILED(hr)) {
+    CLog::LogF(LOGINFO, "FillVertexBuffer() : Map() failed");
+    return hr;
+  }
+
+  memcpy(mr.pData, &Vertices, sizeof(Vertices));
+  DX::DeviceResources::Get()->GetD3DContext()->Unmap(m_pVertexBuffer.Get(), 0);
+
+  return hr;
+}
+
+void CMPCVRRenderer::FillVertices(DS_VERTEX(&Vertices)[4], const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip)
+{
+  const float src_dx = 1.0f / srcW;
+  const float src_dy = 1.0f / srcH;
+  float src_l = src_dx * srcRect.x1;
+  float src_r = src_dx * srcRect.x2;
+  const float src_t = src_dy * srcRect.y1;
+  const float src_b = src_dy * srcRect.y2;
+
+  POINT points[4];
+  switch (iRotation) {
+  case 90:
+    points[0] = { -1, +1 };
+    points[1] = { +1, +1 };
+    points[2] = { -1, -1 };
+    points[3] = { +1, -1 };
+    break;
+  case 180:
+    points[0] = { +1, +1 };
+    points[1] = { +1, -1 };
+    points[2] = { -1, +1 };
+    points[3] = { -1, -1 };
+    break;
+  case 270:
+    points[0] = { +1, -1 };
+    points[1] = { -1, -1 };
+    points[2] = { +1, +1 };
+    points[3] = { -1, +1 };
+    break;
+  default:
+    points[0] = { -1, -1 };
+    points[1] = { -1, +1 };
+    points[2] = { +1, -1 };
+    points[3] = { +1, +1 };
+  }
+
+  if (bFlip) {
+    std::swap(src_l, src_r);
+  }
+
+  // Vertices for drawing whole texture
+  // 2 ___4
+  //  |\ |
+  // 1|_\|3
+  Vertices[0] = { {(float)points[0].x, (float)points[0].y, 0}, {src_l, src_b} };
+  Vertices[1] = { {(float)points[1].x, (float)points[1].y, 0}, {src_l, src_t} };
+  Vertices[2] = { {(float)points[2].x, (float)points[2].y, 0}, {src_r, src_b} };
+  Vertices[3] = { {(float)points[3].x, (float)points[3].y, 0}, {src_r, src_t} };
+}
+
+HRESULT CMPCVRRenderer::CreateVertexBuffer()
+{
+  if (m_pVertexBuffer.Get())
+    return S_OK;
+  DS_VERTEX Vertices[4];
+
+  CD3D11_BUFFER_DESC bufferDesc(sizeof(Vertices), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&bufferDesc, NULL, m_pVertexBuffer.ReleaseAndGetAddressOf());
+
+  return hr;
+}
+
+void CMPCVRRenderer::CopyToBackBuffer()
+{
+  D3D11_VIEWPORT oldVP;
+  UINT oldIVP = 1;
+  Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+  pContext->OMGetRenderTargets(1, &oldRT, nullptr);
+  pContext->RSGetViewports(&oldIVP, &oldVP);
+
+  const UINT Stride = sizeof(DS_VERTEX);
+  const UINT Offset = 0;
+
+  D3D11_VIEWPORT VP;
+  VP.TopLeftX = (FLOAT)m_destRect.x1;
+  VP.TopLeftY = (FLOAT)m_destRect.y1;
+  VP.Width = (FLOAT)m_destRect.Width();
+  VP.Height = (FLOAT)m_destRect.Height();
+  VP.MinDepth = 0.0f;
+  VP.MaxDepth = 1.0f;
+  CRect sourcerect;
+  sourcerect.x1 = 0;
+  sourcerect.y1 = 0;
+  sourcerect.x2 = m_sourceWidth;
+  sourcerect.y2 = m_sourceHeight;
+  FillVertexBuffer(m_sourceWidth, m_sourceHeight, sourcerect/*m_sourceRect*/, 0, 0);
+
+  ID3D11SamplerState* pSampler = GetSampler(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP);
+  // Set resources
+
+  
+  pContext->OMSetRenderTargets(1, DX::DeviceResources::Get()->GetBackBuffer().GetAddressOfRTV(), nullptr);
+  pContext->RSSetViewports(1, &VP);
+  //pContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+  pContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
+  pContext->PSSetShader(m_pPS_Simple.Get(), nullptr, 0);
+
+  pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
+
+  pContext->PSSetShaderResources(0, 1, m_pShaders[0]->GetOutputSurface().GetAddressOfSRV());
+  //pContext->PSSetSamplers(0, 1, &pSampler);
+  //pContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
+  pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+  pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &Stride, &Offset);
+
+  // Draw textured quad onto render target
+  pContext->Draw(4, 0);
+  CRenderSystemDX* renderingDX = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
+  renderingDX->GetGUIShader()->ApplyStateBlock();
+
+  ID3D11ShaderResourceView* views[4] = {};
+  pContext->PSSetShaderResources(0, 4, views);
+
+  pContext->OMSetRenderTargets(1, oldRT.GetAddressOf(), nullptr);
+  pContext->RSSetViewports(1, &oldVP);
+  //pContext->IASetInputLayout(nullptr);
 }
 
 void CMPCVRRenderer::Reset()
@@ -315,10 +484,11 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   srcBox.right = m_destRect.x2;
   srcBox.bottom = m_destRect.y2;
   srcBox.back = 1;
-  //DX::DeviceResources::Get()->GetD3DContext()->CopyResource(DX::DeviceResources::Get()->GetBackBuffer().Get(), m_pShaders[0]->GetOutputSurface().Get());
-  DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(DX::DeviceResources::Get()->GetBackBuffer().Get(), 0, 
-                                                                     m_destRect.x1 ,m_destRect.y1,0, m_pShaders[0]->GetOutputSurface().Get(),0, &srcBox);
-
+  
+  //Copy subresource as the problem to not be able to have negative left and top so its bugging on scaling
+  //DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(DX::DeviceResources::Get()->GetBackBuffer().Get(), 0, 
+  //                                                                   m_destRect.x1 ,m_destRect.y1,0, m_pShaders[0]->GetOutputSurface().Get(),0, &srcBox);
+  CopyToBackBuffer();
   DX::Windowing()->SetAlphaBlendEnable(true);
   
 }
@@ -332,6 +502,7 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
     m_sourceHeight = height;
     // need to recreate textures
   }
+  CreateVertexBuffer();
   m_sourceRect.x1 = 0;
   m_sourceRect.x2 = width;
   m_sourceRect.y1 = 0;
@@ -435,4 +606,5 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
 void CMPCVRRenderer::CheckVideoParameters()
 {
 }
+
 

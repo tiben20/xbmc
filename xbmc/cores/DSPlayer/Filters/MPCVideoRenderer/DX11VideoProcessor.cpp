@@ -703,7 +703,7 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 	data = shdr.GetData();
 	size = shdr.GetSize();
 	//HRESULT hr = GetDataFromResource(data, size, resid);
-
+	
 
 	return GetDevice->CreatePixelShader(data, size, nullptr, ppPixelShader);
 }

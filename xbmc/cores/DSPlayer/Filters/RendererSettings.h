@@ -125,50 +125,6 @@ public:
   int buffers;
 };
 
-class CEVRRendererSettings: public CRendererSettings
-{
-public:
-  CEVRRendererSettings()
-  {
-    SetDefault();
-  }
-  void SetDefault()
-  {
-    CRendererSettings::SetDefault();
-
-    highColorResolution = false;
-    enableFrameTimeCorrection = false;
-    outputRange = OUTPUT_RANGE_0_255;
-    buffers = 4;
-  }
-
-public:
-  bool highColorResolution;
-  bool enableFrameTimeCorrection;
-  EVR_OUTPUT_RANGE outputRange;
-  int buffers;
-};
-
-class CVMR9RendererSettings: public CRendererSettings
-{
-public:
-  CVMR9RendererSettings()
-  {
-    SetDefault();
-  }
-  void SetDefault()
-  {
-    CRendererSettings::SetDefault();
-    flushGPUBeforeVSync = false;
-    vSync = false;
-    vSyncAccurate = false;
-    mixerMode = true;
-  };
-
-public:
-  bool mixerMode;
-};
-
 class CMADVRRendererSettings : public CRendererSettings
 {
 public:

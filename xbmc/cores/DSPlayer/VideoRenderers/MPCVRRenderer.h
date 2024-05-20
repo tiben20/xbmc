@@ -23,6 +23,11 @@
 
 class CD3D11DynamicScaler;
 
+struct DS_VERTEX {
+  DirectX::XMFLOAT3 Pos;
+  DirectX::XMFLOAT2 TexCoord;
+};
+
 class CMPCVRRenderer : public CBaseRenderer
 {
 public:
@@ -93,6 +98,7 @@ public:
   void OnBeginEffects();
   void OnEndEffects();
   void OnEndPass();
+  void CopyToBackBuffer();
 
   void Reset();
   //samples,shader and unorderer access views saved in maps to not duplicate access views
@@ -129,6 +135,13 @@ protected:
   unsigned m_viewHeight = 0;
   unsigned m_renderOrientation = 0;
 
+  Microsoft::WRL::ComPtr<ID3D11VertexShader>   m_pVS_Simple;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_Simple;
+  Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
+  Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pVertexBuffer;
+
+
+
   Microsoft::WRL::ComPtr<ID3D11Query> m_pDisjointQuery;
   Microsoft::WRL::ComPtr<ID3D11Query> m_pStartQuery;
   std::vector<Microsoft::WRL::ComPtr<ID3D11Query>> m_pPassQueries;
@@ -143,4 +156,8 @@ protected:
   CD3DTexture m_IntermediateTarget;
 
   CRect GetScreenRect() const;
+private:
+  HRESULT FillVertexBuffer(const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip);
+  void FillVertices(DS_VERTEX(&Vertices)[4], const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip);
+  HRESULT CreateVertexBuffer();
 };
