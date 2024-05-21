@@ -45,6 +45,14 @@ void CMPCVRRenderer::Release()
 {
   Stop();
   m_IntermediateTarget.Release();
+  m_InputTarget.Release();
+  m_pVS_Simple = nullptr;
+  m_pVertexBuffer = nullptr;
+  m_pVSimpleInputLayout = nullptr;
+  m_pPS_Simple = nullptr;
+  m_pSamplers.clear();
+  m_pShaderRSV.clear();
+  m_pUAVViews.clear();
 }
 
 void CMPCVRRenderer::LoadShaders()

@@ -2328,61 +2328,6 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	return hr;
 }
 
-HRESULT CDX11VideoProcessor::FillBlack()
-{
-	return S_OK;
-	CheckPointer(GetSwapChain, E_ABORT);
-
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> pBackBuffer;
-	HRESULT hr = GetSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"CDX11VideoProcessor::FillBlack() : GetBuffer() failed with error {}",__FUNCTION__);
-		return hr;
-	}
-
-	ID3D11RenderTargetView* pRenderTargetView;
-	hr = GetDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pRenderTargetView);
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"CDX11VideoProcessor::FillBlack() : CreateRenderTargetView() failed with error {}", __FUNCTION__);
-		return hr;
-	}
-
-	const FLOAT ClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	m_pDeviceContext.Get()->ClearRenderTargetView(pRenderTargetView, ClearColor);
-	pRenderTargetView->Release();
-
-	if (g_dsSettings.pRendererSettings->displayStats > 0) {
-		hr = DrawStats(pBackBuffer.Get());
-	}
-
-	if (m_bAlphaBitmapEnable) {
-		D3D11_TEXTURE2D_DESC desc;
-		pBackBuffer->GetDesc(&desc);
-		D3D11_VIEWPORT VP = {
-			m_AlphaBitmapNRectDest.left * desc.Width,
-			m_AlphaBitmapNRectDest.top * desc.Height,
-			(m_AlphaBitmapNRectDest.right - m_AlphaBitmapNRectDest.left) * desc.Width,
-			(m_AlphaBitmapNRectDest.bottom - m_AlphaBitmapNRectDest.top) * desc.Height,
-			0.0f,
-			1.0f
-		};
-		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource.Get(), pBackBuffer.Get(),
-			m_pAlphaBitmapVertex.Get(), &VP,
-			m_pSamplerLinear.Get());
-	}
-
-	g_bPresent = true;
-	hr = GetSwapChain->Present(1, 0);
-	g_bPresent = false;
-	DLogIf(FAILED(hr), "CDX11VideoProcessor::FillBlack() : Present() failed with error {}", WToA(HR2Str(hr)));
-
-	if (hr == DXGI_ERROR_INVALID_CALL && m_pFilter->m_bIsD3DFullscreen) {
-		InitSwapChain();
-	}
-
-	return hr;
-}
-
 void CDX11VideoProcessor::UpdateTexures()
 {
 	if (!m_srcWidth || !m_srcHeight) {

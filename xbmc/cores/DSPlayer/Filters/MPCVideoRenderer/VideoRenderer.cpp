@@ -1558,11 +1558,9 @@ HRESULT CMpcVideoRenderer::Redraw()
 	const auto bDrawFrame = m_bValidBuffer && m_filterState != State_Stopped;
 
 	HRESULT hr = S_OK;
-	if (bDrawFrame) {
+	if (bDrawFrame)
 		hr = m_VideoProcessor->Render(0, INVALID_TIME);
-	} else {
-		hr = m_VideoProcessor->FillBlack();
-	}
+	
 
 	return hr;
 }
