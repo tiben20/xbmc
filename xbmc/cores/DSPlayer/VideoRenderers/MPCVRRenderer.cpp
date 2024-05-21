@@ -477,14 +477,24 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
     CreateIntermediateTarget(m_destRect.Width(), m_destRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
     //CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
 
-
-  OnBeginEffects();
-  for (int idx = 0; idx < m_pShaders.size(); idx++)
+  //in case of redraw do not reprocess the texture
+  if (!m_bImageProcessed)
   {
-    m_pShaders.at(idx)->Draw(this);
+    m_iRedraw = 0;
+    m_bImageProcessed = true;
+    OnBeginEffects();
+    for (int idx = 0; idx < m_pShaders.size(); idx++)
+    {
+      m_pShaders.at(idx)->Draw(this);
+    }
+    OnEndEffects();
+    
   }
-  OnEndEffects();
-  
+  else
+  {
+    m_iRedraw++;
+    CLog::Log(LOGINFO,"{}", m_iRedraw);
+  }
   D3D11_BOX srcBox = {};
   srcBox.left = m_destRect.x1;
   srcBox.top = m_destRect.y1;

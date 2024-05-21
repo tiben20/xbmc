@@ -109,8 +109,12 @@ public:
 
   ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Buffer* buffer, uint32_t numElements, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
-  CD3DTexture GetIntermediateTexture() { return m_IntermediateTarget; }
-  CD3DTexture GetInputTexture() { return m_InputTarget; }
+  CD3DTexture GetIntermediateTexture(){ return m_IntermediateTarget; }
+  CD3DTexture GetInputTexture(bool forcopy)
+  {
+    if (forcopy) m_bImageProcessed = false;
+    return m_InputTarget; 
+  }
   bool CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format);
   
 protected:
@@ -123,6 +127,8 @@ protected:
   virtual void CheckVideoParameters();
   
   bool m_bConfigured = false;
+  bool m_bImageProcessed = false;
+  UINT m_iRedraw = 0;
   int m_iBufferIndex = 0;
   int m_iNumBuffers = 0;
   int m_iBuffersRequired = 0;

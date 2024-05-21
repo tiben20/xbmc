@@ -65,7 +65,7 @@ CD3DScaler::~CD3DScaler()
 bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
 {
   SIZE inputSize, outputSize;
-  inputSize = { (LONG)CMPCVRRenderer::Get()->GetInputTexture().GetWidth(), (LONG)CMPCVRRenderer::Get()->GetInputTexture().GetHeight() };
+  inputSize = { (LONG)CMPCVRRenderer::Get()->GetInputTexture(false).GetWidth(), (LONG)CMPCVRRenderer::Get()->GetInputTexture(false).GetHeight() };
   
   outputSize = { (LONG)DX::Windowing()->GetBackBuffer().GetWidth(), (LONG)DX::Windowing()->GetBackBuffer().GetHeight() };
 
@@ -100,7 +100,7 @@ bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
   // The first one is INPUT, the second one is OUTPUT
   m_pTextures.resize(desc.textures.size());
   
-  m_pTextures[0] = CMPCVRRenderer::Get()->GetInputTexture();
+  m_pTextures[0] = CMPCVRRenderer::Get()->GetInputTexture(false);
   
   m_pTextures[1].Create(outputSize.cx, outputSize.cy, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, FORMAT_DESCS[(uint32_t)desc.textures[1].format].dxgiFormat,"Shader Output Texture");
 

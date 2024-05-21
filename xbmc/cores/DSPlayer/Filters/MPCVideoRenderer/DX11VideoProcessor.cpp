@@ -2582,7 +2582,7 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 	if (CMPCVRRenderer::Get()->CreateInputTarget(pInputTexture->desc.Width, pInputTexture->desc.Height, pInputTexture->desc.Format))
 	{
 		
-		m_pDeviceContext->CopyResource(CMPCVRRenderer::Get()->GetInputTexture().Get(), pInputTexture->pTexture.Get());
+		m_pDeviceContext->CopyResource(CMPCVRRenderer::Get()->GetInputTexture(true).Get(), pInputTexture->pTexture.Get());
 		Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 		if (FAILED(m_pDeviceContext->FinishCommandList(true, &pCommandList)))
 		{
