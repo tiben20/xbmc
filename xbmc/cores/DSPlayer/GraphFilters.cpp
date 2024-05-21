@@ -105,6 +105,8 @@ void CGraphFilters::SetSanearSettings()
   if (!CGraphFilters::Get()->AudioRenderer.pBF)
     return;
   sanear = CGraphFilters::Get()->AudioRenderer.pBF;
+  if (!sanear)
+    return;
   UINT32 buffer;
   sanear->GetOuputDevice(nullptr, nullptr, &buffer);
   sanear->SetOuputDevice(adeviceW.c_str(), bSanearExclusive, buffer);

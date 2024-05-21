@@ -397,7 +397,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
     for (std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin(); (iter != deviceList.end()); ++iter)
     {
       DSFilterInfo dev = *iter;
-      if (StringUtils::EqualsNoCase("Default DirectSound Device", dev.lpstrName))//renderer
+      if (StringUtils::EqualsNoCase(renderer, dev.lpstrName))//renderer
       {
         sAudioRenderName = dev.lpstrName;
         sAudioRenderDisplayName = dev.lpstrDisplayName;
@@ -760,8 +760,10 @@ HRESULT CFGLoader::InsertFilter(const std::string& filterName, SFilterInfos& f)
 
 void CFGLoader::SettingOptionsDSVideoRendererFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
-#if TODO
-  list.push_back(std::make_pair("Enhanced Video Renderer (EVR)", "EVR"));
+  CLog::Log(LOGINFO, "{}", __FUNCTION__);
+
+
+  list.push_back(StringSettingOption("MPC Video Renderer highly modified", "mpcvr"));
   //todo dx11 
   //list.push_back(std::make_pair("Video Mixing Renderer 9 (VMR9)", "VMR9"));
   
@@ -775,19 +777,19 @@ void CFGLoader::SettingOptionsDSVideoRendererFiller(const std::shared_ptr<const 
     DSFiltersInfo dev = *iter;
     if (dev.lpstrName == "madVR")
     {
-      list.push_back(std::make_pair("madshi Video Renderer (madVR)", "madVR"));
+      list.push_back(StringSettingOption("madshi Video Renderer (madVR)", "madvr"));
       break;
     }
     ++iter;
   }
-#endif
+
 }
 
 void CFGLoader::SettingOptionsDSAudioRendererFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
-#if TODO
-  list.push_back(std::make_pair("Internal Audio Renderer (Sanear)", CGraphFilters::INTERNAL_SANEAR));
-  list.push_back(std::make_pair("System Default", "System Default"));
+
+  list.push_back(StringSettingOption("Internal Audio Renderer (Sanear)", CGraphFilters::INTERNAL_SANEAR));
+  list.push_back(StringSettingOption("System Default", "System Default"));
 
   std::vector<DSFilterInfo> deviceList;
   CAudioEnumerator p_dsound;
@@ -797,10 +799,10 @@ void CFGLoader::SettingOptionsDSAudioRendererFiller(const std::shared_ptr<const 
   for (int i = 1; iter != deviceList.end(); i++)
   {
     DSFilterInfo dev = *iter;
-    list.push_back(std::make_pair(dev.lpstrName, dev.lpstrName));
+    list.push_back(StringSettingOption(dev.lpstrName, dev.lpstrName));
     ++iter;
   }
-#endif
+
 }
 
 void CFGLoader::SettingOptionsSanearDevicesFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
