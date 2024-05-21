@@ -99,6 +99,7 @@ public:
   void OnEndEffects();
   void OnEndPass();
   void CopyToBackBuffer();
+  void DrawSubtitles();
 
   void Reset();
   //samples,shader and unorderer access views saved in maps to not duplicate access views
@@ -110,9 +111,12 @@ public:
   ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Buffer* buffer, uint32_t numElements, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
   CD3DTexture GetIntermediateTexture(){ return m_IntermediateTarget; }
-  CD3DTexture GetInputTexture(bool forcopy)
+  CD3DTexture GetInputTexture(bool forcopy, REFERENCE_TIME subtime = 0)
   {
-    if (forcopy) m_bImageProcessed = false;
+    if (subtime > 0)
+      m_rSubTime = subtime;
+    if (forcopy)
+      m_bImageProcessed = false;
     return m_InputTarget; 
   }
   bool CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format);
@@ -135,14 +139,16 @@ protected:
   int m_ditherDepth = 0;
   int m_cmsToken = -1;
   int m_lutSize = 0;
+  REFERENCE_TIME m_rSubTime;
   unsigned m_sourceWidth = 0;
   unsigned m_sourceHeight = 0;
   unsigned m_viewWidth = 0;
   unsigned m_viewHeight = 0;
   unsigned m_renderOrientation = 0;
-
+  
   Microsoft::WRL::ComPtr<ID3D11VertexShader>   m_pVS_Simple;
   Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_Simple;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_BitmapToFrame;
   Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
   Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pVertexBuffer;
 

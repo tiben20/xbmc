@@ -18,6 +18,7 @@
 #include "d3d11_1.h"
 #include <Filters/MPCVideoRenderer/DSResource.h>
 #include "guilib/GUIShaderDX.h"
+#include "StreamsManager.h"
 
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 
@@ -91,7 +92,9 @@ void CMPCVRRenderer::InitShaders()
   size = shdr.GetSize();
 
   GetDevice->CreatePixelShader(data,size,nullptr,&m_pPS_Simple);
+  //TODO will need to add hdr conversion see UpdateBitmapShader() in dx11processor
 
+  m_pPS_BitmapToFrame = m_pPS_Simple;
 
   for (int idx = 0; idx < m_pShaders.size(); idx++)
   {
@@ -231,13 +234,7 @@ HRESULT CMPCVRRenderer::CreateVertexBuffer()
 
 void CMPCVRRenderer::CopyToBackBuffer()
 {
-  D3D11_VIEWPORT oldVP;
-  UINT oldIVP = 1;
-  Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
-  pContext->OMGetRenderTargets(1, &oldRT, nullptr);
-  pContext->RSGetViewports(&oldIVP, &oldVP);
-
   const UINT Stride = sizeof(DS_VERTEX);
   const UINT Offset = 0;
 
@@ -275,15 +272,28 @@ void CMPCVRRenderer::CopyToBackBuffer()
 
   // Draw textured quad onto render target
   pContext->Draw(4, 0);
-  CRenderSystemDX* renderingDX = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
-  renderingDX->GetGUIShader()->ApplyStateBlock();
 
-  ID3D11ShaderResourceView* views[4] = {};
-  pContext->PSSetShaderResources(0, 4, views);
-
-  pContext->OMSetRenderTargets(1, oldRT.GetAddressOf(), nullptr);
-  pContext->RSSetViewports(1, &oldVP);
   //pContext->IASetInputLayout(nullptr);
+}
+
+void CMPCVRRenderer::DrawSubtitles()
+{
+  if (CStreamsManager::Get()->SubtitleManager)
+  {
+    
+    ID3D11DeviceContext1* pContext = DX::DeviceResources::Get()->GetD3DContext();
+    const auto rtStart = m_rSubTime;
+
+    // Set render target and shaders
+    pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
+    pContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
+    pContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
+    Com::SmartRect m_windowRect(Com::SmartPoint(0, 0), Com::SmartPoint(GetScreenRect().x2, GetScreenRect().y2));
+    Com::SmartRect pSrc, pDst;
+    //sending the devicecontext to the subtitlemanager he will draw directly with it
+    CStreamsManager::Get()->SubtitleManager->AlphaBlt(pContext, pSrc, pDst, m_windowRect);
+
+  }
 }
 
 void CMPCVRRenderer::Reset()
@@ -493,7 +503,6 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   else
   {
     m_iRedraw++;
-    CLog::Log(LOGINFO,"{}", m_iRedraw);
   }
   D3D11_BOX srcBox = {};
   srcBox.left = m_destRect.x1;
@@ -506,7 +515,26 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //Copy subresource as the problem to not be able to have negative left and top so its bugging on scaling
   //DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(DX::DeviceResources::Get()->GetBackBuffer().Get(), 0, 
   //                                                                   m_destRect.x1 ,m_destRect.y1,0, m_pShaders[0]->GetOutputSurface().Get(),0, &srcBox);
+  D3D11_VIEWPORT oldVP;
+  UINT oldIVP = 1;
+  Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+  pContext->OMGetRenderTargets(1, &oldRT, nullptr);
+  pContext->RSGetViewports(&oldIVP, &oldVP);
+
   CopyToBackBuffer();
+
+  DrawSubtitles();
+
+  CRenderSystemDX* renderingDX = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
+  renderingDX->GetGUIShader()->ApplyStateBlock();
+
+  ID3D11ShaderResourceView* views[4] = {};
+  pContext->PSSetShaderResources(0, 4, views);
+
+  pContext->OMSetRenderTargets(1, oldRT.GetAddressOf(), nullptr);
+  pContext->RSSetViewports(1, &oldVP);
+
   DX::Windowing()->SetAlphaBlendEnable(true);
   
 }
