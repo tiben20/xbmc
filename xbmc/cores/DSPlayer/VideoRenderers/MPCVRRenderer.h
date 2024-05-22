@@ -90,6 +90,7 @@ public:
 
   CRenderCapture* GetRenderCapture() { return nullptr; }
 
+  void AddShader(std::string fle);
   void LoadShaders();
   void InitShaders();
 

@@ -19,7 +19,7 @@
 #include <Filters/MPCVideoRenderer/DSResource.h>
 #include "guilib/GUIShaderDX.h"
 #include "StreamsManager.h"
-
+#include "filesystem/Directory.h"
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 
 using namespace Microsoft::WRL;
@@ -56,13 +56,29 @@ void CMPCVRRenderer::Release()
   m_pUAVViews.clear();
 }
 
-void CMPCVRRenderer::LoadShaders()
+void CMPCVRRenderer::AddShader(std::string fle)
 {
   bool res;
+  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(AToW(fle), &res);
+  if (res)
+    m_pShaders.push_back(cur);
+}
+void CMPCVRRenderer::LoadShaders()
+{
 
-  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(L"special://xbmc/system/shaders/mpcvr/Bicubic.hlsl", &res);
+  //AddShader("special://xbmc/system/shaders/mpcvr/Bicubic.hlsl");
+  //return;
+  CFileItemList items;
+  if (XFILE::CDirectory::GetDirectory("special://xbmc/system/shaders/mpcvr/", items, ".hlsl", XFILE::DIR_FLAG_DEFAULTS))
+  {
+    for (const auto& item : items)
+    {
+      AddShader(item->GetPath());
+    }
+  }
   
-  m_pShaders.push_back(cur);
+
+  
   
 }
 

@@ -64,7 +64,7 @@ public:
 
 		if (!includeFile.Open(fileName))
 		{
-			CLog::LogF(LOGERROR, "Could not open 3DLUT file: {}", fileName);
+			CLog::LogF(LOGERROR, "Could not open file: {}", fileName);
 			return E_FAIL;
 		}
 
@@ -192,6 +192,7 @@ uint64_t HashData(std::vector<BYTE> data) noexcept {
 
 static std::wstring HexHash(std::vector<BYTE> data) 
 {
+	
 	uint64_t hashBytes = HashData(data);
 
 	static wchar_t oct2Hex[16] = {
@@ -213,26 +214,27 @@ static std::wstring HexHash(std::vector<BYTE> data)
 }
 
 std::wstring GetHash(
-	std::string_view source,
+	std::string& source,
 	const phmap::flat_hash_map<std::wstring, float>* inlineParams
 ) {
-	std::string str;
-	str.reserve(source.size() + 256);
-	str = source;
+	size_t originSize = source.size();
+	source.reserve(originSize + 256);
 
-	str.append(fmt::format("VERSION:{}\n", SCALERCOMPILE_VERSION));
-	if (inlineParams) {
-		for (const auto& pair : *inlineParams) {
-			str.append(fmt::format("{}:{}\n", CCharsetConverter::UTF16ToUTF8(pair.first), std::lroundf(pair.second * 10000)));
-		}
+
+	source.append(fmt::format("VERSION:{}\n", SCALERCOMPILE_VERSION));
+	if (inlineParams)
+	{
+		for (const auto& pair : *inlineParams) 
+			source.append(fmt::format("{}:{}\n", CCharsetConverter::UTF16ToUTF8(pair.first), std::lroundf(pair.second * 10000)));
 	}
-	std::vector<BYTE> hashdata;
-	
-	
-	hashdata.resize(source.size());
-	for (size_t xx = 0; xx < source.size(); xx++) hashdata.push_back(source.at(xx));
 
-	return HexHash(hashdata);
+	std::vector<BYTE> hashdata;
+
+	for (size_t xx = 0; xx < source.size(); xx++)
+		hashdata.push_back(source[xx]);
+	std::wstring result = HexHash(hashdata);
+	source.resize(originSize);
+	return result;
 }
 
 void Trim(std::string_view& str)
@@ -291,7 +293,7 @@ static std::vector<std::string_view > Split(std::string_view str, char delimiter
 }
 
 static uint32_t RemoveComments(std::string& source) {
-	// 确保以换行符结尾
+	// Make sure it ends with a newline character
 	if (source.back() != '\n') {
 		source.push_back('\n');
 	}
@@ -300,30 +302,30 @@ static uint32_t RemoveComments(std::string& source) {
 	result.reserve(source.size());
 
 	int j = 0;
-	// 单独处理最后两个字符
+	// Process the last two characters individually
 	for (size_t i = 0, end = source.size() - 2; i < end; ++i) {
 		if (source[i] == '/') {
 			if (source[i + 1] == '/' && source[i + 2] != '!') {
-				// 行注释
+				// line comments
 				i += 2;
 
-				// 无需处理越界，因为必定以换行符结尾
+				// No need to handle out of bounds, because it must end with a newline character
 				while (source[i] != '\n') {
 					++i;
 				}
 
-				// 保留换行符
+				// keep newlines
 				source[j++] = '\n';
 
 				continue;
 			}
 			else if (source[i + 1] == '*') {
-				// 块注释
+				// block comment
 				i += 2;
 
 				while (true) {
 					if (++i >= source.size()) {
-						// 未闭合
+						// not closed
 						return 1;
 					}
 
@@ -332,7 +334,7 @@ static uint32_t RemoveComments(std::string& source) {
 					}
 				}
 
-				// 文件结尾
+				//end of file
 				if (i >= source.size() - 2) {
 					source.resize(j);
 					return 0;
@@ -345,7 +347,7 @@ static uint32_t RemoveComments(std::string& source) {
 		source[j++] = source[i];
 	}
 
-	// 无需复制最后的换行符
+	// No need to copy the last newline character
 	source[j++] = source[source.size() - 2];
 	source.resize(j);
 	return 0;
@@ -1723,11 +1725,10 @@ static uint32_t CompilePasses(
 				fmt::format(L"{}_Pass{}.hlsl", sourcesPathName, id + 1);
 			}
 			XFILE::CFile fle;
-			//!WriteFile(fileName.c_str(), source.data(), source.size()))
 			if (fle.OpenForWrite(WToA(fileName)) )
 			{
 				fle.Write(source.data(), source.size());
-				//Logger::Get().Error(fmt::format("保存 Pass{} 源码失败", id + 1));
+				CLog::Log(LOGINFO, "{} cache file written: {}", __FUNCTION__, WToA(fileName));
 			}
 		}
 
@@ -1762,9 +1763,7 @@ uint32_t CShaderFileLoader::Compile(ShaderDesc& desc, uint32_t flags, const phma
 {
 	if (m_pFile == L"")
 		return false;
-	XFILE::CFile currentfile;
-	currentfile.Exists(WToA(m_pFile));
-	std::wstring currentpath = m_pFile;// GetFilePathExists(m_pFile.c_str());
+	std::wstring currentpath = m_pFile;
 	
 	std::wifstream infile(currentpath.c_str());
 	std::string source;
@@ -1773,19 +1772,21 @@ uint32_t CShaderFileLoader::Compile(ShaderDesc& desc, uint32_t flags, const phma
 	std::string pFileNameA = WToA(currentpath);
 	if (!file.Exists(pFileNameA))
 		return 0;
-	file.Open(pFileNameA);
-	int64_t filelength = file.GetLength();
-	char* pData1 = (char*)malloc(filelength);
-	if (file.Read(pData1, filelength) == filelength)
+
+	int64_t filelength;
+	
+	if (file.Open(pFileNameA))
 	{
-		source = pData1;
-		free(pData1);
+		filelength = file.GetLength();
+		source.resize(file.GetLength() + 1);
+		file.Read(&source[0], file.GetLength());
 	}
-	else//if (!ReadTextFile(currentpath.c_str(), source))
+	else
 	{
 		CLog::Log(LOGERROR, "couldn't read for compile {}", WToA(currentpath).c_str());
 		return false;
 	}
+	file.Close();
 	
 	bool noCompile = flags & ShaderCompilerFlags::NoCompile;
 	bool noCache = noCompile || (flags & ShaderCompilerFlags::NoCache);
@@ -1797,11 +1798,8 @@ uint32_t CShaderFileLoader::Compile(ShaderDesc& desc, uint32_t flags, const phma
 	{
 		hash = GetHash(source, desc.flags & ShaderFlags::InlineParams ? inlineParams : nullptr);
 			if (!hash.empty()) {
-				
-				if (ShaderCache::GetInstance().Load(AToW(desc.name), hash, desc)) {
-					// 已从缓存中读取
+				if (ShaderCache::GetInstance().Load(AToW(desc.name), hash, desc))
 					return 0;
-				}
 			}
 	}
 

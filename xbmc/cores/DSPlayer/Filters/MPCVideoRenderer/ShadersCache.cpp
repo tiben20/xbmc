@@ -305,19 +305,24 @@ bool ShaderCache::Load(const wchar_t* fileName, std::wstring_view hash, ShaderDe
 	if (!fle.Open(WToA(cacheFileName)))
 		return false;
 
-	int64_t length = fle.GetLength();
 
-	void* pData = malloc(length);
+	/*if (file.Open(pFileNameA))
+	{
+		filelength = file.GetLength();
+		source.resize(file.GetLength() + 1);
+		file.Read(&source[0], file.GetLength());
+	}*/
+	int64_t length = fle.GetLength();
+	std::string pData;
+	pData.resize(fle.GetLength() + 1);
+	fle.Read(&pData[0], fle.GetLength());
+	/*void* pData = malloc(length);
 	if (fle.Read(pData, length) != length)
 	{
 		free(pData);
 		return false;
-	}
-	std::vector<BYTE> buf(static_cast<BYTE*>(pData), static_cast<BYTE*>(pData) + length);
-
-	/*if (!ReadFile(cacheFileName.c_str(), buf) || buf.empty()) {
-		return false;
 	}*/
+	std::vector<BYTE> buf(pData.begin(), pData.end());
 
 
 	try {
@@ -359,7 +364,7 @@ void ShaderCache::Save(const wchar_t* fileName, std::wstring_view hash, const Sh
 	if (fle.OpenForWrite(WToA(cacheFileName)))
 	{
 		fle.Write(buf.data(), buf.size());
-	}
+	}  
 
 	_AddToMemCache(cacheFileName, desc);
 	return;
