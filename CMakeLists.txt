@@ -156,6 +156,7 @@ set(INCLUDES ${CMAKE_SOURCE_DIR}
              ${CMAKE_SOURCE_DIR}/xbmc/cores/VideoPlayer
              ${CORE_SOURCE_DIR}/xbmc/cores/DSPlayer
              ${CORE_SOURCE_DIR}/xbmc/cores/DSPlayer/BaseClasses
+			 ${CORE_SOURCE_DIR}/xbmc/cores/DSPlayer/Filters/MpcVideoRenderer/Include
              ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}
              ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/include)
 
