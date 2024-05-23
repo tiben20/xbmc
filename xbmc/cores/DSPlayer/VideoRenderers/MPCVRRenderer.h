@@ -21,6 +21,8 @@
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
 
+#include "utils/XBMCTinyXML2.h"
+
 class CD3D11DynamicScaler;
 
 struct DS_VERTEX {
@@ -122,6 +124,8 @@ public:
   }
   bool CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format);
   
+  //Settings
+  void InsertXmlShader(tinyxml2::XMLNode* root, ShaderDesc desc);
 protected:
 
   bool CreateIntermediateTarget(unsigned int width,

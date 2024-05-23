@@ -502,15 +502,12 @@ CD3D11DynamicScaler::CD3D11DynamicScaler(std::wstring filename,bool *res)
     scalername.erase(0, lastpos+1);
 
   m_pDesc.name = scalername;
-
-  shader->Compile(m_pDesc, 0, &m_pOption.parameters);
   
-  /*res = (bool*)shader->Compile(m_pDesc, true);
-  for (int dd = 0 ; dd < m_pDesc.constants.size(); dd++)
+  shader->Compile(m_pDesc, 0, &m_pOption.parameters);
+  if (m_pDesc.params.size()>0)
   {
-    m_pDesc.constants.at(dd).currentValue = m_pDesc.constants.at(dd).defaultValue;
-  }*/
-    
+    CLog::Log(LOGINFO, "{}", m_pOption.parameters.size());
+  }
   m_pScaler = new CD3DScaler();
   
 }

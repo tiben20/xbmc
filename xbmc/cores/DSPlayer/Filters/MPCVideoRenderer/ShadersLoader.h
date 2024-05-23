@@ -33,7 +33,7 @@
 #include <wrl/client.h>
 #include <dxgiformat.h>
 #include <d3d11.h>
-#include <parallel_hashmap/phmap.h>
+#include "include/parallel_hashmap/phmap.h"
 
 #define SCALERCOMPILE_VERSION 4
 

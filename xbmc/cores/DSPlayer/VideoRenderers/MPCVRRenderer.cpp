@@ -20,6 +20,8 @@
 #include "guilib/GUIShaderDX.h"
 #include "StreamsManager.h"
 #include "filesystem/Directory.h"
+
+
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 
 using namespace Microsoft::WRL;
@@ -63,11 +65,11 @@ void CMPCVRRenderer::AddShader(std::string fle)
   if (res)
     m_pShaders.push_back(cur);
 }
+
 void CMPCVRRenderer::LoadShaders()
 {
-
-  //AddShader("special://xbmc/system/shaders/mpcvr/Bicubic.hlsl");
-  //return;
+  AddShader("special://xbmc/system/shaders/mpcvr/Bicubic.hlsl");
+  return;
   CFileItemList items;
   if (XFILE::CDirectory::GetDirectory("special://xbmc/system/shaders/mpcvr/", items, ".hlsl", XFILE::DIR_FLAG_DEFAULTS))
   {
@@ -76,10 +78,77 @@ void CMPCVRRenderer::LoadShaders()
       AddShader(item->GetPath());
     }
   }
-  
+  return;
+  //this part is just to write every sharders into an xml file
+  CXBMCTinyXML2 doc;
+  auto* element = doc.NewElement("shaders");
+  auto* rootNode = doc.InsertFirstChild(element);
+  ShaderDesc desc;
+  for (std::vector<CD3D11DynamicScaler*>::iterator it = m_pShaders.begin(); it != m_pShaders.end(); it++)
+  {
+    desc = (*it)->GetDesc();
+    InsertXmlShader(rootNode, desc);
+  }
+  doc.GetDocument()->SaveFile("h:\\text.xml", false);
+}
 
-  
-  
+void CMPCVRRenderer::InsertXmlShader(tinyxml2::XMLNode* root, ShaderDesc desc)
+{
+  auto* doc = root->GetDocument();
+  auto* shaderElement = doc->NewElement("shader");
+  shaderElement->SetAttribute("name", desc.name.c_str());
+  for (std::vector<ShaderParameterDesc>::iterator it = desc.params.begin(); it != desc.params.end(); it++)
+  {
+    auto* paramNode = doc->NewElement("param");
+    
+    paramNode->SetAttribute("name", (*it).label.c_str());
+    
+    if ((*it).constant.index() == 0)//float
+    {
+      paramNode->SetAttribute("type", "float");
+      auto* defaultElement = doc->NewElement("default");
+      defaultElement->SetText(std::get<ShaderConstant<float>>((*it).constant).defaultValue);
+      auto* minElement = doc->NewElement("min");
+      minElement->SetText(std::get<ShaderConstant<float>>((*it).constant).minValue);
+      auto* maxElement = doc->NewElement("max");
+      maxElement->SetText(std::get<ShaderConstant<float>>((*it).constant).maxValue);
+      auto* stepElement = doc->NewElement("step");
+      stepElement->SetText(std::get<ShaderConstant<float>>((*it).constant).step);
+      paramNode->InsertEndChild(defaultElement);
+      paramNode->InsertEndChild(minElement);
+      paramNode->InsertEndChild(maxElement);
+      paramNode->InsertEndChild(stepElement);
+      
+      
+    }
+    else if ((*it).constant.index() == 1)//integer
+    {
+      paramNode->SetAttribute("type", "integer");
+      auto* defaultElement = doc->NewElement("default");
+      defaultElement->SetText(std::get<ShaderConstant<int>>((*it).constant).defaultValue);
+      auto* minElement = doc->NewElement("min");
+      minElement->SetText(std::get<ShaderConstant<int>>((*it).constant).minValue);
+      auto* maxElement = doc->NewElement("max");
+      maxElement->SetText(std::get<ShaderConstant<int>>((*it).constant).maxValue);
+      auto* stepElement = doc->NewElement("step");
+      stepElement->SetText(std::get<ShaderConstant<int>>((*it).constant).step);
+      paramNode->InsertEndChild(defaultElement);
+      paramNode->InsertEndChild(minElement);
+      paramNode->InsertEndChild(maxElement);
+      paramNode->InsertEndChild(stepElement);
+    }
+    
+    
+    
+    
+    shaderElement->InsertEndChild(paramNode);
+
+    
+  }
+  root->InsertFirstChild(shaderElement);
+
+
+
 }
 
 void CMPCVRRenderer::InitShaders()
@@ -436,6 +505,10 @@ bool CMPCVRRenderer::CreateInputTarget(unsigned int width, unsigned int height, 
 
   return true;
 }
+
+
+
+
 
 void CMPCVRRenderer::Render(int index,
                            int index2,

@@ -496,7 +496,7 @@ bool CMediaSourceSettings::SetSources(tinyxml2::XMLNode* root,
   auto* doc = root->GetDocument();
   auto* newElement = doc->NewElement(section);
   auto* sectionNode = root->InsertEndChild(newElement);
-
+  // SetSources(rootNode, "programs", m_programSources, m_defaultProgramSource);
   if (!sectionNode)
     return false;
 

@@ -115,6 +115,8 @@ public:
   };
   void ResetOutputTexture(UINT width, UINT height, DXGI_FORMAT fmt);
 
+  
+  ShaderDesc GetDesc() { return m_pDesc; };
 private:
   CD3DScaler* m_pScaler;
   ShaderOption m_pOption = {};
