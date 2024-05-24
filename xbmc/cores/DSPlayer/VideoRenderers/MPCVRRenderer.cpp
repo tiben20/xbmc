@@ -68,7 +68,7 @@ void CMPCVRRenderer::AddShader(std::string fle)
 
 void CMPCVRRenderer::LoadShaders()
 {
-  AddShader("special://xbmc/system/shaders/mpcvr/Bicubic.hlsl");
+  AddShader("special://xbmc/system/shaders/mpcvr/Jinc.hlsl");
   return;
   CFileItemList items;
   if (XFILE::CDirectory::GetDirectory("special://xbmc/system/shaders/mpcvr/", items, ".hlsl", XFILE::DIR_FLAG_DEFAULTS))

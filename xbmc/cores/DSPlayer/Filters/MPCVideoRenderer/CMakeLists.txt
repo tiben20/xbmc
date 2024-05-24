@@ -18,6 +18,7 @@ set(SOURCES CPUInfo2.cpp
 			Shaders.cpp
 			ShadersCache.cpp
 			ShadersLoader.cpp
+			SmallVector.cpp
 			stdafx.cpp
 			Times.cpp
 			Util2.cpp
@@ -52,6 +53,7 @@ set(HEADERS atlredef.h
 			Shaders.h
 			ShadersCache.h
 			ShadersLoader.h
+			SmallVector.h
 			stdafx.h
 			Times.h
 			Util2.h
