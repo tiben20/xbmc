@@ -23,6 +23,7 @@
 #include <d3d11.h>
 #include <d3d11_1.h>
 #include <deque>
+#include <wrl/client.h>
 // CDX11SubPic
 
 
@@ -54,7 +55,7 @@ public:
 	STDMETHODIMP Lock(SubPicDesc& spd) override;
 	STDMETHODIMP Unlock(RECT* pDirtyRect) override;
 	STDMETHODIMP AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget) override;
-	STDMETHODIMP GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture) { return S_OK; };
+	STDMETHODIMP GetTexture(Microsoft::WRL::ComPtr<IDirect3DTexture9>& pTexture) { return S_OK; };
 };
 
 // CDX11SubPicAllocator
@@ -64,13 +65,13 @@ class CDX11SubPicAllocator : public ISubPicAllocatorImpl, public CCritSec
 	ID3D11Device* m_pDevice;
 	ID3D11DeviceContext1* m_pDeviceContext;
 	Com::SmartSize m_maxsize;
-
-	Com::SmartPtr<ID3D11Texture2D> m_pOutputTexture;
-	Com::SmartPtr<ID3D11ShaderResourceView> m_pOutputShaderResource;
-	Com::SmartPtr<ID3D11BlendState> m_pAlphaBlendState;
-	Com::SmartPtr<ID3D11Buffer> m_pVertexBuffer;
-	Com::SmartPtr<ID3D11SamplerState> m_pSamplerPoint;
-	Com::SmartPtr<ID3D11SamplerState> m_pSamplerLinear;
+	
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_pOutputTexture;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_pOutputShaderResource;
+	Microsoft::WRL::ComPtr<ID3D11BlendState> m_pAlphaBlendState;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSamplerPoint;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pSamplerLinear;
 	
 	void FreeTextures();
 	bool Alloc(bool fStatic, ISubPic** ppSubPic) override;

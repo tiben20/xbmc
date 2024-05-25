@@ -319,8 +319,9 @@ STDMETHODIMP CDX11SubPic::AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget)
 		return E_POINTER;
 	}
 	Com::SmartRect rSrc(*pSrc), rDst(*pDst);
-
-	return m_pAllocator->Render(m_MemPic, m_rcDirty, rSrc, rDst);
+	if (m_pAllocator)
+		return m_pAllocator->Render(m_MemPic, m_rcDirty, rSrc, rDst);
+	return E_FAIL;
 }
 
 //
@@ -334,6 +335,7 @@ CDX11SubPicAllocator::CDX11SubPicAllocator(ID3D11Device1* pDevice, SIZE maxsize)
 {
 	CreateBlendState();
 	CreateOtherStates();
+	m_pOutputTexture = nullptr;
 }
 
 CCritSec CDX11SubPicAllocator::ms_SurfaceQueueLock;
@@ -362,8 +364,8 @@ void CDX11SubPicAllocator::ClearCache()
 	m_AllocatedSurfaces.clear();
 	m_FreeSurfaces.clear();
 
-	m_pOutputShaderResource.Release();
-	m_pOutputTexture.Release();
+	m_pOutputShaderResource = nullptr;
+	m_pOutputTexture = nullptr;
 }
 
 // ISubPicAllocator
@@ -419,7 +421,7 @@ STDMETHODIMP_(void) CDX11SubPicAllocator::SetInverseAlpha(bool bInverted)
 {
 	if (m_bInvAlpha != bInverted) {
 		m_bInvAlpha = bInverted;
-		m_pAlphaBlendState.Release();
+		m_pAlphaBlendState = nullptr;
 		CreateBlendState();
 	}
 }
@@ -474,9 +476,9 @@ HRESULT CDX11SubPicAllocator::CreateOutputTex()
 	srvDesc.Texture2D.MipLevels = 1;
 	srvDesc.Texture2D.MostDetailedMip = 0;
 
-	hr = m_pDevice->CreateShaderResourceView(m_pOutputTexture, &srvDesc, &m_pOutputShaderResource);
+	hr = m_pDevice->CreateShaderResourceView(m_pOutputTexture.Get(), &srvDesc, &m_pOutputShaderResource);
 	if (FAILED(hr)) {
-		m_pOutputTexture.Release();
+		m_pOutputTexture = nullptr;
 	}
 
 	return hr;
@@ -519,10 +521,10 @@ void CDX11SubPicAllocator::CreateOtherStates()
 
 void CDX11SubPicAllocator::ReleaseAllStates()
 {
-	m_pAlphaBlendState.Release();
-	m_pVertexBuffer.Release();
-	m_pSamplerPoint.Release();
-	m_pSamplerLinear.Release();
+	m_pAlphaBlendState = nullptr;
+	m_pVertexBuffer = nullptr;
+	m_pSamplerPoint = nullptr;
+	m_pSamplerLinear = nullptr;
 
 }
 
@@ -554,7 +556,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	if (texDesc.Usage == D3D11_USAGE_DYNAMIC) {
 		// workaround for an Intel driver bug where frequent UpdateSubresource calls caused high memory consumption
 		D3D11_MAPPED_SUBRESOURCE mr;
-		hr = m_pDeviceContext->Map(m_pOutputTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
+		hr = m_pDeviceContext->Map(m_pOutputTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
 		if (SUCCEEDED(hr))
 		{
 			BYTE* dst = (BYTE*)mr.pData + mr.RowPitch * copyRect.top + (copyRect.left * 4);
@@ -566,12 +568,12 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 				src += memPic.w;
 				dst += mr.RowPitch;
 			}
-			m_pDeviceContext->Unmap(m_pOutputTexture, 0);
+			m_pDeviceContext->Unmap(m_pOutputTexture.Get(), 0);
 		}
 	}
 	else {
 		D3D11_BOX dstBox = { copyRect.left, copyRect.top, 0, copyRect.right, copyRect.bottom, 1 };
-		m_pDeviceContext->UpdateSubresource1(m_pOutputTexture, 0, &dstBox, src, memPic.w * 4, 0, D3D11_COPY_DISCARD);
+		m_pDeviceContext->UpdateSubresource1(m_pOutputTexture.Get(), 0, &dstBox, src, memPic.w * 4, 0, D3D11_COPY_DISCARD);
 	}
 
 	const float src_dx = 1.0f / texDesc.Width;
@@ -600,13 +602,13 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	};
 
 	D3D11_MAPPED_SUBRESOURCE mr;
-	hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
+	hr = m_pDeviceContext->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
 	memcpy(mr.pData, &Vertices, sizeof(Vertices));
-	m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+	m_pDeviceContext->Unmap(m_pVertexBuffer.Get(), 0);
 
 	UINT Stride = sizeof(VERTEX);
 	UINT Offset = 0;
@@ -616,7 +618,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	m_pDeviceContext->PSSetSamplers(0, 1, &(stretching ? m_pSamplerLinear : m_pSamplerPoint));
 	m_pDeviceContext->PSSetShaderResources(0, 1, &m_pOutputShaderResource);
 
-	m_pDeviceContext->OMSetBlendState(m_pAlphaBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+	m_pDeviceContext->OMSetBlendState(m_pAlphaBlendState.Get(), nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
 	D3D11_VIEWPORT vp;
 	vp.TopLeftX = dstRect.left;

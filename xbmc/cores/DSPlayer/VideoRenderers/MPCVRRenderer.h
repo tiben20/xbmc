@@ -107,11 +107,12 @@ public:
   void Reset();
   //samples,shader and unorderer access views saved in maps to not duplicate access views
   ID3D11SamplerState* GetSampler(D3D11_FILTER filterMode, D3D11_TEXTURE_ADDRESS_MODE addressMode);
+
+  void RemoveSRVAndUav();
+
   ID3D11ShaderResourceView* GetShaderResourceView(ID3D11Texture2D* texture);
 
   ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Texture2D* texture);
-
-  ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Buffer* buffer, uint32_t numElements, DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 
   CD3DTexture GetIntermediateTexture(){ return m_IntermediateTarget; }
   CD3DTexture GetInputTexture(bool forcopy, REFERENCE_TIME subtime = 0)
@@ -164,10 +165,10 @@ protected:
   std::vector<Microsoft::WRL::ComPtr<ID3D11Query>> m_pPassQueries;
   uint32_t m_pPasses;
   uint32_t m_pCurrentPasses = 0;
-  std::vector<CD3D11DynamicScaler*> m_pShaders;
+  std::vector<CD3DScaler*> m_pShaders;
   phmap::flat_hash_map<std::pair<D3D11_FILTER, D3D11_TEXTURE_ADDRESS_MODE>, Microsoft::WRL::ComPtr<ID3D11SamplerState>> m_pSamplers;
   phmap::flat_hash_map<ID3D11Texture2D*, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pShaderRSV;
-  phmap::flat_hash_map<void*, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> m_pUAVViews;
+  phmap::flat_hash_map<ID3D11Texture2D*, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> m_pUAVViews;
 
   CD3DTexture m_InputTarget;
   CD3DTexture m_IntermediateTarget;

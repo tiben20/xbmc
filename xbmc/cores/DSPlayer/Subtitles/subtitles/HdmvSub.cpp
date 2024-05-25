@@ -432,7 +432,9 @@ void CHdmvSub::Render(SubPicDesc& spd, REFERENCE_TIME rt, RECT& bbox)
     if (!pObject->GetObjectData())
       continue;
 
-    ASSERT (pObject!=NULL && spd.w >= pObject->GetObjectData()->m_width && spd.h >= pObject->GetObjectData()->m_height);
+    CompositionObjectData* pData = pObject->GetObjectData();
+
+    ASSERT (pObject!=NULL && spd.w >= pData->m_width && spd.h >= pData->m_height);
 
     if (pObject && spd.w >= pObject->GetObjectData()->m_width && spd.h >= pObject->GetObjectData()->m_height)
     {

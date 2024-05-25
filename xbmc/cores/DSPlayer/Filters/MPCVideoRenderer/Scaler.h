@@ -42,12 +42,15 @@ class CMPCVRRenderer;
 class CD3DScaler : public ID3DResource
 {
 public:
-  CD3DScaler();
+  CD3DScaler(std::wstring filename, bool* res);
   virtual ~CD3DScaler();
   bool Create(const ShaderDesc& desc, const ShaderOption& option);
   bool IsCreated() { return m_bCreated; };
   void Release();
   void ReleaseResource();
+  void Init(CRect dest);
+  void Unload();
+
   
   void Draw(CMPCVRRenderer* renderer);
 
@@ -56,13 +59,13 @@ public:
 
   void SetOption(ShaderOption option);
 
-  CD3DTexture GetOutputSurface()
-  {
-    //the output is always the second texture in the array
-    if (m_pTextures[1].Get())
-      return m_pTextures[1];
-  }
-  void ResetOutputTexture(UINT width, UINT height,DXGI_FORMAT fmt);
+  std::wstring GetScalerName() { return m_pFilename; }
+  int GetNumberPasses() { return m_pDesc.passes.size(); };
+  void ResetOutputTexture(UINT width, UINT height, DXGI_FORMAT fmt);
+  ShaderDesc GetDesc() { return m_pDesc; };
+
+  CD3DTexture GetOutputSurface();
+
 
 private:
   bool m_bUpdateBuffer;
@@ -73,6 +76,13 @@ private:
   std::vector<SmallVector<ID3D11UnorderedAccessView*>> m_pUAVs;
   std::vector<Microsoft::WRL::ComPtr<ID3D11ComputeShader>> m_pComputeShaders;
   SmallVector<std::pair<uint32_t, uint32_t>> m_pDispatches;
+
+  ShaderOption m_pOption = {};
+  ShaderDesc m_pDesc = {};
+  CD3DEffect m_effect;
+  Com::SmartRect m_srcRect;
+  CRect          m_destRect;
+  std::wstring m_pFilename;
 
   //those are only used to avoid warnings from d3d11 device
   std::vector<ID3D11ShaderResourceView*> m_pNullSRV;
@@ -87,44 +97,4 @@ private:
   void ChangeConstant(Constant32 pParam, int index);
 };
 
-class CD3D11DynamicScaler
-{
-public:
-  CD3D11DynamicScaler(std::wstring filename,bool *res);
-  ~CD3D11DynamicScaler();
-
-  void Init();
-  void Unload();
-  
-  std::wstring GetScalerName() { return m_pFilename; }
-  void SetShaderConstants(std::vector<ShaderParameterDesc> consts) { m_pDesc.params = consts; }
-
-  void Draw(CMPCVRRenderer* renderer) { m_pScaler->Draw(renderer); };
-  CD3DTexture GetOutputSurface() { return m_pScaler->GetOutputSurface(); };
-
-  int GetNumberPasses() { return m_pDesc.passes.size(); };
-  void TestConsts()
-  {
-    if (std::holds_alternative<ShaderConstant<float>>(m_pDesc.params[0].constant))
-    {
-      ShaderConstant<float> constf;
-      constf = std::get<ShaderConstant<float>>(m_pDesc.params[0].constant);
-      
-    }
-    m_pScaler->SetOption(m_pOption);
-  };
-  void ResetOutputTexture(UINT width, UINT height, DXGI_FORMAT fmt);
-
-  
-  ShaderDesc GetDesc() { return m_pDesc; };
-private:
-  CD3DScaler* m_pScaler;
-  ShaderOption m_pOption = {};
-  ShaderDesc m_pDesc = {};
-  CD3DEffect m_effect;
-  Com::SmartRect m_srcRect;
-  std::wstring m_pFilename;
-  Microsoft::WRL::ComPtr< ID3D11Buffer> m_pConstantBuffer;
-  //std::vector<GraphicsPSO> m_pPSO;
-};
 

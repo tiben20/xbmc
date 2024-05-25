@@ -2144,7 +2144,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	CheckPointer(GetSwapChain, E_FAIL);
 
 	if (CStreamsManager::Get() && CStreamsManager::Get()->SubtitleManager)
-		CStreamsManager::Get()->SubtitleManager->SetTime(frameStartTime);
+		CStreamsManager::Get()->SubtitleManager->SetTime(frameStartTime + m_pFilter->m_rtStartTime);
 
 	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
 	{

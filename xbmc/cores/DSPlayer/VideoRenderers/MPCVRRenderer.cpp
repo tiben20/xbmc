@@ -61,7 +61,7 @@ void CMPCVRRenderer::Release()
 void CMPCVRRenderer::AddShader(std::string fle)
 {
   bool res;
-  CD3D11DynamicScaler* cur = new CD3D11DynamicScaler(AToW(fle), &res);
+  CD3DScaler* cur = new CD3DScaler(AToW(fle), &res);
   if (res)
     m_pShaders.push_back(cur);
 }
@@ -84,7 +84,7 @@ void CMPCVRRenderer::LoadShaders()
   auto* element = doc.NewElement("shaders");
   auto* rootNode = doc.InsertFirstChild(element);
   ShaderDesc desc;
-  for (std::vector<CD3D11DynamicScaler*>::iterator it = m_pShaders.begin(); it != m_pShaders.end(); it++)
+  for (std::vector<CD3DScaler*>::iterator it = m_pShaders.begin(); it != m_pShaders.end(); it++)
   {
     desc = (*it)->GetDesc();
     InsertXmlShader(rootNode, desc);
@@ -183,7 +183,7 @@ void CMPCVRRenderer::InitShaders()
 
   for (int idx = 0; idx < m_pShaders.size(); idx++)
   {
-    m_pShaders[idx]->Init();
+    m_pShaders[idx]->Init(m_destRect);
   }
   
 }
@@ -343,6 +343,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
   
   pContext->OMSetRenderTargets(1, DX::DeviceResources::Get()->GetBackBuffer().GetAddressOfRTV(), nullptr);
   pContext->RSSetViewports(1, &VP);
+  //Need blend state?
   //pContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
   pContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
   pContext->PSSetShader(m_pPS_Simple.Get(), nullptr, 0);
@@ -350,6 +351,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
   pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
 
   pContext->PSSetShaderResources(0, 1, m_pShaders[0]->GetOutputSurface().GetAddressOfSRV());
+  //Do we need constant buffer and sampler or keep the one already there
   //pContext->PSSetSamplers(0, 1, &pSampler);
   //pContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
   pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -367,12 +369,14 @@ void CMPCVRRenderer::DrawSubtitles()
   {
     
     ID3D11DeviceContext1* pContext = DX::DeviceResources::Get()->GetD3DContext();
+    ID3D11SamplerState* pSampler = GetSampler(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP);
     const auto rtStart = m_rSubTime;
 
     // Set render target and shaders
     pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
     pContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
     pContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
+    pContext->PSSetSamplers(0, 1, &pSampler);
     Com::SmartRect m_windowRect(Com::SmartPoint(0, 0), Com::SmartPoint(GetScreenRect().x2, GetScreenRect().y2));
     Com::SmartRect pSrc, pDst;
     //sending the devicecontext to the subtitlemanager he will draw directly with it
@@ -416,6 +420,12 @@ ID3D11SamplerState* CMPCVRRenderer::GetSampler(D3D11_FILTER filterMode, D3D11_TE
   return m_pSamplers.emplace(key, std::move(sam)).first->second.Get();
 }
 
+void CMPCVRRenderer::RemoveSRVAndUav()
+{
+  m_pShaderRSV.clear();
+  m_pUAVViews.clear();
+}
+
 ID3D11ShaderResourceView* CMPCVRRenderer::GetShaderResourceView(ID3D11Texture2D* texture)
 {
   if (auto it = m_pShaderRSV.find(texture); it != m_pShaderRSV.end()) {
@@ -452,31 +462,6 @@ ID3D11UnorderedAccessView* CMPCVRRenderer::GetUnorderedAccessView(ID3D11Texture2
   }
 
   return m_pUAVViews.emplace(texture, std::move(uav)).first->second.Get();
-}
-
-ID3D11UnorderedAccessView* CMPCVRRenderer::GetUnorderedAccessView(ID3D11Buffer* buffer, uint32_t numElements, DXGI_FORMAT format)
-{
-  if (auto it = m_pUAVViews.find(buffer); it != m_pUAVViews.end()) {
-    return it->second.Get();
-  }
-
-  Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;
-
-  D3D11_UNORDERED_ACCESS_VIEW_DESC desc{};
-  desc.Format = format;
-  desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-  desc.Buffer = {};
-  desc.Buffer.NumElements = numElements;
-    
-  
-
-  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateUnorderedAccessView(buffer, &desc, uav.ReleaseAndGetAddressOf());
-  if (FAILED(hr)) {
-    CLog::Log(LOGERROR, "CreateUnorderedAccessView failed", hr);
-    return nullptr;
-  }
-
-  return m_pUAVViews.emplace(buffer, std::move(uav)).first->second.Get();
 }
 
 bool CMPCVRRenderer::CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format)

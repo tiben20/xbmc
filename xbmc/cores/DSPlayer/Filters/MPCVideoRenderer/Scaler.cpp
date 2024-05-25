@@ -50,11 +50,29 @@ const DXGI_FORMAT DXGI_FORMAT_MAPPING[16] = {
   DXGI_FORMAT_R32G32B32A32_FLOAT
 };
 
-CD3DScaler::CD3DScaler()
+CD3DScaler::CD3DScaler(std::wstring filename, bool* res)
 {
+  m_pFilename = filename;
+  CShaderFileLoader* shader;
+  shader = new CShaderFileLoader(filename);
+  m_pDesc = {};
+  std::string scalername;
+  scalername = WToA(filename);
+  StringUtils::Replace(scalername, ".hlsl", "");
+  size_t lastpos = scalername.find_last_of("/");
+  if (lastpos != std::string::npos)
+    scalername.erase(0, lastpos + 1);
+
+  m_pDesc.name = scalername;
+
+  shader->Compile(m_pDesc, 0, &m_pOption.parameters);
+  if (m_pDesc.params.size() > 0)
+  {
+    CLog::Log(LOGINFO, "{}", m_pOption.parameters.size());
+  }
   m_bCreated = false;
   m_bUpdateBuffer = false;
-//add initialisation
+
 }
 
 CD3DScaler::~CD3DScaler()
@@ -64,11 +82,12 @@ CD3DScaler::~CD3DScaler()
 
 bool CD3DScaler::Create(const ShaderDesc& desc, const ShaderOption& option)
 {
+  
   SIZE inputSize, outputSize;
   inputSize = { (LONG)CMPCVRRenderer::Get()->GetInputTexture(false).GetWidth(), (LONG)CMPCVRRenderer::Get()->GetInputTexture(false).GetHeight() };
   
-  outputSize = { (LONG)DX::Windowing()->GetBackBuffer().GetWidth(), (LONG)DX::Windowing()->GetBackBuffer().GetHeight() };
-
+  //outputSize = { (LONG)DX::Windowing()->GetBackBuffer().GetWidth(), (LONG)DX::Windowing()->GetBackBuffer().GetHeight() };
+  outputSize = { (LONG)m_destRect.Width(), (LONG)m_destRect.Height() };
   static mu::Parser exprParser;
   exprParser.DefineConst("INPUT_WIDTH", inputSize.cx);
   exprParser.DefineConst("INPUT_HEIGHT", inputSize.cy);
@@ -237,6 +256,19 @@ void CD3DScaler::ReleaseResource()
   m_pConstants.clear();
   m_pConstantBuffer = nullptr;
   m_pComputeShaders.clear();
+  CMPCVRRenderer::Get()->RemoveSRVAndUav();
+}
+
+void CD3DScaler::Init(CRect dest)
+{
+  m_destRect = dest;
+  if (IsCreated())
+    ReleaseResource();
+  Create(m_pDesc, m_pOption);
+}
+
+void CD3DScaler::Unload()
+{
 }
 
 void CD3DScaler::OnDestroyDevice(bool fatal)
@@ -256,15 +288,26 @@ void CD3DScaler::SetOption(ShaderOption option)
 
 void CD3DScaler::ResetOutputTexture(UINT width, UINT height,DXGI_FORMAT fmt)
 {
+  ReleaseResource();
+  Create(m_pDesc, m_pOption);
+  return;
   if (m_pTextures.size() > 0 && m_pTextures[1].Get())
   {
+    CMPCVRRenderer::Get()->RemoveSRVAndUav();
     m_pTextures[1].Release();
     m_pTextures[1].Create(width, height, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS, fmt, "Shader Output Texture");
-    auto srv = CMPCVRRenderer::Get()->GetShaderResourceView(m_pTextures[1].Get());
-    auto uav = CMPCVRRenderer::Get()->GetUnorderedAccessView(m_pTextures[1].Get());
+    
+    auto srv = m_pSRVs[0][0] = CMPCVRRenderer::Get()->GetShaderResourceView(m_pTextures[1].Get());
+    auto uav = m_pUAVs[0][0] = CMPCVRRenderer::Get()->GetUnorderedAccessView(m_pTextures[1].Get());
     
   }
   
+}
+
+CD3DTexture CD3DScaler::GetOutputSurface()
+{
+  if (m_pTextures[1].Get())
+    return m_pTextures[1];
 }
 
 SIZE CD3DScaler::CalcOutputSize(const std::pair<std::string, std::string>& outputSizeExpr, const ShaderOption& option, SIZE scalingWndSize, SIZE inputSize, mu::Parser& exprParser)
@@ -487,52 +530,3 @@ void CD3DScaler::Draw(CMPCVRRenderer* renderer)
   }
 
 }
-
-CD3D11DynamicScaler::CD3D11DynamicScaler(std::wstring filename,bool *res)
-{
-  m_pFilename = filename;
-  CShaderFileLoader* shader;
-  shader = new CShaderFileLoader(filename);
-  m_pDesc = {};
-  std::string scalername;
-  scalername = WToA(filename);
-  StringUtils::Replace(scalername, ".hlsl", "");
-  size_t lastpos = scalername.find_last_of("/");
-  if (lastpos != std::string::npos)
-    scalername.erase(0, lastpos+1);
-
-  m_pDesc.name = scalername;
-  
-  shader->Compile(m_pDesc, 0, &m_pOption.parameters);
-  if (m_pDesc.params.size()>0)
-  {
-    CLog::Log(LOGINFO, "{}", m_pOption.parameters.size());
-  }
-  m_pScaler = new CD3DScaler();
-  
-}
-
-void CD3D11DynamicScaler::Init()
-{
-  if (m_pScaler->IsCreated())
-    m_pScaler->ReleaseResource();
-  m_pScaler->Create(m_pDesc, m_pOption);
-}
-
-void CD3D11DynamicScaler::Unload()
-{
-  //if (m_pScaler)
-    //m_pScaler->FreeDynTexture();
-  m_pScaler = nullptr;
-}
-void CD3D11DynamicScaler::ResetOutputTexture(UINT width, UINT height, DXGI_FORMAT fmt)
-{
-  m_pScaler->ReleaseResource();
-  m_pScaler->Create(m_pDesc, m_pOption);
-}
-
-CD3D11DynamicScaler::~CD3D11DynamicScaler()
-{
-  Unload();
-}
-
