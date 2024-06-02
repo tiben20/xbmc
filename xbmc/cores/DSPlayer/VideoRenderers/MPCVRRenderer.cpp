@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright (C) 2017-2019 Team Kodi
+ *  Copyright (C) 2024 Team Kodi
  *  This file is part of Kodi - https://kodi.tv
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
@@ -36,123 +36,6 @@ std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 
 CMPCVRRenderer::CMPCVRRenderer()
 {
-  LoadShaders();
-}
-
-CMPCVRRenderer::~CMPCVRRenderer()
-{
-  Release();
-}
-
-void CMPCVRRenderer::Release()
-{
-  Stop();
-  m_IntermediateTarget.Release();
-  m_InputTarget.Release();
-  m_pVS_Simple = nullptr;
-  m_pVertexBuffer = nullptr;
-  m_pVSimpleInputLayout = nullptr;
-  m_pPS_Simple = nullptr;
-  m_pSamplers.clear();
-  m_pShaderRSV.clear();
-  m_pUAVViews.clear();
-}
-
-void CMPCVRRenderer::AddShader(std::string fle)
-{
-  bool res;
-  CD3DScaler* cur = new CD3DScaler(AToW(fle), &res);
-  if (res)
-    m_pShaders.push_back(cur);
-}
-
-void CMPCVRRenderer::LoadShaders()
-{
-  AddShader("special://xbmc/system/shaders/mpcvr/Jinc.hlsl");
-  return;
-  CFileItemList items;
-  if (XFILE::CDirectory::GetDirectory("special://xbmc/system/shaders/mpcvr/", items, ".hlsl", XFILE::DIR_FLAG_DEFAULTS))
-  {
-    for (const auto& item : items)
-    {
-      AddShader(item->GetPath());
-    }
-  }
-  return;
-  //this part is just to write every sharders into an xml file
-  CXBMCTinyXML2 doc;
-  auto* element = doc.NewElement("shaders");
-  auto* rootNode = doc.InsertFirstChild(element);
-  ShaderDesc desc;
-  for (std::vector<CD3DScaler*>::iterator it = m_pShaders.begin(); it != m_pShaders.end(); it++)
-  {
-    desc = (*it)->GetDesc();
-    InsertXmlShader(rootNode, desc);
-  }
-  doc.GetDocument()->SaveFile("h:\\text.xml", false);
-}
-
-void CMPCVRRenderer::InsertXmlShader(tinyxml2::XMLNode* root, ShaderDesc desc)
-{
-  auto* doc = root->GetDocument();
-  auto* shaderElement = doc->NewElement("shader");
-  shaderElement->SetAttribute("name", desc.name.c_str());
-  for (std::vector<ShaderParameterDesc>::iterator it = desc.params.begin(); it != desc.params.end(); it++)
-  {
-    auto* paramNode = doc->NewElement("param");
-    
-    paramNode->SetAttribute("name", (*it).label.c_str());
-    
-    if ((*it).constant.index() == 0)//float
-    {
-      paramNode->SetAttribute("type", "float");
-      auto* defaultElement = doc->NewElement("default");
-      defaultElement->SetText(std::get<ShaderConstant<float>>((*it).constant).defaultValue);
-      auto* minElement = doc->NewElement("min");
-      minElement->SetText(std::get<ShaderConstant<float>>((*it).constant).minValue);
-      auto* maxElement = doc->NewElement("max");
-      maxElement->SetText(std::get<ShaderConstant<float>>((*it).constant).maxValue);
-      auto* stepElement = doc->NewElement("step");
-      stepElement->SetText(std::get<ShaderConstant<float>>((*it).constant).step);
-      paramNode->InsertEndChild(defaultElement);
-      paramNode->InsertEndChild(minElement);
-      paramNode->InsertEndChild(maxElement);
-      paramNode->InsertEndChild(stepElement);
-      
-      
-    }
-    else if ((*it).constant.index() == 1)//integer
-    {
-      paramNode->SetAttribute("type", "integer");
-      auto* defaultElement = doc->NewElement("default");
-      defaultElement->SetText(std::get<ShaderConstant<int>>((*it).constant).defaultValue);
-      auto* minElement = doc->NewElement("min");
-      minElement->SetText(std::get<ShaderConstant<int>>((*it).constant).minValue);
-      auto* maxElement = doc->NewElement("max");
-      maxElement->SetText(std::get<ShaderConstant<int>>((*it).constant).maxValue);
-      auto* stepElement = doc->NewElement("step");
-      stepElement->SetText(std::get<ShaderConstant<int>>((*it).constant).step);
-      paramNode->InsertEndChild(defaultElement);
-      paramNode->InsertEndChild(minElement);
-      paramNode->InsertEndChild(maxElement);
-      paramNode->InsertEndChild(stepElement);
-    }
-    
-    
-    
-    
-    shaderElement->InsertEndChild(paramNode);
-
-    
-  }
-  root->InsertFirstChild(shaderElement);
-
-
-
-}
-
-void CMPCVRRenderer::InitShaders()
-{
   CD3DDSPixelShader shdr;
   LPVOID data;
   DWORD size;
@@ -176,64 +59,27 @@ void CMPCVRRenderer::InitShaders()
   data = shdr.GetData();
   size = shdr.GetSize();
 
-  GetDevice->CreatePixelShader(data,size,nullptr,&m_pPS_Simple);
-  //TODO will need to add hdr conversion see UpdateBitmapShader() in dx11processor
+  GetDevice->CreatePixelShader(data, size, nullptr, &m_pPS_Simple);
+  m_pPlacebo = new PL::CPlHelper();
+  m_pPlacebo->Init(DXGI_FORMAT_NV12);
+  //m_pPlacebo = new PL::CPlHelper();
+}
 
-  m_pPS_BitmapToFrame = m_pPS_Simple;
+CMPCVRRenderer::~CMPCVRRenderer()
+{
+  m_pPlacebo->Release();
+  Release();
+}
 
-  for (int idx = 0; idx < m_pShaders.size(); idx++)
-  {
-    m_pShaders[idx]->Init(m_destRect);
-  }
+void CMPCVRRenderer::Release()
+{
   
-}
-
-void CMPCVRRenderer::Start(uint32_t passcount)
-{
-  assert(m_pPassQueries.empty());
-  m_pPassQueries.resize(passcount);
-
-  D3D11_QUERY_DESC desc{};
-  desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateQuery(&desc, m_pDisjointQuery.ReleaseAndGetAddressOf());
-
-  desc.Query = D3D11_QUERY_TIMESTAMP;
-  hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateQuery(&desc, m_pStartQuery.ReleaseAndGetAddressOf());
-  for (Microsoft::WRL::ComPtr<ID3D11Query>& query : m_pPassQueries)
-    hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateQuery(&desc, query.ReleaseAndGetAddressOf());
+  m_IntermediateTarget.Release();
   
-}
-
-void CMPCVRRenderer::Stop()
-{
-  m_pDisjointQuery = nullptr;
-  m_pStartQuery = nullptr;
-  m_pPassQueries.clear();
-}
-
-void CMPCVRRenderer::OnBeginEffects()
-{
-  if (m_pPassQueries.empty())
-    return;
-  DX::DeviceResources::Get()->GetD3DContext()->Begin(m_pDisjointQuery.Get());
-  DX::DeviceResources::Get()->GetD3DContext()->End(m_pStartQuery.Get());
-  m_pCurrentPasses = 0;
-}
-
-void CMPCVRRenderer::OnEndEffects()
-{
-  if (m_pPassQueries.empty())
-    return;
-
-  DX::DeviceResources::Get()->GetD3DContext()->End(m_pDisjointQuery.Get());
-}
-
-void CMPCVRRenderer::OnEndPass()
-{
-  if (m_pPassQueries.empty())
-    return;
-
-  DX::DeviceResources::Get()->GetD3DContext()->End(m_pPassQueries[m_pCurrentPasses++].Get());
+  m_pVS_Simple = nullptr;
+  m_pVertexBuffer = nullptr;
+  m_pVSimpleInputLayout = nullptr;
+  m_pPS_Simple = nullptr;
 }
 
 HRESULT CMPCVRRenderer::FillVertexBuffer(const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip)
@@ -336,11 +182,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
   sourcerect.x2 = m_sourceWidth;
   sourcerect.y2 = m_sourceHeight;
   FillVertexBuffer(m_sourceWidth, m_sourceHeight, sourcerect/*m_sourceRect*/, 0, 0);
-
-  ID3D11SamplerState* pSampler = GetSampler(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP);
   // Set resources
-
-  
   pContext->OMSetRenderTargets(1, DX::DeviceResources::Get()->GetBackBuffer().GetAddressOfRTV(), nullptr);
   pContext->RSSetViewports(1, &VP);
   //Need blend state?
@@ -350,7 +192,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
 
   pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
 
-  pContext->PSSetShaderResources(0, 1, m_pShaders[0]->GetOutputSurface().GetAddressOfSRV());
+  pContext->PSSetShaderResources(0, 1, m_IntermediateTarget.GetAddressOfSRV());
   //Do we need constant buffer and sampler or keep the one already there
   //pContext->PSSetSamplers(0, 1, &pSampler);
   //pContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
@@ -369,14 +211,13 @@ void CMPCVRRenderer::DrawSubtitles()
   {
     
     ID3D11DeviceContext1* pContext = DX::DeviceResources::Get()->GetD3DContext();
-    ID3D11SamplerState* pSampler = GetSampler(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP);
     const auto rtStart = m_rSubTime;
 
     // Set render target and shaders
     pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
     pContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
     pContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
-    pContext->PSSetSamplers(0, 1, &pSampler);
+    pContext->PSSetSamplers(0, 1, m_pSampler.GetAddressOf());
     Com::SmartRect m_windowRect(Com::SmartPoint(0, 0), Com::SmartPoint(GetScreenRect().x2, GetScreenRect().y2));
     Com::SmartRect pSrc, pDst;
     //sending the devicecontext to the subtitlemanager he will draw directly with it
@@ -387,113 +228,8 @@ void CMPCVRRenderer::DrawSubtitles()
 
 void CMPCVRRenderer::Reset()
 {
-  m_pDisjointQuery = nullptr;
-  m_pStartQuery = nullptr;
-  m_pPassQueries.clear();
   m_IntermediateTarget.Release();
-  
-  
 }
-
-ID3D11SamplerState* CMPCVRRenderer::GetSampler(D3D11_FILTER filterMode, D3D11_TEXTURE_ADDRESS_MODE addressMode)
-{
-  auto key = std::make_pair(filterMode, addressMode);
-  auto it = m_pSamplers.find(key);
-  if (it != m_pSamplers.end()) {
-    return it->second.Get();
-  }
-
-  Microsoft::WRL::ComPtr<ID3D11SamplerState> sam;
-
-  D3D11_SAMPLER_DESC desc{};
-  desc.Filter = filterMode;
-    desc.AddressU = addressMode;
-    desc.AddressV = addressMode;
-    desc.AddressW = addressMode ;
-    desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateSamplerState(&desc, sam.ReleaseAndGetAddressOf());
-  if (FAILED(hr)) {
-    
-    return nullptr;
-  }
-
-  return m_pSamplers.emplace(key, std::move(sam)).first->second.Get();
-}
-
-void CMPCVRRenderer::RemoveSRVAndUav()
-{
-  m_pShaderRSV.clear();
-  m_pUAVViews.clear();
-}
-
-ID3D11ShaderResourceView* CMPCVRRenderer::GetShaderResourceView(ID3D11Texture2D* texture)
-{
-  if (auto it = m_pShaderRSV.find(texture); it != m_pShaderRSV.end()) {
-    return it->second.Get();
-  }
-
-  Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateShaderResourceView(texture, nullptr, srv.ReleaseAndGetAddressOf());
-  if (FAILED(hr))
-  {
-    CLog::Log(LOGERROR,"CreateShaderResourceView failed", hr);
-    return nullptr;
-  }
-
-  return m_pShaderRSV.emplace(texture, std::move(srv)).first->second.Get();
-}
-
-ID3D11UnorderedAccessView* CMPCVRRenderer::GetUnorderedAccessView(ID3D11Texture2D* texture)
-{
-  if (auto it = m_pUAVViews.find(texture); it != m_pUAVViews.end()) {
-    return it->second.Get();
-  }
-
-  Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;
-
-  D3D11_UNORDERED_ACCESS_VIEW_DESC desc{};
-  desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-
-  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateUnorderedAccessView(texture, &desc, uav.ReleaseAndGetAddressOf());
-  if (FAILED(hr))
-  {
-    CLog::Log(LOGERROR, "CreateUnorderedAccessView failed", hr);
-    return nullptr;
-  }
-
-  return m_pUAVViews.emplace(texture, std::move(uav)).first->second.Get();
-}
-
-bool CMPCVRRenderer::CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format)
-{
-  // don't create new one if it exists with requested size and format
-  if (m_InputTarget.Get() && m_InputTarget.GetFormat() == format &&
-    m_InputTarget.GetWidth() == width && m_InputTarget.GetHeight() == height)
-    return true;
-
-  if (m_InputTarget.Get())
-    m_InputTarget.Release();
-
-  CLog::LogF(LOGDEBUG, "{} creating input target {}x{} format {}.", __FUNCTION__, width, height,
-    DX::DXGIFormatToString(format));
-
-  if (!m_InputTarget.Create(width, height, 1,
-    D3D11_USAGE_DEFAULT, format, nullptr, 0U, "CMPCVRRenderer input Target"))
-  {
-    CLog::LogF(LOGERROR, "input target creation failed.");
-    return false;
-  }
-
-  InitShaders();
-
-  Start(m_pShaders.at(0)->GetNumberPasses());
-
-  return true;
-}
-
-
-
-
 
 void CMPCVRRenderer::Render(int index,
                            int index2,
@@ -521,8 +257,6 @@ void CMPCVRRenderer::Render(CD3DTexture& target, const CRect& sourceRect, const 
     m_viewHeight = static_cast<unsigned>(viewRect.Height());
     
   }
-  
-
   // Restore our view port.
   DX::Windowing()->RestoreViewPort();
   DX::Windowing()->ApplyStateBlock();
@@ -549,35 +283,19 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
 
   ManageRenderArea();
-  if (!m_InputTarget.Get())
-    return;
   //m_sourceRect source of the video
   //m_destRect destination rectangle
   //GetScreenRect screen rectangle
   //destRect destination
   //m_sourceWidth
   //m_sourceHeight
-  if (!(m_destRect.Width() == m_IntermediateTarget.GetWidth() && m_destRect.Height() == m_IntermediateTarget.GetHeight()))
-    CreateIntermediateTarget(m_destRect.Width(), m_destRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+  //the intermediate target should already be created here
+  //if (!(m_destRect.Width() == m_IntermediateTarget.GetWidth() && m_destRect.Height() == m_IntermediateTarget.GetHeight()))
+  //  CreateIntermediateTarget(m_destRect.Width(), m_destRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
     //CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
 
   //in case of redraw do not reprocess the texture
-  if (!m_bImageProcessed)
-  {
-    m_iRedraw = 0;
-    m_bImageProcessed = true;
-    OnBeginEffects();
-    for (int idx = 0; idx < m_pShaders.size(); idx++)
-    {
-      m_pShaders.at(idx)->Draw(this);
-    }
-    OnEndEffects();
-    
-  }
-  else
-  {
-    m_iRedraw++;
-  }
+
   D3D11_BOX srcBox = {};
   srcBox.left = m_destRect.x1;
   srcBox.top = m_destRect.y1;
@@ -717,8 +435,8 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
     return false;
   }
   //only reset if 
-  if (m_InputTarget.Get())
-  m_pShaders[0]->ResetOutputTexture(width, height, format);
+  //if (m_InputTarget.Get())
+  //m_pShaders[0]->ResetOutputTexture(width, height, format);
   
   return true;
 }

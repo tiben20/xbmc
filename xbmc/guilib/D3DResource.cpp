@@ -188,6 +188,32 @@ CD3DTexture::~CD3DTexture()
   delete[] m_data;
 }
 
+bool CD3DTexture::CreatePlane(UINT width, UINT height, DXGI_FORMAT format, const void* pixels, std::string sDebugName, unsigned int srcPitch /* 0 */)
+{
+  ComPtr<ID3D11Device> pD3DDevice = DX::DeviceResources::Get()->GetD3DDevice();
+  ComPtr<ID3D11DeviceContext> pD3D11Context = DX::DeviceResources::Get()->GetD3DContext();
+  Release();
+  m_usage = D3D11_USAGE_DEFAULT;
+  m_bindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+  m_cpuFlags = 0;
+  m_width = width;
+  m_height = height;
+  m_format = format;
+  UINT miscFlags = 0;
+  
+  m_mipLevels = 1;
+
+  CD3D11_TEXTURE2D_DESC textureDesc(m_format, m_width, m_height, 1, m_mipLevels, m_bindFlags, m_usage, m_cpuFlags, 1, 0, miscFlags);
+  D3D11_SUBRESOURCE_DATA initData = {};
+  initData.pSysMem = pixels;
+  initData.SysMemPitch = srcPitch ? srcPitch : CD3DHelper::BitsPerPixel(m_format) * m_width / 8;
+  initData.SysMemSlicePitch = 0;
+
+  HRESULT hr = pD3DDevice->CreateTexture2D(&textureDesc, &initData, m_texture.ReleaseAndGetAddressOf());
+
+  return SUCCEEDED(hr);
+}
+
 bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT format, std::string sDebugName, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */)
 {
   m_width = width;
@@ -198,8 +224,17 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT fo
   if (format == DXGI_FORMAT_UNKNOWN)
     format = DXGI_FORMAT_B8G8R8A8_UNORM; // DXGI_FORMAT_UNKNOWN
   m_usage = D3D11_USAGE_DEFAULT;
+  
+  
   m_bindFlags = bindFlags;
   m_cpuFlags = 0;
+  if (format == DXGI_FORMAT_R8_UNORM || format == DXGI_FORMAT_R8G8_UNORM)
+  {
+    m_usage = D3D11_USAGE_DEFAULT;
+    m_bindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+
+    m_cpuFlags = 0;
+  }
   if (!CreateInternal(pixels, srcPitch))
   {
     CLog::LogF(LOGERROR, "failed to create texture.");

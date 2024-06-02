@@ -93,6 +93,7 @@ public:
   CD3DTexture();
   virtual ~CD3DTexture();
 
+  bool CreatePlane(UINT width, UINT height, DXGI_FORMAT format, const void* pixels /* nullptr */, std::string sDebugName, unsigned int srcPitch = 0 /* 0 */);
   bool Create(UINT width, UINT height, UINT usage, DXGI_FORMAT format, std::string sDebugName = "", const void* pInitData = nullptr, unsigned int srcPitch = 0);
   bool Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE usage, DXGI_FORMAT format, const void* pInitData = nullptr, unsigned int srcPitch = 0, std::string sDebugName = "");
 

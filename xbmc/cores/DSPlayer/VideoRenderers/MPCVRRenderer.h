@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright (C) 2017-2019 Team Kodi
+ *  Copyright (C) 2024 Team Kodi
  *  This file is part of Kodi - https://kodi.tv
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
@@ -13,22 +13,63 @@
 #include "cores/VideoSettings.h"
 #include "guilib/D3DResource.h"
 #include "../VideoPlayer/VideoRenderers/BaseRenderer.h"
-#include "Filters/MPCVideoRenderer/ShadersLoader.h"
-#include "Filters/MPCVideoRenderer/ShaderFactory.h"
-#include "Filters/MPCVideoRenderer/scaler.h"
+#include "../Filters/MPCVideoRenderer/PlHelper.h"
 #include <vector>
 
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
 
-#include "utils/XBMCTinyXML2.h"
-
-class CD3D11DynamicScaler;
-
 struct DS_VERTEX {
   DirectX::XMFLOAT3 Pos;
   DirectX::XMFLOAT2 TexCoord;
 };
+
+
+
+
+/*
+static pl_color_repr GetPlaceboColorRepr(DXVA_VideoPrimaries primaries, DXVA_NominalRange range)
+{
+
+  pl_color_repr ret{};
+  switch (primaries) {
+  case DXVA2_VideoPrimaries_BT709:
+    ret.sys = PL_COLOR_SYSTEM_BT_709;
+    break;
+  case DXVA2_VideoPrimaries_BT470_2_SysM:
+    ret.sys = PL_COLOR_SYSTEM_BT_601;
+    break;
+  case DXVA2_VideoPrimaries_BT470_2_SysBG:
+    ret.sys = PL_COLOR_SYSTEM_BT_601;
+    break;
+  case DXVA2_VideoPrimaries_SMPTE170M:
+    ret.sys = PL_COLOR_SYSTEM_BT_601;
+    break;
+  case DXVA2_VideoPrimaries_SMPTE240M:
+    ret.sys = PL_COLOR_SYSTEM_SMPTE_240M;
+    break;
+    // Values from newer Windows SDK (MediaFoundation)
+  case (DXVA2_VideoPrimaries)9:
+    ret.sys = PL_COLOR_SYSTEM_BT_2020_NC;
+    break;
+
+  }
+
+  ret.levels = PL_COLOR_LEVELS_FULL;
+  ret.alpha = PL_ALPHA_INDEPENDENT;
+    // For sake of simplicity, just use the first component's depth as
+    // the authoritative color depth for the whole image. Usually, this
+    // will be overwritten by more specific information when using e.g.
+    // `pl_map_avframe`, but for the sake of e.g. users wishing to map
+    // hwaccel frames manually, this is a good default.
+  ret.bits.color_depth = 8;
+  return ret;
+}
+
+static pl_color_space GetPlaceboColorspace()
+{
+
+}*/
 
 class CMPCVRRenderer : public CBaseRenderer
 {
@@ -92,47 +133,23 @@ public:
 
   CRenderCapture* GetRenderCapture() { return nullptr; }
 
-  void AddShader(std::string fle);
-  void LoadShaders();
-  void InitShaders();
-
-  void Start(uint32_t passcount);
-  void Stop();
-  void OnBeginEffects();
-  void OnEndEffects();
-  void OnEndPass();
   void CopyToBackBuffer();
   void DrawSubtitles();
 
   void Reset();
-  //samples,shader and unorderer access views saved in maps to not duplicate access views
-  ID3D11SamplerState* GetSampler(D3D11_FILTER filterMode, D3D11_TEXTURE_ADDRESS_MODE addressMode);
-
-  void RemoveSRVAndUav();
-
-  ID3D11ShaderResourceView* GetShaderResourceView(ID3D11Texture2D* texture);
-
-  ID3D11UnorderedAccessView* GetUnorderedAccessView(ID3D11Texture2D* texture);
+  
+  PL::CPlHelper* GetPlHelper() { return m_pPlacebo; };
 
   CD3DTexture GetIntermediateTexture(){ return m_IntermediateTarget; }
-  CD3DTexture GetInputTexture(bool forcopy, REFERENCE_TIME subtime = 0)
-  {
-    if (subtime > 0)
-      m_rSubTime = subtime;
-    if (forcopy)
-      m_bImageProcessed = false;
-    return m_InputTarget; 
-  }
-  bool CreateInputTarget(unsigned int width, unsigned int height, DXGI_FORMAT format);
-  
-  //Settings
-  void InsertXmlShader(tinyxml2::XMLNode* root, ShaderDesc desc);
+ 
+  bool CreateIntermediateTarget(unsigned int width,
+    unsigned int height,
+    bool dynamic = false,
+    DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
+
 protected:
 
-  bool CreateIntermediateTarget(unsigned int width,
-                                unsigned int height,
-                                bool dynamic = false,
-                                DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
+  
   
   virtual void CheckVideoParameters();
   
@@ -157,20 +174,9 @@ protected:
   Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_BitmapToFrame;
   Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
   Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pVertexBuffer;
+  Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSampler;
 
-
-
-  Microsoft::WRL::ComPtr<ID3D11Query> m_pDisjointQuery;
-  Microsoft::WRL::ComPtr<ID3D11Query> m_pStartQuery;
-  std::vector<Microsoft::WRL::ComPtr<ID3D11Query>> m_pPassQueries;
-  uint32_t m_pPasses;
-  uint32_t m_pCurrentPasses = 0;
-  std::vector<CD3DScaler*> m_pShaders;
-  phmap::flat_hash_map<std::pair<D3D11_FILTER, D3D11_TEXTURE_ADDRESS_MODE>, Microsoft::WRL::ComPtr<ID3D11SamplerState>> m_pSamplers;
-  phmap::flat_hash_map<ID3D11Texture2D*, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> m_pShaderRSV;
-  phmap::flat_hash_map<ID3D11Texture2D*, Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> m_pUAVViews;
-
-  CD3DTexture m_InputTarget;
+  PL::CPlHelper* m_pPlacebo;
   CD3DTexture m_IntermediateTarget;
 
   CRect GetScreenRect() const;

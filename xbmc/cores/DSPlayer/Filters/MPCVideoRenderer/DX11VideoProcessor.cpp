@@ -31,7 +31,7 @@
 #include "Include/Version.h"
 #include "DX11VideoProcessor.h"
 #include "Include/ID3DVideoMemoryConfiguration.h"
-#include "Shaders.h"
+
 
 
 #include "minhook/include/MinHook.h"
@@ -47,6 +47,7 @@
 #include "guilib/GUIWindowManager.h"
 #include "GUIInfoManager.h"
 #include "Filters/RendererSettings.h"
+#include "PlHelper.h"
 
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
@@ -104,297 +105,40 @@ inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
 	return MH_CreateHook(*ppSystemFunction, pHookFunction, reinterpret_cast<LPVOID*>(ppSystemFunction)) == MH_OK;
 }
 
-static const ScalingShaderResId s_Upscaling11ResIDs[UPSCALE_COUNT] = {
-	{"0",                            "0",                            L"Nearest-neighbor"  },
-	{IDF_PS_11_INTERP_MITCHELL4_X, IDF_PS_11_INTERP_MITCHELL4_Y, L"Mitchell-Netravali"},
-	{IDF_PS_11_INTERP_CATMULL4_X,  IDF_PS_11_INTERP_CATMULL4_Y,  L"Catmull-Rom"       },
-	{IDF_PS_11_INTERP_LANCZOS2_X,  IDF_PS_11_INTERP_LANCZOS2_Y,  L"Lanczos2"          },
-	{IDF_PS_11_INTERP_LANCZOS3_X,  IDF_PS_11_INTERP_LANCZOS3_Y,  L"Lanczos3"          },
-	{IDF_PS_11_INTERP_JINC2,       IDF_PS_11_INTERP_JINC2,       L"Jinc2m"            },
+struct MPCPixFmtDesc
+{
+	int codedbytes;     ///< coded byte per pixel in one plane (for packed and multibyte formats)
+	int planes;         ///< number of planes
+	int planeWidth[4];  ///< log2 width factor
+	int planeHeight[4]; ///< log2 height factor
 };
 
-static const ScalingShaderResId s_Downscaling11ResIDs[DOWNSCALE_COUNT] = {
-	{IDF_PS_11_CONVOL_BOX_X,       IDF_PS_11_CONVOL_BOX_Y,       L"Box"          },
-	{IDF_PS_11_CONVOL_BILINEAR_X,  IDF_PS_11_CONVOL_BILINEAR_Y,  L"Bilinear"     },
-	{IDF_PS_11_CONVOL_HAMMING_X,   IDF_PS_11_CONVOL_HAMMING_Y,   L"Hamming"      },
-	{IDF_PS_11_CONVOL_BICUBIC05_X, IDF_PS_11_CONVOL_BICUBIC05_Y, L"Bicubic"      },
-	{IDF_PS_11_CONVOL_BICUBIC15_X, IDF_PS_11_CONVOL_BICUBIC15_Y, L"Bicubic sharp"},
-	{IDF_PS_11_CONVOL_LANCZOS_X,   IDF_PS_11_CONVOL_LANCZOS_Y,   L"Lanczos"      }
-};
+/*static MPCPixFmtDesc lav_pixfmt_desc[] = {
+		{1, 3, {1, 2, 2}, {1, 2, 2}}, ///< LAVPixFmt_YUV420
+		{2, 3, {1, 2, 2}, {1, 2, 2}}, ///< LAVPixFmt_YUV420bX
+		{1, 3, {1, 2, 2}, {1, 1, 1}}, ///< LAVPixFmt_YUV422
+		{2, 3, {1, 2, 2}, {1, 1, 1}}, ///< LAVPixFmt_YUV422bX
+		{1, 3, {1, 1, 1}, {1, 1, 1}}, ///< LAVPixFmt_YUV444
+		{2, 3, {1, 1, 1}, {1, 1, 1}}, ///< LAVPixFmt_YUV444bX
+		{1, 2, {1, 1}, {1, 2}},       ///< LAVPixFmt_NV12
+		{2, 1, {1}, {1}},             ///< LAVPixFmt_YUY2
+		{2, 2, {1, 1}, {1, 2}},       ///< LAVPixFmt_P016
+		{3, 1, {1}, {1}},             ///< LAVPixFmt_RGB24
+		{4, 1, {1}, {1}},             ///< LAVPixFmt_RGB32
+		{4, 1, {1}, {1}},             ///< LAVPixFmt_ARGB32
+		{6, 1, {1}, {1}},             ///< LAVPixFmt_RGB48
+};*/
 
-const UINT dither_size = 32;
-
-struct VERTEX {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT2 TexCoord;
-};
-
-struct PS_EXTSHADER_CONSTANTS {
-	DirectX::XMFLOAT2 pxy; // pixel size in normalized coordinates
-	DirectX::XMFLOAT2 wh;  // width and height of texture
-	uint32_t counter;      // rendered frame counter
-	float clock;           // some time in seconds
-	float reserved1;
-	float reserved2;
-};
-
-static_assert(sizeof(PS_EXTSHADER_CONSTANTS) % 16 == 0);
-
-static void FillVertices(VERTEX (&Vertices)[4], const UINT srcW, const UINT srcH, const RECT& srcRect,
-	const int iRotation, const bool bFlip)
+MPCPixFmtDesc getPixelFormatDesc(DXGI_FORMAT fmt)
 {
-	const float src_dx = 1.0f / srcW;
-	const float src_dy = 1.0f / srcH;
-	float src_l = src_dx * srcRect.left;
-	float src_r = src_dx * srcRect.right;
-	const float src_t = src_dy * srcRect.top;
-	const float src_b = src_dy * srcRect.bottom;
-
-	POINT points[4];
-	switch (iRotation) {
-	case 90:
-		points[0] = { -1, +1 };
-		points[1] = { +1, +1 };
-		points[2] = { -1, -1 };
-		points[3] = { +1, -1 };
-		break;
-	case 180:
-		points[0] = { +1, +1 };
-		points[1] = { +1, -1 };
-		points[2] = { -1, +1 };
-		points[3] = { -1, -1 };
-		break;
-	case 270:
-		points[0] = { +1, -1 };
-		points[1] = { -1, -1 };
-		points[2] = { +1, +1 };
-		points[3] = { -1, +1 };
-		break;
-	default:
-		points[0] = { -1, -1 };
-		points[1] = { -1, +1 };
-		points[2] = { +1, -1 };
-		points[3] = { +1, +1 };
-	}
-
-	if (bFlip) {
-		std::swap(src_l, src_r);
-	}
-
-	// Vertices for drawing whole texture
-	// 2 ___4
-	//  |\ |
-	// 1|_\|3
-	Vertices[0] = { {(float)points[0].x, (float)points[0].y, 0}, {src_l, src_b} };
-	Vertices[1] = { {(float)points[1].x, (float)points[1].y, 0}, {src_l, src_t} };
-	Vertices[2] = { {(float)points[2].x, (float)points[2].y, 0}, {src_r, src_b} };
-	Vertices[3] = { {(float)points[3].x, (float)points[3].y, 0}, {src_r, src_t} };
-}
-
-static HRESULT CreateVertexBuffer(ID3D11Device* pDevice, ID3D11Buffer** ppVertexBuffer,
-	const UINT srcW, const UINT srcH, const RECT& srcRect,
-	const int iRotation, const bool bFlip)
-{
-	ASSERT(ppVertexBuffer);
-	ASSERT(*ppVertexBuffer == nullptr);
-
-	VERTEX Vertices[4];
-	FillVertices(Vertices, srcW, srcH, srcRect, iRotation, bFlip);
-
-	D3D11_BUFFER_DESC BufferDesc = { sizeof(Vertices), D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, 0, 0, 0 };
-	D3D11_SUBRESOURCE_DATA InitData = { Vertices, 0, 0 };
-
-	HRESULT hr = pDevice->CreateBuffer(&BufferDesc, &InitData, ppVertexBuffer);
-	DLogIf(FAILED(hr), "CreateVertexBuffer() : CreateBuffer() failed with error {}", WToA(HR2Str(hr)));
-
-	return hr;
-}
-
-static HRESULT FillVertexBuffer(ID3D11DeviceContext* pDeviceContext, ID3D11Buffer* pVertexBuffer,
-	const UINT srcW, const UINT srcH, const RECT& srcRect,
-	const int iRotation, const bool bFlip)
-{
-	ASSERT(pVertexBuffer);
-
-	VERTEX Vertices[4];
-	FillVertices(Vertices, srcW, srcH, srcRect, iRotation, bFlip);
-
-	D3D11_MAPPED_SUBRESOURCE mr;
-	HRESULT hr = pDeviceContext->Map(pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"FillVertexBuffer() : Map() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return hr;
-	}
-
-	memcpy(mr.pData, &Vertices, sizeof(Vertices));
-	pDeviceContext->Unmap(pVertexBuffer, 0);
-
-	return hr;
-}
-
-static void TextureBlt11(
-	ID3D11DeviceContext* pDeviceContext,
-	ID3D11RenderTargetView* pRenderTargetView, D3D11_VIEWPORT& viewport,
-	ID3D11InputLayout* pInputLayout,
-	ID3D11VertexShader* pVertexShader,
-	ID3D11PixelShader* pPixelShader,
-	ID3D11ShaderResourceView* pShaderResourceViews,
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> pSampler,
-	ID3D11Buffer* pConstantBuffer,
-	ID3D11Buffer* pVertexBuffer)
-{
-	ASSERT(pDeviceContext);
-	ASSERT(pRenderTargetView);
-	ASSERT(pShaderResourceViews);
-
-	const UINT Stride = sizeof(VERTEX);
-	const UINT Offset = 0;
-
-	// Set resources
-	pDeviceContext->IASetInputLayout(pInputLayout);
-	pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
-	pDeviceContext->RSSetViewports(1, &viewport);
-	pDeviceContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-	pDeviceContext->VSSetShader(pVertexShader, nullptr, 0);
-	pDeviceContext->PSSetShader(pPixelShader, nullptr, 0);
-	pDeviceContext->PSSetShaderResources(0, 1, &pShaderResourceViews);
-	pDeviceContext->PSSetSamplers(0, 1, pSampler.GetAddressOf());
-	pDeviceContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
-	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	pDeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &Offset);
-
-	// Draw textured quad onto render target
-	pDeviceContext->Draw(4, 0);
-
-	ID3D11ShaderResourceView* views[1] = {};
-	pDeviceContext->PSSetShaderResources(0, 1, views);
+	if (fmt == DXGI_FORMAT_NV12)
+		return MPCPixFmtDesc{ 1, 2, {1, 1}, {1, 2} };
+	return MPCPixFmtDesc{};
 }
 
 //
 // CDX11VideoProcessor
 //
-
-HRESULT CDX11VideoProcessor::AlphaBlt(
-	ID3D11ShaderResourceView* pShaderResource,
-	ID3D11Texture2D* pRenderTarget,
-	ID3D11Buffer* pVertexBuffer,
-	D3D11_VIEWPORT* pViewPort,
-	ID3D11SamplerState* pSampler)
-{
-	ID3D11RenderTargetView* pRenderTargetView;
-	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
-
-	D3DSetDebugName(pRenderTargetView, "MPC RenderTarget AlphaBlt");
-
-	if (S_OK == hr) {
-		UINT Stride = sizeof(VERTEX);
-		UINT Offset = 0;
-
-		// Set resources
-		
-		m_pDeviceContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
-		m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
-		m_pDeviceContext->RSSetViewports(1, pViewPort);
-		m_pDeviceContext->OMSetBlendState(m_pAlphaBlendState.Get(), nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-		m_pDeviceContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
-		m_pDeviceContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
-		m_pDeviceContext->PSSetShaderResources(0, 1, &pShaderResource);
-		m_pDeviceContext->PSSetSamplers(0, 1, &pSampler);
-		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		m_pDeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &Stride, &Offset);
-
-		// Draw textured quad onto render target
-		m_pDeviceContext->Draw(4, 0);
-
-		pRenderTargetView->Release();
-	}
-	DLogIf(FAILED(hr), "AlphaBlt() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)));
-
-	return hr;
-}
-
-HRESULT CDX11VideoProcessor::TextureCopyRect(
-	const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
-	const Com::SmartRect& srcRect, const Com::SmartRect& destRect,
-	ID3D11PixelShader* pPixelShader, ID3D11Buffer* pConstantBuffer,
-	const int iRotation, const bool bFlip)
-{
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
-
-	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
-	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget TextureCopyRect");
-
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"TextureCopyRect() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return hr;
-	}
-
-	hr = FillVertexBuffer(m_pDeviceContext.Get(), m_pVertexBuffer.Get(), Tex.desc.Width, Tex.desc.Height, srcRect, iRotation, bFlip);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	D3D11_VIEWPORT VP;
-	VP.TopLeftX = (FLOAT)destRect.left;
-	VP.TopLeftY = (FLOAT)destRect.top;
-	VP.Width    = (FLOAT)destRect.Width();
-	VP.Height   = (FLOAT)destRect.Height();
-	VP.MinDepth = 0.0f;
-	VP.MaxDepth = 1.0f;
-
-	TextureBlt11(m_pDeviceContext.Get(), pRenderTargetView.Get(), VP, m_pVSimpleInputLayout.Get(), m_pVS_Simple.Get(), pPixelShader, Tex.pShaderResource.Get(), m_pSamplerPoint, pConstantBuffer, m_pVertexBuffer.Get());
-
-	return hr;
-}
-
-HRESULT CDX11VideoProcessor::TextureResizeShader(
-	const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
-	const Com::SmartRect& srcRect, const Com::SmartRect& dstRect,
-	ID3D11PixelShader* pPixelShader,
-	const int iRotation, const bool bFlip)
-{
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
-
-	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
-	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget TextureResizeShader");
-
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"CDX11VideoProcessor::TextureResizeShader() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return hr;
-	}
-
-	hr = FillVertexBuffer(m_pDeviceContext.Get(), m_pVertexBuffer.Get(), Tex.desc.Width, Tex.desc.Height, srcRect, iRotation, bFlip);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	const FLOAT constants[][4] = {
-		{(float)Tex.desc.Width, (float)Tex.desc.Height, 1.0f / Tex.desc.Width, 1.0f / Tex.desc.Height},
-		{(float)srcRect.Width() / dstRect.Width(), (float)srcRect.Height() / dstRect.Height(), 0, 0}
-	};
-
-	D3D11_MAPPED_SUBRESOURCE mr;
-	hr = m_pDeviceContext->Map(m_pResizeShaderConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"CDX11VideoProcessor::TextureResizeShader() : Map() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return hr;
-	}
-
-	memcpy(mr.pData, &constants, sizeof(constants));
-	m_pDeviceContext->Unmap(m_pResizeShaderConstantBuffer.Get(), 0);
-
-	D3D11_VIEWPORT VP;
-	VP.TopLeftX = (FLOAT)dstRect.left;
-	VP.TopLeftY = (FLOAT)dstRect.top;
-	VP.Width = (FLOAT)dstRect.Width();
-	VP.Height = (FLOAT)dstRect.Height();
-	VP.MinDepth = 0.0f;
-	VP.MaxDepth = 1.0f;
-
-	TextureBlt11(m_pDeviceContext.Get(), pRenderTargetView.Get(), VP, m_pVSimpleInputLayout.Get(), m_pVS_Simple.Get(), pPixelShader, Tex.pShaderResource.Get(), m_pSamplerPoint.Get(), m_pResizeShaderConstantBuffer.Get(), m_pVertexBuffer.Get());
-
-	return hr;
-}
 
 // CDX11VideoProcessor
 
@@ -665,12 +409,8 @@ void CDX11VideoProcessor::ReleaseDevice()
 
 	m_pVSimpleInputLayout= nullptr;
 	m_pVS_Simple= nullptr;
-	m_pPS_Simple= nullptr;
-	m_pPS_BitmapToFrame= nullptr;
-	m_pSamplerPoint= nullptr;
-	m_pSamplerLinear= nullptr;
-	m_pSamplerDither= nullptr;
-	m_pAlphaBlendState= nullptr;
+	
+	m_pPS_BitmapToFrame = nullptr;
 
 	m_Alignment.texture.Release();
 	m_Alignment.cformat = {};
@@ -680,11 +420,6 @@ void CDX11VideoProcessor::ReleaseDevice()
 	m_pDeviceContext= nullptr;
 	
 	m_bCallbackDeviceIsSet = false;
-
-	m_pVertexBuffer= nullptr;
-	m_pResizeShaderConstantBuffer= nullptr;
-	m_pHalfOUtoInterlaceConstantBuffer= nullptr;
-	m_pFinalPassConstantBuffer= nullptr;
 }
 
 
@@ -706,232 +441,6 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 	
 
 	return GetDevice->CreatePixelShader(data, size, nullptr, ppPixelShader);
-}
-
-void CDX11VideoProcessor::SetShaderConvertColorParams()
-{
-	mp_cmat cmatrix;
-
-	if (m_Dovi.bValid) {
-		const float brightness = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Brightness) / 255;
-		const float contrast   = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Contrast);
-
-		for (int i = 0; i < 3; i++) {
-			cmatrix.m[i][0] = (float)m_Dovi.msd.ColorMetadata.ycc_to_rgb_matrix[i * 3 + 0] * contrast;
-			cmatrix.m[i][1] = (float)m_Dovi.msd.ColorMetadata.ycc_to_rgb_matrix[i * 3 + 1] * contrast;
-			cmatrix.m[i][2] = (float)m_Dovi.msd.ColorMetadata.ycc_to_rgb_matrix[i * 3 + 2] * contrast;
-		}
-
-		for (int i = 0; i < 3; i++) {
-			cmatrix.c[i] = brightness;
-			for (int j = 0; j < 3; j++) {
-				cmatrix.c[i] -= cmatrix.m[i][j] * m_Dovi.msd.ColorMetadata.ycc_to_rgb_offset[j];
-			}
-		}
-
-		m_PSConvColorData.bEnable = true;
-	}
-	else {
-		mp_csp_params csp_params;
-		set_colorspace(m_srcExFmt, csp_params.color);
-		csp_params.brightness = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Brightness) / 255;
-		csp_params.contrast   = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Contrast);
-		csp_params.hue        = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Hue) / 180 * acos(-1);
-		csp_params.saturation = DXVA2FixedToFloat(m_DXVA2ProcAmpValues.Saturation);
-		csp_params.gray       = m_srcParams.CSType == CS_GRAY;
-
-		csp_params.input_bits = csp_params.texture_bits = m_srcParams.CDepth;
-
-		mp_get_csp_matrix(&csp_params, &cmatrix);
-
-		m_PSConvColorData.bEnable =
-			m_srcParams.CSType == CS_YUV ||
-			m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16 ||
-			csp_params.gray ||
-			fabs(csp_params.brightness) > 1e-4f || fabs(csp_params.contrast - 1.0f) > 1e-4f;
-	}
-
-	PS_COLOR_TRANSFORM cbuffer = {
-		{cmatrix.m[0][0], cmatrix.m[0][1], cmatrix.m[0][2], 0},
-		{cmatrix.m[1][0], cmatrix.m[1][1], cmatrix.m[1][2], 0},
-		{cmatrix.m[2][0], cmatrix.m[2][1], cmatrix.m[2][2], 0},
-		{cmatrix.c[0],    cmatrix.c[1],    cmatrix.c[2],    0},
-	};
-
-	if (m_srcParams.cformat == CF_GBRP8 || m_srcParams.cformat == CF_GBRP16) {
-		std::swap(cbuffer.cm_r.x, cbuffer.cm_r.y); std::swap(cbuffer.cm_r.y, cbuffer.cm_r.z);
-		std::swap(cbuffer.cm_g.x, cbuffer.cm_g.y); std::swap(cbuffer.cm_g.y, cbuffer.cm_g.z);
-		std::swap(cbuffer.cm_b.x, cbuffer.cm_b.y); std::swap(cbuffer.cm_b.y, cbuffer.cm_b.z);
-	}
-	else if (m_srcParams.CSType == CS_GRAY) {
-		cbuffer.cm_g.x = cbuffer.cm_g.y;
-		cbuffer.cm_g.y = 0;
-		cbuffer.cm_b.x = cbuffer.cm_b.z;
-		cbuffer.cm_b.z = 0;
-	}
-
-	SAFE_RELEASE(m_PSConvColorData.pConstants);
-
-	D3D11_BUFFER_DESC BufferDesc = {};
-	BufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	BufferDesc.ByteWidth = sizeof(cbuffer);
-	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	BufferDesc.CPUAccessFlags = 0;
-	D3D11_SUBRESOURCE_DATA InitData = { &cbuffer, 0, 0 };
-	EXECUTE_ASSERT(S_OK == GetDevice->CreateBuffer(&BufferDesc, &InitData, &m_PSConvColorData.pConstants));
-}
-
-HRESULT CDX11VideoProcessor::SetShaderDoviCurvesPoly()
-{
-	ASSERT(m_Dovi.bValid);
-
-	PS_DOVI_POLY_CURVE polyCurves[3] = {};
-
-	const float scale = 1.0f / ((1 << m_Dovi.msd.Header.bl_bit_depth) - 1);
-	const float scale_coef = 1.0f / (1u << m_Dovi.msd.Header.coef_log2_denom);
-
-	for (int c = 0; c < 3; c++) {
-		const auto& curve = m_Dovi.msd.Mapping.curves[c];
-		auto& out = polyCurves[c];
-
-		const int num_coef = curve.num_pivots - 1;
-		bool has_poly = false;
-		bool has_mmr = false;
-
-		for (int i = 0; i < num_coef; i++) {
-			switch (curve.mapping_idc[i]) {
-			case 0: // polynomial
-				has_poly = true;
-				out.coeffs_data[i].x = scale_coef * curve.poly_coef[i][0];
-				out.coeffs_data[i].y = (curve.poly_order[i] >= 1) ? scale_coef * curve.poly_coef[i][1] : 0.0f;
-				out.coeffs_data[i].z = (curve.poly_order[i] >= 2) ? scale_coef * curve.poly_coef[i][2] : 0.0f;
-				out.coeffs_data[i].w = 0.0f; // order=0 signals polynomial
-				break;
-			case 1: // mmr
-				has_mmr = true;
-				// not supported, leave as is
-				out.coeffs_data[i].x = 0.0f;
-				out.coeffs_data[i].y = 1.0f;
-				out.coeffs_data[i].z = 0.0f;
-				out.coeffs_data[i].w = 0.0f;
-				break;
-			}
-		}
-
-		const int n = curve.num_pivots - 2;
-		for (int i = 0; i < n; i++) {
-			out.pivots_data[i].x = scale * curve.pivots[i + 1];
-		}
-		for (int i = n; i < 7; i++) {
-			out.pivots_data[i].x = 1e9f;
-		}
-	}
-
-	HRESULT hr;
-
-	if (m_pDoviCurvesConstantBuffer) {
-		D3D11_MAPPED_SUBRESOURCE mr;
-		hr = m_pDeviceContext->Map(m_pDoviCurvesConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
-		if (SUCCEEDED(hr)) {
-			memcpy(mr.pData, &polyCurves, sizeof(polyCurves));
-			m_pDeviceContext->Unmap(m_pDoviCurvesConstantBuffer.Get(), 0);
-		}
-	}
-	else {
-		D3D11_BUFFER_DESC BufferDesc = { sizeof(polyCurves), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
-		D3D11_SUBRESOURCE_DATA InitData = { &polyCurves, 0, 0 };
-		hr = GetDevice->CreateBuffer(&BufferDesc, &InitData, &m_pDoviCurvesConstantBuffer);
-	}
-
-	return hr;
-}
-
-HRESULT CDX11VideoProcessor::SetShaderDoviCurves()
-{
-	ASSERT(m_Dovi.bValid);
-
-	PS_DOVI_CURVE cbuffer[3] = {};
-
-	for (int c = 0; c < 3; c++) {
-		const auto& curve = m_Dovi.msd.Mapping.curves[c];
-		auto& out = cbuffer[c];
-
-		bool has_poly = false, has_mmr = false, mmr_single = true;
-		uint32_t mmr_idx = 0, min_order = 3, max_order = 1;
-
-		const float scale_coef = 1.0f / (1 << m_Dovi.msd.Header.coef_log2_denom);
-		const int num_coef = curve.num_pivots - 1;
-		for (int i = 0; i < num_coef; i++) {
-			switch (curve.mapping_idc[i]) {
-			case 0: // polynomial
-				has_poly = true;
-				out.coeffs_data[i].x = scale_coef * curve.poly_coef[i][0];
-				out.coeffs_data[i].y = (curve.poly_order[i] >= 1) ? scale_coef * curve.poly_coef[i][1] : 0.0f;
-				out.coeffs_data[i].z = (curve.poly_order[i] >= 2) ? scale_coef * curve.poly_coef[i][2] : 0.0f;
-				out.coeffs_data[i].w = 0.0f; // order=0 signals polynomial
-				break;
-			case 1: // mmr
-				min_order = std::min<int>(min_order, curve.mmr_order[i]);
-				max_order = std::max<int>(max_order, curve.mmr_order[i]);
-				mmr_single = !has_mmr;
-				has_mmr = true;
-				out.coeffs_data[i].x = scale_coef * curve.mmr_constant[i];
-				out.coeffs_data[i].y = static_cast<float>(mmr_idx);
-				out.coeffs_data[i].w = static_cast<float>(curve.mmr_order[i]);
-				for (int j = 0; j < curve.mmr_order[i]; j++) {
-					// store weights per order as two packed float4s
-					out.mmr_data[mmr_idx].x = scale_coef * curve.mmr_coef[i][j][0];
-					out.mmr_data[mmr_idx].y = scale_coef * curve.mmr_coef[i][j][1];
-					out.mmr_data[mmr_idx].z = scale_coef * curve.mmr_coef[i][j][2];
-					out.mmr_data[mmr_idx].w = 0.0f; // unused
-					mmr_idx++;
-					out.mmr_data[mmr_idx].x = scale_coef * curve.mmr_coef[i][j][3];
-					out.mmr_data[mmr_idx].y = scale_coef * curve.mmr_coef[i][j][4];
-					out.mmr_data[mmr_idx].z = scale_coef * curve.mmr_coef[i][j][5];
-					out.mmr_data[mmr_idx].w = scale_coef * curve.mmr_coef[i][j][6];
-					mmr_idx++;
-				}
-				break;
-			}
-		}
-
-		const float scale = 1.0f / ((1 << m_Dovi.msd.Header.bl_bit_depth) - 1);
-		const int n = curve.num_pivots - 2;
-		for (int i = 0; i < n; i++) {
-			out.pivots_data[i].x = scale * curve.pivots[i + 1];
-		}
-		for (int i = n; i < 7; i++) {
-			out.pivots_data[i].x = 1e9f;
-		}
-
-		if (has_poly) {
-			out.params.methods = PS_RESHAPE_POLY;
-		}
-		if (has_mmr) {
-			out.params.methods |= PS_RESHAPE_MMR;
-			out.params.mmr_single = mmr_single;
-			out.params.min_order = min_order;
-			out.params.max_order = max_order;
-		}
-	}
-
-	HRESULT hr;
-
-	if (m_pDoviCurvesConstantBuffer) {
-		D3D11_MAPPED_SUBRESOURCE mr;
-		hr = m_pDeviceContext->Map(m_pDoviCurvesConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
-		if (SUCCEEDED(hr)) {
-			memcpy(mr.pData, &cbuffer, sizeof(cbuffer));
-			m_pDeviceContext->Unmap(m_pDoviCurvesConstantBuffer.Get(), 0);
-		}
-	}
-	else {
-		D3D11_BUFFER_DESC BufferDesc = { sizeof(cbuffer), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
-		D3D11_SUBRESOURCE_DATA InitData = { &cbuffer, 0, 0 };
-		hr = GetDevice->CreateBuffer(&BufferDesc, &InitData, &m_pDoviCurvesConstantBuffer);
-	}
-
-	return hr;
 }
 
 void CDX11VideoProcessor::UpdateTexParams(int cdepth)
@@ -1031,6 +540,216 @@ HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 	return hr;
 }
 
+HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
+{
+	
+	HRESULT hr;
+	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
+	pl_frame frameIn = pHelper->CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight);
+	pl_frame frameOut{};
+	pl_d3d11_wrap_params interParams{};
+	interParams.array_slice = 1;
+	CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	CD3DTexture inputTex = CMPCVRRenderer::Get()->GetIntermediateTarget();
+	interParams.w = inputTex.GetWidth();
+	interParams.h = inputTex.GetHeight();
+	interParams.fmt = inputTex.GetFormat();
+	interParams.tex = inputTex.Get();
+
+	pl_tex interTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &interParams);
+	frameOut.num_planes = 1;
+	frameOut.planes[0].texture = interTexture;
+	frameOut.planes[0].components = 4;
+	frameOut.planes[0].component_mapping[0] = 0;
+	frameOut.planes[0].component_mapping[1] = 1; 
+	frameOut.planes[0].component_mapping[2] = 2; 
+	frameOut.planes[0].component_mapping[3] = 3;
+	frameOut.crop.x1 = m_srcWidth;
+	frameOut.crop.y1 = m_srcHeight;
+	frameOut.repr = frameIn.repr;
+	frameOut.color = frameIn.color;
+	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &pl_render_default_params);
+	CLog::Log(LOGERROR, "{}", __FUNCTION__);
+	return S_OK;
+	//const UINT linesize = std::min((UINT)abs(src_pitch), dst_pitch);
+	/*
+	typedef struct LAVPixFmtDesc
+	{
+		int codedbytes;     ///< coded byte per pixel in one plane (for packed and multibyte formats)
+		int planes;         ///< number of planes
+		int planeWidth[4];  ///< log2 width factor
+		int planeHeight[4]; ///< log2 height factor
+	} LAVPixFmtDesc;*/
+	/*
+	static LAVPixFmtDesc lav_pixfmt_desc[] = {
+    {1, 3, {1, 2, 2}, {1, 2, 2}}, ///< LAVPixFmt_YUV420
+    {2, 3, {1, 2, 2}, {1, 2, 2}}, ///< LAVPixFmt_YUV420bX
+    {1, 3, {1, 2, 2}, {1, 1, 1}}, ///< LAVPixFmt_YUV422
+    {2, 3, {1, 2, 2}, {1, 1, 1}}, ///< LAVPixFmt_YUV422bX
+    {1, 3, {1, 1, 1}, {1, 1, 1}}, ///< LAVPixFmt_YUV444
+    {2, 3, {1, 1, 1}, {1, 1, 1}}, ///< LAVPixFmt_YUV444bX
+    {1, 2, {1, 1}, {1, 2}},       ///< LAVPixFmt_NV12
+    {2, 1, {1}, {1}},             ///< LAVPixFmt_YUY2
+    {2, 2, {1, 1}, {1, 2}},       ///< LAVPixFmt_P016
+    {3, 1, {1}, {1}},             ///< LAVPixFmt_RGB24
+    {4, 1, {1}, {1}},             ///< LAVPixFmt_RGB32
+    {4, 1, {1}, {1}},             ///< LAVPixFmt_ARGB32
+    {6, 1, {1}, {1}},             ///< LAVPixFmt_RGB48
+};*/
+	/*int codedbytes;   1   ///< coded byte per pixel in one plane (for packed and multibyte formats)
+	int planes;         2   ///< number of planes
+	int planeWidth[4];  1 1 ///< log2 width factor
+	int planeHeight[4]; 1 2 ///< log2 height factor*/
+	//bgra8
+	//FMT(0, "bgra8",    B8G8R8A8,     UNORM, 4,  4, BITS( 8,  8,  8,  8), IDX(2, 1, 0, 3)),
+	//plane 1 DXGI_FORMAT_R8_UNORM
+	//plane 2 DXGI_FORMAT_R8G8_UNORM
+	/*
+	HRESULT hr;
+	const long size = pSample->GetActualDataLength();
+	int nbrPlanes = 2;
+	UINT previousPlaneSize = 0;
+	MPCPixFmtDesc desc;
+	pl_plane pl_planes[2]{};
+	desc = getPixelFormatDesc(DXGI_FORMAT_NV12);
+	pl_fmt fmt1, fmt2, fmt3;
+	pl_gpu dd = CMPCVRRenderer::Get()->GetPLD3d11()->gpu;
+	fmt1 = pl_find_named_fmt(dd, "rgba8");
+	fmt2 = pl_find_named_fmt(dd, "r8");
+	fmt3 = pl_find_named_fmt(dd, "rg8");
+	BYTE* pBuffer;
+	
+	if (size > 0 && S_OK == pSample->GetPointer(&pBuffer))
+	{
+		pl_fmt fmt = PL_FMT_NV12;
+		pl_plane_data planes[2];
+		planes[0].buf = { pBuffer, m_srcWidth, m_srcHeight, m_srcWidth };
+		planes[1].buf = { pBuffer + (m_srcWidth * m_srcHeight), m_srcWidth, m_srcHeight / 2, m_srcWidth };
+
+		pl_tex* plTexture = pl_create_texture(device, width, height, 1, fmt, PL_FLAGS_DEFAULT);
+		if (!plTexture) {
+			// Handle error
+			return;
+		}
+
+		pl_upload_plane(dd,plTexture, context, 0, &planes[0]);
+		pl_upload_plane(dd,plTexture, context, 1, &planes[1]);
+
+		for (int i = 0; i < desc.planes; i++)
+		{
+			pl_plane_data pl{};
+			pl.type = PL_FMT_UNORM;
+			pl.width = m_srcWidth;
+			pl.height = m_srcHeight;
+			pl.component_size[0] = 8;
+			pl.component_map[0] = i;
+			pl.pixel_stride = desc.planeWidth[i];
+			pl.row_stride = desc.planeHeight[i];
+			pl.pixels = malloc(m_srcWidth * m_srcHeight);
+			memcpy(&pl.pixels, data, m_srcWidth * m_srcHeight);
+			//pl.pixels = data+ previousPlaneSize;
+			previousPlaneSize = previousPlaneSize + (m_srcWidth * m_srcHeight);
+			
+			if (!pl_upload_plane(CMPCVRRenderer::Get()->GetPLD3d11()->gpu, &pl_planes[i], NULL,&pl))
+			{
+				CLog::Log(LOGERROR, "{}", __FUNCTION__);
+			}
+		}
+		D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+		hr = DX::DeviceResources::Get()->GetImmediateContext()->Map(m_TexSrcVideo.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		if (SUCCEEDED(hr)) {
+			ASSERT(m_pConvertFn);
+			const BYTE* src = (m_srcPitch < 0) ? data + m_srcPitch * (1 - (int)m_srcLines) : data;
+			m_pConvertFn(m_srcLines, (BYTE*)mappedResource.pData, mappedResource.RowPitch, src, m_srcPitch);
+			DX::DeviceResources::Get()->GetImmediateContext()->Unmap(m_TexSrcVideo.pTexture.Get(), 0);
+		}
+	}
+	*/
+	CheckPointer(GetSwapChain, E_FAIL);
+
+	uint64_t tick = GetPreciseTick();
+
+	// Get frame type
+	m_SampleFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE; // Progressive
+	m_bDoubleFrames = false;
+	if (m_bInterlaced) {
+		if (Com::SmartQIPtr<IMediaSample2> pMS2 = pSample) {
+			AM_SAMPLE2_PROPERTIES props;
+			if (SUCCEEDED(pMS2->GetProperties(sizeof(props), (BYTE*)&props))) {
+				if ((props.dwTypeSpecificFlags & AM_VIDEO_FLAG_WEAVE) == 0) {
+					if (props.dwTypeSpecificFlags & AM_VIDEO_FLAG_FIELD1FIRST) {
+						m_SampleFormat = D3D11_VIDEO_FRAME_FORMAT_INTERLACED_TOP_FIELD_FIRST; // Top-field first
+					}
+					else {
+						m_SampleFormat = D3D11_VIDEO_FRAME_FORMAT_INTERLACED_BOTTOM_FIELD_FIRST; // Bottom-field first
+					}
+					m_bDoubleFrames = m_bDeintDouble && m_D3D11VP.IsReady();
+				}
+			}
+		}
+	}
+
+
+	m_FieldDrawn = 0;
+	bool updateStats = false;
+
+	if (Com::SmartQIPtr<IMediaSampleD3D11> pMSD3D11 = pSample) {
+		if (m_iSrcFromGPU != 11) {
+			m_iSrcFromGPU = 11;
+			updateStats = true;
+		}
+
+		Com::SmartQIPtr<ID3D11Texture2D> pD3D11Texture2D;
+		UINT ArraySlice = 0;
+		hr = pMSD3D11->GetD3D11Texture(0, &pD3D11Texture2D, &ArraySlice);
+		if (FAILED(hr)) {
+			CLog::LogF(LOGINFO, "CDX11VideoProcessor::CopySample() : GetD3D11Texture() failed with error {}", WToA(HR2Str(hr)).c_str());
+			return hr;
+		}
+
+		D3D11_TEXTURE2D_DESC desc = {};
+		pD3D11Texture2D->GetDesc(&desc);
+		if (desc.Format != m_srcDXGIFormat) {
+			return E_UNEXPECTED;
+		}
+
+		// here should be used CopySubresourceRegion instead of CopyResource
+		D3D11_BOX srcBox = { 0, 0, 0, m_srcWidth, m_srcHeight, 1 };
+		if (m_D3D11VP.IsReady()) {
+			m_pDeviceContext.Get()->CopySubresourceRegion(m_D3D11VP.GetNextInputTexture(m_SampleFormat), 0, 0, 0, 0, pD3D11Texture2D, ArraySlice, &srcBox);
+		}
+		else {
+			m_pDeviceContext.Get()->CopySubresourceRegion(m_TexSrcVideo.pTexture.Get(), 0, 0, 0, 0, pD3D11Texture2D, ArraySlice, &srcBox);
+		}
+	}
+	else {
+		if (m_iSrcFromGPU != 0) {
+			m_iSrcFromGPU = 0;
+			updateStats = true;
+		}
+
+		BYTE* data = nullptr;
+		const long size = pSample->GetActualDataLength();
+		if (size > 0 && S_OK == pSample->GetPointer(&data)) {
+			// do not use UpdateSubresource for D3D11 VP here
+			// because it can cause green screens and freezes on some configurations
+			hr = MemCopyToTexSrcVideo(data, m_srcPitch);
+			if (m_D3D11VP.IsReady()) {
+				// ID3D11VideoProcessor does not use textures with D3D11_CPU_ACCESS_WRITE flag
+				m_pDeviceContext.Get()->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
+			}
+		}
+	}
+
+	if (updateStats) {
+		UpdateStatsStatic();
+	}
+
+	m_RenderStats.copyticks = GetPreciseTick() - tick;
+
+	return hr;
+}
+
 HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice)
 {
 	HRESULT hr = S_OK;
@@ -1069,60 +788,19 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	HRESULT hr2 = m_D3D11VP.InitVideoDevice(pDevice, m_pDeviceContext.Get(), m_VendorId);
 	DLogIf(FAILED(hr2), "CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error %s", WToA(HR2Str(hr2)));
 
-	D3D11_SAMPLER_DESC SampDesc = {};
-	SampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	SampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	SampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	SampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	SampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	SampDesc.MinLOD = 0;
-	SampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	EXECUTE_ASSERT(S_OK == pDevice->CreateSamplerState(&SampDesc, &m_pSamplerPoint));
-
-	SampDesc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT; // linear interpolation for magnification
-	EXECUTE_ASSERT(S_OK == pDevice->CreateSamplerState(&SampDesc, &m_pSamplerLinear));
-
-	SampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-	SampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	SampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	EXECUTE_ASSERT(S_OK == pDevice->CreateSamplerState(&SampDesc, &m_pSamplerDither));
-
-	D3D11_BLEND_DESC bdesc = {};
-	bdesc.RenderTarget[0].BlendEnable = TRUE;
-	bdesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	bdesc.RenderTarget[0].DestBlend = D3D11_BLEND_SRC_ALPHA;
-	bdesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	bdesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	bdesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	bdesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	bdesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	EXECUTE_ASSERT(S_OK == pDevice->CreateBlendState(&bdesc, &m_pAlphaBlendState));
-
+	EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPS_BitmapToFrame, IDF_PS_11_SIMPLE));
 	
 	LPVOID data;
 	DWORD size;
 	EXECUTE_ASSERT(S_OK == GetDataFromResource(data, size, IDF_VS_11_SIMPLE));
 	EXECUTE_ASSERT(S_OK == pDevice->CreateVertexShader(data, size, nullptr, &m_pVS_Simple));
 
-
 	D3D11_INPUT_ELEMENT_DESC Layout[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
+
 	EXECUTE_ASSERT(S_OK == pDevice->CreateInputLayout(Layout, std::size(Layout), data, size, &m_pVSimpleInputLayout));
-
-	EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPS_Simple, IDF_PS_11_SIMPLE));
-
-	D3D11_BUFFER_DESC BufferDesc = { sizeof(VERTEX) * 4, D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
-	EXECUTE_ASSERT(S_OK == pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pVertexBuffer));
-
-	BufferDesc = { sizeof(FLOAT) * 4 * 2, D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
-	EXECUTE_ASSERT(S_OK == pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pResizeShaderConstantBuffer));
-
-	BufferDesc = { sizeof(FLOAT) * 4, D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
-	EXECUTE_ASSERT(S_OK == pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pHalfOUtoInterlaceConstantBuffer));
-	EXECUTE_ASSERT(S_OK == pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pFinalPassConstantBuffer));
-
 
 	if (m_pFilter->m_inputMT.IsValid()) {
 		if (!InitMediaType(&m_pFilter->m_inputMT)) {
@@ -1156,34 +834,6 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	ASSERT(S_OK == hr3);
 
 	SetStereo3dTransform(m_iStereo3dTransform);
-
-	HRESULT hr4 = m_TexDither.Create(GetDevice, DXGI_FORMAT_R16G16B16A16_FLOAT, dither_size, dither_size, Tex2D_DynamicShaderWrite);
-	if (S_OK == hr4) {
-		hr4 = GetDataFromResource(data, size, IDF_DITHER_32X32_FLOAT16);
-		if (S_OK == hr4) {
-			D3D11_MAPPED_SUBRESOURCE mappedResource;
-			hr4 = m_pDeviceContext->Map(m_TexDither.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-			if (S_OK == hr4) {
-				uint16_t* src = (uint16_t*)data;
-				BYTE* dst = (BYTE*)mappedResource.pData;
-				for (UINT y = 0; y < dither_size; y++) {
-					uint16_t* pUInt16 = reinterpret_cast<uint16_t*>(dst);
-					for (UINT x = 0; x < dither_size; x++) {
-						*pUInt16++ = src[x];
-						*pUInt16++ = src[x];
-						*pUInt16++ = src[x];
-						*pUInt16++ = src[x];
-					}
-					src += dither_size;
-					dst += mappedResource.RowPitch;
-				}
-				m_pDeviceContext->Unmap(m_TexDither.pTexture.Get(), 0);
-			}
-		}
-		if (FAILED(hr4)) {
-			m_TexDither.Release();
-		}
-	}
 
 	m_bDecoderDevice = bDecoderDevice;
 
@@ -1632,7 +1282,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 		m_bVPUseRTXVideoHDR = false;
 		hr = InitializeTexVP(FmtParams, origW, origH);
 		if (SUCCEEDED(hr)) {
-			SetShaderConvertColorParams();
+			//SetShaderConvertColorParams();
 		}
 	}
 
@@ -1723,11 +1373,6 @@ HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 
 	// set default ProcAmp ranges
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
-
-	hr = UpdateConvertColorShader();
-
-	SAFE_RELEASE(m_PSConvColorData.pVertexBuffer);
-	EXECUTE_ASSERT(S_OK == CreateVertexBuffer(GetDevice, &m_PSConvColorData.pVertexBuffer, m_srcWidth, m_srcHeight, m_srcRect, 0, false));
 
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::InitializeTexVP() completed successfully");
 
@@ -1860,13 +1505,52 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 	m_rtStart = rtStart;
 	CRefTime rtClock(rtStart);
+	
 
-	HRESULT hr = CopySample(pSample);
+	
+
+	//temp
+	if (m_pFilter->m_filterState == State_Running) {
+		m_pFilter->StreamTime(rtClock);
+	}
+	//tell the stream where we are for subtitles
+	if (CStreamsManager::Get() && CStreamsManager::Get()->SubtitleManager)
+		CStreamsManager::Get()->SubtitleManager->SetTime(rtStart + m_pFilter->m_rtStartTime);
+
+	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
+	{
+		// Configure Render Manager
+		float fps;
+		fps = 10000000.0 / m_rtAvgTimePerFrame;
+		if (CStreamsManager::Get()->SubtitleManager)
+			CStreamsManager::Get()->SubtitleManager->SetTimePerFrame(m_rtAvgTimePerFrame);
+
+		g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
+		CLog::Log(LOGINFO, "{} Render manager configured (FPS: {}) {} {} {} {}", __FUNCTION__, fps, m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY);
+	}
+	else
+	{
+		if (!m_bDsplayerNotified)
+		{
+			m_bDsplayerNotified = true;
+			CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PLAYBACK_STARTED), false);
+			CLog::Log(LOGINFO, "{} DSPLAYER notify playback started sent", __FUNCTION__);
+		}
+	}
+
+	//std::unique_lock<CCriticalSection> lock(CServiceBroker::GetWinSystem()->GetGfxContext());
+	HRESULT hr = CopySampleToLibplacebo(pSample);
+
+
 	if (FAILED(hr)) {
 		m_RenderStats.failed++;
 		return hr;
 	}
 
+	if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
+		return E_FAIL;
+
+	return hr;
 	// always Render(1) a frame after CopySample()
 	hr = Render(1, rtStart);
 	m_pFilter->m_DrawStats.Add(GetPreciseTick());
@@ -2054,18 +1738,18 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 
 				if (bYCCtoRGBChanged) {
 					CLog::LogF(LOGINFO,"CDX11VideoProcessor::CopySample() : DoVi ycc_to_rgb_matrix is changed");
-					SetShaderConvertColorParams();
+					//SetShaderConvertColorParams();
 				}
 				if (bRGBtoLMSChanged || bMMRChanged) {
 					DLogIf(bRGBtoLMSChanged, "CDX11VideoProcessor::CopySample() : DoVi rgb_to_lms_matrix is changed");
 					DLogIf(bMMRChanged, "CDX11VideoProcessor::CopySample() : DoVi has_mmr is changed");
-					UpdateConvertColorShader();
+					//UpdateConvertColorShader();
 				}
 				if (bMappingCurvesChanged) {
 					if (m_Dovi.bHasMMR) {
-						hr = SetShaderDoviCurves();
+						//hr = SetShaderDoviCurves();
 					} else {
-						hr = SetShaderDoviCurvesPoly();
+						//hr = SetShaderDoviCurvesPoly();
 					}
 				}
 
@@ -2209,22 +1893,6 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 		hr = DrawStats(CMPCVRRenderer::Get()->GetIntermediateTarget().Get());
 	}
 
-	if (m_bAlphaBitmapEnable) {
-		D3D11_TEXTURE2D_DESC desc;
-		CMPCVRRenderer::Get()->GetIntermediateTarget().Get()->GetDesc(&desc);
-		D3D11_VIEWPORT VP = {
-			m_AlphaBitmapNRectDest.left * desc.Width,
-			m_AlphaBitmapNRectDest.top * desc.Height,
-			(m_AlphaBitmapNRectDest.right - m_AlphaBitmapNRectDest.left) * desc.Width,
-			(m_AlphaBitmapNRectDest.bottom - m_AlphaBitmapNRectDest.top) * desc.Height,
-			0.0f,
-			1.0f
-		};
-		hr = AlphaBlt(m_TexAlphaBitmap.pShaderResource.Get(), CMPCVRRenderer::Get()->GetIntermediateTarget().Get(),
-			m_pAlphaBitmapVertex.Get(), &VP,
-			m_pSamplerLinear.Get());
-	}
-
 	uint64_t tick3 = GetPreciseTick();
 	m_RenderStats.paintticks = tick3 - tick1;
 
@@ -2349,70 +2017,6 @@ void CDX11VideoProcessor::UpdateTexures()
 	}
 }
 
-HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
-{
-	m_pPSConvertColor = nullptr;
-	m_pPSConvertColorDeint= nullptr;
-	ID3DBlob* pShaderCode = nullptr;
-
-	int convertType = (m_bConvertToSdr && !(m_bHdrPassthroughSupport && m_bHdrPassthrough)) ? SHADER_CONVERT_TO_SDR
-		: (m_bHdrPassthroughSupport && m_bHdrPassthrough && m_srcExFmt.VideoTransferFunction == MFVideoTransFunc_HLG) ? SHADER_CONVERT_TO_PQ
-		: SHADER_CONVERT_NONE;
-
-	MediaSideDataDOVIMetadata* pDOVIMetadata = m_Dovi.bValid ? &m_Dovi.msd : nullptr;
-
-	HRESULT hr = GetShaderConvertColor(true,
-		m_srcWidth,
-		m_TexSrcVideo.desc.Width, m_TexSrcVideo.desc.Height,
-		m_srcRect, m_srcParams, m_srcExFmt, pDOVIMetadata,
-		m_iChromaScaling, convertType, false,
-		&pShaderCode);
-	if (S_OK == hr) {
-		hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColor);
-		pShaderCode->Release();
-	}
-
-	if (m_bInterlaced && m_srcParams.Subsampling == 420 && m_srcParams.pDX11Planes) {
-		hr = GetShaderConvertColor(true,
-			m_srcWidth,
-			m_TexSrcVideo.desc.Width, m_TexSrcVideo.desc.Height,
-			m_srcRect, m_srcParams, m_srcExFmt, pDOVIMetadata,
-			m_iChromaScaling, convertType, true,
-			&pShaderCode);
-		if (S_OK == hr) {
-			hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColorDeint);
-			pShaderCode->Release();
-		}
-	}
-
-	if (FAILED(hr)) {
-		ASSERT(0);
-		std::string resid = 0;
-		if (m_srcParams.cformat == CF_YUY2) {
-			resid = IDF_PS_11_CONVERT_YUY2;
-		}
-		else if (m_srcParams.pDX11Planes) {
-			if (m_srcParams.pDX11Planes->FmtPlane3) {
-				if (m_srcParams.cformat == CF_YV12 || m_srcParams.cformat == CF_YV16 || m_srcParams.cformat == CF_YV24) {
-					resid = IDF_PS_11_CONVERT_PLANAR_YV;
-				} else {
-					resid = IDF_PS_11_CONVERT_PLANAR;
-				}
-			} else {
-				resid = IDF_PS_11_CONVERT_BIPLANAR;
-			}
-		}
-		else {
-			resid = IDF_PS_11_CONVERT_COLOR;
-		}
-		EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPSConvertColor, resid));
-
-		return S_FALSE;
-	}
-
-	return hr;
-}
-
 void CDX11VideoProcessor::UpdateBitmapShader()
 {
 	if (m_bHdrDisplayModeEnabled
@@ -2438,7 +2042,7 @@ void CDX11VideoProcessor::UpdateBitmapShader()
 		m_dwStatsTextColor = TransferPQ(D3DCOLOR_XRGB(255, 255, 255), SDR_peak_lum);
 	}
 	else {
-		m_pPS_BitmapToFrame = m_pPS_Simple;
+		
 		m_dwStatsTextColor = D3DCOLOR_XRGB(255, 255, 255);
 	}
 }
@@ -2451,60 +2055,6 @@ HRESULT CDX11VideoProcessor::D3D11VPPass(ID3D11Texture2D* pRenderTarget, const C
 	if (FAILED(hr)) {
 		CLog::LogF(LOGINFO, "CDX11VideoProcessor::ProcessD3D11() : m_D3D11VP.Process() failed with error {}", WToA(HR2Str(hr)).c_str());
 	}
-
-	return hr;
-}
-
-HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
-{
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
-
-	HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
-
-	D3DSetDebugName(pRenderTargetView.Get(), "MPC RenderTarget ConvertColorPass");
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"ConvertColorPass() : CreateRenderTargetView() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return hr;
-	}
-
-	D3D11_VIEWPORT VP;
-	VP.TopLeftX = 0;
-	VP.TopLeftY = 0;
-	VP.Width = (FLOAT)m_TexConvertOutput.desc.Width;
-	VP.Height = (FLOAT)m_TexConvertOutput.desc.Height;
-	VP.MinDepth = 0.0f;
-	VP.MaxDepth = 1.0f;
-
-	const UINT Stride = sizeof(VERTEX);
-	const UINT Offset = 0;
-
-	// Set resources
-	m_pDeviceContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
-	m_pDeviceContext->OMSetRenderTargets(1, pRenderTargetView.GetAddressOf(), nullptr);
-	m_pDeviceContext->RSSetViewports(1, &VP);
-	m_pDeviceContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-	m_pDeviceContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
-	if (m_bDeintBlend && m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE && m_pPSConvertColorDeint) {
-		m_pDeviceContext->PSSetShader(m_pPSConvertColorDeint.Get(), nullptr, 0);
-	} else {
-		m_pDeviceContext->PSSetShader(m_pPSConvertColor.Get(), nullptr, 0);
-	}
-	m_pDeviceContext->PSSetShaderResources(0, 1, m_TexSrcVideo.pShaderResource.GetAddressOf());
-	m_pDeviceContext->PSSetShaderResources(1, 1, m_TexSrcVideo.pShaderResource2.GetAddressOf());
-	m_pDeviceContext->PSSetShaderResources(2, 1, m_TexSrcVideo.pShaderResource3.GetAddressOf());
-	
-	m_pDeviceContext->PSSetSamplers(0, 1, m_pSamplerPoint.GetAddressOf());
-	m_pDeviceContext->PSSetSamplers(1, 1, m_pSamplerLinear.GetAddressOf());
-	m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_PSConvColorData.pConstants);
-	m_pDeviceContext->PSSetConstantBuffers(1, 1, m_pDoviCurvesConstantBuffer.GetAddressOf());
-	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	m_pDeviceContext->IASetVertexBuffers(0, 1, &m_PSConvColorData.pVertexBuffer, &Stride, &Offset);
-
-	// Draw textured quad onto render target
-	m_pDeviceContext->Draw(4, 0);
-
-	ID3D11ShaderResourceView* views[3] = {};
-	m_pDeviceContext->PSSetShaderResources(0, 3, views);
 
 	return hr;
 }
@@ -2571,7 +2121,7 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 		rotation = 0;
 	}
 	else if (m_PSConvColorData.bEnable) {
-		ConvertColorPass(m_TexConvertOutput.pTexture.Get());
+		//ConvertColorPass(m_TexConvertOutput.pTexture.Get());
 		pInputTexture = &m_TexConvertOutput;
 		rSrc.SetRect(0, 0, m_TexConvertOutput.desc.Width, m_TexConvertOutput.desc.Height);
 	}
@@ -2579,7 +2129,16 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 		pInputTexture = &m_TexSrcVideo;
 	}
 	
-	if (CMPCVRRenderer::Get()->CreateInputTarget(pInputTexture->desc.Width, pInputTexture->desc.Height, pInputTexture->desc.Format))
+	/*pl_frame inputFrame{};
+	inputFrame.repr = GetPlaceboColorRepr((DXVA_VideoPrimaries)m_srcExFmt.VideoPrimaries, (DXVA_NominalRange)m_srcExFmt.NominalRange);
+	pl_color_space col{};
+	col.hdr = {};
+	col.primaries = PL_COLOR_PRIM_BT_709;
+	col.transfer = PL_COLOR_TRC_BT_1886;
+	inputFrame.color = col;
+	inputFrame.*/
+
+	/*if (CMPCVRRenderer::Get()->CreateInputTarget(pInputTexture->desc.Width, pInputTexture->desc.Height, pInputTexture->desc.Format))
 	{
 		
 		m_pDeviceContext->CopyResource(CMPCVRRenderer::Get()->GetInputTexture(true, m_pFilter->m_rtStartTime + m_rtStart).Get(), pInputTexture->pTexture.Get());
@@ -2595,7 +2154,7 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 			DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), false);
 		}
 		return S_OK;
-	}
+	}*/
 	return E_FAIL;
 #if 0
 	if (numSteps) {
@@ -3178,10 +2737,6 @@ void CDX11VideoProcessor::Configure(const Settings_t& config)
 		UpdateTexures();
 	}
 
-	if (changeConvertShader) {
-		UpdateConvertColorShader();
-	}
-
 	if (changeBitmapShader) {
 		UpdateBitmapShader();
 	}
@@ -3492,85 +3047,11 @@ STDMETHODIMP CDX11VideoProcessor::SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpV
 		m_D3D11VP.SetProcAmpValues(&m_DXVA2ProcAmpValues);
 
 		if (!m_D3D11VP.IsReady()) {
-			SetShaderConvertColorParams();
+			//SetShaderConvertColorParams();
 		}
 	}
 
 	return S_OK;
-}
-
-// IMFVideoMixerBitmap
-
-STDMETHODIMP CDX11VideoProcessor::SetAlphaBitmap(const MFVideoAlphaBitmap *pBmpParms)
-{
-	CheckPointer(pBmpParms, E_POINTER);
-	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
-
-	HRESULT hr = S_FALSE;
-
-	if (pBmpParms->GetBitmapFromDC && pBmpParms->bitmap.hdc) {
-		HBITMAP hBitmap = (HBITMAP)GetCurrentObject(pBmpParms->bitmap.hdc, OBJ_BITMAP);
-		if (!hBitmap) {
-			return E_INVALIDARG;
-		}
-		DIBSECTION info = {0};
-		if (!::GetObjectW(hBitmap, sizeof(DIBSECTION), &info)) {
-			return E_INVALIDARG;
-		}
-		BITMAP& bm = info.dsBm;
-		if (!bm.bmWidth || !bm.bmHeight || bm.bmBitsPixel != 32 || !bm.bmBits) {
-			return E_INVALIDARG;
-		}
-
-		hr = m_TexAlphaBitmap.CheckCreate(GetDevice, DXGI_FORMAT_B8G8R8A8_UNORM, bm.bmWidth, bm.bmHeight, Tex2D_DefaultShader);
-		DLogIf(FAILED(hr), "CDX11VideoProcessor::SetAlphaBitmap() : CheckCreate() failed with error {}", WToA(HR2Str(hr)));
-		if (S_OK == hr) {
-			m_pDeviceContext->UpdateSubresource(m_TexAlphaBitmap.pTexture.Get(), 0, nullptr, bm.bmBits, bm.bmWidthBytes, 0);
-		}
-	} else {
-		return E_INVALIDARG;
-	}
-
-	m_bAlphaBitmapEnable = SUCCEEDED(hr) && m_TexAlphaBitmap.pShaderResource;
-
-	if (m_bAlphaBitmapEnable) {
-		m_AlphaBitmapRectSrc = { 0, 0, (LONG)m_TexAlphaBitmap.desc.Width, (LONG)m_TexAlphaBitmap.desc.Height };
-		m_AlphaBitmapNRectDest = { 0, 0, 1, 1 };
-
-		m_pAlphaBitmapVertex= nullptr;
-
-		hr = UpdateAlphaBitmapParameters(&pBmpParms->params);
-	}
-
-	return hr;
-}
-
-STDMETHODIMP CDX11VideoProcessor::UpdateAlphaBitmapParameters(const MFVideoAlphaBitmapParams *pBmpParms)
-{
-	CheckPointer(pBmpParms, E_POINTER);
-	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
-
-	if (m_bAlphaBitmapEnable) {
-		if (pBmpParms->dwFlags & MFVideoAlphaBitmap_SrcRect) {
-			m_AlphaBitmapRectSrc = pBmpParms->rcSrc;
-			m_pAlphaBitmapVertex= nullptr;
-		}
-		if (!m_pAlphaBitmapVertex) {
-			HRESULT hr = CreateVertexBuffer(GetDevice, &m_pAlphaBitmapVertex, m_TexAlphaBitmap.desc.Width, m_TexAlphaBitmap.desc.Height, m_AlphaBitmapRectSrc, 0, false);
-			if (FAILED(hr)) {
-				m_bAlphaBitmapEnable = false;
-				return hr;
-			}
-		}
-		if (pBmpParms->dwFlags & MFVideoAlphaBitmap_DestRect) {
-			m_AlphaBitmapNRectDest = pBmpParms->nrcDest;
-		}
-		DWORD validFlags = MFVideoAlphaBitmap_SrcRect|MFVideoAlphaBitmap_DestRect;
-
-		return ((pBmpParms->dwFlags & validFlags) == validFlags) ? S_OK : S_FALSE;
-	} else {
-		return MF_E_NOT_INITIALIZED;
-	}
 }
 
 void CDX11VideoProcessor::SetResolution()

@@ -57,22 +57,10 @@ private:
 	friend class CVideoRendererInputPin;
 
 	// Direct3D 11
-	//Microsoft::WRL::ComPtr<ID3D11Device1>        m_pDevice;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerPoint;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerLinear;
-	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerDither;
-	Microsoft::WRL::ComPtr<ID3D11BlendState>     m_pAlphaBlendState;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader>   m_pVS_Simple;
-	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_Simple;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_BitmapToFrame;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pVertexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pResizeShaderConstantBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pHalfOUtoInterlaceConstantBuffer;
-	Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pFinalPassConstantBuffer;
-
-	DXGI_SWAP_EFFECT              m_UsedSwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
 #if TEST_SHADER
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_TEST;
@@ -204,10 +192,6 @@ private:
 	void ReleaseDevice();
 
 	HRESULT CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, std::string resid);
-	void SetShaderConvertColorParams();
-
-	HRESULT SetShaderDoviCurvesPoly();
-	HRESULT SetShaderDoviCurves();
 
 	void UpdateTexParams(int cdepth);
 	void UpdateRenderRect();
@@ -227,6 +211,10 @@ private:
 	std::vector<CD3DPixelShader> m_pPixelShaders;
 
 public:
+
+	/*libplacebo*/
+	HRESULT CopySampleToLibplacebo(IMediaSample* pSample);
+
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);
 	HRESULT InitSwapChain();
 
@@ -263,27 +251,12 @@ public:
 
 private:
 	void UpdateTexures();
-	HRESULT UpdateConvertColorShader();
 	void UpdateBitmapShader();
 
 	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
-	HRESULT ConvertColorPass(ID3D11Texture2D* pRenderTarget);
 
 	void DrawSubtitles(ID3D11Texture2D* pRenderTarget);
 	HRESULT Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
-
-	HRESULT AlphaBlt(ID3D11ShaderResourceView* pShaderResource, ID3D11Texture2D* pRenderTarget,
-					 ID3D11Buffer* pVertexBuffer, D3D11_VIEWPORT* pViewPort,
-					 ID3D11SamplerState* pSampler);
-	HRESULT TextureCopyRect(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
-							const Com::SmartRect& srcRect, const Com::SmartRect& destRect,
-							ID3D11PixelShader* pPixelShader, ID3D11Buffer* pConstantBuffer,
-							const int iRotation, const bool bFlip);
-
-	HRESULT TextureResizeShader(const Tex2D_t& Tex, ID3D11Texture2D* pRenderTarget,
-								const Com::SmartRect& srcRect, const Com::SmartRect& destRect,
-								ID3D11PixelShader* pPixelShader,
-								const int iRotation, const bool bFlip);
 
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
@@ -295,6 +268,6 @@ public:
 	STDMETHODIMP SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues *pValues) override;
 
 	// IMFVideoMixerBitmap
-	STDMETHODIMP SetAlphaBitmap(const MFVideoAlphaBitmap *pBmpParms) override;
-	STDMETHODIMP UpdateAlphaBitmapParameters(const MFVideoAlphaBitmapParams *pBmpParms) override;
+	STDMETHODIMP SetAlphaBitmap(const MFVideoAlphaBitmap* pBmpParms) override { return S_OK; };
+	STDMETHODIMP UpdateAlphaBitmapParameters(const MFVideoAlphaBitmapParams *pBmpParms) override { return S_OK; };
 };
