@@ -893,6 +893,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	
 	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
 	pl_color_space csp = frameIn.color;
+	csp.hdr = pHelper->GetHdrData(pSample);
+	
 	//pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
 	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &pl_render_fast_params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
@@ -1142,7 +1144,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
-	EXECUTE_ASSERT(S_OK == pDevice->CreateInputLayout(Layout, std::size(Layout), data, size, &m_pVSimpleInputLayout));
+	EXECUTE_ASSERT(S_OK == pDevice->CreateInputLayout(Layout, std::size(Layout), data, size, m_pVSimpleInputLayout.ReleaseAndGetAddressOf()));
 
 	if (m_pFilter->m_inputMT.IsValid()) {
 		if (!InitMediaType(&m_pFilter->m_inputMT)) {
@@ -1414,6 +1416,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	case CF_YUY2: disableD3D11VP = !m_VPFormats.bYUY2;  break;
 	default:      disableD3D11VP = !m_VPFormats.bOther; break;
 	}
+	disableD3D11VP = true;//temporary
 	if (m_srcExFmt.VideoTransferMatrix == VIDEOTRANSFERMATRIX_YCgCo || m_Dovi.bValid) {
 		disableD3D11VP = true;
 	}

@@ -426,16 +426,53 @@ pl_color_space CPlHelper::GetPlColorSpace(DXVA2_ExtendedFormat pFormat)
   case MFVideoTransFunc_HLG:    csp.transfer = PL_COLOR_TRC_HLG; break;
   //case AVCOL_TRC_NB:              csp.transfer = PL_COLOR_TRC_COUNT;
   }
-  //TODO
-#ifdef PL_HAVE_LAV_HDR
-  pl_map_hdr_metadata(&out_csp->hdr, &(struct pl_av_hdr_metadata) {
-    .mdm = pl_get_side_data_raw(frame, AV_FRAME_DATA_MASTERING_DISPLAY_METADATA),
-      .clm = pl_get_side_data_raw(frame, AV_FRAME_DATA_CONTENT_LIGHT_LEVEL),
-      .dhp = pl_get_side_data_raw(frame, AV_FRAME_DATA_DYNAMIC_HDR_PLUS),
-  });
-#endif
   return csp;
+
+
 }
+
+pl_hdr_metadata PL::CPlHelper::GetHdrData(IMediaSample* pSample)
+{
+  
+  Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;
+  HRESULT hr = pSample->QueryInterface(IID_PPV_ARGS(&pMediaSideData));
+  m_hdr10 = {};
+  if (FAILED(hr))
+  {
+    CLog::Log(LOGERROR, "{} Failed querying side data for hdr", __FUNCTION__);
+    return m_hdr10.hdr10;
+  }
+  MediaSideDataHDR* hdr = nullptr;
+  size_t size = 0;
+  hr = pMediaSideData->GetSideData(IID_MediaSideDataHDR, (const BYTE**)&hdr, &size);
+  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDR)) {
+    m_hdr10.bValid = true;
+    
+    m_hdr10.hdr10.prim.red.x = static_cast<UINT16>(std::lround(hdr->display_primaries_x[2] * 50000.0));
+    m_hdr10.hdr10.prim.red.y= static_cast<UINT16>(std::lround(hdr->display_primaries_y[2] * 50000.0));
+    m_hdr10.hdr10.prim.green.x = static_cast<UINT16>(std::lround(hdr->display_primaries_x[0] * 50000.0));
+    m_hdr10.hdr10.prim.green.x = static_cast<UINT16>(std::lround(hdr->display_primaries_y[0] * 50000.0));
+    m_hdr10.hdr10.prim.blue.x = static_cast<UINT16>(std::lround(hdr->display_primaries_x[1] * 50000.0));
+    m_hdr10.hdr10.prim.blue.x = static_cast<UINT16>(std::lround(hdr->display_primaries_y[1] * 50000.0));
+    m_hdr10.hdr10.prim.white.x = static_cast<UINT16>(std::lround(hdr->white_point_x * 50000.0));
+    m_hdr10.hdr10.prim.white.x = static_cast<UINT16>(std::lround(hdr->white_point_y * 50000.0));
+
+
+    m_hdr10.hdr10.max_luma = static_cast<UINT>(std::lround(hdr->max_display_mastering_luminance * 10000.0));
+    m_hdr10.hdr10.min_luma = static_cast<UINT>(std::lround(hdr->min_display_mastering_luminance * 10000.0));
+  }
+
+  MediaSideDataHDRContentLightLevel* hdrCLL = nullptr;
+  size = 0;
+  hr = pMediaSideData->GetSideData(IID_MediaSideDataHDRContentLightLevel, (const BYTE**)&hdrCLL, &size);
+  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDRContentLightLevel)) {
+    m_hdr10.hdr10.max_cll = hdrCLL->MaxCLL;
+    m_hdr10.hdr10.max_fall = hdrCLL->MaxFALL;
+  }
+
+  return m_hdr10.hdr10;
+}
+
 
 pl_rotation CPlHelper::GetPlRotation()
 {

@@ -24,6 +24,7 @@
 #include <d3d9types.h>
 #include <dxva2api.h>
 
+
 #define MAX_FRAME_PASSES 256
 #define MAX_BLEND_PASSES 8
 #define MAX_BLEND_FRAMES 8
@@ -59,8 +60,17 @@ namespace PL
     void Release();
 
     pl_frame CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSample, int width, int height);
+
     pl_color_repr GetPlColorRepresentation(DXVA2_ExtendedFormat pFormat);
     pl_color_space GetPlColorSpace(DXVA2_ExtendedFormat pFormat);
+    //HDR stuff
+    pl_hdr_metadata GetHdrData(IMediaSample* pSample);
+    struct HDRMetadata {
+      pl_hdr_metadata hdr10 = {};
+      bool bValid = false;
+    };
+    HDRMetadata m_hdr10 = {};
+    HDRMetadata m_lastHdr10 = {};
 
     //TODO
     pl_rotation GetPlRotation();
