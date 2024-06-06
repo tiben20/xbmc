@@ -22,6 +22,7 @@
 
 #include <d3d11.h>
 #include "D3DCommon.h"
+#include "Utils/StdString.h"
 
 class CD3D11Font
 {

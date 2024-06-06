@@ -266,6 +266,7 @@ private:
 	void UpdateStatsStatic();
 	//void UpdateStatsPostProc();
 	HRESULT DrawStats(ID3D11Texture2D* pRenderTarget);
+	void SendStats();
 
 public:
 	// IMFVideoProcessor

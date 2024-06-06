@@ -897,7 +897,19 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &pl_render_fast_params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
 
-	
+	SendStats();
+
+	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
+	{
+		CLog::LogF(LOGERROR, "failed to finish command queue.");
+		return E_FAIL;
+	}
+	else
+	{
+		D3DSetDebugName(pCommandList.Get(), "CommandList mpc deferred context");
+		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), 0);
+	}
+
 	return S_OK;
 	//const UINT linesize = std::min((UINT)abs(src_pitch), dst_pitch);
 	/*
@@ -1180,7 +1192,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 
 	m_pFilter->OnDisplayModeChange();
 	UpdateStatsStatic();
-	SetGraphSize();
+	//SetGraphSize();
 
 	return hr;
 
@@ -1195,117 +1207,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 	DXGI_SWAP_CHAIN_DESC1 desc = { 0 };
 	GetSwapChain->GetDesc1(&desc);
 	m_SwapChainFmt = desc.Format;
-	
-	if (bHdrOutput) {
-		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain4;
-		return GetSwapChain->QueryInterface(IID_PPV_ARGS(&swapChain4));
-		
-	}
-	
 	return S_OK;
-#if 0
-
-	CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitSwapChain() - {}", m_pFilter->m_bIsFullscreen ? L"fullscreen" : L"window");
-	CheckPointer(m_pDXGIFactory2, E_FAIL);
-
-	ReleaseSwapChain();
-
-	auto bFullscreenChange = m_bIsFullscreen != m_pFilter->m_bIsFullscreen;
-	m_bIsFullscreen = m_pFilter->m_bIsFullscreen;
-
-	if (bFullscreenChange) {
-		HandleHDRToggle();
-		UpdateBitmapShader();
-
-		if (m_bHdrPassthrough
-				&& ((m_iHdrToggleDisplay == HDRTD_On_Fullscreen && m_bIsFullscreen) || m_iHdrToggleDisplay == HDRTD_OnOff_Fullscreen)
-				&& SourceIsPQorHLG()) {
-			m_bHdrAllowSwitchDisplay = false;
-			InitMediaType(&m_pFilter->m_inputMT);
-			m_bHdrAllowSwitchDisplay = true;
-		}
-	}
-
-	const auto bHdrOutput = m_bHdrPassthroughSupport && m_bHdrPassthrough && (SourceIsHDR() || m_bVPUseRTXVideoHDR);
-	const auto b10BitOutput = bHdrOutput || Preferred10BitOutput();
-	m_SwapChainFmt = b10BitOutput ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
-
-	HRESULT hr = S_OK;
-	DXGI_SWAP_CHAIN_DESC1 desc1 = {};
-
-	if (m_bIsFullscreen) {
-		MONITORINFOEXW mi = { sizeof(mi) };
-		GetMonitorInfoW(MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST), &mi);
-		const Com::SmartRect rc(mi.rcMonitor);
-
-		desc1.Width = rc.Width();
-		desc1.Height = rc.Height();
-		desc1.Format = m_SwapChainFmt;
-		desc1.SampleDesc.Count = 1;
-		desc1.SampleDesc.Quality = 0;
-		desc1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		if ((m_iSwapEffect == SWAPEFFECT_Flip && IsWindows8OrGreater()) || bHdrOutput) {
-			desc1.BufferCount = bHdrOutput ? 6 : 2;
-			desc1.Scaling = DXGI_SCALING_NONE;
-			desc1.SwapEffect = CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		} else { // SWAPEFFECT_Discard or Windows 7
-			desc1.BufferCount = 1;
-			desc1.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-		}
-		desc1.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-
-		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = {};
-		fullscreenDesc.RefreshRate.Numerator = 0;
-		fullscreenDesc.RefreshRate.Denominator = 1;
-		fullscreenDesc.Windowed = FALSE;
-
-		bCreateSwapChain = true;
-		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(GetDevice, m_hWnd, &desc1, &fullscreenDesc, nullptr, &m_pDXGISwapChain1);
-		bCreateSwapChain = false;
-		DLogIf(FAILED(hr), "CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd(fullscreen) failed with error {}", WToA(HR2Str(hr)));
-
-		m_lastFullscreenHMonitor = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY);
-	}
-	else {
-		desc1.Width = std::max(8, m_windowRect.Width());
-		desc1.Height = std::max(8, m_windowRect.Height());
-		desc1.Format = m_SwapChainFmt;
-		desc1.SampleDesc.Count = 1;
-		desc1.SampleDesc.Quality = 0;
-		desc1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		if ((m_iSwapEffect == SWAPEFFECT_Flip && IsWindows8OrGreater()) || bHdrOutput) {
-			desc1.BufferCount = bHdrOutput ? 6 : 2;
-			desc1.Scaling = DXGI_SCALING_NONE;
-			desc1.SwapEffect = CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10) ? DXGI_SWAP_EFFECT_FLIP_DISCARD : DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-		} else { // SWAPEFFECT_Discard or Windows 7
-			desc1.BufferCount = 1;
-			desc1.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-		}
-		desc1.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-
-		DLogIf(m_windowRect.Width() < 8 || m_windowRect.Height() < 8,
-			L"CDX11VideoProcessor::InitSwapChain() : Invalid window size {}x{}, use {}x{}",
-			m_windowRect.Width(), m_windowRect.Height(), desc1.Width, desc1.Height);
-
-		hr = m_pDXGIFactory2->CreateSwapChainForHwnd(GetDevice, m_hWnd, &desc1, nullptr, nullptr, &m_pDXGISwapChain1);
-		DLogIf(FAILED(hr), "CDX11VideoProcessor::InitSwapChain() : CreateSwapChainForHwnd() failed with error {}", WToA(HR2Str(hr)));
-
-		m_lastFullscreenHMonitor = nullptr;
-	}
-
-	if (m_pDXGISwapChain1) {
-		m_UsedSwapEffect = desc1.SwapEffect;
-
-		HRESULT hr2 = m_pDXGISwapChain1->GetContainingOutput(&m_pDXGIOutput);
-
-		m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
-		if (bHdrOutput) {
-			hr2 = m_pDXGISwapChain1->QueryInterface(IID_PPV_ARGS(&m_pDXGISwapChain4));
-		}
-	}
-
-	return hr;
-#endif
 }
 
 BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
@@ -3361,6 +3263,88 @@ HRESULT CDX11VideoProcessor::DrawStats(ID3D11Texture2D* pRenderTarget)
 	}
 
 	return hr;
+}
+
+void CDX11VideoProcessor::SendStats()
+{
+	CStdStringW str;
+	if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_2)
+	{
+		str.reserve(700);
+		CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
+		str.Format(L"FPS:%4.3f\n", CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
+		str.AppendFormat(L"RenderRect: x1:%u x2:%u y1:%u y2:%u\n", m_renderRect.left, m_renderRect.right, m_renderRect.top, m_renderRect.bottom);
+		str.AppendFormat(L"Video Rect: x1:%u x2:%u y1:%u y2:%u\n", m_videoRect.left, m_videoRect.right, m_videoRect.top, m_videoRect.bottom);
+		str.AppendFormat(L"Window Rect: x1:%u x2:%u y1:%u y2:%u\n", m_windowRect.left, m_windowRect.right, m_windowRect.top, m_windowRect.bottom);
+
+		str.AppendFormat(L"BackBuffer Size: width:%u height:%u\n", DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight());
+	}
+	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_1)
+	{
+		str.reserve(700);
+		str.assign(m_strStatsHeader);
+		str.append(m_strStatsDispInfo);
+		str.AppendFormat(L"\nGraph. Adapter: %s", m_strAdapterDescription.c_str());
+
+		wchar_t frametype = (m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
+		str.AppendFormat(L"\n %4.3f %c,%4.3f", m_pFilter->m_FrameStats.GetAverageFps(), frametype, m_pFilter->m_DrawStats.GetAverageFps());
+
+		str.append(m_strStatsInputFmt);
+		if (m_Dovi.bValid) {
+			str.append(L", MetaData: DolbyVision");
+			if (m_Dovi.bHasMMR) {
+				str.append(L"(MMR)");
+			}
+		}
+		str.append(m_strStatsVProc);
+
+		const int dstW = m_videoRect.Width();
+		const int dstH = m_videoRect.Height();
+		if (m_iRotation) {
+			str.AppendFormat(L"\nScaling       : %ux%u r%u\u00B0> %ix%i", m_srcRectWidth, m_srcRectHeight, m_iRotation, dstW, dstH);
+		}
+		else {
+			str.AppendFormat(L"\nScaling       : %ux%u -> %ix%i", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
+		}
+		if (m_srcRectWidth != dstW || m_srcRectHeight != dstH) {
+			if (m_D3D11VP.IsReady() && m_bVPScaling && !m_bVPScalingUseShaders) {
+				str.append(L" D3D11");
+				if (m_bVPUseSuperRes) {
+					str.append(L" SuperResolution*");
+				}
+			}
+		}
+
+		if (m_strCorrection || m_bDitherUsed)
+		{
+			str.append(L"\nPostProcessing:");
+			if (m_strCorrection)
+				str.AppendFormat(L" %s,", m_strCorrection);
+			if (m_bDitherUsed) {
+				str.append(L" dither");
+			}
+			str = str.TrimRight(',');
+		}
+		str.append(m_strStatsHDR);
+		str.append(m_strStatsPresent);
+
+		str.AppendFormat(L"\nFrames: %u, skipped: %u/%u, failed: %u",
+			m_pFilter->m_FrameStats.GetFrames(), m_pFilter->m_DrawStats.m_dropped, m_RenderStats.dropped2, m_RenderStats.failed);
+		str.AppendFormat(L"\nTimes(ms): Copy: %u, Paint %u, Present %u",
+			m_RenderStats.copyticks * 1000 / GetPreciseTicksPerSecondI(),
+			m_RenderStats.paintticks * 1000 / GetPreciseTicksPerSecondI(),
+			m_RenderStats.presentticks * 1000 / GetPreciseTicksPerSecondI());
+
+		str.AppendFormat(L"\nSync offset   : %i ms", (m_RenderStats.syncoffset + 5000) / 10000);
+	}
+	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_1)
+	{
+
+		str.reserve(700);
+		str = L"Not done yet:\n";
+	}
+	CMPCVRRenderer::Get()->SetStats(str);
+	
 }
 
 // IMFVideoProcessor

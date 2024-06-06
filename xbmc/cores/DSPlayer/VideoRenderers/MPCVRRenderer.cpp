@@ -234,6 +234,26 @@ void CMPCVRRenderer::DrawSubtitles()
   }
 }
 
+void CMPCVRRenderer::DrawStats()
+{
+
+  
+  SIZE rtSize{ m_screenRect.Width(),m_screenRect.Height()};
+
+  m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
+
+
+  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, m_statsText.c_str());
+  static int col = m_StatsRect.right;
+  if (--col < m_StatsRect.left) {
+    col = m_StatsRect.right;
+  }
+
+  m_Rect3D.Set({ col, m_StatsRect.bottom - 11, col + 5, m_StatsRect.bottom - 1 }, rtSize, D3DCOLOR_XRGB(128, 255, 128));
+  m_Rect3D.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
+
+}
+
 void CMPCVRRenderer::Reset()
 {
   m_IntermediateTarget.Release();
@@ -327,6 +347,8 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
 
   DrawSubtitles();
 
+  DrawStats();
+
   CRenderSystemDX* renderingDX = dynamic_cast<CRenderSystemDX*>(CServiceBroker::GetRenderSystem());
   renderingDX->GetGUIShader()->ApplyStateBlock();
 
@@ -358,8 +380,70 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
   SetViewMode(m_videoSettings.m_ViewMode);
   //CreateInputTarget(m_sourceWidth, m_sourceHeight);
   CreateIntermediateTarget(width, height, false);
+  SetGraphSize();
 
   return true;
+}
+
+void CMPCVRRenderer::SetGraphSize()
+{
+  m_screenRect = CRect(0,0, GetScreenRect().x2, GetScreenRect().y2);
+  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+
+  HRESULT hr3 = m_Font3D.InitDeviceObjects(GetDevice, pContext);
+
+  if (SUCCEEDED(hr3)) {
+    hr3 = m_StatsBackground.InitDeviceObjects(GetDevice, pContext);
+    hr3 = m_Rect3D.InitDeviceObjects(GetDevice, pContext);
+    hr3 = m_Underlay.InitDeviceObjects(GetDevice, pContext);
+    hr3 = m_Lines.InitDeviceObjects(GetDevice, pContext);
+    hr3 = m_SyncLine.InitDeviceObjects(GetDevice, pContext);
+   
+  }
+
+  //on initialisation window rect is not set yet so set it now
+  /*if (m_windowRect.IsRectEmpty())
+  {
+    auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
+    m_windowRect = Com::SmartRect(0, 0, winSystem->GetWidth(), winSystem->GetHeight());
+  }*/
+  if (pContext && !m_screenRect.IsEmpty()) {
+    SIZE rtSize{ m_screenRect.Width(),m_screenRect.Height()};
+
+    if (m_iResizeStats == 0) {
+      int w = std::max((float)512, m_screenRect.Width() / 2 - 10) - 5 - 3;
+      int h = std::max((float)280, m_screenRect.Height() - 10) - 5 - 3;
+      m_StatsFontH = (int)std::ceil(std::min(w / 36.0, h / 19.4));
+      m_StatsFontH &= ~1;
+      if (m_StatsFontH < 14) {
+        m_StatsFontH = 14;
+      }
+    }
+    else {
+      m_StatsFontH = 14;
+    }
+
+    if (S_OK == m_Font3D.CreateFontBitmap(L"Consolas", m_StatsFontH, 0)) {
+      SIZE charSize = m_Font3D.GetMaxCharMetric();
+      m_StatsRect.right = m_StatsRect.left + 61 * charSize.cx + 5 + 3;
+      m_StatsRect.bottom = m_StatsRect.top + 18 * charSize.cy + 5 + 3;
+    }
+    m_StatsBackground.Set(m_StatsRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
+
+    m_Yaxis = m_GraphRect.bottom - 50 * m_Yscale;
+
+    m_Underlay.Set(m_GraphRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
+
+    m_Lines.ClearPoints(rtSize);
+    POINT points[2];
+    const int linestep = 20 * m_Yscale;
+    for (int y = m_GraphRect.top + (m_Yaxis - m_GraphRect.top) % (linestep); y < m_GraphRect.bottom; y += linestep) {
+      points[0] = { m_GraphRect.left,  y };
+      points[1] = { m_GraphRect.right, y };
+      m_Lines.AddPoints(points, std::size(points), (y == m_Yaxis) ? D3DCOLOR_XRGB(150, 150, 255) : D3DCOLOR_XRGB(100, 100, 255));
+    }
+    m_Lines.UpdateVertexBuffer();
+  }
 }
 
 CD3DTexture& CMPCVRRenderer::GetIntermediateTarget()

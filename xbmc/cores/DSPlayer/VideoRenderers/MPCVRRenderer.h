@@ -14,6 +14,8 @@
 #include "guilib/D3DResource.h"
 #include "../VideoPlayer/VideoRenderers/BaseRenderer.h"
 #include "../Filters/MPCVideoRenderer/PlHelper.h"
+#include "Filters/MPCVideoRenderer/D3D11Font.h"
+#include "Filters/MPCVideoRenderer/D3D11Geometry.h"
 #include <vector>
 
 #include <d3d11_4.h>
@@ -136,6 +138,8 @@ public:
 
   void CopyToBackBuffer();
   void DrawSubtitles();
+  void DrawStats();
+  void SetStats(CStdStringW thetext) { m_statsText = thetext; };
 
   void Reset();
   
@@ -152,6 +156,7 @@ protected:
 
   
   
+
   virtual void CheckVideoParameters();
   
   bool m_bConfigured = false;
@@ -176,6 +181,27 @@ protected:
   Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
   Microsoft::WRL::ComPtr<ID3D11Buffer>         m_pVertexBuffer;
   Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSampler;
+
+  //stats drawing
+  void SetGraphSize();
+  CD3D11Rectangle m_StatsBackground;
+  CD3D11Font      m_Font3D;
+  CD3D11Rectangle m_Rect3D;
+  CD3D11Rectangle m_Underlay;
+  CD3D11Lines     m_Lines;
+  CD3D11Polyline  m_SyncLine;
+  int m_StatsFontH = 14;
+  RECT m_StatsRect = { 10, 10, 10 + 5 + 63 * 8 + 3, 10 + 5 + 18 * 17 + 3 };
+  int  m_iResizeStats = 0;
+  int m_Xstep = 4;
+  int m_Yscale = 2;
+  RECT m_GraphRect = {};
+  int m_Yaxis = 0;
+  CStdStringW m_statsText;
+  const POINT m_StatsTextPoint = { 10 + 5, 10 + 5 };
+  D3DCOLOR m_dwStatsTextColor = D3DCOLOR_XRGB(255, 255, 255);
+  CRect m_screenRect;
+
 
   PL::CPlHelper* m_pPlacebo;
   CD3DTexture m_IntermediateTarget;
