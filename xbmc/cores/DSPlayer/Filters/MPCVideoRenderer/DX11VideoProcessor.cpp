@@ -885,13 +885,13 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 	frameOut.crop.x1 = m_srcWidth;
 	frameOut.crop.y1 = m_srcHeight;
-	frameOut.repr.sys = PL_COLOR_SYSTEM_BT_709;
+	frameOut.repr.sys = frameIn.repr.sys;// PL_COLOR_SYSTEM_BT_709;
 	frameOut.repr.levels = PL_COLOR_LEVELS_FULL;
 	frameOut.repr.alpha = PL_ALPHA_UNKNOWN;
 	frameOut.repr.bits.sample_depth = 8;
 	frameOut.repr.bits.color_depth = 8;
 	frameOut.color = frameIn.color;
-	
+
 	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
 	pl_color_space csp = frameIn.color;
 	csp.hdr = pHelper->GetHdrData(pSample);

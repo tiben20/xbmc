@@ -326,25 +326,6 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //destRect destination
   //m_sourceWidth
   //m_sourceHeight
-  //the intermediate target should already be created here
-  //if (!(m_destRect.Width() == m_IntermediateTarget.GetWidth() && m_destRect.Height() == m_IntermediateTarget.GetHeight()))
-  //  CreateIntermediateTarget(m_destRect.Width(), m_destRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
-    //CreateIntermediateTarget(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
-
-  //in case of redraw do not reprocess the texture
-
-  D3D11_BOX srcBox = {};
-  srcBox.left = m_destRect.x1;
-  srcBox.top = m_destRect.y1;
-  srcBox.front = 0;
-  srcBox.right = m_destRect.x2;
-  srcBox.bottom = m_destRect.y2;
-  srcBox.back = 1;
-  
-  //Copy subresource as the problem to not be able to have negative left and top so its bugging on scaling
-  //DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(DX::DeviceResources::Get()->GetBackBuffer().Get(), 0, 
-  //                                                                   m_destRect.x1 ,m_destRect.y1,0, m_pShaders[0]->GetOutputSurface().Get(),0, &srcBox);
-  
   D3D11_VIEWPORT oldVP;
   UINT oldIVP = 1;
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;

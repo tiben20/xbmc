@@ -468,11 +468,12 @@ HRESULT CHdmvSub::GetTextureSize (uint32_t pos, SIZE& MaxTextureSize, SIZE& Vide
     Com::SmartRect pRect;
     GetDrawingRect(pObject, pRect);
 
-    MaxTextureSize = pRect.Size();
-    VideoTopLeft = pRect.TopLeft();
+    MaxTextureSize.cx = VideoSize.cx = pObject->m_videoDescriptor.nVideoWidth;
+    MaxTextureSize.cy = VideoSize.cy = pObject->m_videoDescriptor.nVideoHeight;
+    VideoTopLeft.x = 0;
+    VideoTopLeft.y = 0;
 
-    VideoSize.cx = pObject->m_videoDescriptor.nVideoWidth;
-    VideoSize.cy = pObject->m_videoDescriptor.nVideoHeight;
+
 
     return S_OK;
   }

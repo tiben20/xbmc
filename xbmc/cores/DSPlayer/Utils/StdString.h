@@ -342,6 +342,8 @@
 #pragma warning (disable : 4290) // C++ Exception Specification ignored
 #pragma warning (disable : 4127) // Conditional expression is constant
 #pragma warning (disable : 4097) // typedef name used as synonym for class name
+#pragma warning (disable : 6031) // return value ignored
+#pragma warning (disable : 4311) // reinterpret cast
 #endif
 #endif
 
