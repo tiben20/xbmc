@@ -57,7 +57,7 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
   //Log initiation
   pl_log_params log_param{};
   log_param.log_cb = pl_log_cb;
-  log_param.log_level = PL_LOG_INFO;
+  log_param.log_level = PL_LOG_ERR;
   m_plLog = pl_log_create(PL_API_VER, &log_param);
 
   //d3d device
@@ -67,9 +67,10 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
   d3d_param.adapter_luid = DX::DeviceResources::Get()->GetAdapterDesc().AdapterLuid;
   d3d_param.allow_software = true;
   d3d_param.force_software = false;
-  d3d_param.debug = true;
+  d3d_param.debug = false;
   //libplacebo dont touch it if 0
   d3d_param.max_frame_latency = 0;
+  d3d_param.use_deferred_context = true;
   m_plD3d11 = pl_d3d11_create(m_plLog, &d3d_param);
   if (!m_plD3d11)
     return false;
@@ -129,9 +130,61 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
 {
   pl_frame outFrame{};
   struct pl_plane_data data[4] = {};
+
   pl_chroma_location loc;
-  //todo
+  /*static const struct pl_plane_data nv12[] = {
+        {
+            .type = PL_FMT_UNORM,
+            .component_size = {8},
+            .component_map = {0},
+            .pixel_stride = 1,
+        }, {
+            .type = PL_FMT_UNORM,
+            .component_size = {8, 8},
+            .component_map = {1, 2},
+            .pixel_stride = 2,
+        }
+  };*/
+  pl_plane pl_planes[3]{};
+  pl_tex pltex[2]{};
+  BYTE* pD;
+  bool res;
+  pSample->GetPointer(&pD);
+  data[0].type = PL_FMT_UNORM;
+  data[0].component_size[0] = 8;
+  data[0].component_map[0] = 0;
+  data[0].pixel_stride = 1;
   
+  data[0].pixels = pD;
+  data[0].width = width;
+  data[0].height = height;
+  int outmap[4];
+
+  res = pl_upload_plane(m_plD3d11->gpu, &pl_planes[0], &pltex[0], &data[0]);
+
+  data[1].type = PL_FMT_UNORM;
+  data[1].component_size[0] = 8;
+  data[1].component_size[1] = 8;
+  data[1].component_map[0] = 1;
+  data[1].component_map[1] = 2;
+  data[1].pixel_stride = 2;
+  
+  data[1].pixels = pD + width * height;
+  data[1].width = width/2;
+  data[1].height = height/2;
+  res = pl_upload_plane(m_plD3d11->gpu, &pl_planes[1], &pltex[1], &data[1]);
+  //todo
+  pl_frame img{};
+  img.num_planes = 2;
+  img.planes[0] = pl_planes[0];
+  img.planes[1] = pl_planes[1];
+  img.repr = GetPlColorRepresentation(pFormat);
+  img.color = GetPlColorSpace(pFormat);
+  loc = PL_CHROMA_LEFT;
+  pl_frame_set_chroma_location(&img, loc);
+  return img;
+
+
   outFrame.num_planes = 2;
 
   outFrame.repr = {};
@@ -140,7 +193,7 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
   int comp[4];
   comp[0] = 0;
   comp[1] = 1;
-  comp[2] = 1;
+  comp[2] = 2;
   comp[3] = 0;
   for (int p = 0; p < outFrame.num_planes; p++) {
     struct pl_plane* plane = &outFrame.planes[p];
@@ -171,6 +224,7 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
   //case AVCHROMA_LOC_BOTTOM:       return PL_CHROMA_BOTTOM_CENTER;
   //case AVCHROMA_LOC_NB:           return PL_CHROMA_COUNT;
   }
+  loc = PL_CHROMA_CENTER;
   pl_frame_set_chroma_location(&outFrame, loc);
 
   BYTE* pDataOut = nullptr;
@@ -200,8 +254,8 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
   pData[0] = malloc(width * height);
   pData[1] = malloc(sizeleft);
   memcpy(pData[0], pDataOut, width * height);
-  pDataOut += srcPitch * height;
-  memcpy(pData[1], pDataOut, sizeleft);
+
+  memcpy(pData[1], pDataOut + srcPitch * height, sizeleft);
   CD3DTexture Plane[2];
   
   Plane[0].CreatePlane(width, height, DXGI_FORMAT_R8_UNORM, pData[0], "LibPlacebo first nv12 plane");
@@ -298,7 +352,6 @@ pl_color_repr CPlHelper::GetPlColorRepresentation(DXVA2_ExtendedFormat pFormat)
 
   //nv12 is 8 bits per color depth
   repr.bits.color_depth = 8;
-
   return repr;
 }
 

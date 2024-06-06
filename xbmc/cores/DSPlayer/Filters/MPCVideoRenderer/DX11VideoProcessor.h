@@ -61,11 +61,13 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11VertexShader>   m_pVS_Simple;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_BitmapToFrame;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout>    m_pVSimpleInputLayout;
-
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerPoint;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState>   m_pSamplerLinear;
+	CD3DTexture m_pInputTexture;
 #if TEST_SHADER
 	Microsoft::WRL::ComPtr<ID3D11PixelShader>    m_pPS_TEST;
 #endif
-
+	HRESULT ConvertColorPass(ID3D11Texture2D* pRenderTarget);
 	Tex11Video_t m_TexSrcVideo; // for copy of frame
 	Tex2D_t m_TexConvertOutput;
 	Tex2D_t m_TexResize;        // for intermediate result of two-pass resize
@@ -213,6 +215,8 @@ private:
 public:
 
 	/*libplacebo*/
+	HRESULT UpdateConvertColorShader();
+	void SetShaderConvertColorParams();
 	HRESULT CopySampleToLibplacebo(IMediaSample* pSample);
 
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);

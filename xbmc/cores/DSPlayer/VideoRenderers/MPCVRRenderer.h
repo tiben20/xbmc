@@ -77,6 +77,7 @@ public:
   static std::shared_ptr<CMPCVRRenderer> Get();
   CMPCVRRenderer();
   virtual ~CMPCVRRenderer();
+  void Init();
 
   void Release();
 

@@ -67,7 +67,7 @@ namespace PL
 
     pl_d3d11 GetPLD3d11() { return m_plD3d11; };
     pl_renderer GetPLRenderer() { return m_plRenderer; };
-
+    pl_swapchain GetPLSwapChain() { return m_plSwapchain; };
 
   protected:
     //options

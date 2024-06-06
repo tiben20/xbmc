@@ -602,6 +602,14 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	};
 
 	D3D11_MAPPED_SUBRESOURCE mr;
+	if (!m_pVertexBuffer.Get())
+	{
+		//dont know why losing dynamic buffer something
+		D3D11_BUFFER_DESC BufferDesc = { sizeof(VERTEX) * 4, D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
+		m_pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pVertexBuffer);
+	}
+	
+
 	hr = m_pDeviceContext->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
 	if (FAILED(hr)) {
 		return hr;

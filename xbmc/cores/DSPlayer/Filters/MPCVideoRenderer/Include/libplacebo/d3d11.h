@@ -38,6 +38,9 @@ typedef const struct pl_d3d11_t {
 
     // True if the device is using a software (WARP) adapter
     bool software;
+    
+    //true if using deferred context will need to call pl_gpu_finish at the end to send commmand queues
+    bool use_deferred_context;
 } *pl_d3d11;
 
 struct pl_d3d11_params {
@@ -55,6 +58,8 @@ struct pl_d3d11_params {
     // the default adapter will be used instead.
     LUID adapter_luid;
 
+    bool use_deferred_context;
+    
     // Allow a software (WARP) adapter when selecting the adapter automatically.
     // Note that sometimes the default adapter will be a software adapter. This
     // is because, on Windows 8 and up, if there are no hardware adapters,

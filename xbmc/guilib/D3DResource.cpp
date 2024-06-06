@@ -219,6 +219,7 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT fo
   m_width = width;
   m_height = height;
   m_mipLevels = 1;
+  m_format = format;
   // create the texture
   Release();
   if (format == DXGI_FORMAT_UNKNOWN)

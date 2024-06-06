@@ -36,6 +36,17 @@ std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 
 CMPCVRRenderer::CMPCVRRenderer()
 {
+  Init();
+}
+
+CMPCVRRenderer::~CMPCVRRenderer()
+{
+  m_pPlacebo->Release();
+  Release();
+}
+
+void CMPCVRRenderer::Init()
+{
   CD3DDSPixelShader shdr;
   LPVOID data;
   DWORD size;
@@ -63,12 +74,6 @@ CMPCVRRenderer::CMPCVRRenderer()
   m_pPlacebo = new PL::CPlHelper();
   m_pPlacebo->Init(DXGI_FORMAT_NV12);
   //m_pPlacebo = new PL::CPlHelper();
-}
-
-CMPCVRRenderer::~CMPCVRRenderer()
-{
-  m_pPlacebo->Release();
-  Release();
 }
 
 void CMPCVRRenderer::Release()
@@ -165,6 +170,9 @@ HRESULT CMPCVRRenderer::CreateVertexBuffer()
 
 void CMPCVRRenderer::CopyToBackBuffer()
 {
+  if (!m_pVS_Simple.Get())
+    Init();
+
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
   const UINT Stride = sizeof(DS_VERTEX);
   const UINT Offset = 0;
@@ -281,7 +289,7 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   if (clear)
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
-
+  
   ManageRenderArea();
   //m_sourceRect source of the video
   //m_destRect destination rectangle
@@ -307,6 +315,7 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //Copy subresource as the problem to not be able to have negative left and top so its bugging on scaling
   //DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(DX::DeviceResources::Get()->GetBackBuffer().Get(), 0, 
   //                                                                   m_destRect.x1 ,m_destRect.y1,0, m_pShaders[0]->GetOutputSurface().Get(),0, &srcBox);
+  
   D3D11_VIEWPORT oldVP;
   UINT oldIVP = 1;
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;
@@ -328,7 +337,6 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   pContext->RSSetViewports(1, &oldVP);
 
   DX::Windowing()->SetAlphaBlendEnable(true);
-  
 }
 
 bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps)
@@ -413,6 +421,7 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
                                              bool dynamic,
                                              DXGI_FORMAT format)
 {
+  
   // No format specified by renderer
   if (format == DXGI_FORMAT_UNKNOWN)
     format = DX::Windowing()->GetBackBuffer().GetFormat();

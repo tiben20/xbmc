@@ -560,6 +560,10 @@ HRESULT DX::DeviceResources::CreateSwapChain(DXGI_SWAP_CHAIN_DESC1& desc, DXGI_S
 {
   HRESULT hr;
 #ifdef TARGET_WINDOWS_DESKTOP
+  if (!m_d3dDevice.Get())
+    assert(0);
+  if (!m_dxgiFactory.Get())
+    assert(0);
   hr = m_dxgiFactory->CreateSwapChainForHwnd(
     m_d3dDevice.Get(),
     m_window,
