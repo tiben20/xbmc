@@ -24429,6 +24429,26 @@ msgctxt "#55032"
 msgid "Show Blu-ray titles and Matroska Editions choice dialog"
 msgstr ""
 
+msgctxt "#55033"
+msgid "Lib placebo options"
+msgstr ""
+
+msgctxt "#55034"
+msgid "Default"
+msgstr ""
+
+msgctxt "#55035"
+msgid "Fast"
+msgstr ""
+
+msgctxt "#55036"
+msgid "High quality"
+msgstr ""
+
+msgctxt "#55037"
+msgid "Custom"
+msgstr ""
+
 #. 55050-55100 Directshow Subtitles 
 msgctxt "#55050"
 msgid "- Border line"

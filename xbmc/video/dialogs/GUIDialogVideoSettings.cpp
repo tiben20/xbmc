@@ -65,6 +65,7 @@
 
 #if HAS_DS_PLAYER
 #define VIDEO_SETTINGS_DS_STATS           "video.dsstats"
+#define VIDEO_SETTINGS_PLACEBO_OPTION     "video.libplacebooption"
 #define VIDEO_SETTINGS_DS_FILTERS         "video.dsfilters"
 #endif
 
@@ -85,7 +86,8 @@ CGUIDialogVideoSettings::CGUIDialogVideoSettings()
 { 
 #if HAS_DS_PLAYER
   m_scalingMethod = 0;
-  m_dsStats = 0;	 
+  m_dsStats = 0;
+  m_placeboOption = 0;
 #endif
 }
 
@@ -119,6 +121,11 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
   {
     m_dsStats = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
     g_dsSettings.pRendererSettings->displayStats = (DS_STATS)m_dsStats;
+  }
+  else if (settingId == VIDEO_SETTINGS_PLACEBO_OPTION)
+  {
+    m_placeboOption = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
+    g_dsSettings.pRendererSettings->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)m_placeboOption;
   }
 #endif
   else if (settingId == SETTING_VIDEO_SCALINGMETHOD)
@@ -562,7 +569,14 @@ void CGUIDialogVideoSettings::InitializeSettings()
       entries.push_back(TranslatableIntegerSettingOption(55013, DS_STATS_2));
       entries.push_back(TranslatableIntegerSettingOption(55014, DS_STATS_3));
       AddSpinner(groupVideo, VIDEO_SETTINGS_DS_STATS, 55015, SettingLevel::Basic, static_cast<int>(m_dsStats), entries);
-     
+      
+      entries.clear();
+      entries.push_back(TranslatableIntegerSettingOption(55034, PLACEBO_DEFAULT));
+      entries.push_back(TranslatableIntegerSettingOption(55035, PLACEBO_FAST));
+      entries.push_back(TranslatableIntegerSettingOption(55036, PLACEBO_HIGH));
+      entries.push_back(TranslatableIntegerSettingOption(55037, PLACEBO_CUSTOM));
+
+      AddSpinner(groupVideo, VIDEO_SETTINGS_PLACEBO_OPTION, 55033, SettingLevel::Basic, static_cast<int>(m_placeboOption), entries);
     } 
     AddButton(groupFilters, VIDEO_SETTINGS_DS_FILTERS, 55062,SettingLevel::Basic);
   }

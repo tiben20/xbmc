@@ -50,6 +50,14 @@ enum DS_STATS
   DS_STATS_3 = 1
 };
 
+enum LIBPLACEBO_SHADERS
+{
+  PLACEBO_DEFAULT = 0,
+  PLACEBO_FAST = 1,
+  PLACEBO_HIGH = 2,
+  PLACEBO_CUSTOM = 3
+};
+
 enum EVR_OUTPUT_RANGE
 {
   OUTPUT_RANGE_0_255 = 0,
@@ -67,6 +75,7 @@ public:
   {
     apSurfaceUsage = VIDRNDT_AP_TEXTURE3D; // Fixed setting
     displayStats = DS_STATS_NONE; // On GUI
+    m_pPlaceboOptions = PLACEBO_DEFAULT;
     vSyncOffset = 0;
     vSyncAccurate = true;
 
@@ -85,6 +94,8 @@ public:
   }
 
 public:
+  //libplacebo options
+  LIBPLACEBO_SHADERS m_pPlaceboOptions;
   DS_STATS displayStats;
   bool alterativeVSync;
   int vSyncOffset;

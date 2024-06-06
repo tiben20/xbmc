@@ -65,5 +65,6 @@ private:
   CDSPropertyPage* m_pDSPropertyPage;
   int m_scalingMethod;
   int m_dsStats;
+  int m_placeboOption;
 #endif
 };

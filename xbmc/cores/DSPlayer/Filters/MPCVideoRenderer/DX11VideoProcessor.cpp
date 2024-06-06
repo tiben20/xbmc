@@ -811,7 +811,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	HRESULT hr;
 	BYTE* data = nullptr;
 	Com::SmartQIPtr<ID3D11Texture2D> pD3D11Texture2D;
-	Com::SmartQIPtr<IMediaSampleD3D11> pMSD3D11 = pSample;
+	Microsoft::WRL::ComPtr<IMediaSampleD3D11> pMSD3D11;
+	pSample->QueryInterface(__uuidof(IMediaSampleD3D11), &pMSD3D11);
 	UINT ArraySlice = 0;
 	if (pMSD3D11)
 	{
@@ -896,7 +897,26 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	csp.hdr = pHelper->GetHdrData(pSample);
 	
 	//pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
-	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &pl_render_fast_params);
+	pl_render_params params;
+	switch (g_dsSettings.pRendererSettings->m_pPlaceboOptions)
+	{
+	case PLACEBO_DEFAULT:
+		params = pl_render_default_params;
+		break;
+	case PLACEBO_FAST:
+		params = pl_render_fast_params;
+		break;
+	case PLACEBO_HIGH:
+		params = pl_render_high_quality_params;
+		break;
+	case PLACEBO_CUSTOM://TODO
+		params = pl_render_high_quality_params;
+		break;
+	default:
+		break;
+	}
+	
+	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
 
 	SendStats();
