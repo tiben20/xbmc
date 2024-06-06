@@ -602,13 +602,6 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	};
 
 	D3D11_MAPPED_SUBRESOURCE mr;
-	if (!m_pVertexBuffer.Get())
-	{
-		//dont know why losing dynamic buffer something
-		D3D11_BUFFER_DESC BufferDesc = { sizeof(VERTEX) * 4, D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
-		m_pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pVertexBuffer);
-	}
-	
 
 	hr = m_pDeviceContext->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mr);
 	if (FAILED(hr)) {
@@ -620,11 +613,11 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 
 	UINT Stride = sizeof(VERTEX);
 	UINT Offset = 0;
-	m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
+	m_pDeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &Stride, &Offset);
 	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	m_pDeviceContext->PSSetSamplers(0, 1, &(stretching ? m_pSamplerLinear : m_pSamplerPoint));
-	m_pDeviceContext->PSSetShaderResources(0, 1, &m_pOutputShaderResource);
+	m_pDeviceContext->PSSetSamplers(0, 1, (stretching ? m_pSamplerLinear.GetAddressOf() : m_pSamplerPoint.GetAddressOf()));
+	m_pDeviceContext->PSSetShaderResources(0, 1, m_pOutputShaderResource.GetAddressOf());
 
 	m_pDeviceContext->OMSetBlendState(m_pAlphaBlendState.Get(), nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 

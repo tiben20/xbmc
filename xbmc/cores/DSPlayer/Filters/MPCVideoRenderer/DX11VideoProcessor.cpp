@@ -899,17 +899,6 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 	SendStats();
 
-	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
-	{
-		CLog::LogF(LOGERROR, "failed to finish command queue.");
-		return E_FAIL;
-	}
-	else
-	{
-		D3DSetDebugName(pCommandList.Get(), "CommandList mpc deferred context");
-		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), 0);
-	}
-
 	return S_OK;
 	//const UINT linesize = std::min((UINT)abs(src_pitch), dst_pitch);
 	/*

@@ -60,9 +60,10 @@ void CMPCVRRenderer::Init()
 
   data = shdr.GetData();
   size = shdr.GetSize();
-
   GetDevice->CreateVertexShader(data, size, nullptr, &m_pVS_Simple);
   GetDevice->CreateInputLayout(Layout, std::size(Layout), data, size, &m_pVSimpleInputLayout);
+
+
 
   if (!shdr.LoadFromFile(IDF_PS_11_SIMPLE))
     CLog::Log(LOGERROR, "{} failed loading {}", __FUNCTION__, IDF_VS_11_SIMPLE);
@@ -71,6 +72,13 @@ void CMPCVRRenderer::Init()
   size = shdr.GetSize();
 
   GetDevice->CreatePixelShader(data, size, nullptr, &m_pPS_Simple);
+
+  if (!shdr.LoadFromFile(IDF_PS_11_SIMPLE))
+    CLog::Log(LOGERROR, "{} failed loading {}", __FUNCTION__, IDF_PS_11_SIMPLE);
+  data = shdr.GetData();
+  size = shdr.GetSize();
+  GetDevice->CreatePixelShader(data, size, nullptr, &m_pPS_BitmapToFrame);
+
   m_pPlacebo = new PL::CPlHelper();
   m_pPlacebo->Init(DXGI_FORMAT_NV12);
   //m_pPlacebo = new PL::CPlHelper();
@@ -225,7 +233,6 @@ void CMPCVRRenderer::DrawSubtitles()
     pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
     pContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
     pContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
-    pContext->PSSetSamplers(0, 1, m_pSampler.GetAddressOf());
     Com::SmartRect m_windowRect(Com::SmartPoint(0, 0), Com::SmartPoint(GetScreenRect().x2, GetScreenRect().y2));
     Com::SmartRect pSrc, pDst;
     //sending the devicecontext to the subtitlemanager he will draw directly with it
@@ -236,8 +243,10 @@ void CMPCVRRenderer::DrawSubtitles()
 
 void CMPCVRRenderer::DrawStats()
 {
+  //no text no draw
+  if (m_statsText.length() == 0)
+    return;
 
-  
   SIZE rtSize{ m_screenRect.Width(),m_screenRect.Height()};
 
   m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
