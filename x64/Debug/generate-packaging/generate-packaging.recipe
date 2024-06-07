@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\ZERO_CHECK</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\build-p8-platform</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\cec</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\crossguid</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\flatbuffers</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\fmt</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\libdvdcss</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\libdvdread</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\libdvdnav</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\libnfs</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\pcre</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\rapidjson</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\spdlog</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\taglib</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\tinyxml2</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\export-files</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\gen_skin_pack</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\gen_system_addons</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
+      <FullPath>H:\kodidsplayermaster\x64\Debug\generate-packaging</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles />
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

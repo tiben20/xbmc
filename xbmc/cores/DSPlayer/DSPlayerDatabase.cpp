@@ -1034,7 +1034,7 @@ bool CDSPlayerDatabase::GetResumeEdition(const std::string& strFilenameAndPath, 
 bool CDSPlayerDatabase::GetResumeEdition(const CFileItem *item, CEdition &edition)
 {
   std::string strPath = item->GetPath();
-  if ((item->IsVideoDb() || item->IsDVD()) && item->HasVideoInfoTag())
+  if (item->IsDVD() && item->HasVideoInfoTag())
     strPath = item->GetVideoInfoTag()->m_strFileNameAndPath;
 
   return GetResumeEdition(strPath, edition);

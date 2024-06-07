@@ -1,0 +1,20 @@
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\DC78888EE4C83528D01616CBB61E2A7B\COMPILEINFO.CPP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -DCORE_SOURCE_DIR=H:/kodidsplayermaster -DCORE_SYSTEM_NAME=windows -DCORE_PLATFORM_NAME_LC="windows" -DAUDIO_BACKENDS="" -DGL_INTERFACES="" -DCORE_BUILD_DIR=build -DCMAKE_BINARY_DIR=H:/kodidsplayermaster -DARCH_DEFINES="-D_WINDOWS -DTARGET_WINDOWS -DTARGET_WINDOWS_DESKTOP -D__SSE__ -D__SSE2__ -DHAVE_SSE=1 -DHAVE_SSE2=1" -DAPP_SCMID=20240606-a20fb05d44-dirty -DAPP_COPYRIGHT_YEARS=2005-2021 -DAPP_BUILD_DATE=20240607 -DAPP_SHARED_LIBRARY_SUFFIX=".dll" -DPYTHON_VERSION=3.8 -Dprefix=H:/kodidsplayermaster/build -DKODI_WEBSERVER_EXTRA_WHITELIST="" -P H:/kodidsplayermaster/cmake/scripts/common/GenerateCompileInfo.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster -BH:/kodidsplayermaster --check-stamp-file H:/kodidsplayermaster/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

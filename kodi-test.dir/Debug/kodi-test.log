@@ -1,0 +1,3 @@
+﻿     Creating library H:/kodidsplayermaster/Debug/kodi-test.lib and object H:/kodidsplayermaster/Debug/kodi-test.exp
+MSVCRTD.lib(initializers.obj) : warning LNK4098: defaultlib 'libcmtd.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
+  kodi-test.vcxproj -> H:\kodidsplayermaster\Debug\kodi-test.exe

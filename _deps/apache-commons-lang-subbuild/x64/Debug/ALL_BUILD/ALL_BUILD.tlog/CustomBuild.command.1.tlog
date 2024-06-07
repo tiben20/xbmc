@@ -1,0 +1,10 @@
+^H:\KODIDSPLAYERMASTER\_DEPS\APACHE-COMMONS-LANG-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster/_deps/apache-commons-lang-subbuild -BH:/kodidsplayermaster/_deps/apache-commons-lang-subbuild --check-stamp-file H:/kodidsplayermaster/_deps/apache-commons-lang-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

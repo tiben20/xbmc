@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/apache-commons-text-subbuild/apache-commons-text-populate-prefix/src/apache-commons-text-populate-stamp/download-apache-commons-text-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/apache-commons-text-subbuild/apache-commons-text-populate-prefix/src/apache-commons-text-populate-stamp/verify-apache-commons-text-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/apache-commons-text-subbuild/apache-commons-text-populate-prefix/src/apache-commons-text-populate-stamp/extract-apache-commons-text-populate.cmake
+source_dir=H:/kodidsplayermaster/project/BuildDependencies/x64/share/java/text
+work_dir=H:/kodidsplayermaster/project/BuildDependencies/x64/share/java
+url(s)=http://mirrors.kodi.tv/build-deps/sources/commons-text-1.11.0-bin.tar.gz
+hash=SHA512=2e94877000dd270b69e2e8cbf49f258a90b4c628b6b6b0814e300a2f0e9c391f0816dceb0707e596ae3b7c9532f93e7a4917df47c77f44b3a810e14042ce5f3f
+no_extract=
+

@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/download-groovy-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/verify-groovy-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/extract-groovy-populate.cmake
+source_dir=H:/kodidsplayermaster/project/BuildDependencies/x64/share/groovy
+work_dir=H:/kodidsplayermaster/project/BuildDependencies/x64/share
+url(s)=http://mirrors.kodi.tv/build-deps/sources/apache-groovy-binary-4.0.16.zip
+hash=SHA512=743698979c801f3cfb36545888b5303e1e25dae5692bb45cab7ebbe102a6eda31f09abc6978349ad90ecaf630416fc87eacba7781244855e7e771a3c44041fa0
+no_extract=
+

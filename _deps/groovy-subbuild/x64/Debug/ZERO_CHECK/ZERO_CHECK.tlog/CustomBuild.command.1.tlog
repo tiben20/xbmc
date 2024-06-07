@@ -1,0 +1,10 @@
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\B1E5AAF24F1570C321CD6F646AE41858\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster/_deps/groovy-subbuild -BH:/kodidsplayermaster/_deps/groovy-subbuild --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

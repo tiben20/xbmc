@@ -75,7 +75,7 @@
 #include "input/actions//ActionIDs.h"
 #include "application/ApplicationPlayer.h"
 #include "application/AppInboundProtocol.h"
-
+#include "video\VideoFileItemClassify.h"
 #include "processthreadsapi.h"
 
 using namespace PVR;
@@ -353,8 +353,8 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
   CFileItem fileItem = file;
   m_PlayerOptions = options;
   m_canTempo = true;
-
-  if (file.IsVideoDb())
+  
+  if (KODI::VIDEO::IsVideoDb(file))
   {
     fileItem.SetPath(file.GetVideoInfoTag()->m_strFileNameAndPath);
     fileItem.SetProperty("original_listitem_ur", file.GetPath());

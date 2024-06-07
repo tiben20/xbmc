@@ -145,7 +145,7 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
   return hr;
   }*/
   /* DVD NAVIGATOR */
-  if (pFileItem.IsDVDFile())
+  if (pFileItem.IsDiscImage())
   {
     std::string path = pFileItem.GetPath();
     if (StringUtils::EqualsNoCase(StringUtils::Left(path, 6), "smb://"))

@@ -1,0 +1,152 @@
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/tmp/groovy-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-DOWNLOAD.RULE
+setlocal
+cd H:\kodidsplayermaster\project\BuildDependencies\x64\share
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/download-groovy-populate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/verify-groovy-populate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/extract-groovy-populate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-UPDATE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-update
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-PATCH.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-CONFIGURE.RULE
+setlocal
+cd H:\kodidsplayermaster\_deps\groovy-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-BUILD.RULE
+setlocal
+cd H:\kodidsplayermaster\_deps\groovy-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-INSTALL.RULE
+setlocal
+cd H:\kodidsplayermaster\_deps\groovy-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\0F2A051B8AAC664814215E9445B66CA1\GROOVY-POPULATE-TEST.RULE
+setlocal
+cd H:\kodidsplayermaster\_deps\groovy-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\E4CD35AAFEEAB0A7054E0A8B4074EA82\GROOVY-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory H:/kodidsplayermaster/_deps/groovy-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/CMakeFiles/Debug/groovy-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/_deps/groovy-subbuild/groovy-populate-prefix/src/groovy-populate-stamp/Debug/groovy-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKEFILES\B1E5AAF24F1570C321CD6F646AE41858\GROOVY-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\_DEPS\GROOVY-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster/_deps/groovy-subbuild -BH:/kodidsplayermaster/_deps/groovy-subbuild --check-stamp-file H:/kodidsplayermaster/_deps/groovy-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

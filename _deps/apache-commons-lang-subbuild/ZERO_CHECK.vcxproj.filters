@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="H:\kodidsplayermaster\_deps\apache-commons-lang-subbuild\CMakeFiles\75aeea7d740b4a62908506405df10a7f\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F450F045-4F2B-3294-BF8E-6F17C599203B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,140 @@
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P H:/kodidsplayermaster/build/taglib/tmp/taglib-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-DOWNLOAD.RULE
+setlocal
+cd H:\kodidsplayermaster\build\taglib\src
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/build/taglib/src/taglib-stamp/download-taglib.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/build/taglib/src/taglib-stamp/verify-taglib.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/build/taglib/src/taglib-stamp/extract-taglib.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-UPDATE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-update
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-PATCH.RULE
+setlocal
+cd H:\kodidsplayermaster\build\taglib\src\taglib
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i H:/kodidsplayermaster/tools/depends/target/taglib/001-cmake-pdb-debug.patch
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-CONFIGURE.RULE
+setlocal
+cd H:\kodidsplayermaster\build\taglib\src\taglib-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DBUILD_SHARED_LIBS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF -DBUILD_BINDINGS=OFF -DSPDLOG_WCHAR_SUPPORT=ON -DSPDLOG_WCHAR_FILENAMES=ON -DPROJECTSOURCE=H:/kodidsplayermaster -DCMAKE_PREFIX_PATH=H:/kodidsplayermaster/project/BuildDependencies/x64 H:/kodidsplayermaster/project/BuildDependencies/mingwlibs/x64 "-DCMAKE_C_FLAGS=/DWIN32 /D_WINDOWS /Zi /Ob0 /Od /RTC1  " "-DCMAKE_CXX_FLAGS=/MP /DWIN32 /D_WINDOWS /EHsc /wd\"4996\" /Zi /Ob0 /Od /RTC1  " "-DCMAKE_EXE_LINKER_FLAGS=/machine:x64 /SAFESEH:NO /DELAYLOAD:\"libmariadb.dll\" /DELAYLOAD:\"libxslt.dll\" /DELAYLOAD:\"dnssd.dll\" /DELAYLOAD:\"dwmapi.dll\" /DELAYLOAD:\"sqlite3.dll\" /DELAYLOAD:\"d3dcompiler_47.dll\" /debug /INCREMENTAL /NODEFAULTLIB:\"libcmt\" /NODEFAULTLIB:\"msvcrt\"  " -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_PREFIX=H:/kodidsplayermaster/project/BuildDependencies/x64 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_SYSTEM_VERSION=10.0.19045 -DCMAKE_SYSTEM_NAME=Windows "-GVisual Studio 17 2022" -Ax64 -S H:/kodidsplayermaster/build/taglib/src/taglib -B H:/kodidsplayermaster/build/taglib/src/taglib-build
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-BUILD.RULE
+setlocal
+cd H:\kodidsplayermaster\build\taglib\src\taglib-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" --build . --config Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\48C7A304447E59B826F1387EEF0D58C7\TAGLIB-INSTALL.RULE
+setlocal
+cd H:\kodidsplayermaster\build\taglib\src\taglib-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" --build . --config Debug --target install
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\30140365DEF65FF274CC465D4C7B102F\TAGLIB-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory H:/kodidsplayermaster/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/CMakeFiles/Debug/taglib-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/taglib/src/taglib-stamp/Debug/taglib-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\FE6770F86772C4813606AC68EE3090E6\TAGLIB.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster -BH:/kodidsplayermaster --check-stamp-file H:/kodidsplayermaster/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

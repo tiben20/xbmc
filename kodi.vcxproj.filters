@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="H:\kodidsplayermaster\xbmc\platform\win32\WinMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="H:\kodidsplayermaster\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="H:\kodidsplayermaster\cmake\README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="H:\kodidsplayermaster\resources.dir\$(Configuration)\XBMC_PC.res">
+      <Filter>Object Libraries</Filter>
+    </Object>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Object Libraries">
+      <UniqueIdentifier>{850CC368-5562-3AD0-A24B-D96E12AF8788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{FBC141E4-EA13-3559-AE1E-2A6F112052A4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

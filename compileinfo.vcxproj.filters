@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="H:\kodidsplayermaster\build\xbmc\CompileInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="H:\kodidsplayermaster\CMakeFiles\dc78888ee4c83528d01616cbb61e2a7b\CompileInfo.cpp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="H:\kodidsplayermaster\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E0865110-DB6A-31EF-8AEA-BF1C99CA4C34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{FBC141E4-EA13-3559-AE1E-2A6F112052A4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

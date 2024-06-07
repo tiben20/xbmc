@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/apache-commons-lang-subbuild/apache-commons-lang-populate-prefix/src/apache-commons-lang-populate-stamp/download-apache-commons-lang-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/apache-commons-lang-subbuild/apache-commons-lang-populate-prefix/src/apache-commons-lang-populate-stamp/verify-apache-commons-lang-populate.cmake;COMMAND;C:/Program Files/CMake/bin/cmake.exe;-P;H:/kodidsplayermaster/_deps/apache-commons-lang-subbuild/apache-commons-lang-populate-prefix/src/apache-commons-lang-populate-stamp/extract-apache-commons-lang-populate.cmake
+source_dir=H:/kodidsplayermaster/project/BuildDependencies/x64/share/java/lang
+work_dir=H:/kodidsplayermaster/project/BuildDependencies/x64/share/java
+url(s)=http://mirrors.kodi.tv/build-deps/sources/commons-lang3-3.14.0-bin.tar.gz
+hash=SHA512=8e7e62418a49ba810512c13a640a8bf35f878fcd54af32fdaab1111e37817f58b21b475980ba663fba4887e45ef8d88af8ff17796f20d202e929e8e2574546dc
+no_extract=
+

@@ -1,0 +1,24 @@
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\FE6770F86772C4813606AC68EE3090E6\GEN_SYSTEM_ADDONS.RULE
+setlocal
+cd H:\kodidsplayermaster
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCORE_SOURCE_DIR=H:/kodidsplayermaster -DCORE_SYSTEM_NAME=windows -DCORE_PLATFORM_NAME_LC="windows" -DCORE_BUILD_DIR=build -DCMAKE_BINARY_DIR=H:/kodidsplayermaster -DBUNDLEDIR=H:/kodidsplayermaster/Debug -P H:/kodidsplayermaster/cmake/scripts/common/GenerateSystemAddons.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster -BH:/kodidsplayermaster --check-stamp-file H:/kodidsplayermaster/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,148 @@
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P H:/kodidsplayermaster/build/pcre/tmp/pcre-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-DOWNLOAD.RULE
+setlocal
+cd H:\kodidsplayermaster\build\pcre\src
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/build/pcre/src/pcre-stamp/download-pcre.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/build/pcre/src/pcre-stamp/verify-pcre.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -P H:/kodidsplayermaster/build/pcre/src/pcre-stamp/extract-pcre.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-UPDATE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-update
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-PATCH.RULE
+setlocal
+cd H:\kodidsplayermaster\build\pcre\src\pcre
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i H:/kodidsplayermaster/tools/depends/target/pcre/001-all-cmakeconfig.patch
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i H:/kodidsplayermaster/tools/depends/target/pcre/002-all-enable_docs_pc.patch
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i H:/kodidsplayermaster/tools/depends/target/pcre/003-all-postfix.patch
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i H:/kodidsplayermaster/tools/depends/target/pcre/004-win-pdb.patch
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\Git\usr\bin\patch.exe" -p1 -i H:/kodidsplayermaster/tools/depends/target/pcre/jit_aarch64.patch
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-CONFIGURE.RULE
+setlocal
+cd H:\kodidsplayermaster\build\pcre\src\pcre-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DPCRE_NEWLINE=ANYCRLF -DPCRE_NO_RECURSE=ON -DPCRE_MATCH_LIMIT_RECURSION=1500 -DPCRE_SUPPORT_JIT=ON -DPCRE_SUPPORT_PCREGREP_JIT=ON -DPCRE_SUPPORT_UTF=ON -DPCRE_SUPPORT_UNICODE_PROPERTIES=ON -DPCRE_SUPPORT_LIBZ=OFF -DPCRE_SUPPORT_LIBBZ2=OFF -DPCRE_BUILD_PCRECPP=OFF -DPCRE_BUILD_PCREGREP=OFF -DPCRE_BUILD_TESTS=OFF -DINSTALL_MSVC_PDB=ON -DPROJECTSOURCE=H:/kodidsplayermaster -DCMAKE_PREFIX_PATH=H:/kodidsplayermaster/project/BuildDependencies/x64 H:/kodidsplayermaster/project/BuildDependencies/mingwlibs/x64 "-DCMAKE_C_FLAGS=/DWIN32 /D_WINDOWS /Zi /Ob0 /Od /RTC1  /sdl-" "-DCMAKE_CXX_FLAGS=/MP /DWIN32 /D_WINDOWS /EHsc /wd\"4996\" /Zi /Ob0 /Od /RTC1  /sdl-" "-DCMAKE_EXE_LINKER_FLAGS=/machine:x64 /SAFESEH:NO /DELAYLOAD:\"libmariadb.dll\" /DELAYLOAD:\"libxslt.dll\" /DELAYLOAD:\"dnssd.dll\" /DELAYLOAD:\"dwmapi.dll\" /DELAYLOAD:\"sqlite3.dll\" /DELAYLOAD:\"d3dcompiler_47.dll\" /debug /INCREMENTAL /NODEFAULTLIB:\"libcmt\" /NODEFAULTLIB:\"msvcrt\"  " -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_INSTALL_PREFIX=H:/kodidsplayermaster/project/BuildDependencies/x64 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_SYSTEM_VERSION=10.0.19045 -DCMAKE_SYSTEM_NAME=Windows "-GVisual Studio 17 2022" -Ax64 -S H:/kodidsplayermaster/build/pcre/src/pcre -B H:/kodidsplayermaster/build/pcre/src/pcre-build
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-BUILD.RULE
+setlocal
+cd H:\kodidsplayermaster\build\pcre\src\pcre-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" --build . --config Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\1B4BFFAF1D474C558360A41E0F2D6D12\PCRE-INSTALL.RULE
+setlocal
+cd H:\kodidsplayermaster\build\pcre\src\pcre-build
+if %errorlevel% neq 0 goto :cmEnd
+H:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" --build . --config Debug --target install
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\30140365DEF65FF274CC465D4C7B102F\PCRE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory H:/kodidsplayermaster/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/CMakeFiles/Debug/pcre-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch H:/kodidsplayermaster/build/pcre/src/pcre-stamp/Debug/pcre-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKEFILES\FE6770F86772C4813606AC68EE3090E6\PCRE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^H:\KODIDSPLAYERMASTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SH:/kodidsplayermaster -BH:/kodidsplayermaster --check-stamp-file H:/kodidsplayermaster/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
