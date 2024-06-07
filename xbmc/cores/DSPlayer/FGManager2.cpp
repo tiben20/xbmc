@@ -40,8 +40,8 @@ HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
 
   CFileItem FileItem = pFileItem;
   bool bIsAutoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_FILTERSMANAGEMENT) == DSMERITS;
-  //was isdvdfile before maybe its the wrong change
-  if (FileItem.IsDiscImage() || !bIsAutoRender)
+
+  if (FileItem.IsDVDFile() || !bIsAutoRender)
     return __super::RenderFileXbmc(FileItem);
 
   CSingleExit lock(*this);

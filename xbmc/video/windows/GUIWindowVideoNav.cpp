@@ -258,7 +258,7 @@ int CGUIWindowVideoNav::GetSettingSelecTvShow()
 {
   int iValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_LASTTVSHOWSELECT);
   
-  if (KODI::VIDEO::IsVideoDb(*m_vecItems) && iValue > -1)
+  if (m_vecItems->IsVideoDb() && iValue > -1)
   {
     bool bIsItemSelected = (m_viewControl.GetSelectedItem() > 0);
     NODE_TYPE nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
@@ -1008,7 +1008,7 @@ bool CGUIWindowVideoNav::OnAddMediaSource()
 bool CGUIWindowVideoNav::OnClick(int iItem, const std::string &player)
 {
   CFileItemPtr item = m_vecItems->Get(iItem);
-  if (!item->m_bIsFolder && KODI::VIDEO::IsVideoDb(*item) && !item->Exists())
+  if (!item->m_bIsFolder && item->IsVideoDb() && !item->Exists())
   {
     CLog::Log(LOGDEBUG, "{} called on '{}' but file doesn't exist", __FUNCTION__, item->GetPath());
 
