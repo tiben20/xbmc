@@ -58,7 +58,7 @@
 #include "settings/SettingsComponent.h"
 #include "guilib/GUIComponent.h"
 #include "Filters/MPCVideoRenderer/VideoRenderer.h"
-
+#include "video/VideoFileItemClassify.h"
 namespace
 {
   std::vector<std::pair<std::string, std::string>> GetDevices()
@@ -145,7 +145,8 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
   return hr;
   }*/
   /* DVD NAVIGATOR */
-  if (pFileItem.IsDVDFile())
+  
+  if (KODI::VIDEO::IsDVDFile(pFileItem))
   {
     std::string path = pFileItem.GetPath();
     if (StringUtils::EqualsNoCase(StringUtils::Left(path, 6), "smb://"))

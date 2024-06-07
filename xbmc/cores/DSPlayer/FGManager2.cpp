@@ -34,6 +34,7 @@
 #include "ServiceBroker.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "video/VideoFileItemClassify.h"
 
 HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
 {
@@ -41,7 +42,7 @@ HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
   CFileItem FileItem = pFileItem;
   bool bIsAutoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_FILTERSMANAGEMENT) == DSMERITS;
 
-  if (FileItem.IsDVDFile() || !bIsAutoRender)
+  if (KODI::VIDEO::IsDVDFile(FileItem) || !bIsAutoRender)
     return __super::RenderFileXbmc(FileItem);
 
   CSingleExit lock(*this);

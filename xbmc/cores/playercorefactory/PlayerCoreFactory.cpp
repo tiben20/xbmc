@@ -145,7 +145,7 @@ void CPlayerCoreFactory::GetPlayers(const CFileItem& item, std::vector<std::stri
   // "videodefaultplayer"
   if (defaultInputstreamPlayerOverride == ForcedPlayer::VIDEO_DEFAULT ||
       (defaultInputstreamPlayerOverride == ForcedPlayer::NONE &&
-       (VIDEO::IsVideo(item) || (!MUSIC::IsAudio(item) && !item.IsGame()))))
+       (KODI::VIDEO::IsVideo(item) || (!MUSIC::IsAudio(item) && !item.IsGame()))))
   {
     int idx = GetPlayerIndex("videodefaultplayer");
     if (idx > -1)

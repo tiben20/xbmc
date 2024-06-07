@@ -37,6 +37,7 @@
 #include "settings/Settings.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
+#include "video/VideoFileItemClassify.h"
 
 using namespace XFILE;
 
@@ -1034,7 +1035,8 @@ bool CDSPlayerDatabase::GetResumeEdition(const std::string& strFilenameAndPath, 
 bool CDSPlayerDatabase::GetResumeEdition(const CFileItem *item, CEdition &edition)
 {
   std::string strPath = item->GetPath();
-  if ((item->IsVideoDb() || item->IsDVD()) && item->HasVideoInfoTag())
+  
+  if ((KODI::VIDEO::IsVideoDb(*item) || item->IsDVD()) && item->HasVideoInfoTag())
     strPath = item->GetVideoInfoTag()->m_strFileNameAndPath;
 
   return GetResumeEdition(strPath, edition);

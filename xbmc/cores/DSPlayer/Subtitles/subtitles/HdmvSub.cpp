@@ -441,7 +441,7 @@ void CHdmvSub::Render(SubPicDesc& spd, REFERENCE_TIME rt, RECT& bbox)
       if (!pObject->HavePalette())
         pObject->SetPalette (m_nDefaultPaletteNbEntry, m_pDefaultPalette, pObj->m_videoDescriptor.nVideoWidth>720);
 
-      TRACE_HDMVSUB (L"CHdmvSub:Render      size=%ld,  ObjRes=%dx%d,  SPDRes=%dx%d\n", pObject->GetObjectData()->GetRLEDataSize(), 
+      TRACE_HDMVSUB (L"CHdmvSub:Render      size=%ld,  ObjRes=%dx%d,  SPDRes=%dx%d\n", pObject->GetObjectData()->GetRLEDataSize(),
                pObject->GetObjectData()->m_width, pObject->GetObjectData()->m_height, spd.w, spd.h);
 
       short x = 0, y = 0;

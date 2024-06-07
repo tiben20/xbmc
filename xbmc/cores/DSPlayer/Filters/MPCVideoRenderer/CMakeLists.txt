@@ -14,11 +14,8 @@ set(SOURCES CPUInfo2.cpp
 			PropPage.cpp
 			Registry.cpp
 			renbase2.cpp
-			Scaler.cpp
+			PlHelper.cpp
 			Shaders.cpp
-			ShadersCache.cpp
-			ShadersLoader.cpp
-			SmallVector.cpp
 			stdafx.cpp
 			Times.cpp
 			Util2.cpp
@@ -49,11 +46,8 @@ set(HEADERS atlredef.h
 			Registry.h
 			renbase2.h
 			resource.h
-			Scaler.h
+			PlHelper.h
 			Shaders.h
-			ShadersCache.h
-			ShadersLoader.h
-			SmallVector.h
 			stdafx.h
 			Times.h
 			Util2.h
