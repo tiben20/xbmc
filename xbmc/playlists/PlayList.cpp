@@ -30,10 +30,11 @@
 #include <utility>
 #include <vector>
 
-using namespace KODI;
 using namespace MUSIC_INFO;
 using namespace XFILE;
-using namespace PLAYLIST;
+
+namespace KODI::PLAYLIST
+{
 
 CPlayList::CPlayList(Id id /* = PLAYLIST::TYPE_NONE */) : m_id(id)
 {
@@ -44,32 +45,32 @@ CPlayList::CPlayList(Id id /* = PLAYLIST::TYPE_NONE */) : m_id(id)
 
 void CPlayList::AnnounceRemove(int pos)
 {
-  if (m_id == TYPE_NONE)
+  if (m_id == Id::TYPE_NONE)
     return;
 
   CVariant data;
-  data["playlistid"] = m_id;
+  data["playlistid"] = static_cast<int>(m_id);
   data["position"] = pos;
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Playlist, "OnRemove", data);
 }
 
 void CPlayList::AnnounceClear()
 {
-  if (m_id == TYPE_NONE)
+  if (m_id == Id::TYPE_NONE)
     return;
 
   CVariant data;
-  data["playlistid"] = m_id;
+  data["playlistid"] = static_cast<int>(m_id);
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Playlist, "OnClear", data);
 }
 
 void CPlayList::AnnounceAdd(const std::shared_ptr<CFileItem>& item, int pos)
 {
-  if (m_id == TYPE_NONE)
+  if (m_id == Id::TYPE_NONE)
     return;
 
   CVariant data;
-  data["playlistid"] = m_id;
+  data["playlistid"] = static_cast<int>(m_id);
   data["position"] = pos;
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Playlist, "OnAdd", item, data);
 }
@@ -513,3 +514,5 @@ const std::string& CPlayList::ResolveURL(const std::shared_ptr<CFileItem>& item)
   else
     return item->GetDynPath();
 }
+
+} // namespace KODI::PLAYLIST

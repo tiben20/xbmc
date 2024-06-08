@@ -16,6 +16,7 @@
 class CGUIListItem;
 class CFileItem;
 class CLabelInfo;
+class TiXmlElement;
 
 class CGUIListItemLayout final
 {
@@ -34,6 +35,7 @@ public:
   void SetInvalid() { m_invalidated = true; }
   void FreeResources(bool immediately = false);
   void SetParentControl(CGUIControl* control) { m_group.SetParentControl(control); }
+  void AssignDepth();
 
   //#ifdef GUILIB_PYTHON_COMPATIBILITY
   void CreateListControlLayouts(float width, float height, bool focused, const CLabelInfo &labelInfo, const CLabelInfo &labelInfo2, const CTextureInfo &texture, const CTextureInfo &textureFocus, float texHeight, float iconWidth, float iconHeight, const std::string &nofocusCondition, const std::string &focusCondition);

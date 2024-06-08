@@ -25,6 +25,7 @@ class CFileItemList;
 class CVideoSettings;
 class CGUIDialogProgress;
 class CGUIDialogProgressBarHandle;
+class TiXmlNode;
 
 struct VideoAssetInfo;
 
@@ -56,7 +57,7 @@ namespace dbiplus
 
 typedef std::vector<CVideoInfoTag> VECMOVIES;
 
-namespace VIDEO
+namespace KODI::VIDEO
 {
   class IVideoInfoScannerObserver;
   struct SScanSettings;
@@ -693,9 +694,12 @@ public:
   CVideoInfoTag GetDetailsByTypeAndId(VideoDbContentType type, int id);
 
   // scraper settings
-  void SetScraperForPath(const std::string& filePath, const ADDON::ScraperPtr& info, const VIDEO::SScanSettings& settings);
+  void SetScraperForPath(const std::string& filePath,
+                         const ADDON::ScraperPtr& info,
+                         const KODI::VIDEO::SScanSettings& settings);
   ADDON::ScraperPtr GetScraperForPath(const std::string& strPath);
-  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath, VIDEO::SScanSettings& settings);
+  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath,
+                                      KODI::VIDEO::SScanSettings& settings);
 
   /*! \brief Retrieve the scraper and settings we should use for the specified path
    If the scraper is not set on this particular path, we'll recursively check parent folders.
@@ -705,7 +709,9 @@ public:
    \return A ScraperPtr containing the scraper information. Returns NULL if a trivial (Content == CONTENT_NONE)
            scraper or no scraper is found.
    */
-  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath, VIDEO::SScanSettings& settings, bool& foundDirectly);
+  ADDON::ScraperPtr GetScraperForPath(const std::string& strPath,
+                                      KODI::VIDEO::SScanSettings& settings,
+                                      bool& foundDirectly);
 
   /*! \brief Retrieve the content type of videos in the given path
    If content is set on the folder, we return the given content type, except in the case of tvshows,
@@ -752,7 +758,9 @@ public:
   bool GetSubPaths(const std::string& basepath, std::vector< std::pair<int, std::string> >& subpaths);
 
   bool GetSourcePath(const std::string &path, std::string &sourcePath);
-  bool GetSourcePath(const std::string &path, std::string &sourcePath, VIDEO::SScanSettings& settings);
+  bool GetSourcePath(const std::string& path,
+                     std::string& sourcePath,
+                     KODI::VIDEO::SScanSettings& settings);
 
   // for music + musicvideo linkups - if no album and title given it will return the artist id, else the id of the matching video
   int GetMatchingMusicVideo(const std::string& strArtist, const std::string& strAlbum = "", const std::string& strTitle = "");
@@ -1063,20 +1071,12 @@ public:
   int AddVideoVersionType(const std::string& typeVideoVersion,
                           VideoAssetTypeOwner owner,
                           VideoAssetType assetType);
-  void AddVideoVersion(VideoDbContentType itemType,
-                       int dbId,
-                       int idVideoVersion,
-                       VideoAssetType videoAssetType,
-                       CFileItem& item);
-  void AddPrimaryVideoVersion(VideoDbContentType itemType,
-                              int dbId,
-                              int idVideoVersion,
-                              CFileItem& item);
-  void AddExtrasVideoVersion(VideoDbContentType itemType,
-                             int dbId,
-                             int idVideoVersion,
-                             CFileItem& item);
-  bool RemoveVideoVersion(int dbId);
+  void AddVideoAsset(VideoDbContentType itemType,
+                     int dbId,
+                     int idVideoVersion,
+                     VideoAssetType videoAssetType,
+                     CFileItem& item);
+  bool DeleteVideoAsset(int idFile);
   bool IsDefaultVideoVersion(int idFile);
   bool GetVideoVersionTypes(VideoDbContentType idContent,
                             VideoAssetType asset,

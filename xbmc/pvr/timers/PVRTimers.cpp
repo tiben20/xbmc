@@ -391,7 +391,7 @@ bool CPVRTimers::UpdateEntries(const CPVRTimersContainer& timers,
         {
           job->AddEvent(m_settings.GetBoolValue(CSettings::SETTING_PVRRECORD_TIMERNOTIFICATIONS),
                         EventLevel::Information, // info, no error
-                        client->GetFriendlyName(), entry.second, client->Icon());
+                        client->GetFullClientName(), entry.second, client->Icon());
         }
       }
 
@@ -511,7 +511,7 @@ bool CPVRTimers::UpdateEntries(int iMaxNotificationDelay)
       bool bDeleteTimer = false;
       if (!timer->IsOwnedByClient())
       {
-        if (timer->IsEpgBased())
+        if (timer->IsEpgBased() && timer->Channel())
         {
           // update epg tag
           const std::shared_ptr<const CPVREpg> epg =
@@ -1218,8 +1218,10 @@ std::shared_ptr<CPVRTimerInfoTag> CPVRTimers::GetTimerRule(
       for (const auto& tagsEntry : m_tags)
       {
         const auto it = std::find_if(tagsEntry.second.cbegin(), tagsEntry.second.cend(),
-                                     [iClientId, iParentClientIndex](const auto& timersEntry) {
-                                       return timersEntry->ClientID() == iClientId &&
+                                     [iClientId, iParentClientIndex](const auto& timersEntry)
+                                     {
+                                       return (timersEntry->ClientID() == PVR_ANY_CLIENT_ID ||
+                                               timersEntry->ClientID() == iClientId) &&
                                               timersEntry->ClientIndex() == iParentClientIndex;
                                      });
         if (it != tagsEntry.second.cend())

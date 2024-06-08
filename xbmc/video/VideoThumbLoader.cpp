@@ -20,8 +20,10 @@
 #include "filesystem/StackDirectory.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/StereoscopicsManager.h"
+#include "imagefiles/ImageFileURL.h"
 #include "music/MusicDatabase.h"
 #include "music/tags/MusicInfoTag.h"
+#include "network/NetworkFileItemClassify.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingUtils.h"
 #include "settings/Settings.h"
@@ -39,9 +41,8 @@
 #include <cstdlib>
 #include <utility>
 
-using namespace KODI::VIDEO;
+using namespace KODI;
 using namespace XFILE;
-using namespace VIDEO;
 
 CVideoThumbLoader::CVideoThumbLoader() : CThumbLoader()
 {
@@ -186,7 +187,7 @@ bool CVideoThumbLoader::LoadItemCached(CFileItem* pItem)
     if ((pItem->HasVideoInfoTag() &&
          pItem->GetVideoInfoTag()->m_iFileId >= 0) // file (or maybe folder) is in the database
         || (!pItem->m_bIsFolder &&
-            IsVideo(
+            VIDEO::IsVideo(
                 *pItem))) // Some other video file for which we haven't yet got any database details
     {
       if (m_videoDatabase->GetStreamDetails(*pItem))
@@ -280,7 +281,7 @@ bool CVideoThumbLoader::LoadItemLookup(CFileItem* pItem)
             {
               if (it.m_type == type)
               {
-                art = CTextureUtils::GetWrappedImageURL(pItem->GetPath(), "video_" + type);
+                art = IMAGE_FILES::URLFromFile(pItem->GetPath(), "video_" + type);
                 artwork.insert(std::make_pair(type, art));
               }
             }
@@ -292,7 +293,7 @@ bool CVideoThumbLoader::LoadItemLookup(CFileItem* pItem)
   }
 
   // We can only extract flags/thumbs for file-like items
-  if (!pItem->m_bIsFolder && IsVideo(*pItem))
+  if (!pItem->m_bIsFolder && VIDEO::IsVideo(*pItem))
   {
     const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
     if (!pItem->HasArt("thumb"))
@@ -414,7 +415,7 @@ bool CVideoThumbLoader::FillLibraryArt(CFileItem &item)
     m_videoDatabase->Open();
 
     // @todo unify asset path for other items path
-    if (IsVideoAssetFile(item))
+    if (VIDEO::IsVideoAssetFile(item))
     {
       if (m_videoDatabase->GetArtForAsset(
               tag.m_iFileId,
@@ -497,7 +498,7 @@ bool CVideoThumbLoader::FillThumb(CFileItem &item)
       {
         if (it.m_type == "thumb")
         {
-          thumb = CTextureUtils::GetWrappedImageURL(item.GetPath(), "video_" + it.m_type);
+          thumb = IMAGE_FILES::URLFromFile(item.GetPath(), "video_" + it.m_type);
           item.SetArt(it.m_type, thumb);
         }
       }
@@ -525,7 +526,7 @@ std::string CVideoThumbLoader::GetLocalArt(const CFileItem &item, const std::str
       settings ? settings->GetInt(CSettings::SETTING_FILECACHE_BUFFERMODE) == CACHE_BUFFER_MODE_ALL
                : false;
 
-  if (item.m_bIsFolder && (item.IsStreamedFilesystem() || cacheAll))
+  if (item.m_bIsFolder && (NETWORK::IsStreamedFilesystem(item) || cacheAll))
   {
     CFileItemList items; // Dummy list
     CDirectory::GetDirectory(item.GetPath(), items, "", DIR_FLAG_NO_FILE_DIRS | DIR_FLAG_READ_CACHE | DIR_FLAG_NO_FILE_INFO);
@@ -555,12 +556,12 @@ std::string CVideoThumbLoader::GetLocalArt(const CFileItem &item, const std::str
 std::string CVideoThumbLoader::GetEmbeddedThumbURL(const CFileItem &item)
 {
   std::string path(item.GetPath());
-  if (IsVideoDb(item) && item.HasVideoInfoTag())
+  if (VIDEO::IsVideoDb(item) && item.HasVideoInfoTag())
     path = item.GetVideoInfoTag()->m_strFileNameAndPath;
   if (URIUtils::IsStack(path))
     path = CStackDirectory::GetFirstStackedFile(path);
 
-  return CTextureUtils::GetWrappedImageURL(path, "video");
+  return IMAGE_FILES::URLFromFile(path, "video");
 }
 
 void CVideoThumbLoader::DetectAndAddMissingItemData(CFileItem &item)
@@ -601,7 +602,7 @@ void CVideoThumbLoader::DetectAndAddMissingItemData(CFileItem &item)
   if (stereoMode.empty())
   {
     std::string path = item.GetPath();
-    if (IsVideoDb(item) && item.HasVideoInfoTag())
+    if (VIDEO::IsVideoDb(item) && item.HasVideoInfoTag())
       path = item.GetVideoInfoTag()->GetPath();
 
     // check for custom stereomode setting in video settings

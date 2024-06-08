@@ -12,7 +12,6 @@
 #include "GUIInfoManager.h"
 #include "GUIUserMessages.h"
 #include "ServiceBroker.h"
-#include "TextureDatabase.h"
 #include "ThumbLoader.h"
 #include "UPnP.h"
 #include "UPnPInternal.h"
@@ -22,6 +21,7 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/guiinfo/GUIInfoLabels.h"
+#include "imagefiles/ImageFileURL.h"
 #include "input/actions/Action.h"
 #include "input/actions/ActionIDs.h"
 #include "interfaces/AnnouncementManager.h"
@@ -38,7 +38,7 @@
 
 #include <Platinum/Source/Platinum/Platinum.h>
 
-using namespace KODI::VIDEO;
+using namespace KODI;
 
 NPT_SET_LOCAL_LOGGER("xbmc.upnp.renderer")
 
@@ -446,7 +446,7 @@ NPT_Result CUPnPRenderer::GetMetadata(NPT_String& meta)
     else
       thumb = CServiceBroker::GetGUI()->GetInfoManager().GetImage(VIDEOPLAYER_COVER, -1);
 
-    thumb = CTextureUtils::GetWrappedImageURL(thumb);
+    thumb = IMAGE_FILES::URLFromFile(thumb);
 
     NPT_String ip;
     if (CServiceBroker::GetNetwork().GetFirstConnectedInterface())
@@ -631,15 +631,15 @@ NPT_Result CUPnPRenderer::OnSetNextAVTransportURI(PLT_ActionReference& action)
       CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow() != WINDOW_SLIDESHOW)
   {
 
-    PLAYLIST::Id playlistId = PLAYLIST::TYPE_MUSIC;
-    if (IsVideo(*item))
-      playlistId = PLAYLIST::TYPE_VIDEO;
+    PLAYLIST::Id playlistId = PLAYLIST::Id::TYPE_MUSIC;
+    if (VIDEO::IsVideo(*item))
+      playlistId = PLAYLIST::Id::TYPE_VIDEO;
 
     // note: auto-deleted when the message is consumed
     auto playlist = new CFileItemList();
     playlist->AddFront(item, 0);
-    CServiceBroker::GetAppMessenger()->PostMsg(TMSG_PLAYLISTPLAYER_ADD, playlistId, -1,
-                                               static_cast<void*>(playlist));
+    CServiceBroker::GetAppMessenger()->PostMsg(
+        TMSG_PLAYLISTPLAYER_ADD, static_cast<int>(playlistId), -1, static_cast<void*>(playlist));
 
     service->SetStateVariable("NextAVTransportURI", uri);
     service->SetStateVariable("NextAVTransportURIMetaData", meta);

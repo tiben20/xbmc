@@ -35,6 +35,7 @@
 
 #include <algorithm>
 
+using namespace KODI;
 using namespace KODI::MESSAGING;
 
 #define QUEUE_DEPTH       10
@@ -49,7 +50,7 @@ CPartyModeManager::CPartyModeManager(void)
 bool CPartyModeManager::Enable(PartyModeContext context /*= PARTYMODECONTEXT_MUSIC*/, const std::string& strXspPath /*= ""*/)
 {
   // Filter using our PartyMode xml file
-  CSmartPlaylist playlist;
+  PLAYLIST::CSmartPlaylist playlist;
   std::string partyModePath;
   bool playlistLoaded;
 
@@ -563,7 +564,8 @@ void CPartyModeManager::Announce()
   {
     CVariant data;
 
-    data["player"]["playerid"] = CServiceBroker::GetPlaylistPlayer().GetCurrentPlaylist();
+    data["player"]["playerid"] =
+        static_cast<int>(CServiceBroker::GetPlaylistPlayer().GetCurrentPlaylist());
     data["property"]["partymode"] = m_bEnabled;
     CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Player, "OnPropertyChanged",
                                                        data);
@@ -572,5 +574,5 @@ void CPartyModeManager::Announce()
 
 PLAYLIST::Id CPartyModeManager::GetPlaylistId() const
 {
-  return m_bIsVideo ? PLAYLIST::TYPE_VIDEO : PLAYLIST::TYPE_MUSIC;
+  return m_bIsVideo ? PLAYLIST::Id::TYPE_VIDEO : PLAYLIST::Id::TYPE_MUSIC;
 }

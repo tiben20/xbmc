@@ -26,7 +26,6 @@
 #include "video/VideoDatabase.h"
 #include "video/VideoDbUrl.h"
 
-#include <math.h>
 #include <memory>
 
 #define PROPERTY_PATH_DB            "path.db"
@@ -34,6 +33,8 @@
 #define PROPERTY_SORT_ASCENDING     "sort.ascending"
 #define PROPERTY_GROUP_BY           "group.by"
 #define PROPERTY_GROUP_MIXED        "group.mixed"
+
+using namespace KODI;
 
 namespace XFILE
 {
@@ -44,7 +45,7 @@ namespace XFILE
   bool CSmartPlaylistDirectory::GetDirectory(const CURL& url, CFileItemList& items)
   {
     // Load in the SmartPlaylist and get the WHERE query
-    CSmartPlaylist playlist;
+    PLAYLIST::CSmartPlaylist playlist;
     if (!playlist.Load(url))
       return false;
     bool result = GetDirectory(playlist, items);
@@ -54,7 +55,10 @@ namespace XFILE
     return result;
   }
 
-  bool CSmartPlaylistDirectory::GetDirectory(const CSmartPlaylist &playlist, CFileItemList& items, const std::string &strBaseDir /* = "" */, bool filter /* = false */)
+  bool CSmartPlaylistDirectory::GetDirectory(const PLAYLIST::CSmartPlaylist& playlist,
+                                             CFileItemList& items,
+                                             const std::string& strBaseDir /* = "" */,
+                                             bool filter /* = false */)
   {
     bool success = false, success2 = false;
     std::vector<std::string> virtualFolders;
@@ -78,7 +82,7 @@ namespace XFILE
     std::string group = playlist.GetGroup();
     bool isGrouped = !group.empty() && !StringUtils::EqualsNoCase(group, "none") && !playlist.IsGroupMixed();
     // Hint for playlist files like STRM
-    PLAYLIST::Id playlistTypeHint = PLAYLIST::TYPE_NONE;
+    PLAYLIST::Id playlistTypeHint = PLAYLIST::Id::TYPE_NONE;
 
     // get all virtual folders and add them to the item list
     playlist.GetVirtualFolders(virtualFolders);
@@ -99,7 +103,7 @@ namespace XFILE
         playlist.GetType() == "tvshows" ||
         playlist.GetType() == "episodes")
     {
-      playlistTypeHint = PLAYLIST::TYPE_VIDEO;
+      playlistTypeHint = PLAYLIST::Id::TYPE_VIDEO;
       CVideoDatabase db;
       if (db.Open())
       {
@@ -155,11 +159,11 @@ namespace XFILE
     }
     else if (playlist.IsMusicType() || playlist.GetType().empty())
     {
-      playlistTypeHint = PLAYLIST::TYPE_MUSIC;
+      playlistTypeHint = PLAYLIST::Id::TYPE_MUSIC;
       CMusicDatabase db;
       if (db.Open())
       {
-        CSmartPlaylist plist(playlist);
+        PLAYLIST::CSmartPlaylist plist(playlist);
         if (playlist.GetType() == "mixed" || playlist.GetType().empty())
           plist.SetType("songs");
 
@@ -213,11 +217,11 @@ namespace XFILE
 
     if (playlist.GetType() == "musicvideos" || playlist.GetType() == "mixed")
     {
-      playlistTypeHint = PLAYLIST::TYPE_VIDEO;
+      playlistTypeHint = PLAYLIST::Id::TYPE_VIDEO;
       CVideoDatabase db;
       if (db.Open())
       {
-        CSmartPlaylist mvidPlaylist(playlist);
+        PLAYLIST::CSmartPlaylist mvidPlaylist(playlist);
         if (playlist.GetType() == "mixed")
           mvidPlaylist.SetType("musicvideos");
 
@@ -302,7 +306,7 @@ namespace XFILE
     {
       CFileItemPtr item = items[i];
       item->m_iprogramCount = i;  // hack for playlist order
-      item->SetProperty("playlist_type_hint", playlistTypeHint);
+      item->SetProperty("playlist_type_hint", static_cast<int>(playlistTypeHint));
     }
 
     if (playlist.GetType() == "mixed")
@@ -323,7 +327,7 @@ namespace XFILE
   {
     CFileItemList list;
     bool filesExist = false;
-    if (CSmartPlaylist::IsMusicType(playlistType))
+    if (PLAYLIST::CSmartPlaylist::IsMusicType(playlistType))
       filesExist = CDirectory::GetDirectory("special://musicplaylists/", list, ".xsp", DIR_FLAG_DEFAULTS);
     else // all others are video
       filesExist = CDirectory::GetDirectory("special://videoplaylists/", list, ".xsp", DIR_FLAG_DEFAULTS);
@@ -332,7 +336,7 @@ namespace XFILE
       for (int i = 0; i < list.Size(); i++)
       {
         CFileItemPtr item = list[i];
-        CSmartPlaylist playlist;
+        PLAYLIST::CSmartPlaylist playlist;
         if (playlist.OpenAndReadName(item->GetURL()))
         {
           if (StringUtils::EqualsNoCase(playlist.GetName(), name))

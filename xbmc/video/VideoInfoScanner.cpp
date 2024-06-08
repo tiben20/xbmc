@@ -29,6 +29,7 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
+#include "imagefiles/ImageFileURL.h"
 #include "interfaces/AnnouncementManager.h"
 #include "messaging/helpers/DialogHelper.h"
 #include "messaging/helpers/DialogOKHelper.h"
@@ -61,7 +62,7 @@ using namespace KODI::VIDEO;
 using KODI::MESSAGING::HELPERS::DialogResponse;
 using KODI::UTILITY::CDigest;
 
-namespace VIDEO
+namespace KODI::VIDEO
 {
 
   CVideoInfoScanner::CVideoInfoScanner()
@@ -1822,8 +1823,7 @@ namespace VIDEO
         if ((addAll || CVideoThumbLoader::IsArtTypeInWhitelist(it.m_type, artTypes, exactName)) &&
           art.find(it.m_type) == art.end())
         {
-          std::string thumb = CTextureUtils::GetWrappedImageURL(pItem->GetPath(),
-                                                                "video_" + it.m_type);
+          std::string thumb = IMAGE_FILES::URLFromFile(pItem->GetPath(), "video_" + it.m_type);
           art.insert(std::make_pair(it.m_type, thumb));
         }
       }
@@ -2487,8 +2487,9 @@ namespace VIDEO
           const int idVideoVersion = m_database.AddVideoVersionType(
               typeVideoVersion, VideoAssetTypeOwner::AUTO, VideoAssetType::EXTRA);
 
-          m_database.AddExtrasVideoVersion(ContentToVideoDbType(content), dbId, idVideoVersion,
-                                           *item.get());
+          m_database.AddVideoAsset(ContentToVideoDbType(content), dbId, idVideoVersion,
+                                   VideoAssetType::EXTRA, *item.get());
+
           CLog::Log(LOGDEBUG, "VideoInfoScanner: Added video extras {}",
                     CURL::GetRedacted(item->GetPath()));
         },

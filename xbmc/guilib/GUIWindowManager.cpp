@@ -1262,6 +1262,19 @@ void CGUIWindowManager::Process(unsigned int currentTime)
       pWindow->DoProcess(currentTime, m_dirtyregions);
   }
 
+  // assign depth values to all active controls
+  if (pWindow)
+    pWindow->AssignDepth();
+
+  std::vector<CGUIWindow*> activeDialogs = m_activeDialogs;
+  stable_sort(activeDialogs.begin(), activeDialogs.end(), RenderOrderSortFunction);
+
+  for (const auto& window : activeDialogs)
+  {
+    if (window->IsDialogRunning())
+      window->AssignDepth();
+  }
+
   for (auto& itr : m_dirtyregions)
     m_tracker.MarkDirtyRegion(itr);
 }
@@ -1287,6 +1300,14 @@ void CGUIWindowManager::MarkDirty(const CRect& rect)
 }
 
 void CGUIWindowManager::RenderPass() const
+{
+  if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiFrontToBackRendering)
+    RenderPassDual();
+  else
+    RenderPassSingle();
+}
+
+void CGUIWindowManager::RenderPassSingle() const
 {
   CGUIWindow* pWindow = GetWindow(GetActiveWindow());
   if (pWindow)
@@ -1326,6 +1347,40 @@ void CGUIWindowManager::RenderPass() const
 #else
       window->DoRender();
 #endif
+  }
+}
+
+void CGUIWindowManager::RenderPassDual() const
+{
+  CGUIWindow* pWindow = GetWindow(GetActiveWindow());
+  if (pWindow)
+    pWindow->ClearBackground();
+
+  std::vector<CGUIWindow*> renderList = m_activeDialogs;
+  stable_sort(renderList.begin(), renderList.end(), RenderOrderSortFunction);
+
+  // first the opaque pass, rendering from front to back
+  CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderOrder(RENDER_ORDER_FRONT_TO_BACK);
+  for (auto it = renderList.rbegin(); it != renderList.rend(); ++it)
+  {
+    if ((*it)->IsDialogRunning())
+      (*it)->DoRender();
+  }
+
+  if (pWindow)
+    pWindow->DoRender();
+
+  // now we render all elements with transparency back to front
+  CServiceBroker::GetWinSystem()->GetGfxContext().SetRenderOrder(RENDER_ORDER_BACK_TO_FRONT);
+  if (pWindow)
+  {
+    pWindow->DoRender();
+  }
+
+  for (const auto& window : renderList)
+  {
+    if (window->IsDialogRunning())
+      window->DoRender();
   }
 }
 
@@ -1410,6 +1465,7 @@ bool CGUIWindowManager::Render()
 
 void CGUIWindowManager::AfterRender()
 {
+  CServiceBroker::GetWinSystem()->GetGfxContext().ResetDepth();
   m_tracker.CleanMarkedRegions();
 
   CGUIWindow* pWindow = GetWindow(GetActiveWindow());

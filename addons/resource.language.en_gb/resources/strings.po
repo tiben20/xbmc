@@ -3916,7 +3916,19 @@ msgctxt "#852"
 msgid "Valid port range is 1024-65535"
 msgstr ""
 
-#empty strings from id 853 to 996
+#. Label for denoting any channel for a certain client in timer settings dialog
+#: xbmc/pvr/dialogs/GUIDislogPVRTimerSettings.cpp
+msgctxt "#853"
+msgid "Any channel from client \"{0:s}\""
+msgstr ""
+
+#. Label for denoting any channel from any available client in timer settings dialog
+#: xbmc/pvr/dialogs/GUIDislogPVRTimerSettings.cpp
+msgctxt "#854"
+msgid "Any channel from any client"
+msgstr ""
+
+#empty strings from id 855 to 996
 
 #: xbmc/windows/GUIMediaWindow.cpp
 msgctxt "#997"
@@ -7351,6 +7363,31 @@ msgid "Enable HQ scalers for scaling above"
 msgstr ""
 
 #: system/settings/settings.xml
+msgctxt "#39198"
+msgid "HQ upscaler intermediate format"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39199"
+msgid "Sets the precision of the intermediate scaling buffer used in the GPU rendering path. 16 bit precision likely demands more performance. If the hardware is unable to support the selected format, Kodi will fall back to the next best format."
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39200"
+msgid "8 bit per channel"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39201"
+msgid "10 bit per channel"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#39202"
+msgid "16 bit per channel"
+msgstr ""
+
+#: system/settings/settings.xml
 msgctxt "#13436"
 msgid "Adjust display HDR mode"
 msgstr ""
@@ -7603,7 +7640,7 @@ msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#13518"
-msgid "When the speed change exceeds this threshold, a pitch-correction filter will be applied. This avoids the \"chipmonk voices\" that normally result from speeding up a video"
+msgid "When the speed change exceeds this threshold, a pitch-correction filter will be applied. This avoids the \"chipmunk voices\" that normally result from speeding up a video"
 msgstr ""
 
 #: xbmc/video/dialogs/GUIDialogVideoInfo.cpp

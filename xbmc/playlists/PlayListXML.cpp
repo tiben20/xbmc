@@ -15,10 +15,10 @@
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
+#include "utils/XBMCTinyXML2.h"
 #include "utils/XMLUtils.h"
 #include "utils/log.h"
 
-using namespace PLAYLIST;
 using namespace XFILE;
 
 /*
@@ -53,13 +53,14 @@ using namespace XFILE;
 </streams>
 */
 
+namespace KODI::PLAYLIST
+{
 
 CPlayListXML::CPlayListXML(void) = default;
 
 CPlayListXML::~CPlayListXML(void) = default;
 
-
-static inline std::string GetString( const TiXmlElement* pRootElement, const char *tagName )
+static inline std::string GetString(const tinyxml2::XMLElement* pRootElement, const char* tagName)
 {
   std::string strValue;
   if ( XMLUtils::GetString(pRootElement, tagName, strValue) )
@@ -70,7 +71,7 @@ static inline std::string GetString( const TiXmlElement* pRootElement, const cha
 
 bool CPlayListXML::Load( const std::string& strFileName )
 {
-  CXBMCTinyXML xmlDoc;
+  CXBMCTinyXML2 xmlDoc;
 
   m_strPlayListName = URIUtils::GetFileName(strFileName);
   URIUtils::GetParentPath(strFileName, m_strBasePath);
@@ -84,7 +85,7 @@ bool CPlayListXML::Load( const std::string& strFileName )
     return false;
   }
 
-  TiXmlElement *pRootElement = xmlDoc.RootElement();
+  auto* pRootElement = xmlDoc.RootElement();
 
   // If the stream does not contain "streams", still ok. Not an error.
   if (!pRootElement || StringUtils::CompareNoCase(pRootElement->Value(), "streams"))
@@ -93,7 +94,7 @@ bool CPlayListXML::Load( const std::string& strFileName )
     return false;
   }
 
-  TiXmlElement* pSet = pRootElement->FirstChildElement("stream");
+  auto* pSet = pRootElement->FirstChildElement("stream");
 
   while ( pSet )
   {
@@ -195,3 +196,5 @@ void CPlayListXML::Save(const std::string& strFileName) const
   file.Write(write.c_str(), write.size());
   file.Close();
 }
+
+} // namespace KODI::PLAYLIST

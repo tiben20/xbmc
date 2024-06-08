@@ -6,7 +6,6 @@ set(SOURCES ActorProtocol.cpp
             BitstreamConverter.cpp
             BitstreamReader.cpp
             BitstreamStats.cpp
-            BitstreamWriter.cpp
             BooleanLogic.cpp
             CharArrayParser.cpp
             CharsetConverter.cpp
@@ -51,7 +50,6 @@ set(SOURCES ActorProtocol.cpp
             PlayerUtils.cpp
             RecentlyAddedJob.cpp
             RegExp.cpp
-            rfft.cpp
             RingBuffer.cpp
             RssManager.cpp
             RssReader.cpp
@@ -88,7 +86,6 @@ set(HEADERS ActorProtocol.h
             BitstreamConverter.h
             BitstreamReader.h
             BitstreamStats.h
-            BitstreamWriter.h
             BooleanLogic.h
             CharArrayParser.h
             CharsetConverter.h
@@ -154,7 +151,6 @@ set(HEADERS ActorProtocol.h
             ProgressJob.h
             RecentlyAddedJob.h
             RegExp.h
-            rfft.h
             RingBuffer.h
             RssManager.h
             RssReader.h
@@ -191,7 +187,7 @@ if(TARGET XSLT::XSLT)
   list(APPEND SOURCES XSLTUtils.cpp)
   list(APPEND HEADERS XSLTUtils.h)
 endif()
-if(TARGET EGL::EGL)
+if(TARGET ${APP_NAME_LC}::EGL)
   list(APPEND SOURCES EGLUtils.cpp
                       EGLFence.cpp)
   list(APPEND HEADERS EGLUtils.h
@@ -234,12 +230,12 @@ if("gbm" IN_LIST CORE_PLATFORM_NAME_LC OR "wayland" IN_LIST CORE_PLATFORM_NAME_L
     list(APPEND HEADERS GBMBufferObject.h)
   endif()
 
-  if(TARGET EGL::EGL)
+  if(TARGET ${APP_NAME_LC}::EGL)
     list(APPEND SOURCES EGLImage.cpp)
     list(APPEND HEADERS EGLImage.h)
   endif()
 
-  if(TARGET LIBDRM::LIBDRM)
+  if(TARGET ${APP_NAME_LC}::LibDRM)
     list(APPEND SOURCES DRMHelpers.cpp)
     list(APPEND HEADERS DRMHelpers.h)
   endif()

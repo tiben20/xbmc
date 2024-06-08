@@ -43,7 +43,7 @@
 #endif
 
 using namespace ADDON;
-using namespace KODI::MESSAGING;
+using namespace KODI;
 using KODI::MESSAGING::HELPERS::DialogResponse;
 
 /*! \brief Install an addon.
@@ -75,7 +75,8 @@ static int EnableAddon(const std::vector<std::string>& params)
   if (!CServiceBroker::GetAddonMgr().GetAddon(addonid, addon, OnlyEnabled::CHOICE_NO))
     return -1;
 
-  auto response = HELPERS::ShowYesNoDialogLines(CVariant{24076}, CVariant{24135}, CVariant{addon->Name()}, CVariant{24136});
+  auto response = MESSAGING::HELPERS::ShowYesNoDialogLines(
+      CVariant{24076}, CVariant{24135}, CVariant{addon->Name()}, CVariant{24136});
   if (response == DialogResponse::CHOICE_YES)
     CServiceBroker::GetAddonMgr().EnableAddon(addonid);
 
@@ -189,7 +190,7 @@ static int RunAddon(const std::vector<std::string>& params)
       else
         item = CFileItem(addon);
 
-      if (!g_application.PlayMedia(item, "", PLAYLIST::TYPE_NONE))
+      if (!g_application.PlayMedia(item, "", PLAYLIST::Id::TYPE_NONE))
       {
         CLog::Log(LOGERROR, "RunAddon could not start {}", addonid);
         return false;

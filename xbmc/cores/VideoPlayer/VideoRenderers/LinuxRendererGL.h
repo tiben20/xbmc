@@ -87,6 +87,7 @@ protected:
 
   bool Render(unsigned int flags, int renderBuffer);
   void ClearBackBuffer();
+  void ClearBackBufferQuad();
   void DrawBlackBars();
 
   bool ValidateRenderer();
@@ -145,6 +146,10 @@ protected:
     CFrameBufferObject fbo;
     float width, height;
   } m_fbo;
+
+  GLint m_intermediateFormat{GL_RGBA8};
+  GLint m_intermediateType{GL_UNSIGNED_BYTE};
+  bool m_intermediateGammaCorrection{false};
 
   int m_iYV12RenderBuffer = 0;
   int m_NumYV12Buffers = 0;

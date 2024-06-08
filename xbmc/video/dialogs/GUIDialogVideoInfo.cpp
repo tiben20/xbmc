@@ -30,6 +30,7 @@
 #include "guilib/GUIWindow.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
+#include "imagefiles/ImageFileURL.h"
 #include "input/actions/Action.h"
 #include "input/actions/ActionIDs.h"
 #include "messaging/helpers/DialogOKHelper.h"
@@ -72,8 +73,8 @@
 
 using namespace XFILE::VIDEODATABASEDIRECTORY;
 using namespace XFILE;
+using namespace KODI;
 using namespace KODI::MESSAGING;
-using namespace KODI::VIDEO;
 
 #define CONTROL_IMAGE                3
 #define CONTROL_TEXTAREA             4
@@ -282,7 +283,7 @@ void CGUIDialogVideoInfo::OnInitWindow()
     CONTROL_DISABLE(CONTROL_BTN_REFRESH);
 
   // @todo add support to edit video asset art. Until then edit art through Versions Manager.
-  if (!IsVideoAssetFile(*m_movieItem))
+  if (!VIDEO::IsVideoAssetFile(*m_movieItem))
     CONTROL_ENABLE_ON_CONDITION(
         CONTROL_BTN_GET_THUMB,
         (profileManager->GetCurrentProfile().canWriteDatabases() ||
@@ -765,11 +766,11 @@ private:
       item->m_bIsFolder = false;
     }
 
-    item->SetProperty("playlist_type_hint", PLAYLIST::TYPE_VIDEO);
+    item->SetProperty("playlist_type_hint", static_cast<int>(PLAYLIST::Id::TYPE_VIDEO));
     const ContentUtils::PlayMode mode{item->GetProperty("CheckAutoPlayNextItem").asBoolean()
                                           ? ContentUtils::PlayMode::CHECK_AUTO_PLAY_NEXT_ITEM
                                           : ContentUtils::PlayMode::PLAY_ONLY_THIS};
-    VIDEO_UTILS::PlayItem(item, "", mode);
+    VIDEO::UTILS::PlayItem(item, "", mode);
   }
 };
 } // unnamed namespace
@@ -1070,7 +1071,7 @@ std::string CGUIDialogVideoInfo::GetThumbnail() const
 
 int CGUIDialogVideoInfo::ManageVideoItem(const std::shared_ptr<CFileItem>& item)
 {
-  if (item == nullptr || !IsVideoDb(*item) || !item->HasVideoInfoTag() ||
+  if (item == nullptr || !VIDEO::IsVideoDb(*item) || !item->HasVideoInfoTag() ||
       item->GetVideoInfoTag()->m_iDbId < 0)
     return -1;
 
@@ -1082,18 +1083,18 @@ int CGUIDialogVideoInfo::ManageVideoItem(const std::shared_ptr<CFileItem>& item)
   int dbId = item->GetVideoInfoTag()->m_iDbId;
 
   CContextButtons buttons;
-  if ((type == MediaTypeMovie && !IsVideoAssetFile(*item)) || type == MediaTypeVideoCollection ||
-      type == MediaTypeTvShow || type == MediaTypeEpisode ||
+  if ((type == MediaTypeMovie && !VIDEO::IsVideoAssetFile(*item)) ||
+      type == MediaTypeVideoCollection || type == MediaTypeTvShow || type == MediaTypeEpisode ||
       (type == MediaTypeSeason &&
        item->GetVideoInfoTag()->m_iSeason > 0) || // seasons without "all seasons" and "specials"
       type == MediaTypeMusicVideo)
     buttons.Add(CONTEXT_BUTTON_EDIT, 16105);
 
-  if ((type == MediaTypeMovie && !IsVideoAssetFile(*item)) || type == MediaTypeTvShow ||
+  if ((type == MediaTypeMovie && !VIDEO::IsVideoAssetFile(*item)) || type == MediaTypeTvShow ||
       type == MediaTypeSeason)
     buttons.Add(CONTEXT_BUTTON_EDIT_SORTTITLE, 16107);
 
-  if (type == MediaTypeMovie && !IsVideoAssetFile(*item))
+  if (type == MediaTypeMovie && !VIDEO::IsVideoAssetFile(*item))
   {
     // only show link/unlink if there are tvshows available
     if (database.HasContent(VideoDbContentType::TVSHOWS))
@@ -1117,8 +1118,9 @@ int CGUIDialogVideoInfo::ManageVideoItem(const std::shared_ptr<CFileItem>& item)
       item->GetVideoInfoTag()->m_iBookmarkId > 0)
     buttons.Add(CONTEXT_BUTTON_UNLINK_BOOKMARK, 20405);
 
-  if (type == MediaTypeVideoCollection || (type == MediaTypeMovie && !IsVideoAssetFile(*item)) ||
-      type == MediaTypeTvShow || type == MediaTypeSeason || type == MediaTypeEpisode)
+  if (type == MediaTypeVideoCollection ||
+      (type == MediaTypeMovie && !VIDEO::IsVideoAssetFile(*item)) || type == MediaTypeTvShow ||
+      type == MediaTypeSeason || type == MediaTypeEpisode)
     buttons.Add(CONTEXT_BUTTON_SET_ART, 13511);
 
   // movie sets
@@ -1142,7 +1144,7 @@ int CGUIDialogVideoInfo::ManageVideoItem(const std::shared_ptr<CFileItem>& item)
     }
   }
 
-  if (type != MediaTypeSeason && !IsVideoAssetFile(*item))
+  if (type != MediaTypeSeason && !VIDEO::IsVideoAssetFile(*item))
   {
     // Remove from library
     buttons.Add(CONTEXT_BUTTON_DELETE, 646);
@@ -1979,7 +1981,11 @@ bool CGUIDialogVideoInfo::ManageVideoItemArtwork(const std::shared_ptr<CFileItem
 
   // flip selected image, if user wants it
   if (!result.empty() && flip)
-    result = CTextureUtils::GetWrappedImageURL(result, "", "flipped");
+  {
+    auto file = IMAGE_FILES::CImageFileURL::FromFile(result);
+    file.flipped = true;
+    result = file.ToString();
+  }
 
   // write the selected artwork to the database
   artHandler->PersistArt(result);

@@ -12,9 +12,9 @@
 #include "FileItemList.h"
 #include "MediaSource.h"
 #include "ServiceBroker.h"
-#include "TextureDatabase.h"
 #include "filesystem/Directory.h"
 #include "guilib/LocalizeStrings.h"
+#include "imagefiles/ImageFileURL.h"
 #include "music/MusicDatabase.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
@@ -30,9 +30,10 @@
 #include "video/VideoThumbLoader.h"
 #include "video/tags/VideoTagExtractionHelper.h"
 
-using namespace KODI::VIDEO;
-using namespace VIDEO;
 using namespace XFILE;
+
+namespace KODI::VIDEO
+{
 
 namespace
 {
@@ -470,7 +471,7 @@ std::vector<std::string> CVideoItemArtworkFanartHandler::GetRemoteArt() const
     if (URIUtils::IsProtocol(thumb, "image"))
       continue;
 
-    remoteArt.emplace_back(CTextureUtils::GetWrappedThumbURL(thumb));
+    remoteArt.emplace_back(IMAGE_FILES::URLFromFile(thumb));
   }
   return remoteArt;
 }
@@ -555,3 +556,5 @@ std::unique_ptr<IVideoItemArtworkHandler> IVideoItemArtworkHandlerFactory::Creat
 
   return artHandler;
 }
+
+} // namespace KODI::VIDEO

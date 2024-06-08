@@ -24,6 +24,7 @@
 #include "addons/addoninfo/AddonType.h"
 #include "application/Application.h"
 #include "messaging/ApplicationMessenger.h"
+#include "network/NetworkFileItemClassify.h"
 #if defined(TARGET_ANDROID)
 #include "platform/android/activity/XBMCApp.h"
 #endif
@@ -60,11 +61,7 @@
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
 #include "utils/log.h"
-#include "video/VideoFileItemClassify.h"
-#include "video/VideoInfoTag.h"
 #include "view/GUIViewState.h"
-
-#include <inttypes.h>
 
 #define CONTROL_BTNVIEWASICONS       2
 #define CONTROL_BTNSORTBY            3
@@ -80,8 +77,8 @@
 #define PLUGIN_REFRESH_DELAY 200
 
 using namespace ADDON;
+using namespace KODI;
 using namespace KODI::MESSAGING;
-using namespace KODI::VIDEO;
 using namespace std::chrono_literals;
 
 namespace
@@ -1498,13 +1495,13 @@ bool CGUIMediaWindow::OnPlayMedia(int iItem, const std::string &player)
   // Reset Playlistplayer, playback started now does
   // not use the playlistplayer.
   CServiceBroker::GetPlaylistPlayer().Reset();
-  CServiceBroker::GetPlaylistPlayer().SetCurrentPlaylist(PLAYLIST::TYPE_NONE);
+  CServiceBroker::GetPlaylistPlayer().SetCurrentPlaylist(PLAYLIST::Id::TYPE_NONE);
   CFileItemPtr pItem=m_vecItems->Get(iItem);
 
   CLog::Log(LOGDEBUG, "{} {}", __FUNCTION__, CURL::GetRedacted(pItem->GetPath()));
 
   bool bResult = false;
-  if (pItem->IsInternetStream() || pItem->IsPlayList())
+  if (NETWORK::IsInternetStream(*pItem) || pItem->IsPlayList())
     bResult = g_application.PlayMedia(*pItem, player, m_guiState->GetPlaylist());
   else
     bResult = g_application.PlayFile(*pItem, player);
@@ -1527,7 +1524,7 @@ bool CGUIMediaWindow::OnPlayAndQueueMedia(const CFileItemPtr& item, const std::s
 {
   //play and add current directory to temporary playlist
   PLAYLIST::Id playlistId = m_guiState->GetPlaylist();
-  if (playlistId != PLAYLIST::TYPE_NONE)
+  if (playlistId != PLAYLIST::Id::TYPE_NONE)
   {
     // Remove ZIP, RAR files and folders
     CFileItemList playlist;
@@ -1537,21 +1534,11 @@ bool CGUIMediaWindow::OnPlayAndQueueMedia(const CFileItemPtr& item, const std::s
                                   { return i->IsZIP() || i->IsRAR() || i->m_bIsFolder; }),
                    playlist.end());
 
-    // Remove duplicates (eg. ISO/VIDEO_TS)
-    playlist.erase(
-        std::unique(playlist.begin(), playlist.end(),
-                    [](const std::shared_ptr<CFileItem>& i, const std::shared_ptr<CFileItem>& j) {
-                      return i->GetVideoInfoTag()->m_basePath == j->GetVideoInfoTag()->m_basePath;
-                    }),
-        playlist.end());
-
     // Chosen item
     int mediaToPlay =
         std::distance(playlist.begin(), std::find_if(playlist.begin(), playlist.end(),
-                                                     [&item](const std::shared_ptr<CFileItem>& i) {
-                                                       return i->GetVideoInfoTag()->m_basePath ==
-                                                              item->GetVideoInfoTag()->m_basePath;
-                                                     }));
+                                                     [&item](const std::shared_ptr<CFileItem>& i)
+                                                     { return i->GetPath() == item->GetPath(); }));
 
     // Add to playlist
     CServiceBroker::GetPlaylistPlayer().ClearPlaylist(playlistId);
@@ -1604,7 +1591,7 @@ void CGUIMediaWindow::UpdateFileList()
     PLAYLIST::Id playlistId = m_guiState->GetPlaylist();
     int nSong = CServiceBroker::GetPlaylistPlayer().GetCurrentItemIdx();
     CFileItem playlistItem;
-    if (nSong > -1 && playlistId != PLAYLIST::TYPE_NONE)
+    if (nSong > -1 && playlistId != PLAYLIST::Id::TYPE_NONE)
       playlistItem = *CServiceBroker::GetPlaylistPlayer().GetPlaylist(playlistId)[nSong];
 
     CServiceBroker::GetPlaylistPlayer().ClearPlaylist(playlistId);

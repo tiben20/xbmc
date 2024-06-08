@@ -24,6 +24,7 @@
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
 #include "music/MusicFileItemClassify.h"
+#include "network/NetworkFileItemClassify.h"
 #include "playlists/PlayList.h"
 #include "playlists/PlayListFactory.h"
 #include "profiles/ProfileManager.h"
@@ -42,8 +43,8 @@
 #include "video/VideoUtils.h"
 #include "view/GUIViewState.h"
 
-using namespace KODI;
-using namespace KODI::VIDEO;
+namespace KODI
+{
 
 namespace
 {
@@ -53,7 +54,7 @@ public:
   CAsyncGetItemsForPlaylist(const std::shared_ptr<CFileItem>& item, CFileItemList& queuedItems)
     : m_item(item),
       m_resume((item->GetStartOffset() == STARTOFFSET_RESUME) &&
-               VIDEO_UTILS::GetItemResumeInformation(*item).isResumable),
+               VIDEO::UTILS::GetItemResumeInformation(*item).isResumable),
       m_queuedItems(queuedItems)
   {
   }
@@ -140,7 +141,7 @@ void CAsyncGetItemsForPlaylist::GetItemsForPlaylist(const std::shared_ptr<CFileI
   if (item->m_bIsFolder)
   {
     // check if it's a folder with dvd or bluray files, then just add the relevant file
-    const std::string mediapath = VIDEO_UTILS::GetOpticalMediaPath(*item);
+    const std::string mediapath = VIDEO::UTILS::GetOpticalMediaPath(*item);
     if (!mediapath.empty())
     {
       m_queuedItems.Add(std::make_shared<CFileItem>(mediapath, false));
@@ -203,7 +204,7 @@ void CAsyncGetItemsForPlaylist::GetItemsForPlaylist(const std::shared_ptr<CFileI
       items.Sort(sortDesc);
     }
 
-    if (items.GetContent().empty() && !IsVideoDb(items) && !items.IsVirtualDirectoryRoot() &&
+    if (items.GetContent().empty() && !VIDEO::IsVideoDb(items) && !items.IsVirtualDirectoryRoot() &&
         !items.IsSourcesPath() && !items.IsLibraryFolder())
     {
       CVideoDatabase db;
@@ -295,7 +296,7 @@ void CAsyncGetItemsForPlaylist::GetItemsForPlaylist(const std::shared_ptr<CFileI
     // just queue the playlist, it will be expanded on play
     m_queuedItems.Add(item);
   }
-  else if (item->IsInternetStream())
+  else if (NETWORK::IsInternetStream(*item))
   {
     // just queue the internet stream, it will be expanded on play
     m_queuedItems.Add(item);
@@ -305,7 +306,7 @@ void CAsyncGetItemsForPlaylist::GetItemsForPlaylist(const std::shared_ptr<CFileI
     // a playable python files
     m_queuedItems.Add(item);
   }
-  else if (IsVideoDb(*item))
+  else if (VIDEO::IsVideoDb(*item))
   {
     // this case is needed unless we allow IsVideo() to return true for videodb items,
     // but then we have issues with playlists of videodb items
@@ -313,7 +314,7 @@ void CAsyncGetItemsForPlaylist::GetItemsForPlaylist(const std::shared_ptr<CFileI
     itemCopy->SetStartOffset(item->GetStartOffset());
     m_queuedItems.Add(itemCopy);
   }
-  else if (!item->IsNFO() && IsVideo(*item))
+  else if (!item->IsNFO() && VIDEO::IsVideo(*item))
   {
     m_queuedItems.Add(item);
   }
@@ -337,15 +338,15 @@ void AddItemToPlayListAndPlay(const std::shared_ptr<CFileItem>& itemToQueue,
 {
   // recursively add items to list
   CFileItemList queuedItems;
-  VIDEO_UTILS::GetItemsForPlayList(itemToQueue, queuedItems);
+  VIDEO::UTILS::GetItemsForPlayList(itemToQueue, queuedItems);
 
   auto& playlistPlayer = CServiceBroker::GetPlaylistPlayer();
-  playlistPlayer.ClearPlaylist(PLAYLIST::TYPE_VIDEO);
+  playlistPlayer.ClearPlaylist(PLAYLIST::Id::TYPE_VIDEO);
   playlistPlayer.Reset();
-  playlistPlayer.Add(PLAYLIST::TYPE_VIDEO, queuedItems);
+  playlistPlayer.Add(PLAYLIST::Id::TYPE_VIDEO, queuedItems);
 
   // figure out where to start playback
-  PLAYLIST::CPlayList& playList = playlistPlayer.GetPlaylist(PLAYLIST::TYPE_VIDEO);
+  PLAYLIST::CPlayList& playList = playlistPlayer.GetPlaylist(PLAYLIST::Id::TYPE_VIDEO);
   int pos = 0;
   if (itemToPlay)
   {
@@ -358,19 +359,21 @@ void AddItemToPlayListAndPlay(const std::shared_ptr<CFileItem>& itemToQueue,
     }
   }
 
-  if (playlistPlayer.IsShuffled(PLAYLIST::TYPE_VIDEO))
+  if (playlistPlayer.IsShuffled(PLAYLIST::Id::TYPE_VIDEO))
   {
     playList.Swap(0, playList.FindOrder(pos));
     pos = 0;
   }
 
-  playlistPlayer.SetCurrentPlaylist(PLAYLIST::TYPE_VIDEO);
+  playlistPlayer.SetCurrentPlaylist(PLAYLIST::Id::TYPE_VIDEO);
   playlistPlayer.Play(pos, player);
 }
 
 } // unnamed namespace
 
-namespace VIDEO_UTILS
+} // namespace KODI
+
+namespace KODI::VIDEO::UTILS
 {
 void PlayItem(
     const std::shared_ptr<CFileItem>& itemIn,
@@ -426,7 +429,7 @@ void PlayItem(
       // single item, play it
       auto& playlistPlayer = CServiceBroker::GetPlaylistPlayer();
       playlistPlayer.Reset();
-      playlistPlayer.SetCurrentPlaylist(PLAYLIST::TYPE_NONE);
+      playlistPlayer.SetCurrentPlaylist(PLAYLIST::Id::TYPE_NONE);
       playlistPlayer.Play(item, player);
     }
   }
@@ -450,11 +453,11 @@ void QueueItem(const std::shared_ptr<CFileItem>& itemIn, QueuePosition pos)
 
   // Determine the proper list to queue this element
   PLAYLIST::Id playlistId = player.GetCurrentPlaylist();
-  if (playlistId == PLAYLIST::TYPE_NONE)
+  if (playlistId == PLAYLIST::Id::TYPE_NONE)
     playlistId = components.GetComponent<CApplicationPlayer>()->GetPreferredPlaylist();
 
-  if (playlistId == PLAYLIST::TYPE_NONE)
-    playlistId = PLAYLIST::TYPE_VIDEO;
+  if (playlistId == PLAYLIST::Id::TYPE_NONE)
+    playlistId = PLAYLIST::Id::TYPE_VIDEO;
 
   CFileItemList queuedItems;
   GetItemsForPlayList(item, queuedItems);
@@ -592,6 +595,20 @@ bool IsItemPlayable(const CFileItem& item)
   return false;
 }
 
+bool HasItemVideoDbInformation(const CFileItem& item)
+{
+  CVideoDatabase db;
+  if (!db.Open())
+  {
+    CLog::LogF(LOGERROR, "Cannot open VideoDatabase");
+    return false;
+  }
+
+  return db.HasMovieInfo(item.GetDynPath()) ||
+         db.HasTvShowInfo(URIUtils::GetDirectory(item.GetPath())) ||
+         db.HasEpisodeInfo(item.GetDynPath()) || db.HasMusicVideoInfo(item.GetDynPath());
+}
+
 std::string GetResumeString(const CFileItem& item)
 {
   const ResumeInformation resumeInfo = GetItemResumeInformation(item);
@@ -620,4 +637,4 @@ std::string GetResumeString(const CFileItem& item)
   return {};
 }
 
-} // namespace VIDEO_UTILS
+} // namespace KODI::VIDEO::UTILS

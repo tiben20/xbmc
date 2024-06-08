@@ -45,6 +45,7 @@
 
 #include <plist/plist.h>
 
+using namespace KODI;
 using KODI::UTILITY::CDigest;
 using namespace std::chrono_literals;
 
@@ -178,7 +179,8 @@ void CAirPlayServer::Announce(ANNOUNCEMENT::AnnouncementFlag flag,
     {
       bool shouldRestoreVolume = true;
       if (data.isMember("player") && data["player"].isMember("playerid"))
-        shouldRestoreVolume = (data["player"]["playerid"] != PLAYLIST::TYPE_PICTURE);
+        shouldRestoreVolume =
+            (data["player"]["playerid"] != static_cast<int>(PLAYLIST::Id::TYPE_PICTURE));
 
       if (shouldRestoreVolume)
         restoreVolume();

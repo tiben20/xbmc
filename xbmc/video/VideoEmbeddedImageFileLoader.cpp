@@ -10,13 +10,15 @@
 
 #include "FileItem.h"
 #include "guilib/Texture.h"
+#include "imagefiles/ImageFileURL.h"
 #include "utils/EmbeddedArt.h"
 #include "utils/StringUtils.h"
 #include "video/VideoInfoTag.h"
 #include "video/tags/IVideoInfoTagLoader.h"
 #include "video/tags/VideoInfoTagLoaderFactory.h"
 
-using namespace VIDEO;
+namespace KODI::VIDEO
+{
 
 bool CVideoEmbeddedImageFileLoader::CanLoad(const std::string& specialType) const
 {
@@ -47,14 +49,13 @@ bool GetEmbeddedThumb(const std::string& path, const std::string& type, Embedded
 }
 } // namespace
 
-std::unique_ptr<CTexture> CVideoEmbeddedImageFileLoader::Load(const std::string& specialType,
-                                                              const std::string& filePath,
-                                                              unsigned int preferredWidth,
-                                                              unsigned int preferredHeight) const
+std::unique_ptr<CTexture> CVideoEmbeddedImageFileLoader::Load(
+    const IMAGE_FILES::CImageFileURL& imageFile) const
 {
   EmbeddedArt art;
-  if (GetEmbeddedThumb(filePath, specialType.substr(6), art))
-    return CTexture::LoadFromFileInMemory(art.m_data.data(), art.m_size, art.m_mime, preferredWidth,
-                                          preferredHeight);
+  if (GetEmbeddedThumb(imageFile.GetTargetFile(), imageFile.GetSpecialType().substr(6), art))
+    return CTexture::LoadFromFileInMemory(art.m_data.data(), art.m_size, art.m_mime);
   return {};
 }
+
+} // namespace KODI::VIDEO

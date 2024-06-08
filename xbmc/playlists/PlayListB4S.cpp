@@ -14,7 +14,7 @@
 #include "music/tags/MusicInfoTag.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
-#include "utils/XBMCTinyXML.h"
+#include "utils/XBMCTinyXML2.h"
 #include "utils/XMLUtils.h"
 #include "utils/log.h"
 
@@ -22,7 +22,6 @@
 #include <string>
 
 using namespace XFILE;
-using namespace PLAYLIST;
 
 /* ------------------------ example b4s playlist file ---------------------------------
  <?xml version="1.0" encoding='UTF-8' standalone="yes"?>
@@ -40,6 +39,10 @@ using namespace PLAYLIST;
   </playlist>
  </WinampXML>
 ------------------------ end of example b4s playlist file ---------------------------------*/
+
+namespace KODI::PLAYLIST
+{
+
 CPlayListB4S::CPlayListB4S(void) = default;
 
 CPlayListB4S::~CPlayListB4S(void) = default;
@@ -47,26 +50,33 @@ CPlayListB4S::~CPlayListB4S(void) = default;
 
 bool CPlayListB4S::LoadData(std::istream& stream)
 {
-  CXBMCTinyXML xmlDoc;
+  CXBMCTinyXML2 xmlDoc;
 
-  stream >> xmlDoc;
+  std::string b4sStream(std::istreambuf_iterator<char>(stream), {});
+
+  xmlDoc.Parse(b4sStream);
 
   if (xmlDoc.Error())
   {
-    CLog::Log(LOGERROR, "Unable to parse B4S info Error: {}", xmlDoc.ErrorDesc());
+    CLog::Log(LOGERROR, "Unable to parse B4S info Error: {}", xmlDoc.ErrorStr());
     return false;
   }
 
-  TiXmlElement* pRootElement = xmlDoc.RootElement();
-  if (!pRootElement ) return false;
+  auto* pRootElement = xmlDoc.RootElement();
+  if (!pRootElement)
+    return false;
 
-  TiXmlElement* pPlayListElement = pRootElement->FirstChildElement("playlist");
-  if (!pPlayListElement ) return false;
+  auto* pPlayListElement = pRootElement->FirstChildElement("playlist");
+  if (!pPlayListElement)
+    return false;
+
   m_strPlayListName = XMLUtils::GetAttribute(pPlayListElement, "label");
 
-  TiXmlElement* pEntryElement = pPlayListElement->FirstChildElement("entry");
+  auto* pEntryElement = pPlayListElement->FirstChildElement("entry");
 
-  if (!pEntryElement) return false;
+  if (!pEntryElement)
+    return false;
+
   while (pEntryElement)
   {
     std::string strFileName = XMLUtils::GetAttribute(pEntryElement, "Playstring");
@@ -78,8 +88,8 @@ bool CPlayListB4S::LoadData(std::istream& stream)
     }
     if (strFileName.size())
     {
-      TiXmlNode* pNodeInfo = pEntryElement->FirstChild("Name");
-      TiXmlNode* pNodeLength = pEntryElement->FirstChild("Length");
+      auto* pNodeInfo = pEntryElement->FirstChildElement("Name");
+      auto* pNodeLength = pEntryElement->FirstChildElement("Length");
       long lDuration = 0;
       if (pNodeLength)
       {
@@ -131,3 +141,5 @@ void CPlayListB4S::Save(const std::string& strFileName) const
   file.Write(write.c_str(), write.size());
   file.Close();
 }
+
+} // namespace KODI::PLAYLIST

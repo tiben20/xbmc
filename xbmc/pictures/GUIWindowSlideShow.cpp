@@ -14,7 +14,6 @@
 #include "GUIInfoManager.h"
 #include "GUIUserMessages.h"
 #include "ServiceBroker.h"
-#include "TextureDatabase.h"
 #include "URL.h"
 #include "application/Application.h"
 #include "application/ApplicationComponents.h"
@@ -26,6 +25,7 @@
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
 #include "guilib/Texture.h"
+#include "imagefiles/ImageFileURL.h"
 #include "input/actions/Action.h"
 #include "input/actions/ActionIDs.h"
 #include "input/mouse/MouseEvent.h"
@@ -164,7 +164,7 @@ void CGUIWindowSlideShow::AnnouncePlayerPlay(const CFileItemPtr& item)
 {
   CVariant param;
   param["player"]["speed"] = m_bSlideShow && !m_bPause ? 1 : 0;
-  param["player"]["playerid"] = PLAYLIST::TYPE_PICTURE;
+  param["player"]["playerid"] = static_cast<int>(PLAYLIST::Id::TYPE_PICTURE);
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Player, "OnPlay", item, param);
 }
 
@@ -172,14 +172,14 @@ void CGUIWindowSlideShow::AnnouncePlayerPause(const CFileItemPtr& item)
 {
   CVariant param;
   param["player"]["speed"] = 0;
-  param["player"]["playerid"] = PLAYLIST::TYPE_PICTURE;
+  param["player"]["playerid"] = static_cast<int>(PLAYLIST::Id::TYPE_PICTURE);
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Player, "OnPause", item, param);
 }
 
 void CGUIWindowSlideShow::AnnouncePlayerStop(const CFileItemPtr& item)
 {
   CVariant param;
-  param["player"]["playerid"] = PLAYLIST::TYPE_PICTURE;
+  param["player"]["playerid"] = static_cast<int>(PLAYLIST::Id::TYPE_PICTURE);
   param["end"] = true;
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Player, "OnStop", item, param);
 }
@@ -187,14 +187,14 @@ void CGUIWindowSlideShow::AnnouncePlayerStop(const CFileItemPtr& item)
 void CGUIWindowSlideShow::AnnouncePlaylistClear()
 {
   CVariant data;
-  data["playlistid"] = PLAYLIST::TYPE_PICTURE;
+  data["playlistid"] = static_cast<int>(PLAYLIST::Id::TYPE_PICTURE);
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Playlist, "OnClear", data);
 }
 
 void CGUIWindowSlideShow::AnnouncePlaylistAdd(const CFileItemPtr& item, int pos)
 {
   CVariant data;
-  data["playlistid"] = PLAYLIST::TYPE_PICTURE;
+  data["playlistid"] = static_cast<int>(PLAYLIST::Id::TYPE_PICTURE);
   data["position"] = pos;
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Playlist, "OnAdd", item, data);
 }
@@ -205,7 +205,7 @@ void CGUIWindowSlideShow::AnnouncePropertyChanged(const std::string &strProperty
     return;
 
   CVariant data;
-  data["player"]["playerid"] = PLAYLIST::TYPE_PICTURE;
+  data["player"]["playerid"] = static_cast<int>(PLAYLIST::Id::TYPE_PICTURE);
   data["property"][strProperty] = value;
   CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::Player, "OnPropertyChanged",
                                                      data);
@@ -408,9 +408,12 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
 
   // if we haven't processed yet, we should mark the whole screen
   if (!HasProcessed())
+  {
     regions.emplace_back(CRect(
         0.0f, 0.0f, static_cast<float>(CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth()),
         static_cast<float>(CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight())));
+    MarkDirtyRegion();
+  }
 
   if (m_iCurrentSlide < 0 || m_iCurrentSlide >= static_cast<int>(m_slides.size()))
     m_iCurrentSlide = 0;
@@ -496,6 +499,7 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
     regions.emplace_back(CRect(
         0.0f, 0.0f, static_cast<float>(CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth()),
         static_cast<float>(CServiceBroker::GetWinSystem()->GetGfxContext().GetHeight())));
+    MarkDirtyRegion();
     return;
   }
 
@@ -558,6 +562,9 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
   // render the current image
   if (m_Image[m_iCurrentPic]->IsLoaded())
   {
+    if (m_Image[m_iCurrentPic]->IsAnimating())
+      MarkDirtyRegion();
+
     m_Image[m_iCurrentPic]->SetInSlideshow(bSlideShow);
     m_Image[m_iCurrentPic]->Pause(!bSlideShow);
     m_Image[m_iCurrentPic]->Process(currentTime, regions);
@@ -572,6 +579,7 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
     {
       m_Image[m_iCurrentPic]->SetTransitionTime(1, IMMEDIATE_TRANSITION_TIME);
       m_bLoadNextPic = false;
+      MarkDirtyRegion();
     }
   }
 
@@ -598,6 +606,10 @@ void CGUIWindowSlideShow::Process(unsigned int currentTime, CDirtyRegionList &re
         if (m_Image[1 - m_iCurrentPic]->DisplayEffectNeedChange(effect))
           m_Image[1 - m_iCurrentPic]->Reset(effect);
       }
+
+      if (m_Image[1 - m_iCurrentPic]->IsAnimating())
+        MarkDirtyRegion();
+
       // set the appropriate transition time
       m_Image[1 - m_iCurrentPic]->SetTransitionTime(0,
                                                     m_Image[m_iCurrentPic]->GetTransitionTime(1));
@@ -980,6 +992,7 @@ bool CGUIWindowSlideShow::OnAction(const CAction &action)
   default:
     return CGUIDialog::OnAction(action);
   }
+  MarkDirtyRegion();
   return true;
 }
 
@@ -1405,7 +1418,7 @@ void CGUIWindowSlideShow::RunSlideShow(const std::vector<std::string>& paths, in
     std::vector<CFileItemPtr> items;
     items.reserve(paths.size());
     for (const auto& path : paths)
-      items.push_back(std::make_shared<CFileItem>(CTextureUtils::GetWrappedImageURL(path), false));
+      items.push_back(std::make_shared<CFileItem>(IMAGE_FILES::URLFromFile(path), false));
 
     dialog->Reset();
     dialog->m_bPause = true;

@@ -42,7 +42,8 @@ class CPVRTimerInfoTag;
 class CPVRTimerType;
 class CPVRTimersContainer;
 
-#define PVR_INVALID_CLIENT_ID (-2)
+static constexpr int PVR_ANY_CLIENT_ID = -1;
+static constexpr int PVR_INVALID_CLIENT_ID = -2;
 
 /*!
  * Interface from Kodi to a PVR add-on.
@@ -164,10 +165,24 @@ public:
   const std::string& GetConnectionString() const;
 
   /*!
-   * @brief A friendly name used to uniquely identify the addon instance
+   * @brief The name of the PVR client, as specified by the addon developer.
    * @return string that can be used in log messages and the GUI.
    */
-  const std::string GetFriendlyName() const;
+  std::string GetClientName() const;
+
+  /*!
+   * @brief The name of the PVR client addon instance, as specified by the user in the addon
+   * settings. Empty if addon does not support multiple instances.
+   * @return string that can be used in log messages and the GUI.
+   */
+  std::string GetInstanceName() const;
+
+  /*!
+   * @brief A name used to uniquely identify the client, inclusing addon name and instance
+   * name, if multiple instances are supported by the client implementation.
+   * @return string that can be used in log messages and the GUI.
+   */
+  std::string GetFullClientName() const;
 
   /*!
    * @brief Get the disk space reported by the server.

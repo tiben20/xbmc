@@ -37,6 +37,8 @@
 #include <algorithm>
 #include <string>
 
+using namespace KODI;
+
 static constexpr unsigned int CONTROL_LABEL_TITLE = 2;
 
 static constexpr unsigned int CONTROL_BUTTON_PLAY = 21;
@@ -283,11 +285,11 @@ protected:
 private:
   void Play()
   {
-    m_item->SetProperty("playlist_type_hint", PLAYLIST::TYPE_VIDEO);
+    m_item->SetProperty("playlist_type_hint", static_cast<int>(PLAYLIST::Id::TYPE_VIDEO));
     const ContentUtils::PlayMode mode{m_item->GetProperty("CheckAutoPlayNextItem").asBoolean()
                                           ? ContentUtils::PlayMode::CHECK_AUTO_PLAY_NEXT_ITEM
                                           : ContentUtils::PlayMode::PLAY_ONLY_THIS};
-    VIDEO_UTILS::PlayItem(m_item, "", mode);
+    VIDEO::UTILS::PlayItem(m_item, "", mode);
   }
 };
 } // unnamed namespace
@@ -311,8 +313,7 @@ void CGUIDialogVideoManager::Remove()
     return;
   }
 
-  //! @todo db refactor: should not be version, but asset
-  m_database.RemoveVideoVersion(m_selectedVideoAsset->GetVideoInfoTag()->m_iDbId);
+  m_database.DeleteVideoAsset(m_selectedVideoAsset->GetVideoInfoTag()->m_iDbId);
 
   // refresh data and controls
   Refresh();
