@@ -1135,3 +1135,42 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
 
   return listchanged;
 }
+
+#if HAS_DS_PLAYER
+void CGUIWindowVideoNav::OnInitWindow()
+{
+  CGUIWindowVideoBase::OnInitWindow();
+
+  // Check if we should select the last played/watched tvshow
+  int iIndex = GetSettingSelecTvShow();
+  if (iIndex > -1)
+    m_viewControl.SetSelectedItem(iIndex);
+}
+
+int CGUIWindowVideoNav::GetSettingSelecTvShow()
+{
+  int iValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_LASTTVSHOWSELECT);
+
+  if (KODI::VIDEO::IsVideoDb(*m_vecItems->Get(0).get()) && iValue > -1)
+  {
+    bool bIsItemSelected = (m_viewControl.GetSelectedItem() > 0);
+    NODE_TYPE nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
+
+    if (nodeType == NODE_TYPE_TITLE_TVSHOWS && !bIsItemSelected)
+    {
+      CDSPlayerDatabase dspdb;
+      if (!dspdb.Open())
+        return -1;
+      int idShow = dspdb.GetLastTvShowId(iValue);
+      dspdb.Close();
+
+      for (int i = 0; i < m_vecItems->Size(); ++i)
+      {
+        if (idShow == m_vecItems->Get(i)->GetVideoInfoTag()->m_iDbId)
+          return i;
+      }
+    }
+  }
+  return -1;
+}
+#endif

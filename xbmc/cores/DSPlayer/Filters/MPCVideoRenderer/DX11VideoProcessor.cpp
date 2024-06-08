@@ -1540,7 +1540,8 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 			SetShaderConvertColorParams();
 		}
 	}
-
+	CMPCVRRenderer::Get()->GetPlHelper()->Init(FmtParams.DX11Format);
+	
 	if (SUCCEEDED(hr)) {
 		UpdateBitmapShader();
 		UpdateTexures();

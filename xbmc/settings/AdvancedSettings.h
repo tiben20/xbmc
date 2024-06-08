@@ -84,6 +84,10 @@ struct RefreshOverride
   float refreshmin;
   float refreshmax;
 
+#if HAS_DS_PLAYER
+  std::string ignore;
+#endif
+
   bool  fallback;
 };
 
@@ -95,6 +99,10 @@ struct RefreshVideoLatency
 
   float delay;
   float hdrextradelay;
+  
+#if HAS_DS_PLAYER
+  float auxDelay;
+#endif
 };
 
 typedef std::vector<TVShowRegexp> SETTINGS_TVSHOWLIST;
@@ -154,7 +162,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     int m_videoIgnoreSecondsAtStart;
     float m_videoIgnorePercentAtEnd;
     float m_audioApplyDrc;
-    unsigned int m_maxPassthroughOffSyncDuration = 50; // when 50 ms off adjust
+    unsigned int m_maxPassthroughOffSyncDuration = 10; // when 10 ms off adjust
     bool m_AllowMultiChannelFloat = false; // Android only switch to be removed in v22
     bool m_superviseAudioDelay = false; // Android only to correct broken audio firmwares
 
@@ -165,6 +173,11 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::vector<RefreshVideoLatency> m_videoRefreshLatency;
     float m_videoDefaultLatency;
     float m_videoDefaultHdrExtraLatency;
+#if HAS_DS_PLAYER
+    float m_videoDefaultAuxLatency;
+    std::string m_videoDefaultAuxDeviceName;
+    unsigned int m_videoBusyDialogDelay_ms;
+#endif
     int  m_videoCaptureUseOcclusionQuery;
     bool m_DXVACheckCompatibility;
     bool m_DXVACheckCompatibilityPresent;
@@ -328,18 +341,26 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     DatabaseSettings m_databaseTV;    // advanced tv database setup
     DatabaseSettings m_databaseEpg;   /*!< advanced EPG database setup */
 
+#if HAS_DS_PLAYER
+    DatabaseSettings m_databaseDSPlayer; // advanced DSPlayer database setup
+    bool m_bDSPlayerFastChannelSwitching; // Live TV fast channel switching (don't stop timeshift), only for MediaPortal TV-Server and ArgusTV PVR backends
+    bool m_bDSPlayerUseUNCPathsForLiveTV; // Use UNC paths for Live TV, only for MediaPortal TV-Server and ArgusTV PVR backends
+    bool m_bIgnoreSystemAppcommand;
+    bool m_bDisableMadvrLowLatency;
+    bool m_bNotWaitKodiRendering; // default false, madVR for each processed frame will wait up to 100ms that kodi completes the rendering of the GUI, this could be useful in case of GUI flickering.
+#endif
+
     bool m_useLocaleCollation;
 
     bool m_guiVisualizeDirtyRegions;
     int  m_guiAlgorithmDirtyRegions;
     bool m_guiSmartRedraw;
     int32_t m_guiAnisotropicFiltering{0};
+    unsigned int m_addonPackageFolderSize;
     bool m_guiFrontToBackRendering{false};
     bool m_guiGeometryClear{true};
     bool m_guiAsyncTextureUpload{false};
-
-    unsigned int m_addonPackageFolderSize;
-
+    
     bool m_jsonOutputCompact;
     unsigned int m_jsonTcpPort;
 
@@ -374,6 +395,11 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     std::string m_userAgent;
     uint32_t m_nfsTimeout;
     int m_nfsRetries;
+
+#if HAS_DS_PLAYER
+    float GetDisplayAuxDelay(float refreshrate);
+    std::string GetAuxDeviceName();
+#endif
 
   private:
     void Initialize();

@@ -80,7 +80,7 @@ void CMPCVRRenderer::Init()
   GetDevice->CreatePixelShader(data, size, nullptr, &m_pPS_BitmapToFrame);
 
   m_pPlacebo = new PL::CPlHelper();
-  m_pPlacebo->Init(DXGI_FORMAT_NV12);
+  
   //m_pPlacebo = new PL::CPlHelper();
 }
 

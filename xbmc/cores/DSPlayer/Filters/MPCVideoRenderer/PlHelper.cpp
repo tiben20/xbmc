@@ -55,11 +55,16 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
 {
   //TODO add pl_test_pixfmt verification to start we will only use dxgi_format_nv12
   //Log initiation
-  pl_log_params log_param{};
-  log_param.log_cb = pl_log_cb;
-  log_param.log_level = PL_LOG_ERR;
-  m_plLog = pl_log_create(PL_API_VER, &log_param);
-
+  if (!m_plLog)
+  {
+ 
+    pl_log_params log_param{};
+    log_param.log_cb = pl_log_cb;
+    log_param.log_level = PL_LOG_ERR;
+    m_plLog = pl_log_create(PL_API_VER, &log_param);
+  }
+  if (m_plD3d11)
+    return false;
   //d3d device
   pl_d3d11_params d3d_param{};
   d3d_param.device = DX::DeviceResources::Get()->GetD3DDevice();

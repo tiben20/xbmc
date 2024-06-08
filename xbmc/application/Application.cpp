@@ -61,6 +61,7 @@
 #include "filesystem/DllLibCurl.h"
 #include "filesystem/File.h"
 #include "music/MusicFileItemClassify.h"
+#include "network/NetworkFileItemClassify.h"
 #include "video/VideoFileItemClassify.h"
 #ifdef HAS_FILESYSTEM_NFS
 #include "filesystem/NFSFile.h"
