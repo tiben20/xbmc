@@ -65,6 +65,7 @@
 
 #if HAS_DS_PLAYER
 #define VIDEO_SETTINGS_DS_STATS           "video.dsstats"
+#define VIDEO_SETTINGS_PLACEBO_CURRENT    "video.libplacebocurrent"
 #define VIDEO_SETTINGS_PLACEBO_OPTION     "video.libplacebooption"
 #define VIDEO_SETTINGS_DS_FILTERS         "video.dsfilters"
 #endif
@@ -307,6 +308,10 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
   else if (settingId == SETTING_VIDEO_MAKE_DEFAULT)
     Save();
 #if HAS_DS_PLAYER
+  else if (settingId == VIDEO_SETTINGS_PLACEBO_OPTION)
+  {
+    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LIBPLACEBO_OPTIONS);
+  }
   else if (settingId == VIDEO_SETTINGS_DS_FILTERS)
   {
     CGUIDialogSelect *pDlg = (CGUIDialogSelect *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SELECT);
@@ -576,7 +581,8 @@ void CGUIDialogVideoSettings::InitializeSettings()
       entries.push_back(TranslatableIntegerSettingOption(55036, PLACEBO_HIGH));
       entries.push_back(TranslatableIntegerSettingOption(55037, PLACEBO_CUSTOM));
 
-      AddSpinner(groupVideo, VIDEO_SETTINGS_PLACEBO_OPTION, 55033, SettingLevel::Basic, static_cast<int>(m_placeboOption), entries);
+      AddSpinner(groupVideo, VIDEO_SETTINGS_PLACEBO_CURRENT, 55033, SettingLevel::Basic, static_cast<int>(m_placeboOption), entries);
+      AddButton(groupVideo, VIDEO_SETTINGS_PLACEBO_OPTION, 55200, SettingLevel::Basic);
     } 
     AddButton(groupFilters, VIDEO_SETTINGS_DS_FILTERS, 55062,SettingLevel::Basic);
   }

@@ -160,6 +160,7 @@
 
 #if HAS_DS_PLAYER
 #include "cores/DSPlayer/GUIDialogShaderList.h"
+#include "cores/DSPlayer/Dialogs/GUIDialogLibplacebo.h"
 #include "cores/DSPlayer/Dialogs/GUIDialogDSRules.h"
 #include "cores/DSPlayer/Dialogs/GUIDialogDSFilters.h"
 #include "cores/DSPlayer/Dialogs/GUIDialogDSPlayercoreFactory.h"
@@ -240,6 +241,7 @@ void CGUIWindowManager::CreateWindows()
   Add(new CGUIDialogSubtitleSettings);
 #if HAS_DS_PLAYER
   Add(new CGUIDialogDSRules);
+  Add(new CGUIDialogLibplacebo);
   Add(new CGUIDialogDSFilters);
   Add(new CGUIDialogDSPlayercoreFactory);
   Add(new CGUIDialogLAVVideo);
@@ -394,6 +396,7 @@ bool CGUIWindowManager::DestroyWindows()
     DestroyWindow(WINDOW_DIALOG_AUDIO_OSD_SETTINGS);
 #if HAS_DS_PLAYER
     DestroyWindow(WINDOW_DIALOG_DSRULES);
+    DestroyWindow(WINDOW_DIALOG_LIBPLACEBO_OPTIONS);
     DestroyWindow(WINDOW_DIALOG_DSFILTERS);
     DestroyWindow(WINDOW_DIALOG_DSPLAYERCORE);
     DestroyWindow(WINDOW_DIALOG_MADVR);

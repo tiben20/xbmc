@@ -6,6 +6,7 @@ set(SOURCES GUIDialogDSFilters.cpp
             GUIDialogLAVAudio.cpp
             GUIDialogLAVSplitter.cpp
             GUIDialogLAVVideo.cpp
+			GUIDialogLibplacebo.cpp
             GUIDialogMadvrSettings.cpp
             GUIDialogMadvrSettingsBase.cpp
             GUIDialogSanear.cpp)
@@ -18,6 +19,7 @@ set(HEADERS GUIDialogDSFilters.h
             GUIDialogLAVAudio.h
             GUIDialogLAVSplitter.h
             GUIDialogLAVVideo.h
+			GUIDialogLibplacebo.h
             GUIDialogMadvrSettings.h
             GUIDialogMadvrSettingsBase.h
             GUIDialogSanear.h)

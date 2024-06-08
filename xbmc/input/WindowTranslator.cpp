@@ -151,6 +151,7 @@ const CWindowTranslator::WindowMapByName CWindowTranslator::WindowMappingByName 
     {"slideshow", WINDOW_SLIDESHOW},
 #if HAS_DS_PLAYER
     { "dsrulesettings"           , WINDOW_DIALOG_DSRULES },
+    { "dslibplacebooptions"      , WINDOW_DIALOG_LIBPLACEBO_OPTIONS },
     { "dsfiltersettings"         , WINDOW_DIALOG_DSFILTERS },
     { "dsplayercoresettings"     , WINDOW_DIALOG_DSPLAYERCORE },
     { "dsplayerlavvideo"         , WINDOW_DIALOG_LAVVIDEO },

@@ -478,6 +478,7 @@ public:
 #if HAS_DS_PLAYER
   static constexpr auto SETTING_DSPLAYER_RULES = "dsplayer.rules";
   static constexpr auto SETTING_DSPLAYER_FILTERS = "dsplayer.filters";
+  static constexpr auto SETTING_DSPLAYER_LIBPLACEBO_OPTIONS = "dsplayer.libplacebooptions";
   static constexpr auto SETTING_DSPLAYER_PLAYCORE = "dsplayer.playercore";
   static constexpr auto SETTING_DSPLAYER_LAVSPLITTER = "dsplayer.lavsplitter";
   static constexpr auto SETTING_DSPLAYER_LAVVIDEO = "dsplayer.lavvideo";

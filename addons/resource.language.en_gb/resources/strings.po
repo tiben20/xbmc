@@ -24770,6 +24770,39 @@ msgctxt "#55133"
 msgid "Ignore System Channel Mixer"
 msgstr ""
 
+#DSPlayer Libplacebo
+msgctxt "#55200"
+msgid "Libplacebo Settings"
+msgstr ""
+
+msgctxt "#55201"
+msgid "Debend params"
+msgstr ""
+
+msgctxt "#55202"
+msgid "iterations"
+msgstr ""
+
+msgctxt "#55203"
+msgid "threshold"
+msgstr ""
+
+msgctxt "#55204"
+msgid "radius"
+msgstr ""
+
+msgctxt "#55205"
+msgid "grain"
+msgstr ""
+
+msgctxt "#55206"
+msgid "Sigmoid center"
+msgstr ""
+
+msgctxt "#55207"
+msgid "Sigmoid slope"
+msgstr ""
+
 msgctxt "#60001"
 msgid "Media rules"
 msgstr ""

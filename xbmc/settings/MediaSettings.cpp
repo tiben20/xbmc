@@ -39,6 +39,7 @@
 #include "cores/DSPlayer/Dialogs/GUIDialogDSRules.h"
 #include "cores/DSPlayer/Dialogs/GUIDialogDSFilters.h"
 #include "cores/DSPlayer/Dialogs/GUIDialogDSPlayercoreFactory.h"
+#include "cores/DSPlayer/Dialogs/GUIDialogLibPlacebo.h"
 #include "GraphFilters.h"
 #include "Filters/Sanear/Interfaces.h"
 #endif
@@ -392,6 +393,8 @@ void CMediaSettings::OnSettingAction(const std::shared_ptr<const CSetting>& sett
 #if HAS_DS_PLAYER
   else if (settingId == CSettings::SETTING_DSPLAYER_RULES)
     CGUIDialogDSRules::ShowDSRulesList();
+  else if (settingId == CSettings::SETTING_DSPLAYER_LIBPLACEBO_OPTIONS)
+    CGUIDialogLibplacebo::ShowLibplaceboOptions();
   else if (settingId == CSettings::SETTING_DSPLAYER_FILTERS)
     CGUIDialogDSFilters::ShowDSFiltersList();
   else if (settingId == CSettings::SETTING_DSPLAYER_PLAYCORE)
