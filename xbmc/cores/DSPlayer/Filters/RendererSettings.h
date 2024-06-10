@@ -74,7 +74,7 @@ public:
   virtual void SetDefault()
   {
     apSurfaceUsage = VIDRNDT_AP_TEXTURE3D; // Fixed setting
-    displayStats = DS_STATS_NONE; // On GUI
+    displayStats = DS_STATS_1; // On GUI
     m_pPlaceboOptions = PLACEBO_DEFAULT;
     vSyncOffset = 0;
     vSyncAccurate = true;

@@ -1217,11 +1217,6 @@ STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Widt
 
 // IVideoRenderer
 
-STDMETHODIMP CMpcVideoRenderer::GetVideoProcessorInfo(CStdStringW& str)
-{
-	return m_VideoProcessor->GetVPInfo(str);
-}
-
 STDMETHODIMP_(bool) CMpcVideoRenderer::GetActive()
 {
 	return m_pInputPin && m_pInputPin->GetConnected();

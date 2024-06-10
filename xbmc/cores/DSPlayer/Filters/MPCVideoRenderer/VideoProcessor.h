@@ -197,7 +197,6 @@ public:
 
 	virtual HRESULT GetCurentImage(long *pDIBImage) = 0;
 	virtual HRESULT GetDisplayedImage(BYTE **ppDib, unsigned *pSize) = 0;
-	virtual HRESULT GetVPInfo(CStdStringW& str) = 0;
 
 	void CalcStatsFont();
 	bool CheckGraphPlacement();
@@ -216,8 +215,6 @@ protected:
 	inline bool SourceIsHDR() {
 		return SourceIsPQorHLG() || m_Dovi.bValid;
 	}
-
-	void UpdateStatsInputFmt();
 
 	CRefTime m_streamTime;
 	void SyncFrameToStreamTime(const REFERENCE_TIME frameStartTime);

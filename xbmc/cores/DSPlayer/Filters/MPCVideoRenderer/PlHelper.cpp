@@ -459,7 +459,7 @@ bool CheckDoviMetadata(const MediaSideDataDOVIMetadata* pDOVIMetadata, const uin
   return true;
 }
 
-void CPlHelper::ProcessDoviData(IMediaSample* pSample,
+bool CPlHelper::ProcessDoviData(IMediaSample* pSample,
                             struct pl_color_space* color,
                             struct pl_color_repr* repr,
                             struct pl_dovi_metadata* doviout)
@@ -472,11 +472,11 @@ void CPlHelper::ProcessDoviData(IMediaSample* pSample,
   hr = pMediaSideData->GetSideData(IID_MediaSideDataDOVIMetadataV2, (const BYTE**)&pDOVIMetadata, &size);
 
   if (!color || !repr || !doviout)
-    return;
+    return false;
   if (SUCCEEDED(hr) && size == sizeof(MediaSideDataDOVIMetadata) && CheckDoviMetadata(pDOVIMetadata, 1))
   {
     if (!pDOVIMetadata->Header.disable_residual_flag)
-      return;
+      return false;
     for (int i = 0; i < 3; i++)
       doviout->nonlinear_offset[i] = pDOVIMetadata->ColorMetadata.ycc_to_rgb_offset[i];
     for (int i = 0; i < 9; i++) {
@@ -492,7 +492,7 @@ void CPlHelper::ProcessDoviData(IMediaSample* pSample,
       struct pl_dovi_metadata::pl_reshape_data* cdst = &doviout->comp[c];
       cdst->num_pivots = pDOVIMetadata->Mapping.curves[c].num_pivots;
       for (int i = 0; i < pDOVIMetadata->Mapping.curves[c].num_pivots; i++) {
-
+        
         const float scale = 1.0f / ((1 << pDOVIMetadata->Header.bl_bit_depth) - 1);
         cdst->pivots[i] = scale * pDOVIMetadata->Mapping.curves[c].pivots[i];
       }
@@ -531,7 +531,9 @@ void CPlHelper::ProcessDoviData(IMediaSample* pSample,
       color->hdr.max_pq_y = dovi_ext->l1.max_pq / 4095.0f;
       color->hdr.avg_pq_y = dovi_ext->l1.avg_pq / 4095.0f;
     }*/
+    return true;
   }
+  return false;
 }
 
 pl_hdr_metadata CPlHelper::GetHdrData(IMediaSample* pSample)

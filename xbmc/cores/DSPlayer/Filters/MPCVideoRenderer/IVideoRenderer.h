@@ -160,7 +160,6 @@ struct Settings_t {
 
 interface __declspec(uuid("1AB00F10-5F55-42AC-B53F-38649F11BE3E"))
 IVideoRenderer : public IUnknown {
-	STDMETHOD(GetVideoProcessorInfo) (CStdStringW& str) PURE;
 	STDMETHOD_(bool, GetActive()) PURE;
 
 	STDMETHOD_(void, GetSettings(Settings_t& setings)) PURE;

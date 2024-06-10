@@ -222,6 +222,8 @@ public:
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);
 	HRESULT InitSwapChain();
 
+	void UpdateStatsInputFmt();
+
 	BOOL VerifyMediaType(const CMediaType* pmt) override;
 	BOOL InitMediaType(const CMediaType* pmt) override;
 
@@ -243,7 +245,6 @@ public:
 
 	HRESULT GetCurentImage(long *pDIBImage) override;
 	HRESULT GetDisplayedImage(BYTE **ppDib, unsigned* pSize) override;
-	HRESULT GetVPInfo(CStdStringW& str) override;
 
 	// Settings
 	void Configure(const Settings_t& config) override;

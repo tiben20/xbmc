@@ -250,7 +250,6 @@ public:
 	STDMETHODIMP IsCursorHidden(long *CursorHidden) { return E_NOTIMPL; }
 
 	// IVideoRenderer
-	STDMETHODIMP GetVideoProcessorInfo(CStdStringW& str);
 	STDMETHODIMP_(bool) GetActive();
 
 	STDMETHODIMP_(void) GetSettings(Settings_t& setings);

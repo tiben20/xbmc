@@ -1733,7 +1733,7 @@ void CSubtitleManager::Unload()
     delete m_subtitleStreams.back();
     m_subtitleStreams.pop_back();
   }
-  m_pManager.reset();
+  //m_pManager.reset();
 }
 
 void CSubtitleManager::SetTimePerFrame(REFERENCE_TIME iTimePerFrame)

@@ -66,7 +66,7 @@ namespace PL
     pl_color_space GetPlColorSpace(DXVA2_ExtendedFormat pFormat);
     //HDR stuff
     pl_hdr_metadata GetHdrData(IMediaSample* pSample);
-    void ProcessDoviData(IMediaSample* pSample, struct pl_color_space* color, struct pl_color_repr* repr, struct pl_dovi_metadata* doviout);
+    bool ProcessDoviData(IMediaSample* pSample, struct pl_color_space* color, struct pl_color_repr* repr, struct pl_dovi_metadata* doviout);
 
     struct HDRMetadata {
       pl_hdr_metadata hdr10 = {};

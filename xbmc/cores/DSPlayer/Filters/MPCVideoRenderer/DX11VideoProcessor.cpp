@@ -845,7 +845,6 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	}
 	
 	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
-	//pl_frame frameIn = pHelper->CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight);
 	pl_frame frameOut{};
 	pl_d3d11_wrap_params interParams{};
 	pl_d3d11_wrap_params inParams{};
@@ -900,7 +899,14 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
 	
 	csp.hdr = pHelper->GetHdrData(pSample);
-	pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi);
+	if (pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi) && !m_Dovi.bValid)
+	{
+		m_Dovi.bValid = true;
+		
+		UpdateStatsStatic();
+		
+
+	}
 	pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
 	pl_render_params params;
 	switch (g_dsSettings.pRendererSettings->m_pPlaceboOptions)
@@ -923,6 +929,13 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	
 	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
+
+	CRect src, dst, vw;
+	CMPCVRRenderer::Get()->GetVideoRect(src, dst, vw);
+	m_renderRect = Com::SmartRect(vw.x1, vw.y1, vw.x2, vw.y2);
+	m_videoRect = Com::SmartRect(dst.x1, dst.y1, dst.x2, dst.y2);
+	m_windowRect = Com::SmartRect(vw.x1, vw.y1, vw.x2, vw.y2);
+
 
 	SendStats();
 
@@ -1348,6 +1361,84 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 	}
 
 	return bRet;
+}
+
+void CDX11VideoProcessor::UpdateStatsInputFmt()
+{
+	m_strStatsInputFmt.assign(L"\nInput format  : ");
+
+	if (m_iSrcFromGPU == 11) {
+		m_strStatsInputFmt.append(L"D3D11_");
+	}
+	m_strStatsInputFmt.append(m_srcParams.str);
+
+	if (m_srcWidth != m_srcRectWidth || m_srcHeight != m_srcRectHeight) {
+		m_strStatsInputFmt.append(StringUtils::Format(L" {}x{} ->", m_srcWidth, m_srcHeight));
+	}
+	m_strStatsInputFmt.append(StringUtils::Format(L" {}x{}", m_srcRectWidth, m_srcRectHeight));
+	if (m_srcAnamorphic) {
+		m_strStatsInputFmt.append(StringUtils::Format(L" ({}:{})", m_srcAspectRatioX, m_srcAspectRatioY));
+	}
+
+	if (m_srcParams.CSType == CS_YUV) {
+		if (m_Dovi.bValid)
+		{
+
+			//TODO add profile
+			/*int dv_profile = 0;
+			const auto& hdr = m_Dovi.msd.Header;
+			const bool has_el = hdr.el_spatial_resampling_filter_flag && !hdr.disable_residual_flag;
+
+			if ((hdr.vdr_rpu_profile == 0) && hdr.bl_video_full_range_flag) {
+				dv_profile = 5;
+			}
+			else if (has_el) {
+				// Profile 7 is max 12 bits, both MEL & FEL
+				if (hdr.vdr_bit_depth == 12) {
+					dv_profile = 7;
+				}
+				else {
+					dv_profile = 4;
+				}
+			}
+			else {
+				dv_profile = 8;
+			}*/
+
+			m_strStatsInputFmt.append(StringUtils::Format(L"\nHDR DolbyVision"));
+		}
+		else
+		{
+			LPCSTR strs[6] = {};
+			GetExtendedFormatString(strs, m_srcExFmt, m_srcParams.CSType);
+			m_strStatsInputFmt.append(StringUtils::Format(L"\n  Range: {}", AToW(strs[1])));
+			if (m_decExFmt.NominalRange == DXVA2_NominalRange_Unknown) {
+				m_strStatsInputFmt += L'*';
+			};
+			m_strStatsInputFmt.append(StringUtils::Format(L", Matrix: {}", AToW(strs[2])));
+			if (m_decExFmt.VideoTransferMatrix == DXVA2_VideoTransferMatrix_Unknown) {
+				m_strStatsInputFmt += L'*';
+			};
+			if (m_decExFmt.VideoLighting != DXVA2_VideoLighting_Unknown) {
+				// display Lighting only for values other than Unknown, but this never happens
+				m_strStatsInputFmt.append(StringUtils::Format(L", Lighting: {}", AToW(strs[3])));
+			};
+			m_strStatsInputFmt.append(StringUtils::Format(L"\n  Primaries: {}", AToW(strs[4])));
+			if (m_decExFmt.VideoPrimaries == DXVA2_VideoPrimaries_Unknown) {
+				m_strStatsInputFmt += L'*';
+			};
+			m_strStatsInputFmt.append(StringUtils::Format(L", Function: {}", AToW(strs[5])));
+			if (m_decExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_Unknown) {
+				m_strStatsInputFmt += L'*';
+			};
+			if (m_srcParams.Subsampling == 420) {
+				m_strStatsInputFmt.append(StringUtils::Format(L"\n  ChromaLocation: {}", AToW(strs[0])));
+				if (m_decExFmt.VideoChromaSubsampling == DXVA2_VideoChromaSubsampling_Unknown) {
+					m_strStatsInputFmt += L'*';
+				};
+			}
+		}
+	}
 }
 
 BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
@@ -2718,109 +2809,6 @@ HRESULT CDX11VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned* pSize)
 	return hr;
 }
 
-HRESULT CDX11VideoProcessor::GetVPInfo(CStdStringW& str)
-{
-	str = L"DirectX 11";
-	str.Format(L"\nGraphics adapter: %s", m_strAdapterDescription);
-	str.append(L"\nVideoProcessor  : ");
-	if (m_D3D11VP.IsReady()) {
-		D3D11_VIDEO_PROCESSOR_CAPS caps;
-		UINT rateConvIndex;
-		D3D11_VIDEO_PROCESSOR_RATE_CONVERSION_CAPS rateConvCaps;
-		m_D3D11VP.GetVPParams(caps, rateConvIndex, rateConvCaps);
-
-		str.Format(L"D3D11, RateConversion_%u", rateConvIndex);
-
-		str.AppendFormat(L"\nDeinterlaceTech.:");
-		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_BLEND)               str.AppendFormat(L" Blend,");
-		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_BOB)                 str.AppendFormat(L" Bob,");
-		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_ADAPTIVE)            str.AppendFormat(L" Adaptive,");
-		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_DEINTERLACE_MOTION_COMPENSATION) str.AppendFormat(L" Motion Compensation,");
-		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_INVERSE_TELECINE)                str.AppendFormat(L" Inverse Telecine,");
-		if (rateConvCaps.ProcessorCaps & D3D11_VIDEO_PROCESSOR_PROCESSOR_CAPS_FRAME_RATE_CONVERSION)           str.AppendFormat(L" Frame Rate Conversion");
-		str = str.TrimRight(',');
-		str.Format(L"\nReference Frames: Past %u, Future %u", rateConvCaps.PastFrames, rateConvCaps.FutureFrames);
-	} else {
-		str.append(L"Shaders");
-	}
-
-	str.append(m_strStatsDispInfo);
-
-#ifdef _DEBUG
-	str.append(L"\n\nDEBUG info:");
-	str.Format(L"\nSource tex size: %dx%d", m_srcWidth, m_srcHeight);
-	str.Format(L"\nSource rect    : %d,%d,%d,%d - %dx%d", m_srcRect.left, m_srcRect.top, m_srcRect.right, m_srcRect.bottom, m_srcRect.Width(), m_srcRect.Height());
-	str.Format(L"\nVideo rect     : %d,%d,%d,%d - %dx%d", m_videoRect.left, m_videoRect.top, m_videoRect.right, m_videoRect.bottom, m_videoRect.Width(), m_videoRect.Height());
-	str.Format(L"\nWindow rect    : %d,%d,%d,%d - %dx%d", m_windowRect.left, m_windowRect.top, m_windowRect.right, m_windowRect.bottom, m_windowRect.Width(), m_windowRect.Height());
-
-	if (GetDevice) {
-		std::vector<std::pair<const DXGI_FORMAT, UINT>> formatsYUV = {
-			{ DXGI_FORMAT_NV12,               0 },
-			{ DXGI_FORMAT_P010,               0 },
-			{ DXGI_FORMAT_P016,               0 },
-			{ DXGI_FORMAT_YUY2,               0 },
-			{ DXGI_FORMAT_Y210,               0 },
-			{ DXGI_FORMAT_Y216,               0 },
-			{ DXGI_FORMAT_AYUV,               0 },
-			{ DXGI_FORMAT_Y410,               0 },
-			{ DXGI_FORMAT_Y416,               0 },
-		};
-		std::vector<std::pair<const DXGI_FORMAT, UINT>> formatsRGB = {
-			{ DXGI_FORMAT_B8G8R8X8_UNORM,     0 },
-			{ DXGI_FORMAT_B8G8R8A8_UNORM,     0 },
-			{ DXGI_FORMAT_R10G10B10A2_UNORM,  0 },
-			{ DXGI_FORMAT_R16G16B16A16_UNORM, 0 },
-		};
-		for (auto& [format, formatSupport] : formatsYUV) {
-			GetDevice->CheckFormatSupport(format, &formatSupport);
-		}
-		for (auto& [format, formatSupport] : formatsRGB) {
-			GetDevice->CheckFormatSupport(format, &formatSupport);
-		}
-
-		int count = 0;
-		str += L"\nD3D11 VP input formats  :";
-		for (const auto& [format, formatSupport] : formatsYUV) {
-			if (formatSupport & D3D11_FORMAT_SUPPORT_VIDEO_PROCESSOR_INPUT) {
-				str.append(L" ");
-				str.append(DXGIFormatToString(format));
-				count++;
-			}
-		}
-		if (count) {
-			str += L"\n ";
-		}
-		for (const auto& [format, formatSupport] : formatsRGB) {
-			if (formatSupport & D3D11_FORMAT_SUPPORT_VIDEO_PROCESSOR_INPUT) {
-				str.append(L" ");
-				str.append(DXGIFormatToString(format));
-			}
-		}
-
-		count = 0;
-		str += L"\nShader Texture2D formats:";
-		for (const auto& [format, formatSupport] : formatsYUV) {
-			if (formatSupport & (D3D11_FORMAT_SUPPORT_TEXTURE2D|D3D11_FORMAT_SUPPORT_SHADER_SAMPLE)) {
-				str.append(L" ");
-				str.append(DXGIFormatToString(format));
-				count++;
-			}
-		}
-		if (count) {
-			str += L"\n ";
-		}
-		for (const auto& [format, formatSupport] : formatsRGB) {
-			if (formatSupport & (D3D11_FORMAT_SUPPORT_TEXTURE2D | D3D11_FORMAT_SUPPORT_SHADER_SAMPLE)) {
-				str.append(L" ");
-				str.append(DXGIFormatToString(format));
-			}
-		}
-	}
-#endif
-
-	return S_OK;
-}
-
 void CDX11VideoProcessor::Configure(const Settings_t& config)
 {
 	bool changeWindow            = false;
@@ -3078,7 +3066,7 @@ void CDX11VideoProcessor::UpdateStatsPresent()
 void CDX11VideoProcessor::UpdateStatsStatic()
 {
 	if (m_srcParams.cformat) {
-		m_strStatsHeader.Format(L"MPC VR %s Modified for kodi, Direct3D 11", _CRT_WIDE(VERSION_STR));
+		m_strStatsHeader.Format(L"MPCVR modified for kodi with libplacebo", _CRT_WIDE(VERSION_STR));
 
 		UpdateStatsInputFmt();
 
@@ -3158,15 +3146,9 @@ void CDX11VideoProcessor::SendStats()
 		str.AppendFormat(L"\nGraph. Adapter: %s", m_strAdapterDescription.c_str());
 
 		wchar_t frametype = (m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE) ? 'i' : 'p';
-		str.AppendFormat(L"\n %4.3f %c,%4.3f", m_pFilter->m_FrameStats.GetAverageFps(), frametype, m_pFilter->m_DrawStats.GetAverageFps());
+		str.AppendFormat(L"\n FPS: %4.3f %c,%4.3f", m_pFilter->m_FrameStats.GetAverageFps(), frametype, m_pFilter->m_DrawStats.GetAverageFps());
 
 		str.append(m_strStatsInputFmt);
-		if (m_Dovi.bValid) {
-			str.append(L", MetaData: DolbyVision");
-			if (m_Dovi.bHasMMR) {
-				str.append(L"(MMR)");
-			}
-		}
 		str.append(m_strStatsVProc);
 
 		const int dstW = m_videoRect.Width();
@@ -3176,14 +3158,6 @@ void CDX11VideoProcessor::SendStats()
 		}
 		else {
 			str.AppendFormat(L"\nScaling       : %ux%u -> %ix%i", m_srcRectWidth, m_srcRectHeight, dstW, dstH);
-		}
-		if (m_srcRectWidth != dstW || m_srcRectHeight != dstH) {
-			if (m_D3D11VP.IsReady() && m_bVPScaling && !m_bVPScalingUseShaders) {
-				str.append(L" D3D11");
-				if (m_bVPUseSuperRes) {
-					str.append(L" SuperResolution*");
-				}
-			}
 		}
 
 		if (m_strCorrection || m_bDitherUsed)
@@ -3208,7 +3182,7 @@ void CDX11VideoProcessor::SendStats()
 
 		str.AppendFormat(L"\nSync offset   : %i ms", (m_RenderStats.syncoffset + 5000) / 10000);
 	}
-	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_1)
+	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_3)
 	{
 
 		str.reserve(700);
