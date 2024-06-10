@@ -188,13 +188,14 @@ interface __declspec(uuid("97f7c4d4-547b-4a5f-8332-536430ad2e4d")) IAMFilterData
 
 void CFGFilterRegistry::ExtractFilterData(BYTE* p, UINT len)
 {
-  IAMFilterData* pFD;
+  Microsoft::WRL::ComPtr<IAMFilterData> pFD;
+  
   BYTE* ptr = NULL;
-
+  
   if (SUCCEEDED(CoCreateInstance(CLSID_FilterMapper2, NULL, CLSCTX_ALL, __uuidof(pFD), (void**)&pFD))
     && SUCCEEDED(pFD->ParseFilterData(p, len, (BYTE**)&ptr)))
   {
-    REGFILTER2* prf = (REGFILTER2*)*(DWORD*)ptr; // this is f*cked up
+    REGFILTER2* prf = (REGFILTER2*)*(WPARAM*)ptr; // this is f*cked up
 
     if (prf->dwVersion == 1)
     {

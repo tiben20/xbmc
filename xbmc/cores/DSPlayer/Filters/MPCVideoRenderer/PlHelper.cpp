@@ -54,7 +54,6 @@ CPlHelper::CPlHelper()
       blend_info[i][ii] = {};
   m_pIcc = nullptr;
   m_pCache = nullptr;
-  m_pCacheSignature = 0;
 }
 
 CPlHelper::~CPlHelper()

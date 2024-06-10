@@ -11,7 +11,6 @@ set(SOURCES CPUInfo2.cpp
 			DXVA2VP.cpp
 			Helper.cpp
 			MediaSampleSideData.cpp
-			PropPage.cpp
 			Registry.cpp
 			renbase2.cpp
 			PlHelper.cpp
@@ -42,7 +41,6 @@ set(HEADERS atlredef.h
 			Helper.h
 			IVideoRenderer.h
 			MediaSampleSideData.h
-			PropPage.h
 			Registry.h
 			renbase2.h
 			resource.h

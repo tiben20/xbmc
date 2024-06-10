@@ -113,7 +113,7 @@ public:
   bool IsTogglingHDR() const { return m_IsTogglingHDR; }
   void SetTogglingHDR(bool toggling);
   virtual bool DPIChanged(WORD dpi, RECT windowRect) const;
-  bool IsMinimized() const { return m_bMinimized; }
+  bool _IsMinimized() const { return m_bMinimized; }
   void SetMinimized(bool minimized);
   void CacheSystemSdrPeakLuminance();
 

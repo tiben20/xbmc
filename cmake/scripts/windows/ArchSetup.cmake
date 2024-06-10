@@ -95,7 +95,7 @@ list(APPEND DEPLIBS bcrypt.lib d3d11.lib DInput8.lib DSound.lib winmm.lib Mpr.li
                     crypt32.lib Comctl32.lib)
 
 # NODEFAULTLIB option
-set(_nodefaultlibs_RELEASE libcmt)
+set(_nodefaultlibs_RELEASE libcmtd)
 set(_nodefaultlibs_DEBUG libcmt msvcrt)
 foreach(_lib ${_nodefaultlibs_RELEASE})
   set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /NODEFAULTLIB:\"${_lib}\"")

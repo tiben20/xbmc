@@ -78,7 +78,6 @@ class __declspec(uuid("71F080AA-8661-4093-B15E-4F6903E77D0A"))
 	, public IMFGetService
 	, public IBasicVideo2
 	, public IVideoWindow
-	, public ISpecifyPropertyPages
 	, public IVideoRenderer
 	, public ISubRender
 	, public ISubRender11
@@ -249,9 +248,6 @@ public:
 	STDMETHODIMP GetRestorePosition(long *pLeft, long *pTop, long *pWidth, long *pHeight) { return E_NOTIMPL; }
 	STDMETHODIMP HideCursor(long HideCursor) { return E_NOTIMPL; }
 	STDMETHODIMP IsCursorHidden(long *CursorHidden) { return E_NOTIMPL; }
-
-	// ISpecifyPropertyPages
-	STDMETHODIMP GetPages(CAUUID* pPages);
 
 	// IVideoRenderer
 	STDMETHODIMP GetVideoProcessorInfo(CStdStringW& str);

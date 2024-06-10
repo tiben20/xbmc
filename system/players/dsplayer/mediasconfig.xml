@@ -35,10 +35,10 @@
       <audio filter="ffdaudiodec" />
     </rule>
     <rule filetypes="mp4">
-      <source filter="mp4source" />
-      <splitter filter="mp4splitter" />
-      <video filter="mpcvideodec" />
-      <audio filter="ffdaudiodec" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
+      <video filter="lavvideodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="mov|m4v">
       <source filter="mp4source" />

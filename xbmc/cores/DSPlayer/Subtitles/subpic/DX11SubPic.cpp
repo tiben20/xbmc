@@ -236,7 +236,7 @@ STDMETHODIMP CDX11SubPic::CopyTo(ISubPic* pSubPic)
 
 	Com::SmartRect copyRect(m_rcDirty);
 	copyRect.InflateRect(1, 1);
-	RECT subpicRect = { 0, 0, std::min<UINT>(pDstMemPic->w, m_MemPic.w), std::min<UINT>(pDstMemPic->h, m_MemPic.h) };
+	RECT subpicRect = { 0, 0, (LONG)std::min<UINT>(pDstMemPic->w, m_MemPic.w), (LONG)std::min<UINT>(pDstMemPic->h, m_MemPic.h) };
 	if (!copyRect.IntersectRect(copyRect, &subpicRect)) {
 		return S_FALSE;
 	}
@@ -355,7 +355,7 @@ void CDX11SubPicAllocator::GetStats(int& _nFree, int& _nAlloc)
 
 void CDX11SubPicAllocator::ClearCache()
 {
-	g_log->Log(LOGINFO, "CDX11SubPicAllocator::ClearCache");
+	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::ClearCache");
 	// Clear the allocator of any remaining subpics
 	CAutoLock Lock(&ms_SurfaceQueueLock);
 	for (auto& pSubPic : m_AllocatedSurfaces) {
@@ -378,7 +378,7 @@ STDMETHODIMP_(HRESULT __stdcall) CDX11SubPicAllocator::SetDeviceContext(IUnknown
 
 STDMETHODIMP CDX11SubPicAllocator::ChangeDevice(IUnknown* pDev)
 {
-	g_log->Log(LOGINFO, "CDX11SubPicAllocator::ChangeDevice");
+	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::ChangeDevice");
 	ClearCache();
 	Com::SmartQIPtr<ID3D11Device> pDevice = pDev;
 	if (!pDevice) {
@@ -428,7 +428,7 @@ STDMETHODIMP_(void) CDX11SubPicAllocator::SetInverseAlpha(bool bInverted)
 
 HRESULT CDX11SubPicAllocator::CreateOutputTex()
 {
-	g_log->Log(LOGINFO, "CDX11SubPicAllocator::CreateOutputTex");
+	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::CreateOutputTex");
 	bool bDynamicTex = false;
 
 	Com::SmartQIPtr<IDXGIDevice> pDxgiDevice;
@@ -486,7 +486,7 @@ HRESULT CDX11SubPicAllocator::CreateOutputTex()
 
 void CDX11SubPicAllocator::CreateBlendState()
 {
-	g_log->Log(LOGINFO, "CDX11SubPicAllocator::CreateBlendState");
+	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::CreateBlendState");
 	D3D11_BLEND_DESC bdesc = {};
 	bdesc.RenderTarget[0].BlendEnable = TRUE;
 	bdesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
@@ -501,7 +501,7 @@ void CDX11SubPicAllocator::CreateBlendState()
 
 void CDX11SubPicAllocator::CreateOtherStates()
 {
-	g_log->Log(LOGINFO, "CDX11SubPicAllocator::CreateOtherStates");
+	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::CreateOtherStates");
 	D3D11_BUFFER_DESC BufferDesc = { sizeof(VERTEX) * 4, D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 	EXECUTE_ASSERT(S_OK == m_pDevice->CreateBuffer(&BufferDesc, nullptr, &m_pVertexBuffer));
 
@@ -535,7 +535,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	if (!m_pOutputTexture) {
 		hr = CreateOutputTex();
 		if (FAILED(hr)) {
-			g_log->Log(LOGERROR, "CDX11SubPicAllocator::Render CreateOutputTex");
+			g_log->Log(_LOGERROR, "CDX11SubPicAllocator::Render CreateOutputTex");
 			return hr;
 		}
 	}
@@ -545,7 +545,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	Com::SmartRect copyRect(dirtyRect);
 	if (stretching) {
 		copyRect.InflateRect(1, 1);
-		RECT subpicRect = { 0, 0, memPic.w, memPic.h };
+		RECT subpicRect = { 0, 0, (LONG)memPic.w, (LONG)memPic.h };
 		EXECUTE_ASSERT(copyRect.IntersectRect(copyRect, &subpicRect));
 	}
 
@@ -572,7 +572,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 		}
 	}
 	else {
-		D3D11_BOX dstBox = { copyRect.left, copyRect.top, 0, copyRect.right, copyRect.bottom, 1 };
+		D3D11_BOX dstBox = { (UINT)copyRect.left, (UINT)copyRect.top, 0, (UINT)copyRect.right, (UINT)copyRect.bottom, 1 };
 		m_pDeviceContext->UpdateSubresource1(m_pOutputTexture.Get(), 0, &dstBox, src, memPic.w * 4, 0, D3D11_COPY_DISCARD);
 	}
 
@@ -631,7 +631,7 @@ HRESULT CDX11SubPicAllocator::Render(const MemPic_t& memPic, const Com::SmartRec
 	m_pDeviceContext->RSSetViewports(1, &vp);
 
 	m_pDeviceContext->Draw(4, 0);
-	//g_log->Log(LOGINFO, "Rendered subtitles");
+	//g_log->Log(_LOGINFO, "Rendered subtitles");
 #if 0
 	{
 		static int counter = 0;

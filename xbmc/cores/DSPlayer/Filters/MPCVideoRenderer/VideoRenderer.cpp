@@ -23,7 +23,6 @@
 #include <evr.h> // for MR_VIDEO_ACCELERATION_SERVICE, because the <mfapi.h> does not contain it
 #include <Mferror.h>
 #include "Helper.h"
-#include "PropPage.h"
 #include "VideoRendererInputPin.h"
 #include "Include/Version.h"
 #include "VideoRenderer.h"
@@ -1211,28 +1210,6 @@ STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Widt
 
 	if (m_bForceRedrawing) {
 		Redraw();
-	}
-
-	return S_OK;
-}
-
-// ISpecifyPropertyPages
-STDMETHODIMP CMpcVideoRenderer::GetPages(CAUUID* pPages)
-{
-	CheckPointer(pPages, E_POINTER);
-
-	static const GUID guidQualityPPage = { 0x565DCEF2, 0xAFC5, 0x11D2, 0x88, 0x53, 0x00, 0x00, 0xF8, 0x08, 0x83, 0xE3 };
-
-	pPages->cElems = GetActive() ? 3 : 1;
-	pPages->pElems = static_cast<GUID*>(CoTaskMemAlloc(sizeof(GUID) * pPages->cElems));
-	if (pPages->pElems == nullptr) {
-		return E_OUTOFMEMORY;
-	}
-
-	pPages->pElems[0] = __uuidof(CVRMainPPage);
-	if (pPages->cElems == 3) {
-		pPages->pElems[1] = __uuidof(CVRInfoPPage);
-		pPages->pElems[2] = guidQualityPPage;
 	}
 
 	return S_OK;

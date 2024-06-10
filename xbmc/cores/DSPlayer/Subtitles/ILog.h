@@ -21,14 +21,12 @@
  *
  */
 
-#define LOGDEBUG   0
-#define LOGINFO    1
-#define LOGINFO  2
-#define LOGWARNING 3
-#define LOGERROR   4
-#define LOGSEVERE  5
-#define LOGFATAL   6
-#define LOGNONE    7
+#define _LOGDEBUG   0
+#define _LOGINFO    1
+#define _LOGWARNING 2
+#define _LOGERROR   3
+#define _LOGFATAL   4
+#define _LOGNONE    5
 
 /**
  * ILog: Allow the subtitles dll to log message within XBMC

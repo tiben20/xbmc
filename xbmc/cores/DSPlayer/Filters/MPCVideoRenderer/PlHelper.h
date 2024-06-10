@@ -20,6 +20,7 @@
 #pragma comment(lib, "libplacebo-349.lib")
 
 #include <string>
+#include <vector>
 #include <strmif.h>
 #include <d3d9types.h>
 #include <dxva2api.h>
@@ -84,7 +85,7 @@ namespace PL
   protected:
     //options
     pl_options m_plOptions;
-    pl_rotation target_rot;
+    pl_rotation target_rot = {};
 
 
     pl_log m_plLog = nullptr;
@@ -101,14 +102,14 @@ namespace PL
 
     //caching system TODO
     pl_cache m_pCache;
-    uint64_t m_pCacheSignature;//signature of the current cache
+    uint64_t m_pCacheSignature = 0;//signature of the current cache
     std::string m_pCacheFile;
 
     // ICC profile
     pl_icc_object m_pIcc;
     std::string m_sIccNname;
-    bool m_bUseIccLuma;
-    bool m_bForceBpc;
+    bool m_bUseIccLuma = false;
+    bool m_bForceBpc = false;
 
     // custom shaders
     std::vector<const pl_hook*> m_pShaderHooks;

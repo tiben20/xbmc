@@ -691,7 +691,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
 #endif
       if (wParam == SIZE_MINIMIZED)
       {
-        if (!DX::Windowing()->IsMinimized())
+        if (!DX::Windowing()->_IsMinimized())
         {
           DX::Windowing()->SetMinimized(true);
           const auto& components = CServiceBroker::GetAppComponents();
@@ -703,7 +703,7 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
           }
         }
       }
-      else if (DX::Windowing()->IsMinimized())
+      else if (DX::Windowing()->_IsMinimized())
       {
         DX::Windowing()->SetMinimized(false);
         const auto& components = CServiceBroker::GetAppComponents();
