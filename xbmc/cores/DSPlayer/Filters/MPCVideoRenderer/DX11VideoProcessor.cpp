@@ -851,12 +851,17 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	pl_d3d11_wrap_params inParams{};
 	interParams.array_slice = 1;
 	pl_frame frameIn{};
+	struct pl_color_space csp {};
+	struct pl_color_repr repr {};
+	struct pl_dovi_metadata dovi {};
 	inParams.w = m_pInputTexture.GetWidth();
 	inParams.h = m_pInputTexture.GetHeight();
 	inParams.fmt = m_pInputTexture.GetFormat();
 	inParams.tex = m_pInputTexture.Get();
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
 
+	csp = pHelper->GetPlColorSpace(m_srcExFmt);
+	repr = pHelper->GetPlColorRepresentation(m_srcExFmt);
 	frameIn.num_planes = 1;
 	frameIn.planes[0].texture = inTexture;
 	frameIn.planes[0].components = 3;
@@ -865,8 +870,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameIn.planes[0].component_mapping[2] = 2;
 	frameIn.planes[0].component_mapping[3] = -1;
 	frameIn.planes[0].flipped = false;
-	frameIn.repr = pHelper->GetPlColorRepresentation(m_srcExFmt);
-	frameIn.color = pHelper->GetPlColorSpace(m_srcExFmt);
+	frameIn.repr = repr;
+	frameIn.color = csp;
 	CD3DTexture inputTex = CMPCVRRenderer::Get()->GetIntermediateTarget();
 	interParams.w = inputTex.GetWidth();
 	interParams.h = inputTex.GetHeight();
@@ -885,18 +890,18 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 	frameOut.crop.x1 = m_srcWidth;
 	frameOut.crop.y1 = m_srcHeight;
-	frameOut.repr.sys = frameIn.repr.sys;// PL_COLOR_SYSTEM_BT_709;
-	frameOut.repr.levels = PL_COLOR_LEVELS_FULL;
+	frameOut.repr = frameIn.repr;// PL_COLOR_SYSTEM_BT_709;
+	/*frameOut.repr.levels = PL_COLOR_LEVELS_FULL;
 	frameOut.repr.alpha = PL_ALPHA_UNKNOWN;
 	frameOut.repr.bits.sample_depth = 8;
-	frameOut.repr.bits.color_depth = 8;
+	frameOut.repr.bits.color_depth = 8;*/
 	frameOut.color = frameIn.color;
 
 	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
-	pl_color_space csp = frameIn.color;
-	csp.hdr = pHelper->GetHdrData(pSample);
 	
-	//pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
+	csp.hdr = pHelper->GetHdrData(pSample);
+	pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi);
+	pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
 	pl_render_params params;
 	switch (g_dsSettings.pRendererSettings->m_pPlaceboOptions)
 	{

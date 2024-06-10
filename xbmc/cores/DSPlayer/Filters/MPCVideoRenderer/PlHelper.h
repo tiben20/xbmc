@@ -65,6 +65,8 @@ namespace PL
     pl_color_space GetPlColorSpace(DXVA2_ExtendedFormat pFormat);
     //HDR stuff
     pl_hdr_metadata GetHdrData(IMediaSample* pSample);
+    void ProcessDoviData(IMediaSample* pSample, struct pl_color_space* color, struct pl_color_repr* repr, struct pl_dovi_metadata* doviout);
+
     struct HDRMetadata {
       pl_hdr_metadata hdr10 = {};
       bool bValid = false;
@@ -109,10 +111,8 @@ namespace PL
     bool m_bForceBpc;
 
     // custom shaders
-    const struct pl_hook** shader_hooks;
-    char** shader_paths;
-    size_t shader_num;
-    size_t shader_size;
+    std::vector<const pl_hook*> m_pShaderHooks;
+    std::vector<std::string> m_pShaderPaths;
 
     // pass metadata
     struct pl_dispatch_info blend_info[MAX_BLEND_FRAMES][MAX_BLEND_PASSES];

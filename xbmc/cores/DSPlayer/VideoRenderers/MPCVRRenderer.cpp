@@ -36,6 +36,7 @@ std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 
 CMPCVRRenderer::CMPCVRRenderer()
 {
+  m_pPlacebo = nullptr;
   Init();
 }
 
@@ -78,10 +79,8 @@ void CMPCVRRenderer::Init()
   data = shdr.GetData();
   size = shdr.GetSize();
   GetDevice->CreatePixelShader(data, size, nullptr, &m_pPS_BitmapToFrame);
-
-  m_pPlacebo = new PL::CPlHelper();
-  
-  //m_pPlacebo = new PL::CPlHelper();
+  if (!m_pPlacebo)
+    m_pPlacebo = new PL::CPlHelper();
 }
 
 void CMPCVRRenderer::Release()
@@ -93,6 +92,8 @@ void CMPCVRRenderer::Release()
   m_pVertexBuffer = nullptr;
   m_pVSimpleInputLayout = nullptr;
   m_pPS_Simple = nullptr;
+  m_pPlacebo->Release();
+
 }
 
 HRESULT CMPCVRRenderer::FillVertexBuffer(const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip)
@@ -247,7 +248,7 @@ void CMPCVRRenderer::DrawStats()
   if (m_statsText.length() == 0)
     return;
 
-  SIZE rtSize{ m_screenRect.Width(),m_screenRect.Height()};
+  SIZE rtSize{ (LONG) m_screenRect.Width(),(LONG) m_screenRect.Height()};
 
   m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
 
@@ -398,7 +399,7 @@ void CMPCVRRenderer::SetGraphSize()
     m_windowRect = Com::SmartRect(0, 0, winSystem->GetWidth(), winSystem->GetHeight());
   }*/
   if (pContext && !m_screenRect.IsEmpty()) {
-    SIZE rtSize{ m_screenRect.Width(),m_screenRect.Height()};
+    SIZE rtSize{ (LONG)m_screenRect.Width(),(LONG)m_screenRect.Height()};
 
     if (m_iResizeStats == 0) {
       int w = std::max((float)512, m_screenRect.Width() / 2 - 10) - 5 - 3;

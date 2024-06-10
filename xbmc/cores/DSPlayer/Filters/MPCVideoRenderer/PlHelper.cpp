@@ -43,12 +43,23 @@ static void pl_log_cb(void*, enum pl_log_level level, const char* msg)
 
 CPlHelper::CPlHelper()
 {
-  
+  m_pQueue = nullptr;
+  m_plOptions = nullptr;
+  m_plSwapchain = nullptr;
+  m_plLog = nullptr;
+  for (int i = 0; i < MAX_FRAME_PASSES; i++)
+    frame_info[i] = {};
+  for (int i = 0; i < MAX_BLEND_FRAMES; i++)
+    for (int ii = 0; ii < MAX_BLEND_FRAMES; ii++)
+      blend_info[i][ii] = {};
+  m_pIcc = nullptr;
+  m_pCache = nullptr;
+  m_pCacheSignature = 0;
 }
 
 CPlHelper::~CPlHelper()
 {
-
+  CLog::Log(LOGINFO, "{}", __FUNCTION__);
 }
 
 bool CPlHelper::Init(DXGI_FORMAT fmt)
@@ -93,16 +104,18 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
   return false;
 }
 
-void PL::CPlHelper::Release()
+void CPlHelper::Release()
 {
-  pl_queue_destroy(&m_pQueue);
+  
+  if (m_pQueue)
+    pl_queue_destroy(&m_pQueue);
   pl_renderer_destroy(&m_plRenderer);
   pl_options_free(&m_plOptions);
-
-  for (int i = 0; i < shader_num; i++)
+  m_plD3d11 = nullptr;
+  m_plSwapchain = nullptr;
+  for (std::vector<const pl_hook*>::iterator it = m_pShaderHooks.begin(); it != m_pShaderHooks.end(); it++)
   {
-    pl_mpv_user_shader_destroy(&shader_hooks[i]);
-    free(shader_paths[i]);
+    pl_mpv_user_shader_destroy(&(*it));
   }
 
   for (int i = 0; i < MAX_FRAME_PASSES; i++)
@@ -112,8 +125,9 @@ void PL::CPlHelper::Release()
       pl_shader_info_deref(&blend_info[j][i].shader);
   }
 
-  free(shader_hooks);
-  free(shader_paths);
+  m_pShaderHooks.clear();
+  //free(shader_hooks); 
+  m_pShaderPaths.clear();
   pl_icc_close(&m_pIcc);
 
   if (m_pCache) {
@@ -185,6 +199,7 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
   img.planes[1] = pl_planes[1];
   img.repr = GetPlColorRepresentation(pFormat);
   img.color = GetPlColorSpace(pFormat);
+
   loc = PL_CHROMA_LEFT;
   pl_frame_set_chroma_location(&img, loc);
   return img;
@@ -262,25 +277,14 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
 
   memcpy(pData[1], pDataOut + srcPitch * height, sizeleft);
   CD3DTexture Plane[2];
-  
-  Plane[0].CreatePlane(width, height, DXGI_FORMAT_R8_UNORM, pData[0], "LibPlacebo first nv12 plane");
-  
-  Plane[1].CreatePlane((width / 2), (height / 2), DXGI_FORMAT_R8G8_UNORM, pData[1], "LibPlacebo second nv12 plane");
-  //hr = DX::DeviceResources::Get()->GetImmediateContext()->Map(CMPCVRRenderer::Get()->GetTexturePlane(0).Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-  if (SUCCEEDED(hr))
-  {
-    /*CopyFrameAsIs(height, (BYTE*)mappedResource.pData, mappedResource.RowPitch, pDataOut, srcPitch);
-    DX::DeviceResources::Get()->GetImmediateContext()->Unmap(CMPCVRRenderer::Get()->GetTexturePlane(0).Get(), 0);
-    DX::DeviceResources::Get()->GetImmediateContext()->Map(CMPCVRRenderer::Get()->GetTexturePlane(1).Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-    if (SUCCEEDED(hr)) {
-      const UINT cromaH = height / 2;
-      const int cromaPitch = srcPitch;
-      pDataOut += srcPitch * height;
-      CopyFrameAsIs(cromaH, (BYTE*)mappedResource.pData, mappedResource.RowPitch, pDataOut, cromaPitch);
-      DX::DeviceResources::Get()->GetImmediateContext()->Unmap(CMPCVRRenderer::Get()->GetTexturePlane(1).Get(), 0);
-     
+  bool res1,res2;
+  res1 = Plane[0].CreatePlane(width, height, DXGI_FORMAT_R8_UNORM, pData[0], "LibPlacebo first nv12 plane");
 
-    }*/
+
+  res2 = Plane[1].CreatePlane((width / 2), (height / 2), DXGI_FORMAT_R8G8_UNORM, pData[1], "LibPlacebo second nv12 plane");
+  //hr = DX::DeviceResources::Get()->GetImmediateContext()->Map(CMPCVRRenderer::Get()->GetTexturePlane(0).Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+  if (res1 && res2)
+  {
     pl_d3d11_wrap_params interParams[2]{};
 
     for (int x = 0; x < 2; x++)
@@ -436,7 +440,102 @@ pl_color_space CPlHelper::GetPlColorSpace(DXVA2_ExtendedFormat pFormat)
 
 }
 
-pl_hdr_metadata PL::CPlHelper::GetHdrData(IMediaSample* pSample)
+bool CheckDoviMetadata(const MediaSideDataDOVIMetadata* pDOVIMetadata, const uint8_t maxReshapeMethon)
+{
+  if (!pDOVIMetadata->Header.disable_residual_flag) {
+    return false;
+  }
+
+  for (const auto& curve : pDOVIMetadata->Mapping.curves) {
+    if (curve.num_pivots < 2 || curve.num_pivots > 9) {
+      return false;
+    }
+    for (int i = 0; i < int(curve.num_pivots - 1); i++) {
+      if (curve.mapping_idc[i] > maxReshapeMethon) { // 0 polynomial, 1 mmr
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+void CPlHelper::ProcessDoviData(IMediaSample* pSample,
+                            struct pl_color_space* color,
+                            struct pl_color_repr* repr,
+                            struct pl_dovi_metadata* doviout)
+{
+  
+  Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;
+  HRESULT hr = pSample->QueryInterface(IID_PPV_ARGS(&pMediaSideData));
+  size_t size = 0;
+  MediaSideDataDOVIMetadata* pDOVIMetadata = nullptr;
+  hr = pMediaSideData->GetSideData(IID_MediaSideDataDOVIMetadataV2, (const BYTE**)&pDOVIMetadata, &size);
+
+  if (!color || !repr || !doviout)
+    return;
+  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataDOVIMetadata) && CheckDoviMetadata(pDOVIMetadata, 1))
+  {
+    if (!pDOVIMetadata->Header.disable_residual_flag)
+      return;
+    for (int i = 0; i < 3; i++)
+      doviout->nonlinear_offset[i] = pDOVIMetadata->ColorMetadata.ycc_to_rgb_offset[i];
+    for (int i = 0; i < 9; i++) {
+      float* nonlinear = &doviout->nonlinear.m[0][0];
+      float* linear = &doviout->linear.m[0][0];
+      nonlinear[i] = pDOVIMetadata->ColorMetadata.ycc_to_rgb_matrix[i];
+      linear[i] = pDOVIMetadata->ColorMetadata.rgb_to_lms_matrix[i];
+    }
+    for (int c = 0; c < 3; c++)
+    {
+
+      //pDOVIMetadata->Mapping.curves[c];
+      struct pl_dovi_metadata::pl_reshape_data* cdst = &doviout->comp[c];
+      cdst->num_pivots = pDOVIMetadata->Mapping.curves[c].num_pivots;
+      for (int i = 0; i < pDOVIMetadata->Mapping.curves[c].num_pivots; i++) {
+
+        const float scale = 1.0f / ((1 << pDOVIMetadata->Header.bl_bit_depth) - 1);
+        cdst->pivots[i] = scale * pDOVIMetadata->Mapping.curves[c].pivots[i];
+      }
+      for (int i = 0; i < pDOVIMetadata->Mapping.curves[c].num_pivots - 1; i++) {
+        const float scale = 1.0f / (1 << pDOVIMetadata->Header.coef_log2_denom);
+        cdst->method[i] = pDOVIMetadata->Mapping.curves[c].mapping_idc[i];
+        switch (pDOVIMetadata->Mapping.curves[c].mapping_idc[i]) {
+        case 0://AV_DOVI_MAPPING_POLYNOMIAL:
+          for (int k = 0; k < 3; k++) {
+            cdst->poly_coeffs[i][k] = (k <= pDOVIMetadata->Mapping.curves[c].poly_order[i])
+              ? scale * pDOVIMetadata->Mapping.curves[c].poly_coef[i][k]
+              : 0.0f;
+          }
+          break;
+        case 1://AV_DOVI_MAPPING_MMR:
+          cdst->mmr_order[i] = pDOVIMetadata->Mapping.curves[c].mmr_order[i];
+          cdst->mmr_constant[i] = scale * pDOVIMetadata->Mapping.curves[c].mmr_constant[i];
+          for (int j = 0; j < pDOVIMetadata->Mapping.curves[c].mmr_order[i]; j++) {
+            for (int k = 0; k < 7; k++)
+              cdst->mmr_coeffs[i][j][k] = scale * pDOVIMetadata->Mapping.curves[c].mmr_coef[i][j][k];
+          }
+          break;
+        }
+      }
+    }
+  //
+    repr->dovi = doviout;
+    repr->sys = PL_COLOR_SYSTEM_DOLBYVISION;
+    color->transfer = PL_COLOR_TRC_PQ;
+    
+    color->hdr.min_luma = pl_hdr_rescale(PL_HDR_PQ, PL_HDR_NITS, pDOVIMetadata->Extensions[0].Level1.min_pq / 4095.0f);
+    color->hdr.max_luma = pl_hdr_rescale(PL_HDR_PQ, PL_HDR_NITS, pDOVIMetadata->Extensions[0].Level1.max_pq / 4095.0f);
+
+    
+    /*if ((dovi_ext = av_dovi_find_level(metadata, 1))) {
+      color->hdr.max_pq_y = dovi_ext->l1.max_pq / 4095.0f;
+      color->hdr.avg_pq_y = dovi_ext->l1.avg_pq / 4095.0f;
+    }*/
+  }
+}
+
+pl_hdr_metadata CPlHelper::GetHdrData(IMediaSample* pSample)
 {
   
   Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;

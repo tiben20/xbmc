@@ -14,14 +14,14 @@
 // Restrictions: Only one side data per type can be attached
 interface __declspec(uuid("F940AE7F-48EB-4377-806C-8FC48CAB2292")) IMediaSideData : public IUnknown
 {
-    // Set the side data identified by guidType to the data provided
-    // The provided data will be copied and stored internally
-    STDMETHOD(SetSideData)(GUID guidType, const BYTE *pData, size_t size) PURE;
+  // Set the side data identified by guidType to the data provided
+  // The provided data will be copied and stored internally
+  STDMETHOD(SetSideData)(GUID guidType, const BYTE* pData, size_t size) PURE;
 
-    // Get the side data identified by guidType
-    // The caller receives pointers to the internal data, and the pointers shall stay
-    // valid for the lifetime of the object
-    STDMETHOD(GetSideData)(GUID guidType, const BYTE **pData, size_t *pSize) PURE;
+  // Get the side data identified by guidType
+  // The caller receives pointers to the internal data, and the pointers shall stay
+  // valid for the lifetime of the object
+  STDMETHOD(GetSideData)(GUID guidType, const BYTE** pData, size_t* pSize) PURE;
 };
 
 // -----------------------------------------------------------------
@@ -34,30 +34,30 @@ DEFINE_GUID(IID_MediaSideDataHDR, 0x53820dbc, 0xa7b8, 0x49c4, 0xb1, 0x7b, 0xe5, 
 #pragma pack(push, 1)
 struct MediaSideDataHDR
 {
-    // coordinates of the primaries, in G-B-R order
-    double display_primaries_x[3];
-    double display_primaries_y[3];
-    // white point
-    double white_point_x;
-    double white_point_y;
-    // luminance
-    double max_display_mastering_luminance;
-    double min_display_mastering_luminance;
+  // coordinates of the primaries, in G-B-R order
+  double display_primaries_x[3];
+  double display_primaries_y[3];
+  // white point
+  double white_point_x;
+  double white_point_y;
+  // luminance
+  double max_display_mastering_luminance;
+  double min_display_mastering_luminance;
 };
 #pragma pack(pop)
 
 // {ED6AE576-7CBE-41A6-9DC3-07C35DC13EF9}
 DEFINE_GUID(IID_MediaSideDataHDRContentLightLevel, 0xed6ae576, 0x7cbe, 0x41a6, 0x9d, 0xc3, 0x7, 0xc3, 0x5d, 0xc1, 0x3e,
-            0xf9);
+  0xf9);
 
 #pragma pack(push, 1)
 struct MediaSideDataHDRContentLightLevel
 {
-    // maximum content light level (cd/m2)
-    unsigned int MaxCLL;
+  // maximum content light level (cd/m2)
+  unsigned int MaxCLL;
 
-    // maximum frame average light level (cd/m2)
-    unsigned int MaxFALL;
+  // maximum frame average light level (cd/m2)
+  unsigned int MaxFALL;
 };
 #pragma pack(pop)
 
@@ -71,59 +71,59 @@ DEFINE_GUID(IID_MediaSideDataHDR10Plus, 0x183ed511, 0x8910, 0x4262, 0x88, 0xf6, 
 // All pixel values are kept as-is, rational values are normalized as double-precision floating point
 struct MediaSideDataHDR10Plus
 {
-    // number of windows (1-3)
-    unsigned int num_windows;
+  // number of windows (1-3)
+  unsigned int num_windows;
 
-    // processing windows
+  // processing windows
+  struct
+  {
+    unsigned int upper_left_corner_x;
+    unsigned int upper_left_corner_y;
+    unsigned int lower_right_corner_x;
+    unsigned int lower_right_corner_y;
+    unsigned int center_of_ellipse_x;
+    unsigned int center_of_ellipse_y;
+    unsigned int rotation_angle;
+    unsigned int semimajor_axis_internal_ellipse;
+    unsigned int semimajor_axis_external_ellipse;
+    unsigned int semiminor_axis_external_ellipse;
+    unsigned int overlap_process_option;
+
+    double maxscl[3];
+    double average_maxrgb;
+
+    unsigned int num_distribution_maxrgb_percentiles;
     struct
     {
-        unsigned int upper_left_corner_x;
-        unsigned int upper_left_corner_y;
-        unsigned int lower_right_corner_x;
-        unsigned int lower_right_corner_y;
-        unsigned int center_of_ellipse_x;
-        unsigned int center_of_ellipse_y;
-        unsigned int rotation_angle;
-        unsigned int semimajor_axis_internal_ellipse;
-        unsigned int semimajor_axis_external_ellipse;
-        unsigned int semiminor_axis_external_ellipse;
-        unsigned int overlap_process_option;
+      unsigned int percentage;
+      double percentile;
+    } distribution_maxrgb_percentiles[15];
 
-        double maxscl[3];
-        double average_maxrgb;
+    double fraction_bright_pixels;
 
-        unsigned int num_distribution_maxrgb_percentiles;
-        struct
-        {
-            unsigned int percentage;
-            double percentile;
-        } distribution_maxrgb_percentiles[15];
+    unsigned int tone_mapping_flag;
 
-        double fraction_bright_pixels;
+    double knee_point_x;
+    double knee_point_y;
 
-        unsigned int tone_mapping_flag;
+    unsigned int num_bezier_curve_anchors;
+    double bezier_curve_anchors[15];
 
-        double knee_point_x;
-        double knee_point_y;
+    unsigned int color_saturation_mapping_flag;
+    double color_saturation_weight;
+  } windows[3];
 
-        unsigned int num_bezier_curve_anchors;
-        double bezier_curve_anchors[15];
+  double targeted_system_display_maximum_luminance;
 
-        unsigned int color_saturation_mapping_flag;
-        double color_saturation_weight;
-    } windows[3];
+  unsigned int targeted_system_display_actual_peak_luminance_flag;
+  unsigned int num_rows_targeted_system_display_actual_peak_luminance;
+  unsigned int num_cols_targeted_system_display_actual_peak_luminance;
+  double targeted_system_display_actual_peak_luminance[25][25];
 
-    double targeted_system_display_maximum_luminance;
-
-    unsigned int targeted_system_display_actual_peak_luminance_flag;
-    unsigned int num_rows_targeted_system_display_actual_peak_luminance;
-    unsigned int num_cols_targeted_system_display_actual_peak_luminance;
-    double targeted_system_display_actual_peak_luminance[25][25];
-
-    unsigned int mastering_display_actual_peak_luminance_flag;
-    unsigned int num_rows_mastering_display_actual_peak_luminance;
-    unsigned int num_cols_mastering_display_actual_peak_luminance;
-    double mastering_display_actual_peak_luminance[25][25];
+  unsigned int mastering_display_actual_peak_luminance_flag;
+  unsigned int num_rows_mastering_display_actual_peak_luminance;
+  unsigned int num_cols_mastering_display_actual_peak_luminance;
+  double mastering_display_actual_peak_luminance[25][25];
 };
 #pragma pack(pop)
 
@@ -131,102 +131,219 @@ struct MediaSideDataHDR10Plus
 DEFINE_GUID(IID_MediaSideDataDOVIRPU, 0xbae40e6c, 0x5b93, 0x4170, 0x90, 0xcc, 0x5d, 0x5f, 0x2, 0xa2, 0x96, 0x38);
 
 // {277EE779-13F4-434E-BDEC-3D6F8C0E15D2}
-DEFINE_GUID(IID_MediaSideDataDOVIMetadata, 0x277ee779, 0x13f4, 0x434e, 0xbd, 0xec, 0x3d, 0x6f, 0x8c, 0xe, 0x15, 0xd2);
+DEFINE_GUID([[deprecated]] IID_MediaSideDataDOVIMetadata, 0x277ee779, 0x13f4, 0x434e, 0xbd, 0xec, 0x3d, 0x6f, 0x8c, 0xe, 0x15, 0xd2);
+
+// {F1949F1C-7474-4F0F-B110-FB734C08851D}
+DEFINE_GUID(IID_MediaSideDataDOVIMetadataV2, 0xf1949f1c, 0x7474, 0x4f0f, 0xb1, 0x10, 0xfb, 0x73, 0x4c, 0x8, 0x85, 0x1d);
 
 #pragma pack(push, 1)
 // Dolby Vision metadata
 // Refer to the specification for the meaning of the fields
+// Note: This structure may be extended towards the end if needed, do not rely on a fixed size, but rather a minimum size
+// Version History
+//  - Version 1, Header/Mapping/ColorMetadata
+//  - Version 2, Extensions (ensure the V2 metadata GUID is used above for this to be valid)
 struct MediaSideDataDOVIMetadata
 {
-    struct
-    {
-        uint8_t rpu_type;
-        uint16_t rpu_format;
-        uint8_t vdr_rpu_profile;
-        uint8_t vdr_rpu_level;
-        uint8_t chroma_resampling_explicit_filter_flag;
-        uint8_t coef_data_type; /* informative, lavc always converts to fixed */
-        uint8_t coef_log2_denom;
-        uint8_t vdr_rpu_normalized_idc;
-        uint8_t bl_video_full_range_flag;
-        uint8_t bl_bit_depth;  /* [8, 16] */
-        uint8_t el_bit_depth;  /* [8, 16] */
-        uint8_t vdr_bit_depth; /* [8, 16] */
-        uint8_t spatial_resampling_filter_flag;
-        uint8_t el_spatial_resampling_filter_flag;
-        uint8_t disable_residual_flag;
-    } Header;
+  struct
+  {
+    uint8_t rpu_type;
+    uint16_t rpu_format;
+    uint8_t vdr_rpu_profile;
+    uint8_t vdr_rpu_level;
+    uint8_t chroma_resampling_explicit_filter_flag;
+    uint8_t coef_data_type; /* informative, lavc always converts to fixed */
+    uint8_t coef_log2_denom;
+    uint8_t vdr_rpu_normalized_idc;
+    uint8_t bl_video_full_range_flag;
+    uint8_t bl_bit_depth;  /* [8, 16] */
+    uint8_t el_bit_depth;  /* [8, 16] */
+    uint8_t vdr_bit_depth; /* [8, 16] */
+    uint8_t spatial_resampling_filter_flag;
+    uint8_t el_spatial_resampling_filter_flag;
+    uint8_t disable_residual_flag;
+  } Header;
+
+  struct
+  {
+    uint8_t vdr_rpu_id;
+    uint8_t mapping_color_space;
+    uint8_t mapping_chroma_format_idc;
 
     struct
     {
-        uint8_t vdr_rpu_id;
-        uint8_t mapping_color_space;
-        uint8_t mapping_chroma_format_idc;
-
-        struct
-        {
 #define LAV_DOVI_MAX_PIECES 8
-            uint8_t num_pivots;                           /* [2, 9] */
-            uint16_t pivots[LAV_DOVI_MAX_PIECES + 1]; /* sorted ascending */
-            uint8_t mapping_idc[LAV_DOVI_MAX_PIECES];     /* 0 polynomial, 1 mmr */
+      uint8_t num_pivots;                       /* [2, 9] */
+      uint16_t pivots[LAV_DOVI_MAX_PIECES + 1]; /* sorted ascending */
+      uint8_t mapping_idc[LAV_DOVI_MAX_PIECES]; /* 0 polynomial, 1 mmr */
 
-            /* polynomial */
-            uint8_t poly_order[LAV_DOVI_MAX_PIECES];    /* [1, 2] */
-            int64_t poly_coef[LAV_DOVI_MAX_PIECES][3]; /* x^0, x^1, x^2 */
+      /* polynomial */
+      uint8_t poly_order[LAV_DOVI_MAX_PIECES];   /* [1, 2] */
+      int64_t poly_coef[LAV_DOVI_MAX_PIECES][3]; /* x^0, x^1, x^2 */
 
-            /* mmr */
-            uint8_t mmr_order[LAV_DOVI_MAX_PIECES]; /* [1, 3] */
-            int64_t mmr_constant[LAV_DOVI_MAX_PIECES];
-            int64_t mmr_coef[LAV_DOVI_MAX_PIECES][3 /* order - 1 */][7];
-        } curves[3]; /* per component */
+      /* mmr */
+      uint8_t mmr_order[LAV_DOVI_MAX_PIECES]; /* [1, 3] */
+      int64_t mmr_constant[LAV_DOVI_MAX_PIECES];
+      int64_t mmr_coef[LAV_DOVI_MAX_PIECES][3 /* order - 1 */][7];
+    } curves[3]; /* per component */
 
-        /* Non-linear inverse quantization */
-        uint8_t nlq_method_idc; // -1 none, 0 linear dz
-        uint32_t num_x_partitions;
-        uint32_t num_y_partitions;
-        struct
-        {
-            uint16_t nlq_offset;
-            uint64_t vdr_in_max;
-
-            /* linear dz */
-            uint64_t linear_deadzone_slope;
-            uint64_t linear_deadzone_threshold;
-        } nlq[3]; /* per component */
-    } Mapping;
-
+    /* Non-linear inverse quantization */
+    uint8_t nlq_method_idc; // -1 none, 0 linear dz
+    uint32_t num_x_partitions;
+    uint32_t num_y_partitions;
     struct
     {
-        uint8_t dm_metadata_id;
-        uint8_t scene_refresh_flag;
+      uint16_t nlq_offset;
+      uint64_t vdr_in_max;
 
-        /**
-         * Coefficients of the custom Dolby Vision IPT-PQ matrices. These are to be
-         * used instead of the matrices indicated by the frame's colorspace tags.
-         * The output of rgb_to_lms_matrix is to be fed into a BT.2020 LMS->RGB
-         * matrix based on a Hunt-Pointer-Estevez transform, but without any
-         * crosstalk. (See the definition of the ICtCp colorspace for more
-         * information.)
-         */
-        double ycc_to_rgb_matrix[9]; /* before PQ linearization */
-        double ycc_to_rgb_offset[3]; /* input offset of neutral value */
-        double rgb_to_lms_matrix[9]; /* after PQ linearization */
+      /* linear dz */
+      uint64_t linear_deadzone_slope;
+      uint64_t linear_deadzone_threshold;
+    } nlq[3]; /* per component */
+  } Mapping;
 
-        /**
-         * Extra signal metadata (see Dolby patents for more info).
-         */
-        uint16_t signal_eotf;
-        uint16_t signal_eotf_param0;
-        uint16_t signal_eotf_param1;
-        uint32_t signal_eotf_param2;
-        uint8_t signal_bit_depth;
-        uint8_t signal_color_space;
-        uint8_t signal_chroma_format;
-        uint8_t signal_full_range_flag; /* [0, 3] */
-        uint16_t source_min_pq;
-        uint16_t source_max_pq;
-        uint16_t source_diagonal;
-    } ColorMetadata;
+  struct
+  {
+    uint8_t dm_metadata_id;
+    uint8_t scene_refresh_flag;
+
+    /**
+     * Coefficients of the custom Dolby Vision IPT-PQ matrices. These are to be
+     * used instead of the matrices indicated by the frame's colorspace tags.
+     * The output of rgb_to_lms_matrix is to be fed into a BT.2020 LMS->RGB
+     * matrix based on a Hunt-Pointer-Estevez transform, but without any
+     * crosstalk. (See the definition of the ICtCp colorspace for more
+     * information.)
+     */
+    double ycc_to_rgb_matrix[9]; /* before PQ linearization */
+    double ycc_to_rgb_offset[3]; /* input offset of neutral value */
+    double rgb_to_lms_matrix[9]; /* after PQ linearization */
+
+    /**
+     * Extra signal metadata (see Dolby patents for more info).
+     */
+    uint16_t signal_eotf;
+    uint16_t signal_eotf_param0;
+    uint16_t signal_eotf_param1;
+    uint32_t signal_eotf_param2;
+    uint8_t signal_bit_depth;
+    uint8_t signal_color_space;
+    uint8_t signal_chroma_format;
+    uint8_t signal_full_range_flag; /* [0, 3] */
+    uint16_t source_min_pq;
+    uint16_t source_max_pq;
+    uint16_t source_diagonal;
+  } ColorMetadata;
+
+#define LAV_DOVI_MAX_EXTENSIONS 32
+  struct
+  {
+    uint8_t level;
+    union {
+      struct
+      {
+        /* L1 Per-frame brightness metadata */
+        uint16_t min_pq;
+        uint16_t max_pq;
+        uint16_t avg_pq;
+      } Level1;
+      struct
+      {
+        uint16_t target_max_pq;
+        uint16_t trim_slope;
+        uint16_t trim_offset;
+        uint16_t trim_power;
+        uint16_t trim_chroma_weight;
+        uint16_t trim_saturation_gain;
+        int16_t ms_weight;
+      } Level2;
+      struct
+      {
+        uint16_t min_pq_offset;
+        uint16_t max_pq_offset;
+        uint16_t avg_pq_offset;
+      } Level3;
+      struct
+      {
+        uint16_t anchor_pq;
+        uint16_t anchor_power;
+      } Level4;
+      struct
+      {
+        /* Active area definition */
+        uint16_t left_offset;
+        uint16_t right_offset;
+        uint16_t top_offset;
+        uint16_t bottom_offset;
+      } Level5;
+      struct
+      {
+        /* Static HDR10 metadata */
+        uint16_t max_luminance;
+        uint16_t min_luminance;
+        uint16_t max_cll;
+        uint16_t max_fall;
+      } Level6;
+      /* level 7 is currently unused */
+      struct
+      {
+        /* Extended version of level 2 */
+        uint8_t target_display_index;
+        uint16_t trim_slope;
+        uint16_t trim_offset;
+        uint16_t trim_power;
+        uint16_t trim_chroma_weight;
+        uint16_t trim_saturation_gain;
+        uint16_t ms_weight;
+        uint16_t target_mid_contrast;
+        uint16_t clip_trim;
+        uint8_t saturation_vector_field[6];
+        uint8_t hue_vector_field[6];
+      } Level8;
+      struct
+      {
+        /* Source display characteristics */
+        uint8_t source_primary_index;
+        double white_point_x;
+        double white_point_y;
+        /* primaries are in R-G-B order */
+        double display_primaries_x[3];
+        double display_primaries_y[3];
+      } Level9;
+      struct
+      {
+        /* Target display characteristics */
+        uint8_t target_display_index;
+        uint16_t target_max_pq;
+        uint16_t target_min_pq;
+        uint8_t target_primary_index;
+        double white_point_x;
+        double white_point_y;
+        /* primaries are in R-G-B order */
+        double display_primaries_x[3];
+        double display_primaries_y[3];
+      } Level10;
+      struct
+      {
+        uint8_t content_type;
+        uint8_t whitepoint;
+        uint8_t reference_mode_flag;
+        uint8_t sharpness;
+        uint8_t noise_reduction;
+        uint8_t mpeg_noise_reduction;
+        uint8_t frame_rate_conversion;
+        uint8_t brightness;
+        uint8_t color;
+      } Level11;
+      struct
+      {
+        /* DMv2 info block, always present in samples with DMv2 metadata */
+        uint8_t dm_mode;
+        uint8_t dm_version_index;
+      } Level254;
+      uint8_t Reserved[128]; /* reserve space for a fixed size of the extension block */
+    };
+  } Extensions[LAV_DOVI_MAX_EXTENSIONS];
 };
 #pragma pack(pop)
 
@@ -240,13 +357,13 @@ DEFINE_GUID(IID_MediaSideData3DOffset, 0xf169b76c, 0x75a3, 0x49e6, 0xa2, 0x3a, 0
 #pragma pack(push, 1)
 struct MediaSideData3DOffset
 {
-    // Number of valid offsets (up to 32)
-    int offset_count;
+  // Number of valid offsets (up to 32)
+  int offset_count;
 
-    // Offset Value, can be positive or negative
-    // positive values offset closer to the viewer (move right on the left view, left on the right view)
-    // negative values offset further away from the viewer (move left on the left view, right on the right view)
-    int offset[32];
+  // Offset Value, can be positive or negative
+  // positive values offset closer to the viewer (move right on the left view, left on the right view)
+  // negative values offset further away from the viewer (move left on the left view, right on the right view)
+  int offset[32];
 };
 #pragma pack(pop)
 
@@ -269,5 +386,5 @@ DEFINE_GUID(IID_MediaSideDataControlFlags, 0xb5411ce3, 0x3b21, 0x4fd6, 0x80, 0xa
 // No struct definition, just a single DWORD for additional flags
 enum MediaSideDataControlFlags
 {
-    MediaSideDataControlFlags_EndOfSequence = (1 << 0),
+  MediaSideDataControlFlags_EndOfSequence = (1 << 0),
 };
