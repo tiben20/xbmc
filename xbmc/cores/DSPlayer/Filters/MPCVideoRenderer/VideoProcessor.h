@@ -59,7 +59,7 @@ protected:
 	int  m_iSwapEffect                     = SWAPEFFECT_Flip;
 	bool m_bVBlankBeforePresent            = false;
 	bool m_bHdrPreferDoVi                  = false;
-	bool m_bHdrPassthrough                 = true;
+
 	int  m_iHdrToggleDisplay               = HDRTD_On;
 	int  m_iHdrOsdBrightness               = 0;
 	bool m_bConvertToSdr                   = true;

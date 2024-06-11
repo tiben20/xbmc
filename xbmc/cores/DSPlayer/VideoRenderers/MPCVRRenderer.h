@@ -21,6 +21,8 @@
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
 
+
+#define MPC_SETTINGS static_cast<CMPCVRSettings*>(g_dsSettings.pRendererSettings)
 struct DS_VERTEX {
   DirectX::XMFLOAT3 Pos;
   DirectX::XMFLOAT2 TexCoord;

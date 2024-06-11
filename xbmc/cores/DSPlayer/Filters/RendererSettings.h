@@ -58,6 +58,13 @@ enum LIBPLACEBO_SHADERS
   PLACEBO_CUSTOM = 3
 };
 
+enum D3D11_TEXTURE_SAMPLER
+{
+  D3D11_VP = 0,
+  D3D11_LIBPLACEBO = 1,
+  D3D11_INTERNAL_SHADERS =2
+};
+
 enum EVR_OUTPUT_RANGE
 {
   OUTPUT_RANGE_0_255 = 0,
@@ -123,17 +130,27 @@ public:
   {
     CRendererSettings::SetDefault();
 
-    highColorResolution = false;
+    bD3D11TextureSampler = D3D11_VP;//d3d11vp
+    bUseHDR = false;
     enableFrameTimeCorrection = false;
     outputRange = OUTPUT_RANGE_0_255;
-    buffers = 4;
+    iBuffers = 4;
+
+    bVPUseRTXVideoHDR = false;
+    bVPUseSuperRes = false;
+    bUseHDR = true;
+    bHdrPassthrough = true;
   }
 
 public:
-  bool highColorResolution;
-  bool enableFrameTimeCorrection;
-  EVR_OUTPUT_RANGE outputRange;
-  int buffers;
+  D3D11_TEXTURE_SAMPLER bD3D11TextureSampler;// which plane merger we use
+  bool                  bVPUseRTXVideoHDR;   // if d3d11 vp can use rtx hdr rescaler
+  bool                  bVPUseSuperRes;   // if d3d11 vp can use rtx hdr rescaler
+  bool                  bUseHDR;
+  bool                  bHdrPassthrough;     //if we passthrough the hdr metadata
+  bool                  enableFrameTimeCorrection;//not implemented
+  EVR_OUTPUT_RANGE      outputRange;
+  int                   iBuffers;
 };
 
 class CMADVRRendererSettings : public CRendererSettings

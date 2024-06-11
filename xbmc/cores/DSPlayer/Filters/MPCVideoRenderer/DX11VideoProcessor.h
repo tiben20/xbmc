@@ -84,6 +84,7 @@ private:
 	// D3D11 Video Processor
 	CD3D11VP m_D3D11VP;
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSCorrection;
+	Microsoft::WRL::ComPtr<ID3D11Buffer > m_pCorrectionConstants;
 	const wchar_t* m_strCorrection = nullptr;
 
 	// D3D11 Shader Video Processor
@@ -104,11 +105,6 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPSHalfOUtoInterlace;
 
-	//Microsoft::WRL::ComPtr<IDXGIFactory2>   m_pDXGIFactory2;
-	//Microsoft::WRL::ComPtr<IDXGISwapChain1> m_pDXGISwapChain1;
-	//this one we kept only but will neeed reset
-	//Microsoft::WRL::ComPtr<IDXGISwapChain4> m_pDXGISwapChain4;
-	//Microsoft::WRL::ComPtr<IDXGIOutput>    m_pDXGIOutput;
 	DXGI_COLOR_SPACE_TYPE m_currentSwapChainColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
 	// Input parameters
@@ -144,14 +140,11 @@ private:
 
 	bool m_bDecoderDevice = false;
 	bool m_bIsFullscreen = false;
-
+	bool m_bHdrPassthroughSupport = false;
 	int m_iVPSuperRes = 0;
 	bool m_bVPUseSuperRes = false; // but it is not exactly
 
-	bool m_bVPRTXVideoHDR = false;
-	bool m_bVPUseRTXVideoHDR = false;
-
-	bool m_bHdrPassthroughSupport = false;
+	
 	bool m_bHdrDisplaySwitching   = false; // switching HDR display in progress
 	bool m_bHdrDisplayModeEnabled = false;
 	bool m_bHdrAllowSwitchDisplay = true;
@@ -213,10 +206,15 @@ private:
 	std::vector<CD3DPixelShader> m_pPixelShaders;
 
 public:
-
-	/*libplacebo*/
+	//temporary used because i cant make planes copy work
 	HRESULT UpdateConvertColorShader();
 	void SetShaderConvertColorParams();
+	void SetShaderLuminanceParams();
+	HRESULT SetShaderDoviCurvesPoly();
+	HRESULT SetShaderDoviCurves();
+
+	/*libplacebo*/
+	
 	HRESULT CopySampleToLibplacebo(IMediaSample* pSample);
 
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);

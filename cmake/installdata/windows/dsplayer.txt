@@ -1,0 +1,4 @@
+system/players/dsplayer/*
+system/players/dsplayer/MPCShaders/*
+addons/repository.dsplayer/*
+addons/script.madvrsettings/*

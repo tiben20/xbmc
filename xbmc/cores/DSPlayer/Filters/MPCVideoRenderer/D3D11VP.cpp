@@ -355,7 +355,7 @@ HRESULT CD3D11VP::InitVideoProcessor(
 				DLog("CD3D11VP::InitVideoProcessor() : GetVideoProcessorFilterRange(%u) failed with error %s", i, WToA(HR2Str(hr2)));
 				filter.support = 0;
 			}
-			DLogIf(SUCCEEDED(hr2) ,"CD3D11VP::InitVideoProcessor() : FilterRange(%u) : %i, %i, %i, %f",
+			DLogIf(SUCCEEDED(hr2), "CD3D11VP::InitVideoProcessor() : FilterRange({}) : {}, {}, {}, {}",
 				i, filter.range.Minimum, filter.range.Default, filter.range.Maximum, filter.range.Multiplier);
 
 			if (i >= D3D11_VIDEO_PROCESSOR_FILTER_NOISE_REDUCTION) {

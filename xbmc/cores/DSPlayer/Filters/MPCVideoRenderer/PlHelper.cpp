@@ -359,6 +359,7 @@ pl_color_repr CPlHelper::GetPlColorRepresentation(DXVA2_ExtendedFormat pFormat)
   repr.alpha = PL_ALPHA_UNKNOWN;
 
   //nv12 is 8 bits per color depth
+
   repr.bits.color_depth = 8;
   return repr;
 }

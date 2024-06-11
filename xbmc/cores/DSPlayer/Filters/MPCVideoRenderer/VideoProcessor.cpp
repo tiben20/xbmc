@@ -121,7 +121,7 @@ void CVideoProcessor::SetDisplayInfo(const DisplayConfig_t& dc, const bool prima
 		if (dc.bitsPerChannel) { // if bitsPerChannel is not set then colorEncoding and other values are invalid
 			const wchar_t* colenc = ColorEncodingToString(dc.colorEncoding);
 			if (colenc) {
-				str.Format(L"\n  Color: %s %u-bit", colenc, dc.bitsPerChannel);
+				str.Format(L"\nColor: %s %u-bit", colenc, dc.bitsPerChannel);
 				if (dc.advancedColor.advancedColorSupported) {
 					str.append(L" HDR10: ");
 					str.append(dc.advancedColor.advancedColorEnabled ? L"on" : L"off");

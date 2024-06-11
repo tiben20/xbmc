@@ -20,9 +20,9 @@
 #include "utils/log.h"
 
 #define IDF_DITHER_32X32_FLOAT16 "special://xbmc/system/players/dsplayer/MPCShaders/dither32x32float16.bin"
-#define IDF_HLSL_ST2084 "special://xbmc/system/players/dsplayer/MPCShaders/st2084.cso"
-#define IDF_HLSL_HLG "special://xbmc/system/players/dsplayer/MPCShaders/hlg.cso"
-#define IDF_HLSL_HDR_TONE_MAPPING "special://xbmc/system/players/dsplayer/MPCShaders/hdr_tone_mapping.cso"
+#define IDF_HLSL_ST2084 "special://xbmc/system/players/dsplayer/MPCShaders/st2084.hlsl"
+#define IDF_HLSL_HLG "special://xbmc/system/players/dsplayer/MPCShaders/hlg.hlsl"
+#define IDF_HLSL_HDR_TONE_MAPPING "special://xbmc/system/players/dsplayer/MPCShaders/hdr_tone_mapping.hlsl"
 
 #define IDF_PS_9_CONVERT_COLOR "special://xbmc/system/players/dsplayer/mpcshaders/convert_color.cso"
 #define IDF_PS_9_CONVERT_YUY2 "special://xbmc/system/players/dsplayer/mpcshaders/convert_yuy2.cso"

@@ -60,50 +60,6 @@ HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR
 	return hr;
 }
 
-HRESULT CompileComputeShader(
-	std::string_view hlsl,
-	const char* entryPoint,
-	ID3DBlob** blob,
-	const char* sourceName,
-	ID3DInclude* include,
-	const std::vector<std::pair<std::string, std::string>>& macros,
-	bool warningsAreErrors
-) {
-	Microsoft::WRL::ComPtr<ID3DBlob> errorMsgs = nullptr;
-
-	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_ALL_RESOURCES_BOUND;
-	if (warningsAreErrors) {
-		flags |= D3DCOMPILE_WARNINGS_ARE_ERRORS;
-	}
-
-#ifdef _DEBUG
-	flags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG;
-#else
-	flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
-#endif // _DEBUG
-
-	std::unique_ptr<D3D_SHADER_MACRO[]> mc(new D3D_SHADER_MACRO[macros.size() + 1]);
-	for (UINT i = 0; i < macros.size(); ++i) {
-		mc[i] = { macros[i].first.c_str(), macros[i].second.c_str() };
-	}
-	mc[macros.size()] = { nullptr,nullptr };
-
-	HRESULT hr = D3DCompile(hlsl.data(), hlsl.size(), sourceName, mc.get(), include,
-		entryPoint, "cs_5_0", flags, 0, blob, errorMsgs.ReleaseAndGetAddressOf());
-	if (FAILED(hr)) {
-		if (errorMsgs) {
-			CLog::Log(LOGERROR,(const char*)errorMsgs->GetBufferPointer());
-		}
-		return E_FAIL;
-	}
-
-	if (errorMsgs) {
-		CLog::Log(LOGERROR, (const char*)errorMsgs->GetBufferPointer());
-	}
-
-	return S_OK;
-}
-
 HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefines, LPCSTR pTarget, ID3DBlob** ppShaderBlob)
 {
 	//ASSERT(*ppShaderBlob == nullptr);
@@ -710,6 +666,14 @@ HRESULT GetShaderConvertColor(
 			"float3 cm_c;\n"
 			"};\n"
 		);
+		if (bConvertHDRtoSDR) {
+			code.append(
+				"cbuffer PS_PARAMETERS : register(b1) {\n"
+				"float LuminanceScale;\n"
+				"float param2;\n"
+				"};\n"
+			);
+		}
 	}
 	else {
 		code.append(
@@ -718,6 +682,13 @@ HRESULT GetShaderConvertColor(
 			"float3 cm_b : register(c2);\n"
 			"float3 cm_c : register(c3);\n"
 		);
+		if (bConvertHDRtoSDR) {
+			code.append(
+				"float4 parameters : register(c4);\n"
+				"#define LuminanceScale parameters[0]\n"
+				"#define param2         parameters[1]\n"
+			);
+		}
 	}
 
 	bool has_mmr = false;
@@ -748,7 +719,7 @@ HRESULT GetShaderConvertColor(
 					"        uint max_order;\n"
 					"    } params;\n"
 					"};\n"
-					"cbuffer PS_DOVI_CURVES : register(b1) {\n"
+					"cbuffer PS_DOVI_CURVES : register(b2) {\n"
 					"    PS_DOVI_CURVE curves[3];\n"
 					"};\n"
 				);
@@ -790,7 +761,7 @@ HRESULT GetShaderConvertColor(
 					"    float pivots_data[7];\n" // NB: sizeof(float) == sizeof(float4)
 					"    float4 coeffs_data[8];\n"
 					"};\n"
-					"cbuffer PS_DOVI_POLY_CURVES : register(b1) {\n"
+					"cbuffer PS_DOVI_POLY_CURVES : register(b2) {\n"
 					"    PS_DOVI_POLY_CURVE curves[3];\n"
 					"};\n"
 				);
@@ -802,7 +773,7 @@ HRESULT GetShaderConvertColor(
 				"    float pivots_data[7];\n" // NB: sizeof(float) == sizeof(float4)
 				"    float4 coeffs_data[8];\n"
 				"};\n"
-				"PS_DOVI_POLY_CURVE curves[3] : register(c4);\n"
+				"PS_DOVI_POLY_CURVE curves[3] : register(c5);\n"
 			);
 		}
 	}
@@ -812,7 +783,8 @@ HRESULT GetShaderConvertColor(
 	if (pDoviMetadata) {
 		if (has_mmr) {
 			ShaderDoviReshape(code);
-		} else {
+		}
+		else {
 			ShaderDoviReshapePoly(code);
 		}
 	}
@@ -868,10 +840,8 @@ HRESULT GetShaderConvertColor(
 			);
 		}
 		code.append(
-			"#define SRC_LUMINANCE_PEAK     10000.0\n"
-			"#define DISPLAY_LUMINANCE_PEAK 125.0\n"
 			"color = saturate(color);\n"
-			"color = ST2084ToLinear(color, SRC_LUMINANCE_PEAK/DISPLAY_LUMINANCE_PEAK);\n"
+			"color = ST2084ToLinear(color, LuminanceScale);\n"
 			"color.rgb = ToneMappingHable(color.rgb);\n"
 			"color.rgb = mul(matrix_conv_prim, color.rgb);\n"
 		);
@@ -885,7 +855,7 @@ HRESULT GetShaderConvertColor(
 		);
 	}
 	else if (bBT2020Primaries) {
-		CStdStringA toLinear;
+		std::string toLinear;
 		switch (exFmt.VideoTransferFunction) {
 		case DXVA2_VideoTransFunc_10:   toLinear = "\\\\nothing\n";                  break;
 		case DXVA2_VideoTransFunc_18:   toLinear = "color = pow(color, 1.8);\n"; break;
