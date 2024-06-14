@@ -160,6 +160,7 @@ private:
   bool m_bIsFullscreen;
   bool m_firstBoot;
   bool m_isEnteringExclusive;
+  bool m_videoStarted;
   int m_shaderStage;
   int m_kodiGuiDirtyAlgo;
   CMadvrSharedRender *m_pMadvrShared;

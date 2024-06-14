@@ -267,7 +267,7 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE us
     return false;
   }
 
-  m_cpuFlags = usage;
+  m_cpuFlags = 0;
   if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
   {
     m_cpuFlags |= D3D11_CPU_ACCESS_WRITE;
@@ -276,7 +276,7 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT mipLevels, D3D11_USAGE us
   }
   
   m_format = format;
-  m_usage = D3D11_USAGE_DEFAULT;
+  m_usage = usage;
 
   m_bindFlags = 0; // D3D11_BIND_SHADER_RESOURCE;
   if (D3D11_USAGE_DEFAULT == usage && DX::Windowing()->IsFormatSupport(format, D3D11_FORMAT_SUPPORT_RENDER_TARGET))
@@ -938,7 +938,8 @@ bool CD3DBuffer::Map(void **data)
   if (m_buffer)
   {
     D3D11_MAPPED_SUBRESOURCE resource;
-    if (SUCCEEDED(DX::DeviceResources::Get()->GetD3DContext()->Map(m_buffer.Get(), 0, D3D11_MAP_READ_WRITE, 0, &resource)))
+    
+    if (SUCCEEDED(DX::DeviceResources::Get()->GetD3DContext()->Map(m_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &resource)))
     {
       *data = resource.pData;
       return true;

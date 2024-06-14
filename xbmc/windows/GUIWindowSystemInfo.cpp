@@ -185,7 +185,7 @@ void CGUIWindowSystemInfo::FrameMove()
       SetControlLabel(i++, "%s: %s", 55098, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVVIDEO));
       SetControlLabel(i++, "%s: %s", 55099, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_LAVAUDIO));
     }
-    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")//CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")
+    if (StringUtils::ToLower(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER)) == "madvr")//CSettings::GetInstance().GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR")
       SetControlLabel(i++, "%s: %s", 55100, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_XYSUBFILTER));
     else
       SetControlLabel(i++, "%s: %s", 55101, CDSFilterVersion::Get()->GetStringVersion(CGraphFilters::INTERNAL_XYVSFILTER));

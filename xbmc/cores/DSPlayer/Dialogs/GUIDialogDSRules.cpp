@@ -140,7 +140,8 @@ void CGUIDialogDSRules::HideUnused(ConfigType type, ConfigType subType)
 {
   int count = 0;
   bool show;
-  bool isMadvr = (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
+  
+  bool isMadvr = (StringUtils::ToLower(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER)) == "madvr");
 
   for (const auto &it : m_ruleList)
   {
@@ -457,7 +458,7 @@ void CGUIDialogDSRules::ActionInternal(const std::string &settingId)
   if (settingId == SETTING_RULE_SAVE || settingId == SETTING_RULE_ADD)
   {
 
-    bool isMadvr = (CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "madVR");
+    bool isMadvr = (StringUtils::ToLower(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER)) == "madvr");
     TiXmlElement pRule("rule");
 
     for (const auto &it : m_ruleList)

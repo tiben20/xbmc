@@ -44,6 +44,7 @@ CMadvrSharedRender::~CMadvrSharedRender()
 
 HRESULT CMadvrSharedRender::Render(DS_RENDER_LAYER layer)
 {
+
   // Lock madVR thread while kodi rendering
   if (m_bWaitKodiRendering)
     m_dsWait.Wait(100);

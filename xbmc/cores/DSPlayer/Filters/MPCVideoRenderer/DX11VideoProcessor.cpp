@@ -1000,7 +1000,109 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	struct pl_color_repr repr {};
 	struct pl_dovi_metadata dovi {};
 	pl_render_params params;
-	//init d3d11 video processor
+
+	csp = pHelper->GetPlColorSpace(m_srcExFmt);
+	repr = pHelper->GetPlColorRepresentation(m_srcExFmt);
+	csp.hdr = pHelper->GetHdrData(pSample);
+	
+	m_Dovi.bValid = true;
+	if (pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi))
+	{
+
+		Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;
+		pSample->QueryInterface(IID_PPV_ARGS(&pMediaSideData));
+		MediaSideDataDOVIMetadata* pDOVIMetadata = nullptr;
+		size_t sized = 0;
+		pMediaSideData->GetSideData(IID_MediaSideDataDOVIMetadataV2, (const BYTE**)&pDOVIMetadata, &sized);
+		bool bCurveChanged = memcmp(&m_Dovi.msd.Mapping.curves, &pDOVIMetadata->Mapping.curves, sizeof(MediaSideDataDOVIMetadata::Mapping.curves)) != 0;
+		const bool bYCCtoRGBChanged = !m_PSConvColorData.bEnable ||	(memcmp(&m_Dovi.msd.ColorMetadata.ycc_to_rgb_matrix,
+																	&pDOVIMetadata->ColorMetadata.ycc_to_rgb_matrix,
+																	sizeof(MediaSideDataDOVIMetadata::ColorMetadata.ycc_to_rgb_matrix) + sizeof(MediaSideDataDOVIMetadata::ColorMetadata.ycc_to_rgb_offset)) != 0);
+		const bool bRGBtoLMSChanged =	(memcmp(&m_Dovi.msd.ColorMetadata.rgb_to_lms_matrix,
+																	&pDOVIMetadata->ColorMetadata.rgb_to_lms_matrix,
+																	sizeof(MediaSideDataDOVIMetadata::ColorMetadata.rgb_to_lms_matrix)) != 0);
+		const bool bMasteringLuminanceChanged = m_Dovi.msd.ColorMetadata.source_max_pq != pDOVIMetadata->ColorMetadata.source_max_pq
+																	|| m_Dovi.msd.ColorMetadata.source_min_pq != pDOVIMetadata->ColorMetadata.source_min_pq;
+
+		bool bMMRChanged = false;
+		if (bCurveChanged) {
+			bool has_mmr = false;
+			for (const auto& curve : pDOVIMetadata->Mapping.curves) {
+				for (uint8_t i = 0; i < (curve.num_pivots - 1); i++) {
+					if (curve.mapping_idc[i] == 1) {
+						has_mmr = true;
+						break;
+					}
+				}
+			}
+			if (m_Dovi.bHasMMR != has_mmr) {
+				m_Dovi.bHasMMR = has_mmr;
+				m_pDoviCurvesConstantBuffer.Reset();
+				bMMRChanged = true;
+			}
+		}
+
+		memcpy(&m_Dovi.msd, pDOVIMetadata, sizeof(MediaSideDataDOVIMetadata));
+		const bool doviStateChanged = !m_Dovi.bValid;
+		m_Dovi.bValid = true;
+
+		if (bMasteringLuminanceChanged)
+		{
+			// based on libplacebo source code
+			constexpr float
+				PQ_M1 = 2610.f / (4096.f * 4.f),
+				PQ_M2 = 2523.f / 4096.f * 128.f,
+				PQ_C1 = 3424.f / 4096.f,
+				PQ_C2 = 2413.f / 4096.f * 32.f,
+				PQ_C3 = 2392.f / 4096.f * 32.f;
+
+			auto hdr_rescale = [&](float x) {
+				x = powf(x, 1.0f / PQ_M2);
+				x = fmaxf(x - PQ_C1, 0.0f) / (PQ_C2 - PQ_C3 * x);
+				x = powf(x, 1.0f / PQ_M1);
+				x *= 10000.0f;
+
+				return x;
+				};
+
+			m_DoviMaxMasteringLuminance = static_cast<UINT>(hdr_rescale(m_Dovi.msd.ColorMetadata.source_max_pq / 4095.f) * 10000.0);
+			m_DoviMinMasteringLuminance = static_cast<UINT>(hdr_rescale(m_Dovi.msd.ColorMetadata.source_min_pq / 4095.f) * 10000.0);
+		}
+
+		if (m_D3D11VP.IsReady())
+			InitMediaType(&m_pFilter->m_inputMT);
+		else if (doviStateChanged)
+			UpdateStatsStatic();
+
+		if (bYCCtoRGBChanged)
+		{
+			CLog::Log(LOGINFO,"{} DoVi ycc_to_rgb_matrix is changed",__FUNCTION__);
+			SetShaderConvertColorParams();
+		}
+		if (bRGBtoLMSChanged || bMMRChanged) {
+			CLog::Log(LOGINFO,"{} DoVi rgb_to_lms_matrix is changed",__FUNCTION__);//bRGBtoLMSChanged
+			CLog::Log(LOGINFO, "{} DoVi has_mmr is changed", __FUNCTION__); //bMMRChanged
+			UpdateConvertColorShader();
+		}
+		if (bCurveChanged) {
+			if (m_Dovi.bHasMMR) {
+				hr = SetShaderDoviCurves();
+			}
+			else {
+				hr = SetShaderDoviCurvesPoly();
+			}
+		}
+
+		if (doviStateChanged && !SourceIsPQorHLG()) {
+			//ReleaseSwapChain();
+			//Init(m_hWnd);
+
+			m_srcVideoTransferFunction = 0;
+			InitMediaType(&m_pFilter->m_inputMT);
+		}
+	}//end dovi
+
+	
 
 	pSample->QueryInterface(__uuidof(IMediaSampleD3D11), &pMSD3D11);
 	//if the input is directly a d3d11 texture lets use it
@@ -1065,9 +1167,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	inParams.tex = m_pInputTexture.Get();
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
 
-	csp = pHelper->GetPlColorSpace(m_srcExFmt);
-	repr = pHelper->GetPlColorRepresentation(m_srcExFmt);
-	frameIn.num_planes = 1;
+	
+	frameIn.num_planes = 1;   
 	frameIn.planes[0].texture = inTexture;
 	frameIn.planes[0].components = 3;
 	frameIn.planes[0].component_mapping[0] = 0;
@@ -1118,40 +1219,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	//todo fix when not left
 	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
 
-	csp.hdr = pHelper->GetHdrData(pSample);
-
-	if (pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi))
-	{
-
-		Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;
-		pSample->QueryInterface(IID_PPV_ARGS(&pMediaSideData));
-		MediaSideDataDOVIMetadata* pDOVIMetadata = nullptr;
-		size_t sized = 0;
-		pMediaSideData->GetSideData(IID_MediaSideDataDOVIMetadataV2, (const BYTE**)&pDOVIMetadata, &sized);
-		bool bCurveChanged = memcmp(&m_Dovi.msd.Mapping.curves, &pDOVIMetadata->Mapping.curves, sizeof(MediaSideDataDOVIMetadata::Mapping.curves)) != 0;
-		memcpy(&m_Dovi.msd, pDOVIMetadata, sizeof(MediaSideDataDOVIMetadata));
-		if (!m_Dovi.bValid)
-		{
-			UpdateStatsStatic();
-			//dovi is used in the convertion
-			UpdateConvertColorShader();
-			if (m_D3D11VP.IsReady())
-				InitMediaType(&m_pFilter->m_inputMT);
-			m_Dovi.bValid = true;
-			
-		}
-		if (bCurveChanged)
-		{
-			UpdateConvertColorShader();
-			if (m_Dovi.bHasMMR) {
-				hr = SetShaderDoviCurves();
-			}
-			else {
-				hr = SetShaderDoviCurvesPoly();
-			}
-		}
-
-	}
+	
 	pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
 
 	switch (g_dsSettings.pRendererSettings->m_pPlaceboOptions)

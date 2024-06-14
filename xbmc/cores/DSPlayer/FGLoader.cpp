@@ -763,16 +763,15 @@ void CFGLoader::SettingOptionsDSVideoRendererFiller(const std::shared_ptr<const 
 {
   CLog::Log(LOGINFO, "{}", __FUNCTION__);
 
-
+  //Internal renderer always added
   list.push_back(StringSettingOption("MPC Video Renderer highly modified", "mpcvr"));
-  //todo dx11 
-  //list.push_back(std::make_pair("Video Mixing Renderer 9 (VMR9)", "VMR9"));
+  
   
   CDSFilterEnumerator p_dsfilter;
   std::vector<DSFiltersInfo> dsfilterList;
   p_dsfilter.GetDSFilters(dsfilterList);
   std::vector<DSFiltersInfo>::const_iterator iter = dsfilterList.begin();
-
+  //add madvr if filter registered
   for (int i = 1; iter != dsfilterList.end(); i++)
   {
     DSFiltersInfo dev = *iter;

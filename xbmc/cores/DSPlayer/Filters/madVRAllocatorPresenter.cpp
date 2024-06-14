@@ -59,6 +59,7 @@ CmadVRAllocatorPresenter::CmadVRAllocatorPresenter(HWND hWnd, HRESULT& hr, std::
   //Init Variable
   m_exclusiveCallback = ExclusiveCallback;
   m_firstBoot = true;
+  m_videoStarted = false;
   m_isEnteringExclusive = false;
   m_kodiGuiDirtyAlgo = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions;
   m_activeVideoRect.SetRect(0, 0, 0, 0);
@@ -275,7 +276,15 @@ STDMETHODIMP CmadVRAllocatorPresenter::RenderOsd(LPCSTR name, REFERENCE_TIME fra
     m_activeVideoRect.SetRect(activeVideoRect->left, activeVideoRect->top, activeVideoRect->right, activeVideoRect->bottom);
 
   if (m_pMadvrShared != nullptr)
+  {
+    if (!m_videoStarted)
+    {
+      //remove loading dialog
+      CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PLAYBACK_STARTED), false);
+      m_videoStarted = true;
+    }
     return m_pMadvrShared->Render(RENDER_LAYER_OVER);
+  }
   else
     return CALLBACK_INFO_DISPLAY;
 }

@@ -130,7 +130,7 @@ public:
   {
     CRendererSettings::SetDefault();
 
-    bD3D11TextureSampler = D3D11_VP;//d3d11vp
+    bD3D11TextureSampler = D3D11_INTERNAL_SHADERS;//D3D11_VP
     bUseHDR = false;
     enableFrameTimeCorrection = false;
     outputRange = OUTPUT_RANGE_0_255;
