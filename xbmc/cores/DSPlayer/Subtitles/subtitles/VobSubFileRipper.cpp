@@ -684,7 +684,7 @@ bool CVobSubFileRipper::Create()
       if(*((DWORD*)&buff[0]) != 0xba010000)
       {
         Log(LOG_WARNING, _T("Bad sector header at block %08d!"), (int)(curpos/2048));
-        g_log->Log(LOGWARNING, "%s Bad sector header at block %08d!", __FUNCTION__, (int)(curpos/2048));
+        g_log->Log(_LOGWARNING, "%s Bad sector header at block %08d!", __FUNCTION__, (int)(curpos/2048));
 
         /*if(MessageBox(0, _T("Bad packet header found, do you want to continue?"),0,  MB_YESNO) == IDNO)
         {

@@ -38,7 +38,7 @@ CSubManager::CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings
   else
     m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator, &hr));
   if (FAILED(hr))
-    g_log->Log(LOGERROR, "CSubManager::CSubManager SubPicQueue creation error: %x",  hr);
+    g_log->Log(_LOGERROR, "CSubManager::CSubManager SubPicQueue creation error: %x",  hr);
 }
 
 CSubManager::~CSubManager(void)

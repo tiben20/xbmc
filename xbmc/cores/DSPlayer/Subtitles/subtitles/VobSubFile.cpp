@@ -410,7 +410,7 @@ bool CVobSubFile::ReadIdx(CStdString fn, int& ver)
       if(i < 0 || _stscanf(&s[i+_tcslen(buff)], _T("%d"), &ver) != 1
       || ver > VOBSUBIDXVER)
       {
-        g_log->Log(LOGERROR, "%s Wrong file version!", __FUNCTION__);
+        g_log->Log(_LOGERROR, "%s Wrong file version!", __FUNCTION__);
         fError = true;
         continue;
       }

@@ -49,13 +49,13 @@ ILog* g_log = NULL;
 
 bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
 {
-  logger->Log(LOGINFO, "Starting CreateD3D11SubtitleManager");
+  logger->Log(_LOGINFO, "Starting CreateD3D11SubtitleManager");
   if (!logger)
     return false;
   if (!pManager)
-    logger->Log(LOGERROR, "CreateSubtitleManager pManager is null");
+    logger->Log(_LOGERROR, "CreateSubtitleManager pManager is null");
   if (!pDevice)
-    logger->Log(LOGERROR, "CreateSubtitleManager ID3D11Device is null");
+    logger->Log(_LOGERROR, "CreateSubtitleManager ID3D11Device is null");
   if (!pManager || !pDevice)
     return false;
 
@@ -69,7 +69,7 @@ bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger,
   {
     delete* pManager;
     *pManager = NULL;
-    logger->Log(LOGERROR, "Failed to create subtitles manager (hr: %X)", hr);
+    logger->Log(_LOGERROR, "Failed to create subtitles manager (hr: %X)", hr);
     return false;
   }
 
