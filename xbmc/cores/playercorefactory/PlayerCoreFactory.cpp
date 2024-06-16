@@ -368,9 +368,8 @@ bool CPlayerCoreFactory::LoadConfiguration(const std::string &file, bool clear)
     VideoPlayer->m_bPlaysAudio = true;
     VideoPlayer->m_bPlaysVideo = true;
     if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_DEFAULTVIDEOPLAYER))
-    {
       VideoPlayer->m_name = "DSPlayer";
-    }
+
     m_vecPlayerConfigs.emplace_back(std::move(VideoPlayer));
     
     auto DSPLayer = std::make_unique<CPlayerCoreConfig>("DSPlayer", "video", nullptr);
@@ -410,6 +409,8 @@ bool CPlayerCoreFactory::LoadConfiguration(const std::string &file, bool clear)
         internaltype = "music";
       else if (type == "externalplayer")
         internaltype = "external";
+      else if (type == "dsplayer")
+        internaltype = "dsplayer";
 
       int count = 0;
       std::string playername = name;
