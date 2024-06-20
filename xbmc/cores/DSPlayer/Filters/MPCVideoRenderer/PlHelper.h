@@ -75,6 +75,7 @@ namespace PL
     HDRMetadata m_hdr10 = {};
     HDRMetadata m_lastHdr10 = {};
 
+
     //TODO
     pl_rotation GetPlRotation();
 

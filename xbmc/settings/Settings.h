@@ -531,6 +531,9 @@ public:
   static constexpr auto SETTING_DSPLAYER_DSAREABOTTOM = "dsplayer.dsareabottom";
   static constexpr auto SETTING_DSPLAYER_COPYACTIVERECT = "dsplayer.copyactiverect";
   static constexpr auto SETTING_DSPLAYER_DSAREARESET = "dsplayer.dsareareset";
+  static constexpr auto SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS = "dsplayer.libplacebo.shaders";
+  static constexpr auto SETTING_DSPLAYER_VR_TEXTURE_SAMPLER = "dsplayer.vr.texturesampler";
+  static constexpr auto SETTING_DSPLAYER_VR_DISPLAY_STATS = "dsplayer.vr.displayerstats";
 #endif
 
   // values for SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS

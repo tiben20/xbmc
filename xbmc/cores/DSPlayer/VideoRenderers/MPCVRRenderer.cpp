@@ -517,11 +517,7 @@ bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
   {
     CLog::LogF(LOGERROR, "intermediate target creation failed.");
     return false;
-  }
-  //only reset if 
-  //if (m_InputTarget.Get())
-  //m_pShaders[0]->ResetOutputTexture(width, height, format);
-  
+  } 
   return true;
 }
 

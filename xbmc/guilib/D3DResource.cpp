@@ -214,7 +214,7 @@ bool CD3DTexture::CreatePlane(UINT width, UINT height, DXGI_FORMAT format, const
   return SUCCEEDED(hr);
 }
 
-bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT format, std::string sDebugName, const void* pixels /* nullptr */, unsigned int srcPitch /* 0 */)
+bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT format, std::string sDebugName, bool readable, unsigned int srcPitch /* 0 */)
 {
   m_width = width;
   m_height = height;
@@ -229,14 +229,10 @@ bool CD3DTexture::Create(UINT width, UINT height, UINT bindFlags, DXGI_FORMAT fo
   
   m_bindFlags = bindFlags;
   m_cpuFlags = 0;
-  if (format == DXGI_FORMAT_R8_UNORM || format == DXGI_FORMAT_R8G8_UNORM)
-  {
-    m_usage = D3D11_USAGE_DEFAULT;
-    m_bindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 
-    m_cpuFlags = 0;
-  }
-  if (!CreateInternal(pixels, srcPitch))
+  if (readable)
+    m_cpuFlags |= D3D11_CPU_ACCESS_READ;
+  if (!CreateInternal(nullptr, srcPitch))
   {
     CLog::LogF(LOGERROR, "failed to create texture.");
     return false;

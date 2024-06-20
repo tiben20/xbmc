@@ -956,6 +956,38 @@
           </dependencies>
           <control type="toggle" />
         </setting>
+		<setting id="dsplayer.vr.displayerstats" parent="dsplayer.videorenderer" type="integer" label="55200">
+          <level>0</level>
+          <default>0 </default>
+          <constraints>
+            <options>
+              <option label="55034">0</option> <!-- none -->
+              <option label="55035">1</option> <!-- mpc vr style -->
+              <option label="55036">2</option> <!-- scaling stat -->
+			  <option label="55037">3</option> <!--hdr mpv style -->
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+		<setting id="dsplayer.libplacebo.shaders" parent="dsplayer.videorenderer" type="integer" label="55200">
+          <level>0</level>
+          <default>0 </default> <!-- Direct3D 9 -->
+          <constraints>
+            <options>
+              <option label="55034">0</option> <!-- default -->
+              <option label="55035">1</option> <!-- fast -->
+              <option label="55036">2</option> <!-- high quality -->
+			  <option label="55037">3</option> <!-- Custom -->
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
         <setting id="dsplayer.d3dpresentation" parent="dsplayer.videorenderer" type="integer" label="55103" help="90030">
           <level>0</level>
           <default>2</default> <!-- Direct3D 9 -->

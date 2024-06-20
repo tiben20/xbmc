@@ -48,6 +48,7 @@
 #include "GUIInfoManager.h"
 #include "Filters/RendererSettings.h"
 #include "PlHelper.h"
+#include "settings/SettingsComponent.h"
 
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
@@ -238,6 +239,10 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Setti
 	m_iHdrToggleDisplay    = config.iHdrToggleDisplay;
 	m_iHdrOsdBrightness    = config.iHdrOsdBrightness;
 	m_bConvertToSdr        = config.bConvertToSdr;
+
+	
+	 g_dsSettings.pRendererSettings->displayStats = (DS_STATS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
+	 g_dsSettings.pRendererSettings->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
 	MPC_SETTINGS->bVPUseRTXVideoHDR       = config.bVPRTXVideoHDR;
 
 	m_iVPSuperRes          = config.iVPSuperRes;
@@ -1128,8 +1133,14 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		// do not use UpdateSubresource for D3D11 VP here
 		// because it can cause green screens and freezes on some configurations
 		hr = MemCopyToTexSrcVideo(data, m_srcPitch);
+		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get())
+		{
+			CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+			//call there to be sure we have the correct ouput
+			UpdateStatsStatic();
+		}
 		if (!m_pInputTexture.Get())
-			m_pInputTexture.Create(m_srcWidth, m_srcHeight, 1, D3D11_USAGE_DEFAULT, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), nullptr, 0U, "CMPCVRRenderer Merged plane");
+			m_pInputTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(),"CMPCVRRenderer Merged plane", true, 0U);
 	  
 		if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_VP && m_D3D11VP.IsReady())
 		{
@@ -1183,18 +1194,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	{
 
 	}
-	/*
-			[AV_PIX_FMT_YUV420P10LE] = {
-				.name = "yuv420p10le",
-				.nb_components = 3,
-				.log2_chroma_w = 1,
-				.log2_chroma_h = 1,
-				.comp = {
-				{ plane 0, step 2, offset 0, shift 0, depth 10 },         Y
-				{ plane 1, step 2, offset 0, shift 0, depth 10 },         U
-				{ plane 2, step 2, offset 0, shift 0, depth 10 },         V */
-	if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get())
-		CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	
 	CD3DTexture outputTarget = CMPCVRRenderer::Get()->GetIntermediateTarget();
 	outputParams.w = outputTarget.GetWidth();
 	outputParams.h = outputTarget.GetHeight();
@@ -1215,8 +1215,19 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameOut.crop.y1 = m_srcHeight;
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
-
+	pl_chroma_location loc = PL_CHROMA_UNKNOWN;
 	//todo fix when not left
+	switch (m_srcExFmt.VideoChromaSubsampling) {
+	case DXVA2_VideoChromaSubsampling_MPEG2:
+		loc = PL_CHROMA_LEFT;
+		break;
+	case DXVA2_VideoChromaSubsampling_MPEG1:
+		loc = PL_CHROMA_CENTER;
+		break;
+	case DXVA2_VideoChromaSubsampling_Cosited:
+		loc = PL_CHROMA_TOP_LEFT;
+		break;
+	}
 	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
 
 	
@@ -1250,7 +1261,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	m_windowRect = Com::SmartRect(vw.x1, vw.y1, vw.x2, vw.y2);
 
 
-	SendStats();
+	SendStats(csp);
 
 	return S_OK;
 }
@@ -3207,7 +3218,7 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 		if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_VP)
 			m_strStatsVProc.AppendFormat(L"D3D11 VP, from %s to %s", m_D3D11OutputFmt == DXGI_FORMAT_R10G10B10A2_UNORM ? L"YUV420P 10bit" : L"NV12 8 bit",DXGIFormatToString(m_D3D11OutputFmt));
 		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
-			m_strStatsVProc.AppendFormat(L"Internal shaders, from %s to %s", m_D3D11OutputFmt == DXGI_FORMAT_R10G10B10A2_UNORM ? L"YUV420P 10bit" : L"NV12 8 bit", DXGIFormatToString(m_D3D11OutputFmt));
+			m_strStatsVProc.AppendFormat(L"Internal shaders, from %s to %s", m_D3D11OutputFmt == DXGI_FORMAT_R10G10B10A2_UNORM ? L"YUV420P 10bit" : L"NV12 8 bit", DXGIFormatToString(m_SwapChainFmt));
 		//todo add else if for placebo merger when it will be readded
 
 		if (SourceIsHDR() || MPC_SETTINGS->bVPUseRTXVideoHDR) {
@@ -3241,8 +3252,14 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 	}
 }
 
-
-void CDX11VideoProcessor::SendStats()
+bool ShouldShowHdr(double val)
+{
+	if (val > 0 && val < 203)
+		return true;
+	else
+		return false;
+}
+void CDX11VideoProcessor::SendStats(const struct pl_color_space csp)
 {
 	CStdStringW str;
 	if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_2)
@@ -3302,9 +3319,34 @@ void CDX11VideoProcessor::SendStats()
 	}
 	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_3)
 	{
-
 		str.reserve(700);
-		str = L"Not done yet:\n";
+
+		str = L"Video::\n";
+		CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
+		str.AppendFormat(L"  Real FPS:%4.3f\n", CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
+		str.AppendFormat(L"  Video FPS: Avg:%4.3f Draw:%4.3f\n", m_pFilter->m_FrameStats.GetAverageFps(), m_pFilter->m_DrawStats.GetAverageFps());
+		pl_hdr_metadata hdr = csp.hdr;
+		if (1)
+		{
+			
+			if (hdr.max_luma >0)
+				str.AppendFormat(L"  HDR10: %.2g / %.0f cd/m²\n", hdr.min_luma,hdr.max_luma);
+
+			if (hdr.max_cll >0)
+				str.AppendFormat(L"  MaxCLL: %.0f cd/m²\n", hdr.max_cll);
+
+			if (hdr.max_fall > 0)
+				str.AppendFormat(L"  MaxFALL: %.0f cd/m²\n", hdr.max_fall);
+
+			if (hdr.scene_max[0] || hdr.scene_max[1] || hdr.scene_max[2] || hdr.scene_avg)
+				str.AppendFormat(L"  HDR10+: MaxRGB: %.1f / %.1f / %.1f cd/m² Avg:%.1f cd/m²\n", hdr.scene_max[0], hdr.scene_max[1], hdr.scene_max[2], hdr.scene_avg);
+
+			if (hdr.max_pq_y && hdr.avg_pq_y)
+			{
+				str.AppendFormat(L"  PQ(Y): Max:%.2f cd/m² (%.2f%% PQ) ", hdr.max_pq_y, (float)(hdr.max_pq_y*100));
+				str.AppendFormat(L"Avg:%.2f cd/m² (%.2f%% PQ) \n", hdr.avg_pq_y, (float)(hdr.avg_pq_y * 100));
+			}
+		}
 	}
 	CMPCVRRenderer::Get()->SetStats(str);
 	

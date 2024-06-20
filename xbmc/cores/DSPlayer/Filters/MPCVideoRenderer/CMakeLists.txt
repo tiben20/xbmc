@@ -8,7 +8,6 @@ set(SOURCES CPUInfo2.cpp
 			DSResource.cpp
 			DX11Helper.cpp
 			DX11VideoProcessor.cpp
-			DXVA2VP.cpp
 			Helper.cpp
 			MediaSampleSideData.cpp
 			Registry.cpp
@@ -34,7 +33,6 @@ set(HEADERS atlredef.h
 			DSResource.h
 			DX11Helper.h
 			DX11VideoProcessor.h
-			DXVA2VP.h
 			FontBitmap.h
 			FrameStats.h
 			gpu_memcpy_sse4.h

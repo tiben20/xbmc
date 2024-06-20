@@ -65,12 +65,6 @@ enum D3D11_TEXTURE_SAMPLER
   D3D11_INTERNAL_SHADERS =2
 };
 
-enum EVR_OUTPUT_RANGE
-{
-  OUTPUT_RANGE_0_255 = 0,
-  OUTPUT_RANGE_16_235
-};
-
 class CRendererSettings
 {
 public:
@@ -133,7 +127,6 @@ public:
     bD3D11TextureSampler = D3D11_INTERNAL_SHADERS;//D3D11_VP
     bUseHDR = false;
     enableFrameTimeCorrection = false;
-    outputRange = OUTPUT_RANGE_0_255;
     iBuffers = 4;
 
     bVPUseRTXVideoHDR = false;
@@ -149,7 +142,6 @@ public:
   bool                  bUseHDR;
   bool                  bHdrPassthrough;     //if we passthrough the hdr metadata
   bool                  enableFrameTimeCorrection;//not implemented
-  EVR_OUTPUT_RANGE      outputRange;
   int                   iBuffers;
 };
 

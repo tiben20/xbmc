@@ -76,7 +76,9 @@ void CApplicationSettingsHandling::RegisterSettings()
                                        CSettings::SETTING_DSPLAYER_DSAREARIGHT,
                                        CSettings::SETTING_DSPLAYER_DSAREATOP,
                                        CSettings::SETTING_DSPLAYER_DSAREABOTTOM,
-#endif
+                                       CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS,
+                                       CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS,
+#endif 
                                        CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN});
 
   auto& components = CServiceBroker::GetAppComponents();

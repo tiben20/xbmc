@@ -70,7 +70,7 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
  
     pl_log_params log_param{};
     log_param.log_cb = pl_log_cb;
-    log_param.log_level = PL_LOG_ERR;
+    log_param.log_level = PL_LOG_TRACE;
     m_plLog = pl_log_create(PL_API_VER, &log_param);
   }
   if (m_plD3d11)
@@ -521,7 +521,7 @@ bool CPlHelper::ProcessDoviData(IMediaSample* pSample,
     }
   //
     repr->dovi = doviout;
-    repr->sys = PL_COLOR_SYSTEM_DOLBYVISION;
+    repr->sys = PL_COLOR_SYSTEM_BT_2020_NC;
     color->transfer = PL_COLOR_TRC_PQ;
     
     color->hdr.min_luma = pl_hdr_rescale(PL_HDR_PQ, PL_HDR_NITS, pDOVIMetadata->Extensions[0].Level1.min_pq / 4095.0f);
@@ -575,7 +575,7 @@ pl_hdr_metadata CPlHelper::GetHdrData(IMediaSample* pSample)
     m_hdr10.hdr10.max_cll = hdrCLL->MaxCLL;
     m_hdr10.hdr10.max_fall = hdrCLL->MaxFALL;
   }
-
+ 
   return m_hdr10.hdr10;
 }
 

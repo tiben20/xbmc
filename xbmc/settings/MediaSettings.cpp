@@ -329,6 +329,7 @@ void CMediaSettings::OnSettingChanged(const std::shared_ptr<const CSetting>& set
     || settingId == CSettings::SETTING_DSPLAYER_SANEARLEVEL
     )
     CGraphFilters::Get()->SetSanearSettings();
+
   if (setting->GetId() == CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS)
     CServiceBroker::GetAnnouncementManager()->Announce(ANNOUNCEMENT::VideoLibrary, "OnRefresh");
 }

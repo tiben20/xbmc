@@ -263,7 +263,7 @@ private:
 
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
-	void SendStats();
+	void SendStats(const struct pl_color_space csp);
 
 public:
 	// IMFVideoProcessor

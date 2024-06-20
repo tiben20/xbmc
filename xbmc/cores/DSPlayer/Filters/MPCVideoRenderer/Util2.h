@@ -61,7 +61,6 @@ inline void DebugLogFmt(CStdStringW format, Args&& ...args)
 
 #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p) = nullptr; } }
 #define SAFE_CLOSE_HANDLE(p) { if (p) { if ((p) != INVALID_HANDLE_VALUE) ASSERT(CloseHandle(p)); (p) = nullptr; } }
-#define SAFE_DELETE(p)       { if (p) { delete (p); (p) = nullptr; } }
 
 #define QI(i) (riid == __uuidof(i)) ? GetInterface((i*)this, ppv) :
 

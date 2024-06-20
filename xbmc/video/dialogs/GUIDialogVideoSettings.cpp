@@ -122,11 +122,13 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
   {
     m_dsStats = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
     g_dsSettings.pRendererSettings->displayStats = (DS_STATS)m_dsStats;
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS, m_dsStats);
   }
   else if (settingId == VIDEO_SETTINGS_PLACEBO_OPTION)
   {
     m_placeboOption = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
     g_dsSettings.pRendererSettings->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)m_placeboOption;
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS, m_placeboOption);
   }
 #endif
   else if (settingId == SETTING_VIDEO_SCALINGMETHOD)
@@ -564,16 +566,18 @@ void CGUIDialogVideoSettings::InitializeSettings()
       entries.push_back(TranslatableIntegerSettingOption(55008, DS_SCALINGMETHOD_BILINEAR_2_60));
       entries.push_back(TranslatableIntegerSettingOption(55009, DS_SCALINGMETHOD_BILINEAR_2_75));
       entries.push_back(TranslatableIntegerSettingOption(55010, DS_SCALINGMETHOD_BILINEAR_2_100));
-
+      
       m_scalingMethod = videoSettings.GetDSPlayerScalingMethod();
       AddSpinner(groupVideo, SETTING_VIDEO_SCALINGMETHOD, 16300, SettingLevel::Basic, static_cast<int>(m_scalingMethod), entries);
 
+      m_dsStats = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
       entries.clear();
       entries.push_back(TranslatableIntegerSettingOption(55011, DS_STATS_NONE));
       entries.push_back(TranslatableIntegerSettingOption(55012, DS_STATS_1));
       entries.push_back(TranslatableIntegerSettingOption(55013, DS_STATS_2));
       entries.push_back(TranslatableIntegerSettingOption(55014, DS_STATS_3));
       AddSpinner(groupVideo, VIDEO_SETTINGS_DS_STATS, 55015, SettingLevel::Basic, static_cast<int>(m_dsStats), entries);
+      m_placeboOption = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
       
       entries.clear();
       entries.push_back(TranslatableIntegerSettingOption(55034, PLACEBO_DEFAULT));
