@@ -32,6 +32,12 @@
 
 namespace PL
 {
+  const wchar_t* PLCspPrimToString(const pl_color_primaries csp);
+  
+  const wchar_t* PLCspToString(const pl_color_system csp);
+
+  const wchar_t* PLCspTransfertToString(const pl_color_transfer csp);
+
   // playback statistics
   struct RenderStats {
     uint32_t decoded;
@@ -66,7 +72,7 @@ namespace PL
     pl_color_space GetPlColorSpace(DXVA2_ExtendedFormat pFormat);
     //HDR stuff
     pl_hdr_metadata GetHdrData(IMediaSample* pSample);
-    bool ProcessDoviData(IMediaSample* pSample, struct pl_color_space* color, struct pl_color_repr* repr, struct pl_dovi_metadata* doviout);
+    bool ProcessDoviData(IMediaSample* pSample, struct pl_color_space* color, struct pl_color_repr* repr, struct pl_dovi_metadata* doviout,int width, int height);
 
     struct HDRMetadata {
       pl_hdr_metadata hdr10 = {};

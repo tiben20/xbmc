@@ -246,7 +246,7 @@ private:
 
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
-	void SendStats(const struct pl_color_space csp);
+	void SendStats(const struct pl_color_space csp,const struct pl_color_repr repr);
 
 public:
 	// IMFVideoProcessor

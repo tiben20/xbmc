@@ -250,7 +250,7 @@ void CMPCVRRenderer::DrawStats()
 
   SIZE rtSize{ (LONG) m_screenRect.Width(),(LONG) m_screenRect.Height()};
 
-  m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
+  //m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
 
 
   m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, m_statsText.c_str());
@@ -259,8 +259,8 @@ void CMPCVRRenderer::DrawStats()
     col = m_StatsRect.right;
   }
 
-  m_Rect3D.Set({ col, m_StatsRect.bottom - 11, col + 5, m_StatsRect.bottom - 1 }, rtSize, D3DCOLOR_XRGB(128, 255, 128));
-  m_Rect3D.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
+  //m_Rect3D.Set({ col, m_StatsRect.bottom - 11, col + 5, m_StatsRect.bottom - 1 }, rtSize, D3DCOLOR_XRGB(128, 255, 128));
+  //m_Rect3D.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
 
 }
 
@@ -392,12 +392,6 @@ void CMPCVRRenderer::SetGraphSize()
    
   }
 
-  //on initialisation window rect is not set yet so set it now
-  /*if (m_windowRect.IsRectEmpty())
-  {
-    auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
-    m_windowRect = Com::SmartRect(0, 0, winSystem->GetWidth(), winSystem->GetHeight());
-  }*/
   if (pContext && !m_screenRect.IsEmpty()) {
     SIZE rtSize{ (LONG)m_screenRect.Width(),(LONG)m_screenRect.Height()};
 
@@ -413,8 +407,8 @@ void CMPCVRRenderer::SetGraphSize()
     else {
       m_StatsFontH = 14;
     }
-
-    if (S_OK == m_Font3D.CreateFontBitmap(L"Consolas", m_StatsFontH, 0)) {
+    //Consolas
+    if (S_OK == m_Font3D.CreateFontBitmap(L"Space Mono", m_StatsFontH, 0)) {
       SIZE charSize = m_Font3D.GetMaxCharMetric();
       m_StatsRect.right = m_StatsRect.left + 61 * charSize.cx + 5 + 3;
       m_StatsRect.bottom = m_StatsRect.top + 18 * charSize.cy + 5 + 3;

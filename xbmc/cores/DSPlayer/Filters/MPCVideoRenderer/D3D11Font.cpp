@@ -77,11 +77,6 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
 		return E_POINTER;
 	}
 
-	// Keep a local copy of the device
-#if 0
-	m_pDevice = pDevice;
-	m_pDevice->AddRef();
-#endif
 	m_pDeviceContext = pDeviceContext;
 	m_pDeviceContext->AddRef();
 

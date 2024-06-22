@@ -41,6 +41,79 @@ static void pl_log_cb(void*, enum pl_log_level level, const char* msg)
   }
 }
 
+const wchar_t* PL::PLCspPrimToString(const pl_color_primaries prim)
+{
+  switch (prim)
+  { 
+    case PL_COLOR_PRIM_UNKNOWN:       return L"auto";
+    case PL_COLOR_PRIM_BT_601_525:    return L"bt.601-525";
+    case PL_COLOR_PRIM_BT_601_625:    return L"bt.601-625";
+    case PL_COLOR_PRIM_BT_709:        return L"bt.709";
+    case PL_COLOR_PRIM_BT_2020:       return L"bt.2020";
+    case PL_COLOR_PRIM_BT_470M:       return L"bt.470m";
+    case PL_COLOR_PRIM_APPLE:         return L"apple";
+    case PL_COLOR_PRIM_ADOBE:         return L"adobe";
+    case PL_COLOR_PRIM_PRO_PHOTO:     return L"prophoto";
+    case PL_COLOR_PRIM_CIE_1931:      return L"cie1931";
+    case PL_COLOR_PRIM_DCI_P3:        return L"dci-p3";
+    case PL_COLOR_PRIM_DISPLAY_P3:    return L"display-p3";
+    case PL_COLOR_PRIM_V_GAMUT:       return L"v-gamut";
+    case PL_COLOR_PRIM_S_GAMUT:       return L"s-gamut";
+    case PL_COLOR_PRIM_EBU_3213:      return L"ebu3213";
+    case PL_COLOR_PRIM_FILM_C:        return L"film-c";
+    case PL_COLOR_PRIM_ACES_AP0:      return L"aces-ap0";
+    case PL_COLOR_PRIM_ACES_AP1:      return L"aces-ap1";
+  }
+  return L"";
+}
+
+const wchar_t* PL::PLCspToString(const pl_color_system csp)
+{
+  switch (csp)
+  {
+    case PL_COLOR_SYSTEM_UNKNOWN:      return L"auto";
+    case PL_COLOR_SYSTEM_BT_601:       return L"bt.601";
+    case PL_COLOR_SYSTEM_BT_709:       return L"bt.709";
+    case PL_COLOR_SYSTEM_SMPTE_240M:   return L"smpte-240m";
+    case PL_COLOR_SYSTEM_BT_2020_NC:   return    L"bt.2020-ncl";
+    case PL_COLOR_SYSTEM_BT_2020_C:    return    L"bt.2020-cl";
+    case PL_COLOR_SYSTEM_BT_2100_PQ:   return    L"bt.2100-pq";
+    case PL_COLOR_SYSTEM_BT_2100_HLG:  return    L"bt.2100-hlg";
+    case PL_COLOR_SYSTEM_DOLBYVISION:  return    L"dolbyvision";
+    case PL_COLOR_SYSTEM_RGB:          return    L"rgb";
+    case PL_COLOR_SYSTEM_XYZ:          return    L"xyz";
+    case PL_COLOR_SYSTEM_YCGCO:        return    L"ycgco";
+  }
+  return L"";
+  
+}
+
+const wchar_t* PL::PLCspTransfertToString(const pl_color_transfer csp)
+{
+  switch (csp)
+  {
+  case  PL_COLOR_TRC_UNKNOWN: return    L"auto";
+  case  PL_COLOR_TRC_BT_1886: return    L"bt.1886";
+  case  PL_COLOR_TRC_SRGB: return    L"srgb";
+  case  PL_COLOR_TRC_LINEAR: return    L"linear";
+  case  PL_COLOR_TRC_GAMMA18: return    L"gamma1.8";
+  case  PL_COLOR_TRC_GAMMA20: return    L"gamma2.0";
+  case  PL_COLOR_TRC_GAMMA22: return    L"gamma2.2";
+  case  PL_COLOR_TRC_GAMMA24: return    L"gamma2.4";
+  case  PL_COLOR_TRC_GAMMA26:  return    L"gamma2.6";
+  case  PL_COLOR_TRC_GAMMA28:   return    L"gamma2.8";
+  case  PL_COLOR_TRC_PRO_PHOTO: return    L"prophoto";
+  case  PL_COLOR_TRC_PQ:  return    L"pq";
+  case  PL_COLOR_TRC_HLG:  return    L"hlg";
+  case  PL_COLOR_TRC_V_LOG:  return    L"v-log";
+  case  PL_COLOR_TRC_S_LOG1: return    L"s-log1";
+  case  PL_COLOR_TRC_S_LOG2:  return    L"s-log2";
+  case  PL_COLOR_TRC_ST428:  return    L"st428";
+  }
+  return L"";
+
+}
+
 CPlHelper::CPlHelper()
 {
   m_pQueue = nullptr;
@@ -70,7 +143,7 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
  
     pl_log_params log_param{};
     log_param.log_cb = pl_log_cb;
-    log_param.log_level = PL_LOG_TRACE;
+    log_param.log_level = PL_LOG_WARN;
     m_plLog = pl_log_create(PL_API_VER, &log_param);
   }
   if (m_plD3d11)
@@ -463,7 +536,9 @@ bool CheckDoviMetadata(const MediaSideDataDOVIMetadata* pDOVIMetadata, const uin
 bool CPlHelper::ProcessDoviData(IMediaSample* pSample,
                             struct pl_color_space* color,
                             struct pl_color_repr* repr,
-                            struct pl_dovi_metadata* doviout)
+                            struct pl_dovi_metadata* doviout,
+                            int width,
+                            int height)
 {
   
   Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;
@@ -551,7 +626,8 @@ pl_hdr_metadata CPlHelper::GetHdrData(IMediaSample* pSample)
   MediaSideDataHDR* hdr = nullptr;
   size_t size = 0;
   hr = pMediaSideData->GetSideData(IID_MediaSideDataHDR, (const BYTE**)&hdr, &size);
-  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDR)) {
+  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDR))
+  {
     m_hdr10.bValid = true;
     
     m_hdr10.hdr10.prim.red.x = static_cast<UINT16>(std::lround(hdr->display_primaries_x[2] * 50000.0));
@@ -571,11 +647,47 @@ pl_hdr_metadata CPlHelper::GetHdrData(IMediaSample* pSample)
   MediaSideDataHDRContentLightLevel* hdrCLL = nullptr;
   size = 0;
   hr = pMediaSideData->GetSideData(IID_MediaSideDataHDRContentLightLevel, (const BYTE**)&hdrCLL, &size);
-  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDRContentLightLevel)) {
+  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDRContentLightLevel))
+  {
     m_hdr10.hdr10.max_cll = hdrCLL->MaxCLL;
     m_hdr10.hdr10.max_fall = hdrCLL->MaxFALL;
   }
- 
+  
+  MediaSideDataHDR10Plus* hdr10Plus = nullptr;
+  size = 0;
+  hr = pMediaSideData->GetSideData(IID_MediaSideDataHDR10Plus, (const BYTE**)&hdr10Plus, &size);
+  if (SUCCEEDED(hr) && size == sizeof(MediaSideDataHDR10Plus))
+  {
+    float hist_max = 0;
+    for (int x = 0; x < 3; x++)
+      m_hdr10.hdr10.scene_max[x] = hdr10Plus->windows[0].maxscl[x];
+    m_hdr10.hdr10.scene_avg = hdr10Plus->windows[0].average_maxrgb;
+
+    for (int i = 0; i < hdr10Plus->windows[0].num_distribution_maxrgb_percentiles; i++) {
+      float hist_val = hdr10Plus->windows[0].distribution_maxrgb_percentiles[i].percentile;
+      if (hist_val > hist_max)
+        hist_max = hist_val;
+    }
+    hist_max *= 10000;
+    if (!m_hdr10.hdr10.scene_max[0])
+      m_hdr10.hdr10.scene_max[0] = hist_max;
+    if (!m_hdr10.hdr10.scene_max[1])
+      m_hdr10.hdr10.scene_max[1] = hist_max;
+    if (!m_hdr10.hdr10.scene_max[2])
+      m_hdr10.hdr10.scene_max[2] = hist_max;
+    
+    if (hdr10Plus->windows[0].tone_mapping_flag == 1) {
+      
+      m_hdr10.hdr10.ootf.target_luma = hdr10Plus->targeted_system_display_maximum_luminance;
+      m_hdr10.hdr10.ootf.knee_x = hdr10Plus->windows[0].knee_point_x;
+      m_hdr10.hdr10.ootf.knee_y = hdr10Plus->windows[0].knee_point_y;
+      //assert(pars->num_bezier_curve_anchors < 16);
+      for (int i = 0; i < hdr10Plus->windows[0].num_bezier_curve_anchors; i++)
+        m_hdr10.hdr10.ootf.anchors[i] = hdr10Plus->windows[0].bezier_curve_anchors[i];
+      m_hdr10.hdr10.ootf.num_anchors = hdr10Plus->windows[0].num_bezier_curve_anchors;
+    }
+  }
+
   return m_hdr10.hdr10;
 }
 
@@ -584,3 +696,5 @@ pl_rotation CPlHelper::GetPlRotation()
 {
   return pl_rotation();
 }
+
+

@@ -970,7 +970,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	csp.hdr = pHelper->GetHdrData(pSample);
 	
 	m_Dovi.bValid = true;
-	if (pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi))
+	if (pHelper->ProcessDoviData(pSample, &csp, &repr, &dovi, m_videoRect.Width(), m_videoRect.Height()))
 	{
 
 		Microsoft::WRL::ComPtr<IMediaSideData> pMediaSideData;
@@ -1221,7 +1221,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	m_windowRect = Com::SmartRect(vw.x1, vw.y1, vw.x2, vw.y2);
 
 
-	SendStats(csp);
+	SendStats(csp, repr);
 
 	return S_OK;
 }
@@ -3192,7 +3192,7 @@ bool ShouldShowHdr(double val)
 	else
 		return false;
 }
-void CDX11VideoProcessor::SendStats(const struct pl_color_space csp)
+void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struct pl_color_repr repr)
 {
 	CStdStringW str;
 	if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_2)
@@ -3256,23 +3256,24 @@ void CDX11VideoProcessor::SendStats(const struct pl_color_space csp)
 
 		str = L"Video::\n";
 		CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
-		str.AppendFormat(L"  Real FPS:%4.3f\n", CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
-		str.AppendFormat(L"  Video FPS: Avg:%4.3f Draw:%4.3f\n", m_pFilter->m_FrameStats.GetAverageFps(), m_pFilter->m_DrawStats.GetAverageFps());
+		str.AppendFormat(L" Real FPS: %4.3f\n", CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().GetFPS());
+		str.AppendFormat(L" Video FPS: Avg: %4.3f\n", m_pFilter->m_FrameStats.GetAverageFps());
+		str.AppendFormat(L" Colormatrix: %s Primaries: %s Transfer: %s\n", PL::PLCspToString(repr.sys), PL::PLCspPrimToString(csp.primaries), PL::PLCspTransfertToString(csp.transfer));
 		pl_hdr_metadata hdr = csp.hdr;
 		if (1)
 		{
 			
 			if (hdr.max_luma >0)
-				str.AppendFormat(L"  HDR10: %.2g / %.0f cd/m²\n", hdr.min_luma,hdr.max_luma);
+				str.AppendFormat(L" HDR10: %.2g / %.0f cd/m²", hdr.min_luma,hdr.max_luma);
 
 			if (hdr.max_cll >0)
-				str.AppendFormat(L"  MaxCLL: %.0f cd/m²\n", hdr.max_cll);
+				str.AppendFormat(L" MaxCLL: %.0f cd/m²", hdr.max_cll);
 
 			if (hdr.max_fall > 0)
-				str.AppendFormat(L"  MaxFALL: %.0f cd/m²\n", hdr.max_fall);
+				str.AppendFormat(L" MaxFALL: %.0f cd/m²\n", hdr.max_fall);
 
 			if (hdr.scene_max[0] || hdr.scene_max[1] || hdr.scene_max[2] || hdr.scene_avg)
-				str.AppendFormat(L"  HDR10+: MaxRGB: %.1f / %.1f / %.1f cd/m² Avg:%.1f cd/m²\n", hdr.scene_max[0], hdr.scene_max[1], hdr.scene_max[2], hdr.scene_avg);
+				str.AppendFormat(L" HDR10+: MaxRGB: %.1f/%.1f/%.1f cd/m² Avg: %.1f cd/m²\n", (hdr.scene_max[0]*1000), (hdr.scene_max[1] * 1000), (hdr.scene_max[2] * 1000), (hdr.scene_avg*1000));
 
 			if (hdr.max_pq_y && hdr.avg_pq_y)
 			{
