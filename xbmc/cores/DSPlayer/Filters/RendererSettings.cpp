@@ -55,10 +55,9 @@ CDSSettings::CDSSettings(void)
   }
 }
 
-void CDSSettings::Initialize()
+void CDSSettings::Initialize(std::string renderer)
 {
-  CStdStringA videoRender;
-  videoRender = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER);
+  CStdStringA videoRender = renderer;
 
   if (videoRender.ToLower() == "madvr")
     pRendererSettings = new CMADVRRendererSettings();

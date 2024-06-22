@@ -221,6 +221,7 @@ MPCPixFmtDesc getPixelFormatDesc(DXGI_FORMAT fmt)
 CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
 	: CVideoProcessor(pFilter)
 {
+	g_dsSettings.Initialize("mpcvr");
 	m_bShowStats           = config.bShowStats;
 	m_iResizeStats         = config.iResizeStats;
 	m_iTexFormat           = config.iTexFormat;
@@ -447,7 +448,6 @@ void CDX11VideoProcessor::ReleaseVP()
 	m_TexSrcVideo.Release();
 	m_TexConvertOutput.Release();
 	m_TexResize.Release();
-	m_TexsPostScale.Release();
 
 	m_PSConvColorData.Release();
 	m_pDoviCurvesConstantBuffer= nullptr;
@@ -469,18 +469,9 @@ void CDX11VideoProcessor::ReleaseDevice()
 	ReleaseVP();
 	m_D3D11VP.ReleaseVideoDevice();
 	m_D3D11VP.ResetFrameOrder();
-	m_StatsBackground.InvalidateDeviceObjects();
-	m_Font3D.InvalidateDeviceObjects();
-	m_Rect3D.InvalidateDeviceObjects();
-
-	m_Underlay.InvalidateDeviceObjects();
-	m_Lines.InvalidateDeviceObjects();
-	m_SyncLine.InvalidateDeviceObjects();
-
-	m_TexDither.Release();
+	
 	m_bAlphaBitmapEnable = false;
-	m_pAlphaBitmapVertex= nullptr;
-	m_TexAlphaBitmap.Release();
+	
 
 	m_pPSCorrection= nullptr;
 	m_pPSConvertColor= nullptr;
@@ -543,39 +534,7 @@ void CDX11VideoProcessor::UpdateRenderRect()
 
 }
 
-void CDX11VideoProcessor::SetGraphSize()
-{
-	//on initialisation window rect is not set yet so set it now
-	if (m_windowRect.IsRectEmpty())
-	{
-		auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
-		m_windowRect = Com::SmartRect(0, 0, winSystem->GetWidth(), winSystem->GetHeight());
-	}
-	if (m_pDeviceContext && !m_windowRect.IsRectEmpty()) {
-		SIZE rtSize = m_windowRect.Size();
 
-		CalcStatsFont();
-		if (S_OK == m_Font3D.CreateFontBitmap(L"Consolas", m_StatsFontH, 0)) {
-			SIZE charSize = m_Font3D.GetMaxCharMetric();
-			m_StatsRect.right  = m_StatsRect.left + 61 * charSize.cx + 5 + 3;
-			m_StatsRect.bottom = m_StatsRect.top + 18 * charSize.cy + 5 + 3;
-		}
-		m_StatsBackground.Set(m_StatsRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
-
-		CalcGraphParams();
-		m_Underlay.Set(m_GraphRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
-
-		m_Lines.ClearPoints(rtSize);
-		POINT points[2];
-		const int linestep = 20 * m_Yscale;
-		for (int y = m_GraphRect.top + (m_Yaxis - m_GraphRect.top) % (linestep); y < m_GraphRect.bottom; y += linestep) {
-			points[0] = { m_GraphRect.left,  y };
-			points[1] = { m_GraphRect.right, y };
-			m_Lines.AddPoints(points, std::size(points), (y == m_Yaxis) ? D3DCOLOR_XRGB(150, 150, 255) : D3DCOLOR_XRGB(100, 100, 255));
-		}
-		m_Lines.UpdateVertexBuffer();
-	}
-}
 
 HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch)
 {
@@ -1142,6 +1101,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		if (!m_pInputTexture.Get())
 			m_pInputTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(),"CMPCVRRenderer Merged plane", true, 0U);
 	  
+		CMPCVRSettings* mpc = static_cast<CMPCVRSettings*>(g_dsSettings.pRendererSettings);
 		if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_VP && m_D3D11VP.IsReady())
 		{
 			m_pDeviceContext->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
@@ -1350,25 +1310,12 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	//set the callback for subtitles
 	SetCallbackDevice();
 
-	HRESULT hr3 = m_Font3D.InitDeviceObjects(m_pDeviceContext.Get());
-	DLogIf(FAILED(hr3), "m_Font3D.InitDeviceObjects() failed with error {}", WToA(HR2Str(hr3)));
-	if (SUCCEEDED(hr3)) {
-		hr3 = m_StatsBackground.InitDeviceObjects(m_pDeviceContext.Get());
-		hr3 = m_Rect3D.InitDeviceObjects(m_pDeviceContext.Get());
-		hr3 = m_Underlay.InitDeviceObjects(m_pDeviceContext.Get());
-		hr3 = m_Lines.InitDeviceObjects(m_pDeviceContext.Get());
-		hr3 = m_SyncLine.InitDeviceObjects(m_pDeviceContext.Get());
-		DLogIf(FAILED(hr3), "Geometric primitives InitDeviceObjects() failed with error {}", WToA(HR2Str(hr3)));
-	}
-	ASSERT(S_OK == hr3);
-
 	SetStereo3dTransform(m_iStereo3dTransform);
 
 	m_bDecoderDevice = bDecoderDevice;
 
 	m_pFilter->OnDisplayModeChange();
 	UpdateStatsStatic();
-	//SetGraphSize();
 
 	return hr;
 
@@ -2755,17 +2702,7 @@ HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 	m_windowRect = windowRect;
 	UpdateRenderRect();
 
-	HRESULT hr = S_OK;
-	const UINT w = m_windowRect.Width();
-	const UINT h = m_windowRect.Height();
-
-	if (GetSwapChain && !m_bIsFullscreen) {
-		//hr = GetSwapChain->ResizeBuffers(0, w, h, DXGI_FORMAT_UNKNOWN, 0);
-	}
-
-	SetGraphSize();
-
-	return hr;
+	return S_OK;
 }
 
 void CDX11VideoProcessor::Reset(bool bForceWindowed)
@@ -3130,10 +3067,6 @@ void CDX11VideoProcessor::Configure(const Settings_t& config)
 
 	if (changeBitmapShader) {
 		UpdateBitmapShader();
-	}
-
-	if (changeResizeStats) {
-		SetGraphSize();
 	}
 
 	if (changeSuperRes) {

@@ -178,7 +178,7 @@ public:
 public:
   CDSSettings(void);
   virtual ~CDSSettings(void);
-  void Initialize();
+  void Initialize(std::string renderer);
 
   void LoadConfig();
 

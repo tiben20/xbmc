@@ -55,7 +55,7 @@ CmadVRAllocatorPresenter::CmadVRAllocatorPresenter(HWND hWnd, HRESULT& hr, std::
   , m_pMadvrShared(nullptr)
   , m_pD3DDev(nullptr)
 {
-
+  g_dsSettings.Initialize("madvr");
   //Init Variable
   m_exclusiveCallback = ExclusiveCallback;
   m_firstBoot = true;

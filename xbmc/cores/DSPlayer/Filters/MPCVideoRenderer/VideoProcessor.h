@@ -201,7 +201,6 @@ public:
 	void CalcStatsFont();
 	bool CheckGraphPlacement();
 	void CalcGraphParams();
-	virtual void SetGraphSize() = 0;
 
 	void SetDisplayInfo(const DisplayConfig_t& dc, const bool primary, const bool fullscreen);
 

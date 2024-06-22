@@ -349,7 +349,7 @@ bool CApplication::Create()
   update_emu_environ();//apply the GUI settings
 
 #if HAS_DS_PLAYER // DSPlayer
-  g_dsSettings.Initialize();
+  g_dsSettings.Initialize(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER));
   g_dsSettings.LoadConfig();
 #endif
 

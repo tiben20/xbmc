@@ -71,8 +71,6 @@ private:
 	Tex11Video_t m_TexSrcVideo; // for copy of frame
 	Tex2D_t m_TexConvertOutput;
 	Tex2D_t m_TexResize;        // for intermediate result of two-pass resize
-	CTex2DRing m_TexsPostScale;
-	Tex2D_t m_TexDither;
 
 	// for GetAlignmentSize()
 	struct Alignment_t {
@@ -126,18 +124,6 @@ private:
 
 	bool m_bSubPicWasRendered = false;
 
-	// AlphaBitmap
-	Tex2D_t m_TexAlphaBitmap;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pAlphaBitmapVertex;
-
-	// Statistics
-	CD3D11Rectangle m_StatsBackground;
-	CD3D11Font      m_Font3D;
-	CD3D11Rectangle m_Rect3D;
-	CD3D11Rectangle m_Underlay;
-	CD3D11Lines     m_Lines;
-	CD3D11Polyline  m_SyncLine;
-
 	bool m_bDecoderDevice = false;
 	bool m_bIsFullscreen = false;
 	bool m_bHdrPassthroughSupport = false;
@@ -190,9 +176,6 @@ private:
 
 	void UpdateTexParams(int cdepth);
 	void UpdateRenderRect();
-
-
-	void SetGraphSize() override;
 
 	HRESULT MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch);
 
