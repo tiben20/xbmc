@@ -37,7 +37,6 @@ class CD3D11Font
 
 	D3DCOLOR m_Color = D3DCOLOR_XRGB(255, 255, 255);
 
-	//ID3D11Device* m_pDevice = nullptr;
 	ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
 	ID3D11InputLayout*        m_pInputLayout    = nullptr;
@@ -60,7 +59,7 @@ public:
 	~CD3D11Font();
 
 	// Initializing and destroying device-dependent objects
-	HRESULT InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext);
+	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
 	void InvalidateDeviceObjects();
 
 	HRESULT CreateFontBitmap(const WCHAR* strFontName, const UINT fontHeight, const UINT fontFlags);

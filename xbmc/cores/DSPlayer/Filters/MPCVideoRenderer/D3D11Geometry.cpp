@@ -39,22 +39,20 @@ CD3D11Quadrilateral::~CD3D11Quadrilateral()
 	InvalidateDeviceObjects();
 }
 
-HRESULT CD3D11Quadrilateral::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext)
+HRESULT CD3D11Quadrilateral::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
 {
 	InvalidateDeviceObjects();
-	if (!pDevice || !pDeviceContext) {
+	if (!pDeviceContext) {
 		return E_POINTER;
 	}
 
-	//m_pDevice = pDevice;
-	//m_pDevice->AddRef();
 	m_pDeviceContext = pDeviceContext;
 	m_pDeviceContext->AddRef();
 
 	D3D11_BUFFER_DESC BufferDesc = { sizeof(m_Vertices), D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 	D3D11_SUBRESOURCE_DATA InitData = { m_Vertices, 0, 0 };
 
-	HRESULT hr = pDevice->CreateBuffer(&BufferDesc, &InitData, &m_pVertexBuffer);
+	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateBuffer(&BufferDesc, &InitData, &m_pVertexBuffer);
 
 	LPVOID data;
 	DWORD size;
@@ -92,7 +90,6 @@ void CD3D11Quadrilateral::InvalidateDeviceObjects()
 	SAFE_RELEASE(m_pInputLayout);
 	SAFE_RELEASE(m_pVertexBuffer);
 	SAFE_RELEASE(m_pDeviceContext);
-	//SAFE_RELEASE(m_pDevice);
 }
 
 HRESULT CD3D11Quadrilateral::Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const D3DCOLOR color)
@@ -198,15 +195,13 @@ CD3D11Dots::~CD3D11Dots()
 	InvalidateDeviceObjects();
 }
 
-HRESULT CD3D11Dots::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext)
+HRESULT CD3D11Dots::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
 {
 	InvalidateDeviceObjects();
-	if (!pDevice || !pDeviceContext) {
+	if (!pDeviceContext)
 		return E_POINTER;
-	}
+	
 
-	//m_pDevice = pDevice;
-	//m_pDevice->AddRef();
 	m_pDeviceContext = pDeviceContext;
 	m_pDeviceContext->AddRef();
 

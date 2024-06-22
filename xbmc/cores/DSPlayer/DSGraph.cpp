@@ -141,8 +141,6 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
 
   if (m_pVideoWindow)
   {
-    //HRESULT hr;
-    //m_pVideoWindow->put_Owner((OAHWND)g_hWnd);
     m_pVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
     m_pVideoWindow->put_Visible(OATRUE);
     m_pVideoWindow->put_AutoShow(OATRUE);

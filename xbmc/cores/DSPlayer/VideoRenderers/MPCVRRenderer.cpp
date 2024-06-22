@@ -381,14 +381,14 @@ void CMPCVRRenderer::SetGraphSize()
   m_screenRect = CRect(0,0, GetScreenRect().x2, GetScreenRect().y2);
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
 
-  HRESULT hr3 = m_Font3D.InitDeviceObjects(GetDevice, pContext);
+  HRESULT hr3 = m_Font3D.InitDeviceObjects(pContext);
 
   if (SUCCEEDED(hr3)) {
-    hr3 = m_StatsBackground.InitDeviceObjects(GetDevice, pContext);
-    hr3 = m_Rect3D.InitDeviceObjects(GetDevice, pContext);
-    hr3 = m_Underlay.InitDeviceObjects(GetDevice, pContext);
-    hr3 = m_Lines.InitDeviceObjects(GetDevice, pContext);
-    hr3 = m_SyncLine.InitDeviceObjects(GetDevice, pContext);
+    hr3 = m_StatsBackground.InitDeviceObjects(pContext);
+    hr3 = m_Rect3D.InitDeviceObjects(pContext);
+    hr3 = m_Underlay.InitDeviceObjects(pContext);
+    hr3 = m_Lines.InitDeviceObjects(pContext);
+    hr3 = m_SyncLine.InitDeviceObjects(pContext);
    
   }
 

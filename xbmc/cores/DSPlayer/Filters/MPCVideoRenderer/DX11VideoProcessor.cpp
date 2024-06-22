@@ -1350,14 +1350,14 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	//set the callback for subtitles
 	SetCallbackDevice();
 
-	HRESULT hr3 = m_Font3D.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
+	HRESULT hr3 = m_Font3D.InitDeviceObjects(m_pDeviceContext.Get());
 	DLogIf(FAILED(hr3), "m_Font3D.InitDeviceObjects() failed with error {}", WToA(HR2Str(hr3)));
 	if (SUCCEEDED(hr3)) {
-		hr3 = m_StatsBackground.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
-		hr3 = m_Rect3D.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
-		hr3 = m_Underlay.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
-		hr3 = m_Lines.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
-		hr3 = m_SyncLine.InitDeviceObjects(GetDevice, m_pDeviceContext.Get());
+		hr3 = m_StatsBackground.InitDeviceObjects(m_pDeviceContext.Get());
+		hr3 = m_Rect3D.InitDeviceObjects(m_pDeviceContext.Get());
+		hr3 = m_Underlay.InitDeviceObjects(m_pDeviceContext.Get());
+		hr3 = m_Lines.InitDeviceObjects(m_pDeviceContext.Get());
+		hr3 = m_SyncLine.InitDeviceObjects(m_pDeviceContext.Get());
 		DLogIf(FAILED(hr3), "Geometric primitives InitDeviceObjects() failed with error {}", WToA(HR2Str(hr3)));
 	}
 	ASSERT(S_OK == hr3);

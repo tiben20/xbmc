@@ -70,10 +70,10 @@ CD3D11Font::~CD3D11Font()
 	InvalidateDeviceObjects();
 }
 
-HRESULT CD3D11Font::InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext)
+HRESULT CD3D11Font::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
 {
 	InvalidateDeviceObjects();
-	if (!pDevice || !pDeviceContext) {
+	if (!pDeviceContext) {
 		return E_POINTER;
 	}
 

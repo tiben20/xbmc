@@ -32,7 +32,6 @@ struct POINTVERTEX11 {
 class CD3D11Quadrilateral
 {
 protected:
-	//ID3D11Device* m_pDevice = nullptr;
 	ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
 	bool m_bAlphaBlend = false;
@@ -48,7 +47,7 @@ protected:
 public:
 	~CD3D11Quadrilateral();
 
-	HRESULT InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext);
+	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
 	void InvalidateDeviceObjects();
 
 	HRESULT Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const D3DCOLOR color);
@@ -82,7 +81,6 @@ public:
 class CD3D11Dots
 {
 protected:
-	//ID3D11Device* m_pDevice = nullptr;
 	ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
 	ID3D11InputLayout*  m_pInputLayout  = nullptr;
@@ -109,7 +107,7 @@ protected:
 public:
 	~CD3D11Dots();
 
-	HRESULT InitDeviceObjects(ID3D11Device* pDevice, ID3D11DeviceContext* pDeviceContext);
+	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
 	void InvalidateDeviceObjects();
 
 	void ClearPoints(SIZE& newRTSize);
@@ -144,7 +142,7 @@ protected:
 	}
 };
 
-// CD3D9Polyline
+// CD3D11Polyline
 
 class CD3D11Polyline : public CD3D11Dots
 {
