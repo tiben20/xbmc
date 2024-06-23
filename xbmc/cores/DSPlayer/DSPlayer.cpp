@@ -409,6 +409,8 @@ bool CDSPlayer::CloseFile(bool reopen)
   // set the abort request so that other threads can finish up
   m_bEof = g_dsGraph->IsEof();
 
+  m_callback.OnPlayBackEnded();
+
   // stop the rendering on dsplayer device
   m_renderOnDs = false;
 
