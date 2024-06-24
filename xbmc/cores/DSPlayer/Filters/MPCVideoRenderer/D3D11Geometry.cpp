@@ -36,18 +36,18 @@
 
 CD3D11Quadrilateral::~CD3D11Quadrilateral()
 {
-	InvalidateDeviceObjects();
+	
 }
 
 HRESULT CD3D11Quadrilateral::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
 {
-	InvalidateDeviceObjects();
-	if (!pDeviceContext) {
+	
+	if (!pDeviceContext)
 		return E_POINTER;
-	}
+	
 
 	m_pDeviceContext = pDeviceContext;
-	m_pDeviceContext->AddRef();
+	
 
 	D3D11_BUFFER_DESC BufferDesc = { sizeof(m_Vertices), D3D11_USAGE_DYNAMIC, D3D11_BIND_VERTEX_BUFFER, D3D11_CPU_ACCESS_WRITE, 0, 0 };
 	D3D11_SUBRESOURCE_DATA InitData = { m_Vertices, 0, 0 };
@@ -82,16 +82,6 @@ HRESULT CD3D11Quadrilateral::InitDeviceObjects(ID3D11DeviceContext* pDeviceConte
 	return hr;
 }
 
-void CD3D11Quadrilateral::InvalidateDeviceObjects()
-{
-	SAFE_RELEASE(m_pVertexShader);
-	SAFE_RELEASE(m_pPixelShader);
-	SAFE_RELEASE(m_pBlendState);
-	SAFE_RELEASE(m_pInputLayout);
-	SAFE_RELEASE(m_pVertexBuffer);
-	SAFE_RELEASE(m_pDeviceContext);
-}
-
 HRESULT CD3D11Quadrilateral::Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const D3DCOLOR color)
 {
 	HRESULT hr = S_OK;
@@ -106,10 +96,10 @@ HRESULT CD3D11Quadrilateral::Set(const float x1, const float y1, const float x2,
 
 	if (m_pVertexBuffer) {
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		hr = m_pDeviceContext->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		if (S_OK == hr) {
 			memcpy(mappedResource.pData, m_Vertices, sizeof(m_Vertices));
-			m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+			m_pDeviceContext->Unmap(m_pVertexBuffer.Get(), 0);
 		};
 	}
 
@@ -122,8 +112,7 @@ HRESULT CD3D11Quadrilateral::Draw(ID3D11RenderTargetView* pRenderTargetView, con
 	UINT Stride = sizeof(POINTVERTEX11);
 	UINT Offset = 0;
 	ID3D11ShaderResourceView* views[1] = {};
-	ID3D11DeviceContext* deviceContext;
-	deviceContext = m_pDeviceContext;
+
 	m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
 
 	D3D11_VIEWPORT VP;
@@ -133,21 +122,21 @@ HRESULT CD3D11Quadrilateral::Draw(ID3D11RenderTargetView* pRenderTargetView, con
 	VP.Height   = rtSize.cy;
 	VP.MinDepth = 0.0f;
 	VP.MaxDepth = 1.0f;
-	deviceContext->RSSetViewports(1, &VP);
+	m_pDeviceContext->RSSetViewports(1, &VP);
 
-	deviceContext->PSSetShaderResources(0, 1, views);
-	deviceContext->IASetInputLayout(m_pInputLayout);
+	m_pDeviceContext->PSSetShaderResources(0, 1, views);
+	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
 
-	deviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
+	m_pDeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf() , &Stride, &Offset);
 
-	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-	deviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
-	deviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
-	deviceContext->OMSetBlendState(m_bAlphaBlend ? m_pBlendState : nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+	m_pDeviceContext->OMSetBlendState(m_bAlphaBlend ? m_pBlendState.Get() : nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 
-	deviceContext->Draw(std::size(m_Vertices), 0);
+	m_pDeviceContext->Draw(std::size(m_Vertices), 0);
 
 	return hr;
 }
@@ -313,10 +302,10 @@ HRESULT CD3D11Dots::UpdateVertexBuffer()
 
 	if (m_pVertexBuffer) {
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
-		hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		hr = m_pDeviceContext->Map(m_pVertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		if (S_OK == hr) {
 			memcpy(mappedResource.pData, m_Vertices.data(), vertexSize);
-			m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+			m_pDeviceContext->Unmap(m_pVertexBuffer.Get(), 0);
 		};
 	}
 
@@ -331,10 +320,10 @@ void CD3D11Dots::Draw()
 	ID3D11ShaderResourceView* views[1] = {};
 
 	m_pDeviceContext->PSSetShaderResources(0, 1, views);
-	m_pDeviceContext->IASetInputLayout(m_pInputLayout);
-	m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
-	m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
-	m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	m_pDeviceContext->IASetInputLayout(m_pInputLayout.Get());
+	m_pDeviceContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &Stride, &Offset);
+	m_pDeviceContext->VSSetShader(m_pVertexShader.Get(), nullptr, 0);
+	m_pDeviceContext->PSSetShader(m_pPixelShader.Get(), nullptr, 0);
 
 	m_pDeviceContext->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK); // TODO: add m_bAlphaBlend support
 

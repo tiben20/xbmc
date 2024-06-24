@@ -21,6 +21,7 @@
 #pragma once
 
 #include "windowing/windows/WinSystemWin32DX.h"
+#include <d3d9types.h>
 
 struct POINTVERTEX11 {
 	DirectX::XMFLOAT3 Pos;
@@ -32,23 +33,23 @@ struct POINTVERTEX11 {
 class CD3D11Quadrilateral
 {
 protected:
-	ID3D11DeviceContext* m_pDeviceContext = nullptr;
+
 
 	bool m_bAlphaBlend = false;
-	ID3D11BlendState* m_pBlendState = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11BlendState> m_pBlendState;
 
 	POINTVERTEX11 m_Vertices[4] = {};
-	ID3D11Buffer* m_pVertexBuffer = nullptr;
-	ID3D11InputLayout* m_pInputLayout = nullptr;
-
-	ID3D11VertexShader* m_pVertexShader = nullptr;
-	ID3D11PixelShader* m_pPixelShader = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pDeviceContext;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_pInputLayout;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_pVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPixelShader;
 
 public:
 	~CD3D11Quadrilateral();
 
 	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
-	void InvalidateDeviceObjects();
+	
 
 	HRESULT Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const D3DCOLOR color);
 	HRESULT Draw(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize);
@@ -81,13 +82,11 @@ public:
 class CD3D11Dots
 {
 protected:
-	ID3D11DeviceContext* m_pDeviceContext = nullptr;
-
-	ID3D11InputLayout*  m_pInputLayout  = nullptr;
-	ID3D11VertexShader* m_pVertexShader = nullptr;
-	ID3D11PixelShader*  m_pPixelShader  = nullptr;
-
-	ID3D11Buffer* m_pVertexBuffer = nullptr;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pDeviceContext;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_pInputLayout;
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_pVertexShader;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pPixelShader;
 
 	SIZE m_RTSize = {};
 	bool m_bAlphaBlend = false;

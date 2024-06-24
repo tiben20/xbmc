@@ -258,7 +258,7 @@ public:
 
   static void PostMessage(CDSMsg* msg, bool wait = true)
   {
-    if (!m_threadID || PlayerState == DSPLAYER_CLOSING || PlayerState == DSPLAYER_CLOSED)
+    if (!m_threadID || PlayerState == DSPLAYER_CLOSED || (PlayerState == DSPLAYER_CLOSING && msg->GetMessageType() != CDSMsg::PLAYER_STOP) )
     {
       msg->Release();
       return;

@@ -708,6 +708,7 @@ void CDSPlayer::OnExit()
   m_hReadyEvent.Set();
   m_bStop = true;
   m_threadID = 0;
+  
   CServiceBroker::GetWinSystem()->UnregisterRenderLoop(this);
 #if TODO//identify its not in xbmc core anymore
   if (m_PlayerOptions.identify == false)
@@ -861,7 +862,20 @@ void CDSPlayer::HandleMessages()
       }
       else if (pMsg->IsType(CDSMsg::PLAYER_STOP))
       {
-        CDSMsgBool* speMsg = reinterpret_cast<CDSMsgBool *>(pMsg);
+        //save state of file
+        CFileItem fileItem(m_currentFileItem);
+        CBookmark bookmark;
+
+
+          bookmark.totalTimeInSeconds = DS_TIME_TO_SEC(g_dsGraph->GetTotalTime());
+          bookmark.timeInSeconds = DS_TIME_TO_SEC(g_dsGraph->GetTime());
+        
+        bookmark.player = m_name;
+        bookmark.playerState = GetPlayerState();
+        m_outboundEvents->Submit([=]() {
+          m_callback.OnPlayerCloseFile(fileItem, bookmark);
+          });
+        CDSMsgBool* speMsg = reinterpret_cast<CDSMsgBool*>(pMsg);
         g_dsGraph->Stop(speMsg->m_value);
       }
       else if (pMsg->IsType(CDSMsg::PLAYER_PLAY))
@@ -1946,7 +1960,7 @@ void CGraphManagementThread::Process()
         }
       }
     }
-    if (CDSPlayer::PlayerState == DSPLAYER_CLOSED)
+    if (CDSPlayer::PlayerState == DSPLAYER_CLOSED || CDSPlayer::PlayerState == DSPLAYER_CLOSING)
       break;
 
     // Handle rare graph event
