@@ -591,45 +591,32 @@ LRESULT CALLBACK CWinEventsWin32::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, L
       return(0);
     }
     case WM_DISPLAYCHANGE:
-#if HAS_DS_PLAYER
     {
+      const auto& components = CServiceBroker::GetAppComponents();
+      const auto appPower = components.GetComponent<CApplicationPowerHandling>();
+#if HAS_DS_PLAYER
+    
       CLog::Log(LOGDEBUG, __FUNCTION__": display change event");
-      if (g_application.GetRenderGUI() && GET_X_LPARAM(lParam) > 0 && GET_Y_LPARAM(lParam) > 0)
+      if (DX::Windowing()->IsTogglingHDR() || DX::Windowing()->IsAlteringWindow())
+        return (0);
+      if (appPower->GetRenderGUI() && GET_X_LPARAM(lParam) > 0 && GET_Y_LPARAM(lParam) > 0)
       {
         if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer")
         {
-          
           CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->DisplayChange(!DX::Windowing()->IsAlteringWindow());
         }
-        else if (!DX::Windowing()->IsAlteringWindow())
+        else
         {
           DX::Windowing()->UpdateResolutions();
-          if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_fullScreen)
-          {
-            newEvent.type = XBMC_VIDEOMOVE;
-            newEvent.move.x = 0;
-            newEvent.move.y = 0;
-          }
-          else
-          {
-            newEvent.type = XBMC_VIDEORESIZE;
-            newEvent.resize.w = GET_X_LPARAM(lParam);
-            newEvent.resize.h = GET_Y_LPARAM(lParam);
-          }
-          appPort->OnEvent(newEvent);
-          //m_pEventFunc(newEvent);
         }
       }
       return(0);
     }
 #else
-    {
       CLog::LogFC(LOGDEBUG, LOGWINDOWING, "display change event");
       if (DX::Windowing()->IsTogglingHDR() || DX::Windowing()->IsAlteringWindow())
         return (0);
 
-      const auto& components = CServiceBroker::GetAppComponents();
-      const auto appPower = components.GetComponent<CApplicationPowerHandling>();
       if (appPower->GetRenderGUI() && GET_X_LPARAM(lParam) > 0 && GET_Y_LPARAM(lParam) > 0)
       {
         DX::Windowing()->UpdateResolutions();

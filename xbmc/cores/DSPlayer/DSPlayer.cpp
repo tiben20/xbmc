@@ -334,9 +334,17 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
     return false;
   }
 
-  if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN))
+  if (!CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_VIDEOSCREEN_FAKEFULLSCREEN) && m_isMadvr)
   {
-    CServiceBroker::GetRenderSystem()->SetWindowedForMadvr();
+    BOOL bFullScreen;
+    DX::DeviceResources::Get()->GetSwapChain()->GetFullscreenState(&bFullScreen, NULL);
+
+    if (!!bFullScreen)
+    {
+      CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(
+        CServiceBroker::GetWinSystem()->GetGfxContext().GetVideoResolution(), true);
+    }
+    //CServiceBroker::GetRenderSystem()->SetWindowedForMadvr();
     
     CGraphFilters::Get()->SetKodiRealFS(true);
 
@@ -822,6 +830,7 @@ void CDSPlayer::HandleMessages()
         CServiceBroker::GetDataCacheCore().SignalAudioInfoChange();
         CServiceBroker::GetDataCacheCore().SignalVideoInfoChange();
         CServiceBroker::GetDataCacheCore().SignalSubtitleInfoChange();
+        //m_callback.OnAVChange();
         /*IPlayerCallback* cb = &m_callback;
         m_outboundEvents->Submit([=]() {
           cb->OnAVChange();

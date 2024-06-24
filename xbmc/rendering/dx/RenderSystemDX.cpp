@@ -712,10 +712,10 @@ inline void DXWait(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
   ID3D11Query* wait = nullptr;
   CD3D11_QUERY_DESC qd(D3D11_QUERY_EVENT);
-  if (SUCCEEDED(pDevice->CreateQuery(&qd, &wait)))
+  if (SUCCEEDED(DX::DeviceResources().GetD3DDevice()->CreateQuery(&qd, &wait)))
   {
-    pContext->End(wait);
-    while (S_FALSE == pContext->GetData(wait, nullptr, 0, 0))
+    DX::DeviceResources().GetD3DContext()->End(wait);
+    while (S_FALSE == DX::DeviceResources().GetD3DContext()->GetData(wait, nullptr, 0, 0))
       Sleep(1);
   }
   SAFE_RELEASE(wait);
@@ -728,12 +728,13 @@ void CRenderSystemDX::SetWindowedForMadvr()
 
   HRESULT hr;
   BOOL bFullScreen;
-  m_pSwapChain->GetFullscreenState(&bFullScreen, NULL);
+  
+  DX::DeviceResources::Get()->GetSwapChain()->GetFullscreenState(&bFullScreen, NULL);
 
   if (!!bFullScreen)
   {
     CLog::Log(LOGDEBUG, "%s - Switching swap chain to windowed mode.", __FUNCTION__);
-    hr = m_pSwapChain->SetFullscreenState(false, NULL);
+    hr = DX::DeviceResources::Get()->GetSwapChain()->SetFullscreenState(false, NULL);
     m_bResizeRequred = S_OK == hr;
 
     if (S_OK != hr)

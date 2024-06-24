@@ -484,6 +484,19 @@ void CRenderDSManager::UpdateDisplayLatency()
 
 void CRenderDSManager::UpdateResolution()
 {
+#if 1
+  if (m_bTriggerDisplayChange)
+  {
+    if (m_Resolution != RES_INVALID)
+    {
+      CLog::Log(LOGDEBUG, "{} gui resolution updated by external display change event", __FUNCTION__);
+      CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(m_Resolution,false);
+      UpdateDisplayLatency();
+    }
+    m_bTriggerDisplayChange = false;
+    //m_playerPort->VideoParamsChange();
+  }
+#endif
   if (m_bTriggerUpdateResolution)
   {
     if (CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenVideo() && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot())
@@ -500,21 +513,9 @@ void CRenderDSManager::UpdateResolution()
       }
       m_bTriggerUpdateResolution = false;
     }
-    m_playerPort->VideoParamsChange();
+   // m_playerPort->VideoParamsChange();
   }
-#if TODO
-  if (m_bTriggerDisplayChange)
-  {
-    if (m_Resolution != RES_INVALID)
-    {      
-      CLog::Log(LOGDEBUG, "{} gui resolution updated by external display change event", __FUNCTION__);
-      CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(m_Resolution);
-      UpdateDisplayLatency();
-    }
-    m_bTriggerDisplayChange = false;
-    m_playerPort->VideoParamsChange();
-  }
-#endif
+
 }
 
 void CRenderDSManager::DisplayChange(bool bExternalChange)
