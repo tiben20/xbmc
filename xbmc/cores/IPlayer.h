@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "Direction.h"
 #include "IPlayerCallback.h"
 #if HAS_DS_PLAYER
 #include "IDSPlayer.h"
@@ -187,7 +188,7 @@ public:
 #endif
   
   virtual void Seek(bool bPlus = true, bool bLargeStep = false, bool bChapterOverride = false) = 0;
-  virtual bool SeekScene(bool bPlus = true) {return false;}
+  virtual bool SeekScene(Direction seekDirection) { return false; }
   virtual void SeekPercentage(float fPercent = 0){}
   virtual void SetMute(bool bOnOff){}
   virtual void SetVolume(float volume){}

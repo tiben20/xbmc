@@ -24,8 +24,7 @@
 #include "pvr/addons/PVRClients.h"
 #include "pvr/channels/PVRChannel.h"
 #include "pvr/channels/PVRChannelGroup.h"
-#include "pvr/channels/PVRChannelGroupAllChannels.h"
-#include "pvr/channels/PVRChannelGroupFromClient.h"
+#include "pvr/channels/PVRChannelGroupFactory.h"
 #include "pvr/channels/PVRChannelGroupMember.h"
 #include "pvr/channels/PVRChannelGroups.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
@@ -723,31 +722,41 @@ PVR_ERROR CPVRClient::GetChannelGroupsAmount(int& iGroups) const
 
 PVR_ERROR CPVRClient::GetChannelGroups(CPVRChannelGroups* groups) const
 {
-  return DoAddonCall(__func__,
-                     [this, groups](const AddonInstance* addon) {
-                       PVR_HANDLE_STRUCT handle = {};
-                       handle.callerAddress = this;
-                       handle.dataAddress = groups;
-                       return addon->toAddon->GetChannelGroups(addon, &handle, groups->IsRadio());
-                     },
-                     m_clientCapabilities.SupportsChannelGroups());
+  const bool radio{groups->IsRadio()};
+  return DoAddonCall(
+      __func__,
+      [this, groups](const AddonInstance* addon)
+      {
+        PVR_HANDLE_STRUCT handle = {};
+        handle.callerAddress = this;
+        handle.dataAddress = groups;
+        return addon->toAddon->GetChannelGroups(addon, &handle, groups->IsRadio());
+      },
+      m_clientCapabilities.SupportsChannelGroups() &&
+          ((radio && m_clientCapabilities.SupportsRadio()) ||
+           (!radio && m_clientCapabilities.SupportsTV())));
 }
 
 PVR_ERROR CPVRClient::GetChannelGroupMembers(
     CPVRChannelGroup* group,
     std::vector<std::shared_ptr<CPVRChannelGroupMember>>& groupMembers) const
 {
-  return DoAddonCall(__func__,
-                     [this, group, &groupMembers](const AddonInstance* addon) {
-                       PVR_HANDLE_STRUCT handle = {};
-                       handle.callerAddress = this;
-                       handle.dataAddress = &groupMembers;
+  const bool radio{group->IsRadio()};
+  return DoAddonCall(
+      __func__,
+      [this, group, &groupMembers](const AddonInstance* addon)
+      {
+        PVR_HANDLE_STRUCT handle = {};
+        handle.callerAddress = this;
+        handle.dataAddress = &groupMembers;
 
-                       PVR_CHANNEL_GROUP tag;
-                       group->FillAddonData(tag);
-                       return addon->toAddon->GetChannelGroupMembers(addon, &handle, &tag);
-                     },
-                     m_clientCapabilities.SupportsChannelGroups());
+        PVR_CHANNEL_GROUP tag;
+        group->FillAddonData(tag);
+        return addon->toAddon->GetChannelGroupMembers(addon, &handle, &tag);
+      },
+      m_clientCapabilities.SupportsChannelGroups() &&
+          ((radio && m_clientCapabilities.SupportsRadio()) ||
+           (!radio && m_clientCapabilities.SupportsTV())));
 }
 
 PVR_ERROR CPVRClient::GetProvidersAmount(int& iProviders) const
@@ -1699,7 +1708,7 @@ void CPVRClient::cb_transfer_channel_group(void* kodiInstance,
 
     // transfer this entry to the groups container
     CPVRChannelGroups* kodiGroups = static_cast<CPVRChannelGroups*>(handle->dataAddress);
-    const auto transferGroup = std::make_shared<CPVRChannelGroupFromClient>(
+    const auto transferGroup = kodiGroups->GetGroupFactory()->CreateClientGroup(
         *group, client->GetID(), kodiGroups->GetGroupAll());
     kodiGroups->UpdateFromClient(transferGroup);
   });

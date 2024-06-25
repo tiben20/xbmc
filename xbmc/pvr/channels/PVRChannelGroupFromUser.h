@@ -22,7 +22,21 @@ public:
    * @param allChannelsGroup The channel group containing all TV or radio channels.
    */
   CPVRChannelGroupFromUser(const CPVRChannelsPath& path,
-                           const std::shared_ptr<const CPVRChannelGroup>& allChannelsGroup);
+                           const std::shared_ptr<const CPVRChannelGroup>& allChannelsGroup)
+    : CPVRChannelGroup(path, allChannelsGroup)
+  {
+  }
+
+  /*!
+   * @brief Get the group's origin.
+   * @return The origin.
+   */
+  Origin GetOrigin() const override { return Origin::USER; }
+
+  /*!
+   * @brief Return the type of this group.
+   */
+  int GroupType() const override { return PVR_GROUP_TYPE_USER; }
 
   /*!
    * @brief Check whether this group could be deleted by the user.
@@ -49,16 +63,25 @@ public:
   bool IsChannelsOwner() const override { return false; }
 
   /*!
+   * @brief Check whether this group should be ignored, e.g. not presented to the user and API.
+   * @param allChannelGroups All available channel groups.
+   * @return True if to be ignored, false otherwise.
+   */
+  bool ShouldBeIgnored(
+      const std::vector<std::shared_ptr<CPVRChannelGroup>>& allChannelGroups) const override
+  {
+    // User-created groups shall always be present.
+    return false;
+  }
+
+  /*!
    * @brief Update data with channel group members from the given clients, sync with local data.
    * @param clients The clients to fetch data from. Leave empty to fetch data from all created clients.
    * @return True on success, false otherwise.
    */
-  bool UpdateFromClients(const std::vector<std::shared_ptr<CPVRClient>>& clients) override;
-
-private:
-  /*!
-   * @brief Return the type of this group.
-   */
-  int GroupType() const override { return PVR_GROUP_TYPE_LOCAL; }
+  bool UpdateFromClients(const std::vector<std::shared_ptr<CPVRClient>>& clients) override
+  {
+    return true; // Nothing to update from any client for locally managed groups.
+  }
 };
 } // namespace PVR

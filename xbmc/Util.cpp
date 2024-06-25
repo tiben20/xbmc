@@ -7,6 +7,7 @@
  */
 
 #include "network/Network.h"
+#include "playlists/PlayListFileItemClassify.h"
 #include "video/VideoFileItemClassify.h"
 #if defined(TARGET_DARWIN)
 #include <sys/param.h>
@@ -2055,8 +2056,8 @@ void CUtil::ScanForExternalSubtitles(const std::string& strMovie, std::vector<st
   auto start = std::chrono::steady_clock::now();
 
   CFileItem item(strMovie, false);
-  if ((item.IsInternetStream() && !URIUtils::IsOnLAN(item.GetDynPath())) || item.IsPlayList() ||
-      item.IsLiveTV() || !IsVideo(item))
+  if ((NETWORK::IsInternetStream(item) && !URIUtils::IsOnLAN(item.GetDynPath())) ||
+      PLAYLIST::IsPlayList(item) || item.IsLiveTV() || !VIDEO::IsVideo(item))
     return;
 
   CLog::Log(LOGDEBUG, "{}: Searching for subtitles...", __FUNCTION__);
@@ -2345,8 +2346,8 @@ std::string CUtil::GetVobSubIdxFromSub(const std::string& vobSub)
 void CUtil::ScanForExternalAudio(const std::string& videoPath, std::vector<std::string>& vecAudio)
 {
   CFileItem item(videoPath, false);
-  if (item.IsInternetStream() || item.IsPlayList() || item.IsLiveTV() || item.IsPVR() ||
-      !IsVideo(item))
+  if (NETWORK::IsInternetStream(item) || PLAYLIST::IsPlayList(item) || item.IsLiveTV() ||
+      item.IsPVR() || !VIDEO::IsVideo(item))
     return;
 
   std::string strBasePath;

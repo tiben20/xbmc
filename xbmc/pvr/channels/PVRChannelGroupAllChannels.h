@@ -8,17 +8,12 @@
 
 #pragma once
 
-#include "pvr/channels/PVRChannelGroupFromUser.h"
-
-#include <memory>
-#include <vector>
+#include "pvr/channels/PVRChannelGroup.h"
 
 namespace PVR
 {
-class CPVRChannel;
-class CPVRChannelNumber;
 
-class CPVRChannelGroupAllChannels : public CPVRChannelGroupFromUser
+class CPVRChannelGroupAllChannels : public CPVRChannelGroup
 {
 public:
   CPVRChannelGroupAllChannels() = delete;
@@ -59,16 +54,51 @@ public:
   void CheckGroupName();
 
   /*!
+   * @brief Get the group's origin.
+   * @return The origin.
+   */
+  Origin GetOrigin() const override { return Origin::SYSTEM; }
+
+  /*!
+   * @brief Return the type of this group.
+   */
+  int GroupType() const override { return PVR_GROUP_TYPE_SYSTEM_ALL_CHANNELS; }
+
+  /*!
    * @brief Check whether this group could be deleted by the user.
    * @return True if the group could be deleted, false otherwise.
    */
   bool SupportsDelete() const override { return false; }
 
   /*!
+   * @brief Check whether members could be added to this group by the user.
+   * @return True if members could be added, false otherwise.
+   */
+  bool SupportsMemberAdd() const override { return true; }
+
+  /*!
+   * @brief Check whether members could be removed from this group by the user.
+   * @return True if members could be removed, false otherwise.
+   */
+  bool SupportsMemberRemove() const override { return true; }
+
+  /*!
    * @brief Check whether this group is owner of the channel instances it contains.
    * @return True if owner, false otherwise.
    */
   bool IsChannelsOwner() const override { return true; }
+
+  /*!
+   * @brief Check whether this group should be ignored, e.g. not presented to the user and API.
+   * @param allChannelGroups All available channel groups.
+   * @return True if to be ignored, false otherwise.
+   */
+  bool ShouldBeIgnored(
+      const std::vector<std::shared_ptr<CPVRChannelGroup>>& allChannelGroups) const override
+  {
+    // "All channels" groups must always be present.
+    return false;
+  }
 
 protected:
   /*!
@@ -85,11 +115,5 @@ protected:
    * @return True on success, false otherwise.
    */
   bool UpdateFromClients(const std::vector<std::shared_ptr<CPVRClient>>& clients) override;
-
-private:
-  /*!
-   * @brief Return the type of this group.
-   */
-  int GroupType() const override { return PVR_GROUP_TYPE_ALL_CHANNELS; }
 };
 } // namespace PVR

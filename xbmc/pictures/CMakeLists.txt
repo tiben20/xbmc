@@ -1,11 +1,7 @@
-set(SOURCES ExifParse.cpp
-            GUIDialogPictureInfo.cpp
+set(SOURCES GUIDialogPictureInfo.cpp
             GUIViewStatePictures.cpp
             GUIWindowPictures.cpp
             GUIWindowSlideShow.cpp
-            IptcParse.cpp
-            JpegParse.cpp
-            libexif.cpp
             Picture.cpp
             PictureFolderImageFileLoader.cpp
             PictureInfoLoader.cpp
@@ -29,12 +25,12 @@ set(HEADERS interfaces/ISlideShowDelegate.h
             SlideShowDelegator.h
             SlideShowPicture.h)
 
-if(TARGET OpenGL::GL)
+if(TARGET ${APP_NAME_LC}::OpenGl)
   list(APPEND SOURCES SlideShowPictureGL.cpp)
   list(APPEND HEADERS SlideShowPictureGL.h)
 endif()
 
-if(TARGET OpenGL::GLES)
+if(TARGET ${APP_NAME_LC}::OpenGLES)
   list(APPEND SOURCES SlideShowPictureGLES.cpp)
   list(APPEND HEADERS SlideShowPictureGLES.h)
 endif()

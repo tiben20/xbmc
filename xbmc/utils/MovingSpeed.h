@@ -12,9 +12,7 @@
 #include <stdint.h>
 #include <string_view>
 
-namespace UTILS
-{
-namespace MOVING_SPEED
+namespace KODI::UTILS::MOVING_SPEED
 {
 
 struct EventCfg
@@ -44,6 +42,12 @@ struct EventCfg
       m_resetTimeout{resetTimeout},
       m_delta{delta}
   {
+  }
+
+  bool operator==(const EventCfg& right) const
+  {
+    return m_acceleration == right.m_acceleration && m_maxVelocity == right.m_maxVelocity &&
+           m_resetTimeout == right.m_resetTimeout && m_delta == right.m_delta;
   }
 
   float m_acceleration;
@@ -148,5 +152,4 @@ private:
  */
 EventType ParseEventType(std::string_view eventType);
 
-} // namespace MOVING_SPEED
-} // namespace UTILS
+} // namespace KODI::UTILS::MOVING_SPEED

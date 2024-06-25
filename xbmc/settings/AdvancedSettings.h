@@ -360,7 +360,10 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
     bool m_guiFrontToBackRendering{false};
     bool m_guiGeometryClear{true};
     bool m_guiAsyncTextureUpload{false};
-    
+    bool m_guiVideoLayoutTransparent{false};
+
+    unsigned int m_addonPackageFolderSize;
+
     bool m_jsonOutputCompact;
     unsigned int m_jsonTcpPort;
 

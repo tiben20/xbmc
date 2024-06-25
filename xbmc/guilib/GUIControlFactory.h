@@ -113,7 +113,9 @@ public:
                             const std::string& labelTag,
                             std::vector<KODI::GUILIB::GUIINFO::CGUIInfoLabel>& infoLabels,
                             int parentID);
-  static bool GetColor(const TiXmlNode* pRootNode, const char* strTag, UTILS::COLOR::Color& value);
+  static bool GetColor(const TiXmlNode* pRootNode,
+                       const char* strTag,
+                       KODI::UTILS::COLOR::Color& value);
   static bool GetInfoColor(const TiXmlNode* pRootNode,
                            const char* strTag,
                            KODI::GUILIB::GUIINFO::CGUIInfoColor& value,
@@ -127,15 +129,15 @@ public:
                           const std::string& scrollerTag,
                           CScroller& scroller);
 
-private:
+protected:
   static std::string GetType(const TiXmlElement* pControlNode);
   static bool GetMovingSpeedConfig(const TiXmlNode* pRootNode,
                                    const char* strTag,
-                                   UTILS::MOVING_SPEED::MapEventConfig& movingSpeedCfg);
+                                   KODI::UTILS::MOVING_SPEED::MapEventConfig& movingSpeedCfg);
   static bool GetConditionalVisibility(const TiXmlNode* control,
                                        std::string& condition,
                                        std::string& allowHiddenFocus);
-  bool GetString(const TiXmlNode* pRootNode, const char* strTag, std::string& strString);
+  static bool GetString(const TiXmlNode* pRootNode, const char* strTag, std::string& strString);
   static bool GetFloatRange(const TiXmlNode* pRootNode,
                             const char* strTag,
                             float& iMinValue,

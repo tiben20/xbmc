@@ -172,10 +172,6 @@ public:
   bool IsDeleted() const;
 
   bool IsGame() const;
-  bool IsInternetStream(const bool bStrictCheck = false) const;
-  bool IsStreamedFilesystem() const;
-  bool IsPlayList() const;
-  bool IsSmartPlayList() const;
   bool IsLibraryFolder() const;
   bool IsPythonScript() const;
   bool IsPlugin() const;
@@ -194,10 +190,8 @@ public:
   bool IsISO9660() const;
   bool IsDVD() const;
   bool IsOnDVD() const;
-  bool IsOnLAN() const;
   bool IsHD() const;
   bool IsNfs() const;
-  bool IsRemote() const;
   bool IsSmb() const;
   bool IsURL() const;
   bool IsStack() const;

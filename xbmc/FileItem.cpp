@@ -32,9 +32,11 @@
 #include "music/MusicFileItemClassify.h"
 #include "music/tags/MusicInfoTag.h"
 #include "music/tags/MusicInfoTagLoaderFactory.h"
+#include "network/NetworkFileItemClassify.h"
 #include "pictures/PictureInfoTag.h"
 #include "playlists/PlayList.h"
 #include "playlists/PlayListFactory.h"
+#include "playlists/PlayListFileItemClassify.h"
 #include "pvr/PVRManager.h"
 #include "pvr/channels/PVRChannel.h"
 #include "pvr/channels/PVRChannelGroupMember.h"
@@ -67,7 +69,6 @@
 #include <memory>
 
 using namespace KODI;
-using namespace KODI::VIDEO;
 using namespace XFILE;
 using namespace PLAYLIST;
 using namespace MUSIC_INFO;
@@ -842,16 +843,11 @@ void CFileItem::ToSortable(SortItem &sortable, const Fields &fields) const
 
 bool CFileItem::Exists(bool bUseCache /* = true */) const
 {
-  if (m_strPath.empty()
-   || IsPath("add")
-   || IsInternetStream()
-   || IsParentFolder()
-   || IsVirtualDirectoryRoot()
-   || IsPlugin()
-   || IsPVR())
+  if (m_strPath.empty() || IsPath("add") || NETWORK::IsInternetStream(*this) || IsParentFolder() ||
+      IsVirtualDirectoryRoot() || IsPlugin() || IsPVR())
     return true;
 
-  if (IsVideoDb(*this) && HasVideoInfoTag())
+  if (VIDEO::IsVideoDb(*this) && HasVideoInfoTag())
   {
     CFileItem dbItem(m_bIsFolder ? GetVideoInfoTag()->m_strPath : GetVideoInfoTag()->m_strFileNameAndPath, m_bIsFolder);
     return dbItem.Exists();
@@ -971,41 +967,22 @@ bool CFileItem::IsPicture() const
   return false;
 }
 
-bool CFileItem::IsInternetStream(const bool bStrictCheck /* = false */) const
-{
-  if (HasProperty("IsHTTPDirectory"))
-    return bStrictCheck;
-
-  if (!m_strDynPath.empty())
-    return URIUtils::IsInternetStream(m_strDynPath, bStrictCheck);
-
-  return URIUtils::IsInternetStream(m_strPath, bStrictCheck);
-}
-
-bool CFileItem::IsStreamedFilesystem() const
-{
-  if (!m_strDynPath.empty())
-    return URIUtils::IsStreamedFilesystem(m_strDynPath);
-
-  return URIUtils::IsStreamedFilesystem(m_strPath);
-}
-
 bool CFileItem::IsFileFolder(EFileFolderType types) const
 {
   EFileFolderType always_type = EFILEFOLDER_TYPE_ALWAYS;
 
   /* internet streams are not directly expanded */
-  if(IsInternetStream())
+  if (NETWORK::IsInternetStream(*this))
     always_type = EFILEFOLDER_TYPE_ONCLICK;
 
   // strm files are not browsable
   if (IsType(".strm") && (types & EFILEFOLDER_TYPE_ONBROWSE))
     return false;
 
-  if(types & always_type)
+  if (types & always_type)
   {
-    if (IsSmartPlayList() ||
-        (IsPlayList() &&
+    if (PLAYLIST::IsSmartPlayList(*this) ||
+        (PLAYLIST::IsPlayList(*this) &&
          CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_playlistAsFolders) ||
         IsAPK() || IsZIP() || IsRAR() || IsRSS() || MUSIC::IsAudioBook(*this) ||
         IsType(".ogg|.oga|.xbt")
@@ -1023,20 +1000,13 @@ bool CFileItem::IsFileFolder(EFileFolderType types) const
 
   if(types & EFILEFOLDER_TYPE_ONBROWSE)
   {
-    if((IsPlayList() && !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_playlistAsFolders)
-    || IsDiscImage())
+    if ((PLAYLIST::IsPlayList(*this) &&
+         !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_playlistAsFolders) ||
+        IsDiscImage())
       return true;
   }
 
   return false;
-}
-
-bool CFileItem::IsSmartPlayList() const
-{
-  if (HasProperty("library.smartplaylist") && GetProperty("library.smartplaylist").asBoolean())
-    return true;
-
-  return URIUtils::HasExtension(m_strPath, ".xsp");
 }
 
 bool CFileItem::IsLibraryFolder() const
@@ -1045,11 +1015,6 @@ bool CFileItem::IsLibraryFolder() const
     return true;
 
   return URIUtils::IsLibraryFolder(m_strPath);
-}
-
-bool CFileItem::IsPlayList() const
-{
-  return CPlayListFactory::IsPlaylist(*this);
 }
 
 bool CFileItem::IsPythonScript() const
@@ -1077,10 +1042,10 @@ bool CFileItem::IsDiscImage() const
 
 bool CFileItem::IsOpticalMediaFile() const
 {
-  if (IsDVDFile(*this, false, true))
+  if (VIDEO::IsDVDFile(*this, false, true))
     return true;
 
-  return IsBDFile(*this);
+  return VIDEO::IsBDFile(*this);
 }
 
 bool CFileItem::IsRAR() const
@@ -1162,7 +1127,7 @@ bool CFileItem::IsBluray() const
 
   CFileItem item = CFileItem(VIDEO::UTILS::GetOpticalMediaPath(*this), false);
 
-  return IsBDFile(item);
+  return VIDEO::IsBDFile(item);
 }
 
 bool CFileItem::IsDVD() const
@@ -1180,19 +1145,9 @@ bool CFileItem::IsNfs() const
   return URIUtils::IsNfs(m_strPath);
 }
 
-bool CFileItem::IsOnLAN() const
-{
-  return URIUtils::IsOnLAN(m_strPath);
-}
-
 bool CFileItem::IsISO9660() const
 {
   return URIUtils::IsISO9660(m_strPath);
-}
-
-bool CFileItem::IsRemote() const
-{
-  return URIUtils::IsRemote(m_strPath);
 }
 
 bool CFileItem::IsSmb() const
@@ -1303,7 +1258,7 @@ void CFileItem::FillInDefaultIcon()
         // audio
         SetArt("icon", "DefaultAudio.png");
       }
-      else if (IsVideo(*this))
+      else if (VIDEO::IsVideo(*this))
       {
         // video
         SetArt("icon", "DefaultVideo.png");
@@ -1317,7 +1272,7 @@ void CFileItem::FillInDefaultIcon()
         // picture
         SetArt("icon", "DefaultPicture.png");
       }
-      else if ( IsPlayList() || IsSmartPlayList())
+      else if (PLAYLIST::IsPlayList(*this) || PLAYLIST::IsSmartPlayList(*this))
       {
         SetArt("icon", "DefaultPlaylist.png");
       }
@@ -1337,7 +1292,7 @@ void CFileItem::FillInDefaultIcon()
     }
     else
     {
-      if ( IsPlayList() || IsSmartPlayList())
+      if (PLAYLIST::IsPlayList(*this) || PLAYLIST::IsSmartPlayList(*this))
       {
         SetArt("icon", "DefaultPlaylist.png");
       }
@@ -1480,7 +1435,7 @@ void CFileItem::UpdateMimeType(bool lookup /*= true*/)
 
 void CFileItem::SetMimeTypeForInternetFile()
 {
-  if (m_doContentLookup && IsInternetStream())
+  if (m_doContentLookup && NETWORK::IsInternetStream(*this))
   {
     SetMimeType("");
     FillInMimeType(true);
@@ -1497,7 +1452,7 @@ bool CFileItem::IsSamePath(const CFileItem *item) const
     if (item->HasProperty("item_start") || HasProperty("item_start"))
       return (item->GetProperty("item_start") == GetProperty("item_start"));
     // See if we have associated a bluray playlist
-    if (IsBlurayPlaylist(*this) || IsBlurayPlaylist(*item))
+    if (VIDEO::IsBlurayPlaylist(*this) || VIDEO::IsBlurayPlaylist(*item))
       return (GetDynPath() == item->GetDynPath());
     return true;
   }
@@ -1530,7 +1485,7 @@ bool CFileItem::IsSamePath(const CFileItem *item) const
       dbItem.SetProperty("item_start", GetProperty("item_start"));
     return dbItem.IsSamePath(item);
   }
-  if (IsVideoDb(*this) && HasVideoInfoTag())
+  if (VIDEO::IsVideoDb(*this) && HasVideoInfoTag())
   {
     CFileItem dbItem(GetVideoInfoTag()->m_strFileNameAndPath, false);
     if (HasProperty("item_start"))
@@ -1544,7 +1499,7 @@ bool CFileItem::IsSamePath(const CFileItem *item) const
       dbItem.SetProperty("item_start", item->GetProperty("item_start"));
     return IsSamePath(&dbItem);
   }
-  if (IsVideoDb(*item) && item->HasVideoInfoTag())
+  if (VIDEO::IsVideoDb(*item) && item->HasVideoInfoTag())
   {
     CFileItem dbItem(item->GetVideoInfoTag()->m_strFileNameAndPath, false);
     if (item->HasProperty("item_start"))
@@ -1695,7 +1650,7 @@ void CFileItem::MergeInfo(const CFileItem& item)
     SetLabel2(item.GetLabel2());
   if (!item.GetArt().empty())
   {
-    if (IsVideo(item))
+    if (VIDEO::IsVideo(item))
       AppendArt(item.GetArt());
     else
       SetArt(item.GetArt());
@@ -1900,7 +1855,7 @@ void CFileItem::SetDynPath(const std::string &path)
 
 std::string CFileItem::GetBlurayPath() const
 {
-  if (IsBlurayPlaylist(*this))
+  if (VIDEO::IsBlurayPlaylist(*this))
   {
     CURL url(GetDynPath());
     CURL url2(url.GetHostName()); // strip bluray://
@@ -2014,7 +1969,7 @@ std::string CFileItem::GetUserMusicThumb(bool alwaysCheckRemote /* = false */, b
 {
   if (m_strPath.empty() || StringUtils::StartsWithNoCase(m_strPath, "newsmartplaylist://") ||
       StringUtils::StartsWithNoCase(m_strPath, "newplaylist://") || m_bIsShareOrDrive ||
-      IsInternetStream() || URIUtils::IsUPnP(m_strPath) ||
+      NETWORK::IsInternetStream(*this) || URIUtils::IsUPnP(m_strPath) ||
       (URIUtils::IsFTP(m_strPath) &&
        !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bFTPThumbs) ||
       IsPlugin() || IsAddonsPath() || IsLibraryFolder() || IsParentFolder() ||
@@ -2034,7 +1989,10 @@ std::string CFileItem::GetUserMusicThumb(bool alwaysCheckRemote /* = false */, b
   }
 
   // if a folder, check for folder.jpg
-  if (m_bIsFolder && !IsFileFolder() && (!IsRemote() || alwaysCheckRemote || CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_MUSICFILES_FINDREMOTETHUMBS)))
+  if (m_bIsFolder && !IsFileFolder() &&
+      (!NETWORK::IsRemote(*this) || alwaysCheckRemote ||
+       CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(
+           CSettings::SETTING_MUSICFILES_FINDREMOTETHUMBS)))
   {
     std::vector<CVariant> thumbs = CServiceBroker::GetSettingsComponent()->GetSettings()->GetList(
         CSettings::SETTING_MUSICLIBRARY_MUSICTHUMBS);
@@ -2126,20 +2084,13 @@ std::string CFileItem::GetTBNFile() const
 
 bool CFileItem::SkipLocalArt() const
 {
-  return (m_strPath.empty()
-       || StringUtils::StartsWithNoCase(m_strPath, "newsmartplaylist://")
-       || StringUtils::StartsWithNoCase(m_strPath, "newplaylist://")
-       || m_bIsShareOrDrive
-       || IsInternetStream()
-       || URIUtils::IsUPnP(m_strPath)
-       || (URIUtils::IsFTP(m_strPath) && !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bFTPThumbs)
-       || IsPlugin()
-       || IsAddonsPath()
-       || IsLibraryFolder()
-       || IsParentFolder()
-       || IsLiveTV()
-       || IsPVRRecording()
-       || IsDVD());
+  return (m_strPath.empty() || StringUtils::StartsWithNoCase(m_strPath, "newsmartplaylist://") ||
+          StringUtils::StartsWithNoCase(m_strPath, "newplaylist://") || m_bIsShareOrDrive ||
+          NETWORK::IsInternetStream(*this) || URIUtils::IsUPnP(m_strPath) ||
+          (URIUtils::IsFTP(m_strPath) &&
+           !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bFTPThumbs) ||
+          IsPlugin() || IsAddonsPath() || IsLibraryFolder() || IsParentFolder() || IsLiveTV() ||
+          IsPVRRecording() || IsDVD());
 }
 
 std::string CFileItem::GetThumbHideIfUnwatched(const CFileItem* item) const
@@ -2338,7 +2289,7 @@ std::string CFileItem::GetBaseMoviePath(bool bUseFolderNames) const
 
 std::string CFileItem::GetLocalFanart() const
 {
-  if (IsVideoDb(*this))
+  if (VIDEO::IsVideoDb(*this))
   {
     if (!HasVideoInfoTag())
       return ""; // nothing can be done
@@ -2369,15 +2320,11 @@ std::string CFileItem::GetLocalFanart() const
   }
 
   // no local fanart available for these
-  if (IsInternetStream()
-   || URIUtils::IsUPnP(strFile)
-   || URIUtils::IsBluray(strFile)
-   || IsLiveTV()
-   || IsPlugin()
-   || IsAddonsPath()
-   || IsDVD()
-   || (URIUtils::IsFTP(strFile) && !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bFTPThumbs)
-   || m_strPath.empty())
+  if (NETWORK::IsInternetStream(*this) || URIUtils::IsUPnP(strFile) ||
+      URIUtils::IsBluray(strFile) || IsLiveTV() || IsPlugin() || IsAddonsPath() || IsDVD() ||
+      (URIUtils::IsFTP(strFile) &&
+       !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bFTPThumbs) ||
+      m_strPath.empty())
     return "";
 
   std::string strDir = URIUtils::GetDirectory(strFile);
@@ -2424,7 +2371,7 @@ std::string CFileItem::GetLocalMetadataPath() const
     return m_strPath;
 
   std::string parent{};
-  if (IsBlurayPlaylist(*this))
+  if (VIDEO::IsBlurayPlaylist(*this))
     parent = URIUtils::GetParentPath(GetBlurayPath());
   else
     parent = URIUtils::GetParentPath(m_strPath);
@@ -2516,7 +2463,7 @@ bool CFileItem::LoadGameTag()
 
 bool CFileItem::LoadDetails()
 {
-  if (IsVideoDb(*this))
+  if (VIDEO::IsVideoDb(*this))
   {
     if (HasVideoInfoTag())
       return true;
@@ -2576,7 +2523,7 @@ bool CFileItem::LoadDetails()
     return false;
   }
 
-  if (!IsPlayList() && IsVideo(*this))
+  if (!PLAYLIST::IsPlayList(*this) && VIDEO::IsVideo(*this))
   {
     if (HasVideoInfoTag())
       return true;
@@ -2600,7 +2547,7 @@ bool CFileItem::LoadDetails()
     return false;
   }
 
-  if (IsPlayList() && IsType(".strm"))
+  if (PLAYLIST::IsPlayList(*this) && IsType(".strm"))
   {
     const std::unique_ptr<PLAYLIST::CPlayList> playlist(PLAYLIST::CPlayListFactory::Create(*this));
     if (playlist)
@@ -2608,7 +2555,7 @@ bool CFileItem::LoadDetails()
       if (playlist->Load(GetPath()) && playlist->size() == 1)
       {
         const auto item{(*playlist)[0]};
-        if (IsVideo(*item))
+        if (VIDEO::IsVideo(*item))
         {
           CVideoDatabase db;
           if (!db.Open())
@@ -2779,12 +2726,8 @@ std::string CFileItem::FindTrailer() const
   }
 
   // no local trailer available for these
-  if (IsInternetStream()
-   || URIUtils::IsUPnP(strFile)
-   || URIUtils::IsBluray(strFile)
-   || IsLiveTV()
-   || IsPlugin()
-   || IsDVD())
+  if (NETWORK::IsInternetStream(*this) || URIUtils::IsUPnP(strFile) ||
+      URIUtils::IsBluray(strFile) || IsLiveTV() || IsPlugin() || IsDVD())
     return "";
 
   std::string strDir = URIUtils::GetDirectory(strFile);

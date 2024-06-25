@@ -17,6 +17,8 @@
 #include "filesystem/StackDirectory.h"
 #include "filesystem/VideoDatabaseDirectory.h"
 #include "music/MusicFileItemClassify.h"
+#include "network/NetworkFileItemClassify.h"
+#include "playlists/PlayListFileItemClassify.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
@@ -653,7 +655,8 @@ void CFileItemList::FilterCueItems()
                   {
                     strMediaFile = URIUtils::ReplaceExtension(pItem->GetPath(), *i);
                     CFileItem item(strMediaFile, false);
-                    if (!MUSIC::IsCUESheet(item) && !item.IsPlayList() && Contains(strMediaFile))
+                    if (!MUSIC::IsCUESheet(item) && !PLAYLIST::IsPlayList(item) &&
+                        Contains(strMediaFile))
                     {
                       bFoundMediaFile = true;
                       break;
@@ -758,7 +761,7 @@ void CFileItemList::StackFolders()
       // only check known fast sources?
       // NOTES:
       // 1. rars and zips may be on slow sources? is this supposed to be allowed?
-      if (!item->IsRemote() || item->IsSmb() || item->IsNfs() ||
+      if (!NETWORK::IsRemote(*item) || item->IsSmb() || item->IsNfs() ||
           URIUtils::IsInRAR(item->GetPath()) || URIUtils::IsInZIP(item->GetPath()) ||
           URIUtils::IsOnLAN(item->GetPath()))
       {
@@ -846,7 +849,8 @@ void CFileItemList::StackFiles()
     CFileItemPtr item1 = Get(i);
 
     // skip folders, nfo files, playlists
-    if (item1->m_bIsFolder || item1->IsParentFolder() || item1->IsNFO() || item1->IsPlayList())
+    if (item1->m_bIsFolder || item1->IsParentFolder() || item1->IsNFO() ||
+        PLAYLIST::IsPlayList(*item1))
     {
       // increment index
       i++;
@@ -881,7 +885,7 @@ void CFileItemList::StackFiles()
 
           // skip folders, nfo files, playlists
           if (item2->m_bIsFolder || item2->IsParentFolder() || item2->IsNFO() ||
-              item2->IsPlayList())
+              PLAYLIST::IsPlayList(*item2))
           {
             // increment index
             j++;
@@ -1085,7 +1089,7 @@ std::string CFileItemList::GetDiscFileCache(int windowID) const
   if (VIDEO::IsVideoDb(*this))
     return StringUtils::Format("special://temp/archive_cache/vdb-{:08x}.fi", crc);
 
-  if (IsSmartPlayList())
+  if (PLAYLIST::IsSmartPlayList(*this))
     return StringUtils::Format("special://temp/archive_cache/sp-{:08x}.fi", crc);
 
   if (windowID)

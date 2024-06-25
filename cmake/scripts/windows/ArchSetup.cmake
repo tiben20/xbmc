@@ -1,5 +1,5 @@
 # Minimum SDK version we support
-set(VS_MINIMUM_SDK_VERSION 10.0.18362.0)
+set(VS_MINIMUM_SDK_VERSION 10.0.22621.0)
 
 if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION VERSION_LESS VS_MINIMUM_SDK_VERSION)
   message(FATAL_ERROR "Detected Windows SDK version is ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}.\n"
@@ -38,7 +38,7 @@ set(DEPS_FOLDER_RELATIVE project/BuildDependencies)
 # ToDo: currently host build tools are hardcoded to win32
 # If we ever allow package.native other than 0_package.native-win32.list we will want to
 # adapt this based on host
-set(NATIVEPREFIX ${CMAKE_SOURCE_DIR}/${DEPS_FOLDER_RELATIVE}/win32)
+set(NATIVEPREFIX ${CMAKE_SOURCE_DIR}/${DEPS_FOLDER_RELATIVE}/tools)
 set(DEPENDS_PATH ${CMAKE_SOURCE_DIR}/${DEPS_FOLDER_RELATIVE}/${ARCH})
 set(MINGW_LIBS_DIR ${CMAKE_SOURCE_DIR}/${DEPS_FOLDER_RELATIVE}/mingwlibs/${ARCH})
 
@@ -52,6 +52,8 @@ endif()
 
 # -------- Compiler options ---------
 
+# Allow to use UTF-8 strings in the source code, disable MSVC charset conversion
+add_options(CXX ALL_BUILDS "/utf-8")
 add_options(CXX ALL_BUILDS "/wd\"4996\"")
 set(ARCH_DEFINES -D_WINDOWS -DTARGET_WINDOWS -DTARGET_WINDOWS_DESKTOP -D__SSE__ -D__SSE2__)
 set(SYSTEM_DEFINES -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DHAS_DX -D__STDC_CONSTANT_MACROS
@@ -63,7 +65,7 @@ set(SYSTEM_DEFINES -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DHAS_DX -D__STDC_CONSTANT_M
                    $<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
 
 # Additional SYSTEM_DEFINES
-list(APPEND SYSTEM_DEFINES -DHAS_WIN32_NETWORK -DHAS_FILESYSTEM_SMB)
+list(APPEND SYSTEM_DEFINES -DHAS_WIN32_NETWORK)
 list(APPEND SYSTEM_DEFINES -DHAS_DS_PLAYER=1 -DSS_NO_LOCALEEE)
 
 # The /MP option enables /FS by default.
