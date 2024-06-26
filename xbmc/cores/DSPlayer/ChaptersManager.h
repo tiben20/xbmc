@@ -28,7 +28,7 @@
 #pragma error "DSPlayer's header file included without HAS_DS_PLAYER defined"
 #endif
 
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 
 // IAMExtendedSeeking
 #include <qnetwork.h>
@@ -110,7 +110,7 @@ private:
   /// ID of the current chapter
   long m_currentChapter;
   /// Pointer to the IAMExtendedSeeking interface
-  Com::SmartQIPtr<IAMExtendedSeeking, &IID_IAMExtendedSeeking> m_pIAMExtendedSeeking;
+  Com::SComQIPtr<IAMExtendedSeeking, &IID_IAMExtendedSeeking> m_pIAMExtendedSeeking;
 
   bool m_bCheckForChapters;
 

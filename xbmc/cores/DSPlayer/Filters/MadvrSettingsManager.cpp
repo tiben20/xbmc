@@ -77,7 +77,7 @@ CMadvrSettingsManager::~CMadvrSettingsManager()
 
 BOOL CMadvrSettingsManager::GetSettings(MADVR_SETTINGS_TYPE type, LPCWSTR path, int enumIndex, LPCWSTR sValue, BOOL* bValue, int* iValue, int *bufSize)
 {
-  if (Com::SmartQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
+  if (Com::SComQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
   {
     switch (type)
     {
@@ -98,7 +98,7 @@ BOOL CMadvrSettingsManager::GetSettings(MADVR_SETTINGS_TYPE type, LPCWSTR path, 
 
 BOOL CMadvrSettingsManager::GetSettings2(MADVR_SETTINGS_TYPE mType, LPCWSTR path, int enumIndex, LPCWSTR id, LPCWSTR name, LPCWSTR type, int *idBufSize, int *nameBufSize, int *typeBufSize)
 {
-  if (Com::SmartQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
+  if (Com::SComQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
   {
     switch (mType)
     {
@@ -113,7 +113,7 @@ BOOL CMadvrSettingsManager::GetSettings2(MADVR_SETTINGS_TYPE mType, LPCWSTR path
 
 BOOL CMadvrSettingsManager::SetSettings(MADVR_SETTINGS_TYPE type, LPCWSTR path, LPCWSTR sValue, BOOL bValue, int iValue)
 {
-  if (Com::SmartQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
+  if (Com::SComQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
   {
     switch (type)
     {
@@ -547,7 +547,7 @@ bool CMadvrSettingsManager::IsProfileActive(const std::string &path, const std::
 {
   bool result = false;
   BOOL b;
-  if (Com::SmartQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
+  if (Com::SComQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR)
   {
     std::wstring pathW;
     std::wstring profileW;
@@ -582,7 +582,7 @@ void CMadvrSettingsManager::GetProfileActiveName(const std::string &path, std::s
 
 void CMadvrSettingsManager::CreateProfile(const std::string &path, const std::string &pageList, const std::string &profileGroup, const std::string &profile)
 {
-  Com::SmartQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR;
+  Com::SComQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR;
   if (pMadvrSettings2 == NULL)
     return;
 
@@ -629,7 +629,7 @@ void CMadvrSettingsManager::CreateProfile(const std::string &path, const std::st
 
 void CMadvrSettingsManager::ActivateProfile(const std::string &path, const std::string &profile)
 {
-  Com::SmartQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR;
+  Com::SComQIPtr<IMadVRSettings2> pMadvrSettings2 = m_pDXR;
   if (pMadvrSettings2 == NULL)
     return;
 

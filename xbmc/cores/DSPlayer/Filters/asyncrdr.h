@@ -220,7 +220,7 @@ public:
     // construction / destruction
 
     CAsyncReader(
-        TCHAR *pName,
+      PCTSTR pName,
         LPUNKNOWN pUnk,
         CAsyncStream *pStream,
         HRESULT *phr);

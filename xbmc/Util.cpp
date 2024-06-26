@@ -7,6 +7,7 @@
  */
 
 #include "network/Network.h"
+#include "network/NetworkFileItemClassify.h"
 #include "playlists/PlayListFileItemClassify.h"
 #include "video/VideoFileItemClassify.h"
 #if defined(TARGET_DARWIN)
@@ -93,7 +94,7 @@ using namespace MEDIA_DETECT;
 
 using namespace XFILE;
 using KODI::UTILITY::CDigest;
-using namespace KODI::VIDEO;
+using namespace KODI;
 
 #if !defined(TARGET_WINDOWS)
 unsigned int CUtil::s_randomSeed = time(NULL);

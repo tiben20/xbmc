@@ -36,7 +36,7 @@
 #include "util.h"
 #include "fgmanager.h"
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "windowing/windows/winsystemwin32.h"
 #include "cores/IPlayer.h"
 #include "filesystem/File.h"
@@ -153,7 +153,7 @@ public:
   /// @return Informations about the current video track
   std::string GetVideoInfo();
 
-  Com::SmartPtr<IFilterGraph2> pFilterGraph;
+  Com::SComPtr<IFilterGraph2> pFilterGraph;
 
   bool SetSpeed(double dSpeed);
 
@@ -163,15 +163,15 @@ public:
 private:
   //Direct Show Filters
   CFGManager*                           m_pGraphBuilder;
-  Com::SmartQIPtr<IMediaControl>        m_pMediaControl;
-  Com::SmartQIPtr<IMediaEventEx>        m_pMediaEvent;
-  Com::SmartQIPtr<IMediaSeeking>        m_pMediaSeeking;
-  Com::SmartQIPtr<IBasicAudio>          m_pBasicAudio;
-  Com::SmartQIPtr<IAMOpenProgress>		m_pAMOpenProgress;
+  Com::SComQIPtr<IMediaControl>        m_pMediaControl;
+  Com::SComQIPtr<IMediaEventEx>        m_pMediaEvent;
+  Com::SComQIPtr<IMediaSeeking>        m_pMediaSeeking;
+  Com::SComQIPtr<IBasicAudio>          m_pBasicAudio;
+  Com::SComQIPtr<IAMOpenProgress>		m_pAMOpenProgress;
   //dvd stuff
-  Com::SmartQIPtr<IVideoWindow>         m_pVideoWindow;
-  Com::SmartQIPtr<IBasicVideo>          m_pBasicVideo;
-  Com::SmartPtr<IDvdState>              m_pDvdState;
+  Com::SComQIPtr<IVideoWindow>         m_pVideoWindow;
+  Com::SComQIPtr<IBasicVideo>          m_pBasicVideo;
+  Com::SComPtr<IDvdState>              m_pDvdState;
   DVD_STATUS	                          m_pDvdStatus;
   std::vector<DvdTitle*>                m_pDvdTitles;
   int8_t m_canSeek; //<-1: not queried; 0: false; 1: true

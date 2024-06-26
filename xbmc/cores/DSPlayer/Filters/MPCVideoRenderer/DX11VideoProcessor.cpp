@@ -949,7 +949,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 {
 	HRESULT hr;
 	BYTE* data = nullptr;
-	Com::SmartQIPtr<ID3D11Texture2D> pD3D11Texture2D;
+	Com::SComQIPtr<ID3D11Texture2D> pD3D11Texture2D;
 	Microsoft::WRL::ComPtr<IMediaSampleD3D11> pMSD3D11;
 	UINT ArraySlice = 0;
 	const long size = pSample->GetActualDataLength();
@@ -1262,7 +1262,7 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	GetSwapChain->GetDesc1(&desc);
 		
 	// for d3d11 subtitles
-	//Com::SmartQIPtr<ID3D10Multithread> pMultithread(m_pDeviceContext.Get());
+	//Com::SComQIPtr<ID3D10Multithread> pMultithread(m_pDeviceContext.Get());
 	//pMultithread->SetMultithreadProtected(TRUE);
 
 
@@ -2046,7 +2046,7 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 	m_SampleFormat = D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE; // Progressive
 	m_bDoubleFrames = false;
 	if (m_bInterlaced) {
-		if (Com::SmartQIPtr<IMediaSample2> pMS2 = pSample) {
+		if (Com::SComQIPtr<IMediaSample2> pMS2 = pSample) {
 			AM_SAMPLE2_PROPERTIES props;
 			if (SUCCEEDED(pMS2->GetProperties(sizeof(props), (BYTE*)&props))) {
 				if ((props.dwTypeSpecificFlags & AM_VIDEO_FLAG_WEAVE) == 0) {
@@ -2066,7 +2066,7 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 	bool updateStats = false;
 
 	m_hdr10 = {};
-	if (Com::SmartQIPtr<IMediaSideData> pMediaSideData = pSample) {
+	if (Com::SComQIPtr<IMediaSideData> pMediaSideData = pSample) {
 		if (MPC_SETTINGS->bHdrPassthrough && SourceIsPQorHLG()) {
 			MediaSideDataHDR* hdr = nullptr;
 			size_t size = 0;
@@ -2208,13 +2208,13 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 		}
 	}
 
-	if (Com::SmartQIPtr<IMediaSampleD3D11> pMSD3D11 = pSample) {
+	if (Com::SComQIPtr<IMediaSampleD3D11> pMSD3D11 = pSample) {
 		if (m_iSrcFromGPU != 11) {
 			m_iSrcFromGPU = 11;
 			updateStats = true;
 		}
 
-		Com::SmartQIPtr<ID3D11Texture2D> pD3D11Texture2D;
+		Com::SComQIPtr<ID3D11Texture2D> pD3D11Texture2D;
 		UINT ArraySlice = 0;
 		hr = pMSD3D11->GetD3D11Texture(0, &pD3D11Texture2D, &ArraySlice);
 		if (FAILED(hr)) {
@@ -2306,7 +2306,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 
 	uint64_t tick1 = GetPreciseTick();
 	float fColor[4];
-	CD3DHelper::XMStoreColor(fColor, UTILS::COLOR::NONE);
+	CD3DHelper::XMStoreColor(fColor, KODI::UTILS::COLOR::NONE);
 	CRect src,dst, vw;
 	Com::SmartRect oldrect;
 	oldrect = m_videoRect;

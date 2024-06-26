@@ -331,11 +331,11 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
         || pBF == CGraphFilters::Get()->VideoRenderer.pBF)
         continue;
 
-      Com::SmartQIPtr<ISpecifyPropertyPages> pProp = pBF;
+      Com::SComQIPtr<ISpecifyPropertyPages> pProp = pBF.p;
 
       if (!pProp)
       {
-        Com::SmartQIPtr<ISpecifyPropertyPages2> pProp2 = pBF;
+        Com::SComQIPtr<ISpecifyPropertyPages2> pProp2 = pBF.p;
         pProp = pProp2;
       }
 
@@ -349,7 +349,7 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
           if ((pBF == CGraphFilters::Get()->Subs.pBF) && CGraphFilters::Get()->Subs.osdname != "")
             filterName = CGraphFilters::Get()->Subs.osdname;
           else
-            g_charsetConverter.wToUTF8(GetFilterName(pBF), filterName);
+            g_charsetConverter.wToUTF8(GetFilterName(pBF.p), filterName);
           pDlg->Add(filterName);
         }
         CoTaskMemFree(pPages.pElems);

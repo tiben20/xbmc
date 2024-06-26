@@ -33,7 +33,7 @@
 #include "filtercorefactory/filtercorefactory.h"
 #include "DSPlayer.h"
 #include "FGFilter.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "windowing/windows/WinSystemWin32DX.h"
 #include "LangInfo.h"
 #include "settings/MediaSettings.h"
@@ -214,7 +214,7 @@ void CStreamsManager::SetAudioStream(int iStream)
   }
   else {
 
-    Com::SmartPtr<IPin> connectedToPin = NULL;
+    Com::SComPtr<IPin> connectedToPin = NULL;
     HRESULT hr = S_OK;
 #if 0
     std::string filter = "";
@@ -235,8 +235,8 @@ void CStreamsManager::SetAudioStream(int iStream)
           goto standardway; // Same filter
 
         // Where this audio decoder is connected ?
-        Com::SmartPtr<IPin> audioDecoderOutputPin = GetFirstPin(CFGLoader::Filters.Audio.pBF, PINDIR_OUTPUT); // first output pin of audio decoder
-        Com::SmartPtr<IPin> audioDecoderConnectedToPin = NULL;
+        Com::SComPtr<IPin> audioDecoderOutputPin = GetFirstPin(CFGLoader::Filters.Audio.pBF, PINDIR_OUTPUT); // first output pin of audio decoder
+        Com::SComPtr<IPin> audioDecoderConnectedToPin = NULL;
         hr = audioDecoderOutputPin->ConnectedTo(&audioDecoderConnectedToPin);
 
         if (!audioDecoderConnectedToPin)
@@ -275,7 +275,7 @@ void CStreamsManager::SetAudioStream(int iStream)
         m_audioStreams[enableIndex]->pUnk = GetFirstPin(CFGLoader::Filters.Audio.pBF);
         hr = m_pGraphBuilder->ConnectDirect(m_audioStreams[enableIndex]->pObj, m_audioStreams[enableIndex]->pUnk, NULL);
 
-        Com::SmartPtr<IPin> pin = NULL;
+        Com::SComPtr<IPin> pin = NULL;
         pin = GetFirstPin(CFGLoader::Filters.Audio.pBF, PINDIR_OUTPUT);
         hr = m_pGraphBuilder->ConnectDirect(pin, audioDecoderConnectedToPin, NULL);
 
@@ -503,7 +503,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
     else if (group == CStreamDetail::EDITION || group == CStreamDetail::BD_TITLE)
     {
       CDSStreamDetailEdition * pEdition = static_cast<CDSStreamDetailEdition *>(infos);
-      if (Com::SmartQIPtr<IBdStreamSelect> pBDSS = m_pSplitter)
+      if (Com::SComQIPtr<IBdStreamSelect> pBDSS = m_pSplitter.p)
       {
         pBDSS->GetTitleInfo(m_editionStreams.size(), NULL, &pEdition->m_rtDuration);
       }
@@ -654,7 +654,7 @@ void CStreamsManager::LoadStreams()
       m_pIDirectVobSub->put_LoadSettings(1, true, false, true);
       m_InitialSubsDelay = GetSubTitleDelay();
 
-      Com::SmartQIPtr<IDSPlayerCustom> pDPlayerCustom;
+      Com::SComQIPtr<IDSPlayerCustom> pDPlayerCustom;
       hr = m_pSubs->QueryInterface(__uuidof(pDPlayerCustom), (void **)&pDPlayerCustom);
       if (SUCCEEDED(hr))
       {
@@ -783,7 +783,7 @@ void CStreamsManager::resetDelayInterface()
 
 void CStreamsManager::SetAudioInterface()
 {
-  Com::SmartPtr<IBaseFilter> pAudio;
+  Com::SComPtr<IBaseFilter> pAudio;
   pAudio = CGraphFilters::Get()->Audio.pBF;
 
   if (!pAudio)
@@ -805,7 +805,7 @@ void CStreamsManager::SetAudioInterface()
 
 DWORD CStreamsManager::GetHWAccel()
 {
-  Com::SmartQIPtr<ILAVVideoSettings> pLAVVideoSettings = CGraphFilters::Get()->Video.pBF;
+  Com::SComQIPtr<ILAVVideoSettings> pLAVVideoSettings = CGraphFilters::Get()->Video.pBF.p;
   if (!pLAVVideoSettings)
     return 0;
 
@@ -1242,7 +1242,7 @@ int CStreamsManager::GetSampleRate(int istream)
   return (istream == -1) ? 0 : m_audioStreams[istream]->m_iSampleRate;
 }
 
-void CStreamsManager::ExtractCodecDetail(CStreamDetail& s, std::string& codecInfos)
+void CStreamsManager::ExtractCodecDetail(CStreamDetail& s, std::string codecInfos)
 {
   if (s.m_eType == CStreamDetail::SUBTITLE)
     return;
@@ -1816,7 +1816,7 @@ void CSubtitleManager::SetSubtitle(int iStream)
 
   bool stopped = false;
   std::string subtitlePath = "";
-  Com::SmartPtr<IPin> newAudioStreamPin;
+  Com::SComPtr<IPin> newAudioStreamPin;
 
   CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleStream = enableIndex;
 
@@ -1853,8 +1853,8 @@ void CSubtitleManager::SetSubtitle(int iStream)
   else
   {
 
-    Com::SmartPtr<IPin> connectedToPin = NULL;
-    Com::SmartPtr<IPin> oldAudioStreamPin = NULL;
+    Com::SComPtr<IPin> connectedToPin = NULL;
+    Com::SComPtr<IPin> oldAudioStreamPin = NULL;
     HRESULT hr = S_OK;
 
     g_dsGraph->Stop(); // Current position is kept by the graph
@@ -1973,7 +1973,7 @@ int CSubtitleManager::AddSubtitle(const std::string& subFilePath)
     s->displayname += " [External]";
 
   // Load subtitle file
-  Com::SmartPtr<ISubStream> pSubStream;
+  Com::SComPtr<ISubStream> pSubStream;
 
   std::wstring unicodePath; 
   g_charsetConverter.utf8ToW(s->path, unicodePath);
@@ -2013,7 +2013,7 @@ void CSubtitleManager::DisconnectCurrentSubtitlePins(void)
   {
     if (m_subtitleStreams[i]->connected && m_subtitleStreams[i]->m_subType == INTERNAL)
     {
-      Com::SmartPtr<IPin> pin = NULL;
+      Com::SComPtr<IPin> pin = NULL;
 
       if (VFW_E_NOT_CONNECTED == m_subtitleStreams[i]->pObj->ConnectedTo(&pin))
       {
@@ -2052,7 +2052,7 @@ IPin *CSubtitleManager::GetFirstSubtitlePin(void)
   {
     BeginEnumPins(pBF, pEP, pPin)
     {
-      Com::SmartPtr<IPin> pFellow;
+      Com::SComPtr<IPin> pFellow;
 
       if (SUCCEEDED(pPin->QueryDirection(&pindir)) &&
         pindir == PINDIR_INPUT && pPin->ConnectedTo(&pFellow) == VFW_E_NOT_CONNECTED)
@@ -2078,8 +2078,8 @@ std::string CStreamsManager::ISOToLanguage(std::string code)
 
 void CStreamsManager::LoadDVDStreams()
 {
-  Com::SmartPtr<IDvdInfo2> pDvdI = CGraphFilters::Get()->DVD.dvdInfo;
-  Com::SmartPtr<IDvdControl2> pDvdC = CGraphFilters::Get()->DVD.dvdControl;
+  Com::SComPtr<IDvdInfo2> pDvdI = CGraphFilters::Get()->DVD.dvdInfo;
+  Com::SComPtr<IDvdControl2> pDvdC = CGraphFilters::Get()->DVD.dvdControl;
 
   DVD_VideoAttributes vid;
   // First, video

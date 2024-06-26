@@ -177,7 +177,7 @@ CStdStringW CMediaTypeEx::ToString(IPin* pPin)
   return str;
 }
 
-CStdStringA CMediaTypeEx::GetVideoCodecName(const GUID& subtype, DWORD biCompression, DWORD* fourcc)
+std::string CMediaTypeEx::GetVideoCodecName(const GUID& subtype, DWORD biCompression, DWORD* fourcc)
 {
   CStdStringA str;
   
@@ -244,7 +244,7 @@ CStdStringA CMediaTypeEx::GetVideoCodecName(const GUID& subtype, DWORD biCompres
   return str;
 }
 
-CStdStringA CMediaTypeEx::GetAudioCodecName(const GUID& subtype, WORD wFormatTag)
+std::string CMediaTypeEx::GetAudioCodecName(const GUID& subtype, WORD wFormatTag)
 {
   CStdStringA str;
 
@@ -326,72 +326,72 @@ CStdStringA CMediaTypeEx::GetAudioCodecName(const GUID& subtype, WORD wFormatTag
   
   // Check if we are bitstreaming to S/PDIF first to avoid misdetection as PCM
   if (wFormatTag == WAVE_FORMAT_DOLBY_AC3_SPDIF) { // Note that DTS bitstreaming uses the same format tag
-    str = _T("S/PDIF");
+    str = ("S/PDIF");
   }
   // Check the subtype first after special cases have been handled
   else if (subtype == MEDIASUBTYPE_PCM) {
-    str = _T("PCM");
+    str = ("PCM");
   }
   else if (subtype == MEDIASUBTYPE_IEEE_FLOAT) {
-    str = _T("IEEE Float");
+    str = ("IEEE Float");
   }
   else if (subtype == MEDIASUBTYPE_DVD_LPCM_AUDIO || subtype == MEDIASUBTYPE_HDMV_LPCM_AUDIO) {
-    str = _T("LPCM");
+    str = ("LPCM");
   }
   else if (subtype == MEDIASUBTYPE_Vorbis) {
-    str = _T("Vorbis (deprecated)");
+    str = ("Vorbis (deprecated)");
   }
   else if (subtype == MEDIASUBTYPE_Vorbis2) {
-    str = _T("Vorbis");
+    str = ("Vorbis");
   }
   else if (subtype == MEDIASUBTYPE_MP4A) {
-    str = _T("MPEG4 Audio");
+    str = ("MPEG4 Audio");
   }
   else if (subtype == MEDIASUBTYPE_FLAC_FRAMED) {
-    str = _T("FLAC (framed)");
+    str = ("FLAC (framed)");
   }
   else if (subtype == MEDIASUBTYPE_DOLBY_AC3) {
-    str = _T("AC3");
+    str = ("AC3");
   }
   else if (subtype == MEDIASUBTYPE_DOLBY_DDPLUS) {
-    str = _T("DD+");
+    str = ("DD+");
   }
   else if (subtype == MEDIASUBTYPE_DOLBY_TRUEHD) {
-    str = _T("TrueHD");
+    str = ("TrueHD");
   }
   else if (subtype == MEDIASUBTYPE_DTS) {
-    str = _T("DTS");
+    str = ("DTS");
   }
   else if (subtype == MEDIASUBTYPE_DTS_HD) {
-    str = _T("DTS-HD");
+    str = ("DTS-HD");
   }
   else if (subtype == MEDIASUBTYPE_MLP) {
-    str = _T("MLP");
+    str = ("MLP");
   }
   else if (subtype == MEDIASUBTYPE_PCM_NONE || subtype == MEDIASUBTYPE_PCM_RAW ||
     subtype == MEDIASUBTYPE_PCM_TWOS || subtype == MEDIASUBTYPE_PCM_SOWT ||
     subtype == MEDIASUBTYPE_PCM_IN24 || subtype == MEDIASUBTYPE_PCM_IN32 ||
     subtype == MEDIASUBTYPE_PCM_FL32 || subtype == MEDIASUBTYPE_PCM_FL64) {
-    str = _T("QT PCM");
+    str = ("QT PCM");
   }
   else if (subtype == MEDIASUBTYPE_IMA4 ||
     subtype == MEDIASUBTYPE_ADPCM_SWF ||
     subtype == MEDIASUBTYPE_ADPCM_AMV) {
-    str = _T("ADPCM");
+    str = ("ADPCM");
   }
   else if (subtype == MEDIASUBTYPE_ALAC) {
-    str = _T("ALAC");
+    str = ("ALAC");
   }
   else if (subtype == MEDIASUBTYPE_ALS) {
-    str = _T("ALS");
+    str = ("ALS");
   }
   else if (subtype == MEDIASUBTYPE_QDM2) {
-    str = _T("QDM2");
+    str = ("QDM2");
   }
   else if (subtype == MEDIASUBTYPE_AMR ||
     subtype == MEDIASUBTYPE_SAMR ||
     subtype == MEDIASUBTYPE_SAWB) {
-    str = _T("AMR");
+    str = ("AMR");
   }// If the subtype wasn't enough to find the codec name, we try the format tag
   else if (it != names.end()) {
     str = it->second;
@@ -404,9 +404,9 @@ CStdStringA CMediaTypeEx::GetAudioCodecName(const GUID& subtype, WORD wFormatTag
 return str;
 }
 
-CStdStringA CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
+std::string CMediaTypeEx::GetSubtitleCodecName(const GUID& subtype)
 {
-  CStdStringA str;
+  std::string str;
 
 /*  static CAtlMap<GUID, CStdString> names;
 

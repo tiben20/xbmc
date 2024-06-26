@@ -28,7 +28,7 @@
 #include "PixelShaderCompiler.h"
 //#include "windowing/windows/WinSystemWin32DX.h"
 #include "utils/Log.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "GraphFilters.h"
 
 CPixelShaderCompiler::CPixelShaderCompiler(bool fStaySilent)
@@ -75,7 +75,7 @@ HRESULT CPixelShaderCompiler::CompileShader(
 
   HRESULT hr;
 
-  Com::SmartPtr<ID3DXBuffer> pShader, pDisAsm, pErrorMsgs;
+  Com::SComPtr<ID3DXBuffer> pShader, pDisAsm, pErrorMsgs;
   hr = m_pD3DXCompileShader(pSrcData, strlen(pSrcData), NULL, NULL, pFunctionName, pProfile, Flags, &pShader, &pErrorMsgs, NULL);
 
   if (FAILED(hr))

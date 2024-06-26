@@ -70,8 +70,8 @@ public:
   uint32_t                IAMStreamSelect_Index; ///< IAMStreamSelect index of the stream
   std::string              displayname; ///< Stream displayname
   unsigned long           flags; ///< Stream flags. Set to AMSTREAMSELECTINFO_ENABLED if the stream if selected in the GUI, 0 otherwise
-  Com::SmartPtr<IPin>     pObj; ///< Output pin of the splitter
-  Com::SmartPtr<IPin>     pUnk; ///< Not used
+  Com::SComPtr<IPin>     pObj; ///< Output pin of the splitter
+  Com::SComPtr<IPin>     pUnk; ///< Not used
   LCID                    lcid; ///< LCID of stream language
   DWORD                   group; ///< Currently not used
   bool                    connected; ///< Is the stream connected
@@ -157,7 +157,7 @@ public:
   CDSStreamDetailSubtitleExternal();
 
   std::string            path; ///< Subtitle file path
-  Com::SmartPtr<ISubStream> substream;
+  Com::SComPtr<ISubStream> substream;
 };
 
 /** @brief DSPlayer Streams Manager.
@@ -266,7 +266,7 @@ public:
   static void MediaTypeToStreamDetail(AM_MEDIA_TYPE *mt, CDSStreamDetail& s);
   static void FormatStreamName(CStreamDetail& s);
   static void FormatStreamNameBySplitter(CStreamDetail& s);
-  static void ExtractCodecDetail(CStreamDetail& s, std::string& codecInfos);
+  static void ExtractCodecDetail(CStreamDetail& s, std::string codecInfos);
   static std::string ISOToLanguage(std::string code);
 
   void LoadDVDStreams();
@@ -293,13 +293,13 @@ protected:
   std::vector<CDSStreamDetailSubfilter *> m_subfilterStreams_int;
   std::vector<CDSStreamDetailEdition *> m_editionStreams;
   bool m_mkveditions;
-  Com::SmartPtr<IDirectVobSub> m_pIDirectVobSub;
-  Com::SmartPtr<ILAVAudioSettings> m_pILAVAudioSettings;
-  Com::SmartPtr<IAMStreamSelect> m_pIAMStreamSelect;
-  Com::SmartPtr<IAMStreamSelect> m_pIAMStreamSelectSub;
-  Com::SmartPtr<IFilterGraph2> m_pGraphBuilder;
-  Com::SmartPtr<IBaseFilter> m_pSplitter;
-  Com::SmartPtr<IBaseFilter> m_pSubs;
+  Com::SComPtr<IDirectVobSub> m_pIDirectVobSub;
+  Com::SComPtr<ILAVAudioSettings> m_pILAVAudioSettings;
+  Com::SComPtr<IAMStreamSelect> m_pIAMStreamSelect;
+  Com::SComPtr<IAMStreamSelect> m_pIAMStreamSelectSub;
+  Com::SComPtr<IFilterGraph2> m_pGraphBuilder;
+  Com::SComPtr<IBaseFilter> m_pSplitter;
+  Com::SComPtr<IBaseFilter> m_pSubs;
 
   bool m_bSubfilterVisible;
   bool m_bHasSubsFilter;
@@ -329,7 +329,7 @@ public:
   bool Ready();
 
   /** @remark renderRect represent the rendering surface size */
-  //HRESULT GetTexture(Com::SmartPtr<IDirect3DTexture9>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect);
+  //HRESULT GetTexture(Com::SComPtr<IDirect3DTexture9>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect);
   HRESULT AlphaBlt(ID3D11DeviceContext1* pDevContext, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect);
 
   void StopThread();

@@ -13,9 +13,9 @@ public:
 
   CStdStringW ToString(IPin* pPin = NULL);
 
-  static CStdStringA GetVideoCodecName(const GUID& subtype, DWORD biCompression, DWORD *fourcc = NULL);
-  static CStdStringA GetAudioCodecName(const GUID& subtype, WORD wFormatTag);
-  static CStdStringA GetSubtitleCodecName(const GUID& subtype);
+  static std::string GetVideoCodecName(const GUID& subtype, DWORD biCompression, DWORD *fourcc = NULL);
+  static std::string GetAudioCodecName(const GUID& subtype, WORD wFormatTag);
+  static std::string GetSubtitleCodecName(const GUID& subtype);
 
   //void Dump(std::list<CStdString>& sl);
 };

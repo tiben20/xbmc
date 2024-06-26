@@ -86,13 +86,13 @@ CmadVRAllocatorPresenter::~CmadVRAllocatorPresenter()
   }
 
   // Unregister madVR Exclusive Callback
-  if (Com::SmartQIPtr<IMadVRExclusiveModeCallback> pEXL = m_pDXR)
+  if (Com::SComQIPtr<IMadVRExclusiveModeCallback> pEXL = m_pDXR.p)
     pEXL->Unregister(m_exclusiveCallback, this);
 
   // Let's madVR restore original display mode (when adjust refresh it's handled by madVR)
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) == ADJUST_REFRESHRATE_OFF)
   {
-    if (Com::SmartQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR)
+    if (Com::SComQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR.p)
       pMadVrCmd->SendCommand("restoreDisplayModeNow");
   }
 
@@ -127,7 +127,7 @@ void CmadVRAllocatorPresenter::SetResolution()
   float fps;
 
 
-  if (Com::SmartQIPtr<IMadVRInfo> pInfo = m_pDXR)
+  if (Com::SComQIPtr<IMadVRInfo> pInfo = m_pDXR.p)
   {
     pInfo->GetUlonglong("frameRate", &frameRate);
     fps = 10000000.0 / frameRate;
@@ -161,20 +161,20 @@ void CmadVRAllocatorPresenter::ExclusiveCallback(LPVOID context, int event)
 
 void CmadVRAllocatorPresenter::EnableExclusive(bool bEnable)
 {
-  if (Com::SmartQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR)
+  if (Com::SComQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR.p)
     pMadVrCmd->SendCommandBool("disableExclusiveMode", !bEnable);
 };
 
 void CmadVRAllocatorPresenter::ConfigureMadvr()
 {
   // Disable SeekBar
-  if (Com::SmartQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR)
+  if (Com::SComQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR.p)
     pMadVrCmd->SendCommandBool("disableSeekbar", true);
 
   // Delay Playback
   m_pSettingsManager->SetBool("delayPlaybackStart2", CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_DSPLAYER_DELAYMADVRPLAYBACK));
 
-  if (Com::SmartQIPtr<IMadVRExclusiveModeCallback> pEXL = m_pDXR)
+  if (Com::SComQIPtr<IMadVRExclusiveModeCallback> pEXL = m_pDXR.p)
     pEXL->Register(m_exclusiveCallback, this);
 
   // Exclusive Mode
@@ -185,7 +185,7 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
   }
   else
   {
-    if (Com::SmartQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR)
+    if (Com::SComQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR.p)
       pMadVrCmd->SendCommandBool("disableExclusiveMode", true);
   }
 
@@ -226,7 +226,7 @@ void CmadVRAllocatorPresenter::ConfigureMadvr()
 bool CmadVRAllocatorPresenter::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const
 {
 #if TODO
-  if (Com::SmartQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR)
+  if (Com::SComQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR)
     return (pMVRSR->ParentWindowProc(hWnd, uMsg, wParam, lParam, ret) != 0);
   else
     return false;
@@ -443,7 +443,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
   // Init Settings Manager
   m_pSettingsManager = DNew CMadvrSettingsManager(m_pDXR);
 
-  Com::SmartQIPtr<ISubRender> pSR = m_pDXR;
+  Com::SComQIPtr<ISubRender> pSR = m_pDXR.p;
   if (!pSR) {
     m_pDXR = nullptr;
     return E_FAIL;
@@ -456,7 +456,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
   }
 
   // IOsdRenderCallback
-  Com::SmartQIPtr<IMadVROsdServices> pOR = m_pDXR;
+  Com::SComQIPtr<IMadVROsdServices> pOR = m_pDXR.p;
   if (!pOR) {
     m_pDXR = nullptr;
     return E_FAIL;
@@ -468,7 +468,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
     return E_FAIL;
   }
 
-  if (Com::SmartQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR)
+  if (Com::SComQIPtr<IMadVRSubclassReplacement> pMVRSR = m_pDXR.p)
   {
     //VERIFY(SUCCEEDED(pMVRSR->DisableSubclassing()));
     if (!SUCCEEDED(pMVRSR->DisableSubclassing()))
@@ -476,7 +476,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::CreateRenderer(IUnknown** ppRenderer)
   }
 
   // resize madVR
-  if (Com::SmartQIPtr<IVideoWindow> pVW = m_pDXR)
+  if (Com::SComQIPtr<IVideoWindow> pVW = m_pDXR.p)
   {
     RECT w;
     w.left = 0;
@@ -533,12 +533,12 @@ STDMETHODIMP_(void) CmadVRAllocatorPresenter::SetPosition(RECT w, RECT v)
   }
   }
 
-  if (Com::SmartQIPtr<IBasicVideo> pBV = m_pDXR) {
+  if (Com::SComQIPtr<IBasicVideo> pBV = m_pDXR.p) {
     pBV->SetDefaultSourcePosition();
     pBV->SetDestinationPosition(v.left, v.top, v.right - v.left, v.bottom - v.top);
   }
 
-  if (Com::SmartQIPtr<IVideoWindow> pVW = m_pDXR) {
+  if (Com::SComQIPtr<IVideoWindow> pVW = m_pDXR.p) {
     pVW->SetWindowPosition(w.left, w.top, w.right - w.left, w.bottom - w.top);
   }
 }
@@ -548,12 +548,12 @@ STDMETHODIMP_(SIZE) CmadVRAllocatorPresenter::GetVideoSize(bool fCorrectAR)
   SIZE size = { 0, 0 };
 
   if (!fCorrectAR) {
-    if (Com::SmartQIPtr<IBasicVideo> pBV = m_pDXR) {
+    if (Com::SComQIPtr<IBasicVideo> pBV = m_pDXR.p) {
       pBV->GetVideoSize(&size.cx, &size.cy);
     }
   }
   else {
-    if (Com::SmartQIPtr<IBasicVideo2> pBV2 = m_pDXR) {
+    if (Com::SComQIPtr<IBasicVideo2> pBV2 = m_pDXR.p) {
       pBV2->GetPreferredAspectRatio(&size.cx, &size.cy);
     }
   }
@@ -564,7 +564,7 @@ STDMETHODIMP_(SIZE) CmadVRAllocatorPresenter::GetVideoSize(bool fCorrectAR)
 STDMETHODIMP CmadVRAllocatorPresenter::GetDIB(BYTE* lpDib, DWORD* size)
 {
   HRESULT hr = E_NOTIMPL;
-  if (Com::SmartQIPtr<IBasicVideo> pBV = m_pDXR) {
+  if (Com::SComQIPtr<IBasicVideo> pBV = m_pDXR.p) {
     hr = pBV->GetCurrentImage((long*)size, (long*)lpDib);
   }
   return hr;
@@ -580,7 +580,7 @@ void CmadVRAllocatorPresenter::SetPixelShader()
   g_dsSettings.pixelShaderList->UpdateActivatedList();
   m_shaderStage = 0;
   std::string strStage;
-  PixelShaderVector& psVec = g_dsSettings.pixelShaderList->GetActivatedPixelShaders();
+  PixelShaderVector psVec = g_dsSettings.pixelShaderList->GetActivatedPixelShaders();
 
   for (PixelShaderVector::iterator it = psVec.begin();
     it != psVec.end(); it++)
@@ -599,7 +599,7 @@ void CmadVRAllocatorPresenter::SetPixelShader()
 STDMETHODIMP CmadVRAllocatorPresenter::SetPixelShader(LPCSTR pSrcData, LPCSTR pTarget)
 {
   HRESULT hr = E_NOTIMPL;
-  if (Com::SmartQIPtr<IMadVRExternalPixelShaders> pEPS = m_pDXR) {
+  if (Com::SComQIPtr<IMadVRExternalPixelShaders> pEPS = m_pDXR.p) {
     if (!pSrcData && !pTarget) {
       hr = pEPS->ClearPixelShaders(false);
     }

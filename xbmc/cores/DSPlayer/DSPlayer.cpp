@@ -26,7 +26,7 @@
 
 #include "DSPlayer.h"
 #include "DSUtil/DSUtil.h" // unload loaded filters
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "Filters/RendererSettings.h"
 
 #include "windowing/windows/winsystemwin32.h" //Important needed to get the right hwnd
@@ -77,6 +77,7 @@
 #include "application/AppInboundProtocol.h"
 #include "video/VideoFileItemClassify.h"
 #include "processthreadsapi.h"
+#include "utils/URIUtils.h"
 
 using namespace PVR;
 using namespace std;
@@ -367,8 +368,8 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
     fileItem.SetPath(file.GetVideoInfoTag()->m_strFileNameAndPath);
     fileItem.SetProperty("original_listitem_ur", file.GetPath());
   }
-
-  if (fileItem.IsInternetStream())
+  
+  if (URIUtils::IsInternetStream(fileItem.GetDynPath()))
   {
     CURL url(fileItem.GetPath());
     url.SetProtocolOptions("");

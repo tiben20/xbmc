@@ -31,7 +31,7 @@
 #include "streams.h"
 
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 
 CDSFilterEnumerator::CDSFilterEnumerator(void)
 {
@@ -42,7 +42,7 @@ HRESULT CDSFilterEnumerator::GetDSFilters(std::vector<DSFiltersInfo>& pFilters)
   CSingleExit lock(m_critSection);
   pFilters.clear();
 
-  Com::SmartPtr<IPropertyBag> propBag = NULL;
+  Com::SComPtr<IPropertyBag> propBag = NULL;
   BeginEnumSysDev(CLSID_LegacyAmFilterCategory, pMoniker)
   {
     if (SUCCEEDED(pMoniker->BindToStorage(NULL, NULL, IID_IPropertyBag, (void**)&propBag)))

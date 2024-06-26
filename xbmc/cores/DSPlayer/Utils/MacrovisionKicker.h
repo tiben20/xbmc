@@ -26,13 +26,13 @@
 #error DSPlayer's header file included without HAS_DS_PLAYER defined
 #endif
 #include <streams.h>
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 
 class CMacrovisionKicker
   : public CUnknown
   , public IKsPropertySet
 {
-  Com::SmartPtr<IUnknown> m_pInner;
+  Com::SComPtr<IUnknown> m_pInner;
 
 public:
 

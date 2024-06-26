@@ -1,7 +1,7 @@
 #pragma once
 #include <Shlwapi.h>
 #include "Utils/Geometry.h"
-#include "Dsutil/smartptr.h"
+#include "SComCli.h"
 /*windows runtime library for comptr*/
 #include <wrl.h>
 #include <wrl/client.h>

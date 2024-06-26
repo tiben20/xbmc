@@ -93,7 +93,7 @@ bool IsPinConnected(IPin* pPin)
 {
   CheckPointer(pPin, false);
 
-  Com::SmartPtr<IPin> pPinTo;
+  Microsoft::WRL::ComPtr<IPin> pPinTo;
   return ((SUCCEEDED(pPin->ConnectedTo(&pPinTo))) && pPinTo) ? true : false;
 }
 
@@ -143,7 +143,7 @@ IPin* GetUpStreamPin(IBaseFilter* pBF, IPin* pInputPin)
     if(pInputPin && pInputPin != pPin) continue;
 
     PIN_DIRECTION dir;
-    Com::SmartPtr<IPin> pPinConnectedTo;
+    Microsoft::WRL::ComPtr<IPin> pPinConnectedTo;
     if(SUCCEEDED(pPin->QueryDirection(&dir)) && dir == PINDIR_INPUT
       && SUCCEEDED(pPin->ConnectedTo(&pPinConnectedTo)))
     {
@@ -474,7 +474,7 @@ HRESULT LoadExternalObject(CStdStringW path, REFCLSID clsid, REFIID iid, void** 
 
     if(p && FAILED(hr = p(clsid, iid, ppv)))
     {
-      Com::SmartPtr<IClassFactory> pCF;
+      Microsoft::WRL::ComPtr<IClassFactory> pCF;
       if(SUCCEEDED(hr = p(clsid, __uuidof(IClassFactory), (void**)&pCF)))
       {
         hr = pCF->CreateInstance(NULL, iid, ppv);
@@ -550,7 +550,7 @@ CStdStringW GetMediaTypeName(const GUID& guid)
 {
   CStdStringW ret = guid == GUID_NULL 
     ? L"Any type" 
-    : CStdStringW(GuidNames[guid]);
+    : CStdStringW(GuidNames[guid]).c_str();
 
   if(ret == L"FOURCC GUID")
   {
@@ -663,7 +663,7 @@ bool IsAudioWaveRenderer(IBaseFilter* pBF)
 	int nIn, nOut, nInC, nOutC;
 	CountPins(pBF, nIn, nOut, nInC, nOutC);
 
-	if (nInC > 0 && nOut == 0 && Com::SmartQIPtr<IBasicAudio>(pBF)) {
+	if (nInC > 0 && nOut == 0 && Com::SComQIPtr<IBasicAudio>(pBF)) {
 		BeginEnumPins(pBF, pEP, pPin) {
 			AM_MEDIA_TYPE mt;
 			if (S_OK != pPin->ConnectionMediaType(&mt)) {
@@ -699,7 +699,7 @@ HRESULT RemoveUnconnectedFilters(IFilterGraph2 *pGraph)
         continue;
       }
 
-      Com::SmartPtr<IPin>pPin;
+      Microsoft::WRL::ComPtr<IPin>pPin;
       // Find a connected pin on this filter.
       if (SUCCEEDED(FindMatchingPin(pBF, MatchPinConnection(TRUE), &pPin)))
       {
@@ -725,7 +725,7 @@ int CountPins(IBaseFilter* pBF, int& nIn, int& nOut, int& nInC, int& nOutC)
     PIN_DIRECTION dir;
     if(SUCCEEDED(pPin->QueryDirection(&dir)))
     {
-      Com::SmartPtr<IPin> pPinConnectedTo;
+      Microsoft::WRL::ComPtr<IPin> pPinConnectedTo;
       pPin->ConnectedTo(&pPinConnectedTo);
 
       if(dir == PINDIR_INPUT) {nIn++; if(pPinConnectedTo) nInC++;}
@@ -922,9 +922,9 @@ CStdStringW AToW(CStdStringA str)
   return(ret);
 }
 
-CStdStringA WToA(CStdStringW str)
+std::string WToA(CStdStringW str)
 {
-  CStdStringA ret;
+  std::string ret;
   for(int i = 0, j = str.GetLength(); i < j; i++)
     ret += (CHAR)(WORD)str[i];
   return(ret);
@@ -991,7 +991,7 @@ static struct {LPCSTR name, iso6392, iso6391; LCID lcid;} s_isolangs[] =  // TOD
   {"Bikol", "bik", ""},
   {"Bini", "bin", ""},
   {"Bislama", "bis", "bi"},
-  {"Bokmål, Norwegian; Norwegian Bokmål", "nob", "nb"},
+  //{"Bokmål", "nob", "nb"},
   {"Bosnian", "bos", "bs"},
   {"Braj", "bra", ""},
   {"Breton", "bre", "br",            MAKELCID( MAKELANGID(LANG_BRETON, SUBLANG_DEFAULT), SORT_DEFAULT)},

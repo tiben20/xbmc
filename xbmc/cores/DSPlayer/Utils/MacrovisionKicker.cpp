@@ -50,7 +50,7 @@ STDMETHODIMP CMacrovisionKicker::NonDelegatingQueryInterface(REFIID riid, void**
 {
   if (riid == __uuidof(IUnknown))
     return __super::NonDelegatingQueryInterface(riid, ppv);
-  if (riid == __uuidof(IKsPropertySet) && Com::SmartQIPtr<IKsPropertySet>(m_pInner))
+  if (riid == __uuidof(IKsPropertySet) && Com::SComQIPtr<IKsPropertySet>(m_pInner))
     return GetInterface((IKsPropertySet*)this, ppv);
 
   HRESULT hr = m_pInner ? m_pInner->QueryInterface(riid, ppv) : E_NOINTERFACE;
@@ -62,7 +62,7 @@ STDMETHODIMP CMacrovisionKicker::NonDelegatingQueryInterface(REFIID riid, void**
 
 STDMETHODIMP CMacrovisionKicker::Set(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength)
 {
-  if (Com::SmartQIPtr<IKsPropertySet> pKsPS = m_pInner)
+  if (Com::SComQIPtr<IKsPropertySet> pKsPS = m_pInner.p)
   {
     if (PropSet == AM_KSPROPSETID_CopyProt && Id == AM_PROPERTY_COPY_MACROVISION
       /*&& DataLength == 4 && *(DWORD*)pPropertyData*/)
@@ -79,7 +79,7 @@ STDMETHODIMP CMacrovisionKicker::Set(REFGUID PropSet, ULONG Id, LPVOID pInstance
 
 STDMETHODIMP CMacrovisionKicker::Get(REFGUID PropSet, ULONG Id, LPVOID pInstanceData, ULONG InstanceLength, LPVOID pPropertyData, ULONG DataLength, ULONG* pBytesReturned)
 {
-  if (Com::SmartQIPtr<IKsPropertySet> pKsPS = m_pInner)
+  if (Com::SComQIPtr<IKsPropertySet> pKsPS = m_pInner.p)
   {
     return pKsPS->Get(PropSet, Id, pInstanceData, InstanceLength, pPropertyData, DataLength, pBytesReturned);
   }
@@ -89,7 +89,7 @@ STDMETHODIMP CMacrovisionKicker::Get(REFGUID PropSet, ULONG Id, LPVOID pInstance
 
 STDMETHODIMP CMacrovisionKicker::QuerySupported(REFGUID PropSet, ULONG Id, ULONG* pTypeSupport)
 {
-  if (Com::SmartQIPtr<IKsPropertySet> pKsPS = m_pInner)
+  if (Com::SComQIPtr<IKsPropertySet> pKsPS = m_pInner.p)
   {
     return pKsPS->QuerySupported(PropSet, Id, pTypeSupport);
   }

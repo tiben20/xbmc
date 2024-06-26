@@ -28,7 +28,7 @@
 #endif
 
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "streams.h"
 #include "utils/CharsetConverter.h"
 #include "Filters/Sanear/Interfaces.h"
@@ -70,7 +70,7 @@ struct SFilterInfos
     guid = GetCLSID(pBF);
   }
 
-  Com::SmartPtr<IBaseFilter> pBF; ///< Pointer to the IBaseFilter interface. May be NULL
+  Com::SComPtr<IBaseFilter> pBF; ///< Pointer to the IBaseFilter interface. May be NULL
   std::string osdname; ///< OSD Name of the filter
   GUID guid; ///< GUID of the filter
   bool isinternal; ///<  Releasing is not done the same way for internal filters
@@ -92,7 +92,7 @@ struct SVideoRendererFilterInfos : SFilterInfos
     pQualProp = NULL;
     __super::Clear();
   }
-  Com::SmartPtr<IQualProp> pQualProp; ///< Pointer to IQualProp interface. May be NULL if the video renderer doesn't implement IQualProp
+  Com::SComPtr<IQualProp> pQualProp; ///< Pointer to IQualProp interface. May be NULL if the video renderer doesn't implement IQualProp
 };
 
 /// Informations about DVD filters
@@ -109,8 +109,8 @@ struct SDVDFilters
     dvdInfo.Release();
   }
 
-  Com::SmartQIPtr<IDvdControl2> dvdControl; ///< Pointer to IDvdControl2 interface. May be NULL
-  Com::SmartQIPtr<IDvdInfo2> dvdInfo; ///< Pointer to IDvdInfo2 interface. May be NULL
+  Com::SComQIPtr<IDvdControl2> dvdControl; ///< Pointer to IDvdControl2 interface. May be NULL
+  Com::SComQIPtr<IDvdInfo2> dvdInfo; ///< Pointer to IDvdInfo2 interface. May be NULL
 };
 
 enum FILTERSMAN_TYPE
@@ -210,7 +210,7 @@ public:
   }
   void SetD3DDevice(IDirect3DDevice9 * pD3DDevice){ m_pD3DDevice = pD3DDevice; }
   IDirect3DDevice9* GetD3DDevice(){ return m_pD3DDevice; }
-  Com::SmartQIPtr<SaneAudioRenderer::ISettings> sanear;
+  Com::SComQIPtr<SaneAudioRenderer::ISettings> sanear;
   
 private:
   CGraphFilters();
@@ -227,6 +227,6 @@ private:
   
   std::map<int, TranslatableStringSettingOptions> m_mapHWAccelDeviceInfo;
 
-  Com::SmartPtr<IBaseFilter> m_pBF;
+  Com::SComPtr<IBaseFilter> m_pBF;
   IDirect3DDevice9 * m_pD3DDevice;
 };

@@ -51,7 +51,7 @@ public:
 
   TiXmlElement ToXML();
 
-  Com::SmartPtr<IDirect3DPixelShader9> m_pPixelShader;
+  Com::SComPtr<IDirect3DPixelShader9> m_pPixelShader;
 private:
   std::string m_SourceFile;
   std::string m_SourceTarget;

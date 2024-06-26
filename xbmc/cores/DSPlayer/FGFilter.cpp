@@ -28,7 +28,7 @@
 #if HAS_DS_PLAYER
 
 #include "FGFilter.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "Filters/madVRAllocatorPresenter.h"
 #include "Filters/MPCVideoRenderer/VideoRenderer.h"
 #include "windowing/windows/WinSystemWin32DX.h"
@@ -383,8 +383,8 @@ HRESULT CFGFilterFile::Create(IBaseFilter** ppBF)
   HRESULT hr = E_FAIL;
   if ((m_isDMO) && (m_catDMO != GUID_NULL))
   {
-    Com::SmartPtr<IBaseFilter> pBFDmo = NULL;
-    Com::SmartQIPtr<IDMOWrapperFilter> pDMOWrapper;
+    Com::SComPtr<IBaseFilter> pBFDmo = NULL;
+    Com::SComQIPtr<IDMOWrapperFilter> pDMOWrapper;
 
     hr = pBFDmo.CoCreateInstance(CLSID_DMOWrapperFilter, NULL);
     if (SUCCEEDED(hr))
@@ -409,7 +409,7 @@ HRESULT CFGFilterFile::Create(IBaseFilter** ppBF)
       /* If LoadExternalFilter failed, maybe we will have more chance
        * using CoCreateInstance directly. Will only works if the filter
        * is registered! */
-      Com::SmartQIPtr<IBaseFilter> pBF;
+      Com::SComQIPtr<IBaseFilter> pBF;
       hr = pBF.CoCreateInstance(m_clsid);
       if (FAILED(hr))
       {
@@ -453,7 +453,7 @@ HRESULT CFGFilterVideoRenderer::Create(IBaseFilter** ppBF)
   CheckPointer(ppBF, E_POINTER);
 
   HRESULT hr = S_OK;
-  Com::SmartPtr<ISubPicAllocatorPresenter> pCAP;
+  Com::SComPtr<ISubPicAllocatorPresenter> pCAP;
 
   std::string __err;
   if (m_clsid == CLSID_madVRAllocatorPresenter)
@@ -471,10 +471,10 @@ HRESULT CFGFilterVideoRenderer::Create(IBaseFilter** ppBF)
     return E_FAIL;
   }
   
-  Com::SmartPtr<IUnknown> pRenderer;
+  Com::SComPtr<IUnknown> pRenderer;
   if (SUCCEEDED(hr = pCAP->CreateRenderer(&pRenderer))) 
   {
-    *ppBF = Com::SmartQIPtr<IBaseFilter>(pRenderer).Detach();
+    *ppBF = Com::SComQIPtr<IBaseFilter>(pRenderer).Detach();
     CLog::Log(LOGDEBUG, "{} Allocator presenter successfully created", __FUNCTION__);
   }
   

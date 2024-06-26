@@ -132,7 +132,7 @@ static HRESULT DumpTexture2D(ID3D11DeviceContext* pDeviceContext, ID3D11Texture2
 	}
 
 	HRESULT hr = S_OK;
-	Com::SmartPtr<ID3D11Texture2D> pTexture2DShared;
+	Com::SComPtr<ID3D11Texture2D> pTexture2DShared;
 
 	if (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) {
 		pTexture2DShared = pTexture2D;
@@ -380,7 +380,7 @@ STDMETHODIMP CDX11SubPicAllocator::ChangeDevice(IUnknown* pDev)
 {
 	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::ChangeDevice");
 	ClearCache();
-	Com::SmartQIPtr<ID3D11Device> pDevice = pDev;
+	Com::SComQIPtr<ID3D11Device> pDevice = pDev;
 	if (!pDevice) {
 		return E_NOINTERFACE;
 	}
@@ -431,10 +431,10 @@ HRESULT CDX11SubPicAllocator::CreateOutputTex()
 	g_log->Log(_LOGINFO, "CDX11SubPicAllocator::CreateOutputTex");
 	bool bDynamicTex = false;
 
-	Com::SmartQIPtr<IDXGIDevice> pDxgiDevice;
+	Com::SComQIPtr<IDXGIDevice> pDxgiDevice;
 	HRESULT hr = m_pDevice->QueryInterface(IID_PPV_ARGS(&pDxgiDevice));
 	if (SUCCEEDED(hr)) {
-		Com::SmartPtr<IDXGIAdapter> pDxgiAdapter;
+		Com::SComPtr<IDXGIAdapter> pDxgiAdapter;
 		hr = pDxgiDevice->GetAdapter(&pDxgiAdapter);
 		if (SUCCEEDED(hr)) {
 			DXGI_ADAPTER_DESC desc;
@@ -658,7 +658,7 @@ void CDX11SubPicAllocator::FreeTextures()
 	}
 	m_AllocatedSurfaces.clear();
 
-	for (std::list<Com::SmartPtrForList<IDirect3DSurface9>>::iterator it = m_FreeSurfaces.begin();
+	for (std::list<Com::SComPtrForList<IDirect3DSurface9>>::iterator it = m_FreeSurfaces.begin();
 		it != m_FreeSurfaces.end(); it++)
 		it->FullRelease();
 

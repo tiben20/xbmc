@@ -179,14 +179,14 @@ CStdString ExtractTag(CStdString tag, std::map<LPCTSTR, CStdString>& attribs, bo
     CStdString attrib = tag.Left(i).Trim(); attrib.MakeLower();
     tag = tag.Mid(i+1);
     for(i = 0; i < tag.GetLength() && _istspace(tag[i]); i++);
-    tag = i < tag.GetLength() ? tag.Mid(i) : _T("");
+    tag = i < tag.GetLength() ? tag.Mid(i).c_str() : _T("");
     if(!tag.IsEmpty() && tag[0] == '\"') {tag = tag.Mid(1); i = tag.Find('\"');}
     else i = tag.Find(' ');
     if(i < 0) i = tag.GetLength();
     CStdString param = tag.Left(i).Trim();
     if(!param.IsEmpty())
       attribs[attrib] = param;
-    tag = i+1 < tag.GetLength() ? tag.Mid(i+1) : _T("");
+    tag = i+1 < tag.GetLength() ? tag.Mid(i+1).c_str() : _T("");
   }
 
   return(type);

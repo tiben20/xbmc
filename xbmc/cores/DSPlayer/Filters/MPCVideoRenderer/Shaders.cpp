@@ -48,7 +48,7 @@ HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR
 
 		if (pErrorBlob) {
 			std::string strErrorMsgs((char*)pErrorBlob->GetBufferPointer(), pErrorBlob->GetBufferSize());
-			CLog::Log(LOGERROR,strErrorMsgs.c_str());
+			//CLog::Log(LOGERROR,strErrorMsgs.c_str());
 		}
 		else {
 			CLog::Log(LOGERROR, "Unexpected compiler error");
@@ -85,7 +85,7 @@ HRESULT CompileShader(const CStdStringA& srcCode, const D3D_SHADER_MACRO* pDefin
 
 		if (pErrorBlob) {
 			CStdStringA strErrorMsgs((char*)pErrorBlob->GetBufferPointer(), pErrorBlob->GetBufferSize());
-			DLog(strErrorMsgs);
+			//DLog(strErrorMsgs);
 		} else {
 			DLog("Unexpected compiler error");
 		}

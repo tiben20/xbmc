@@ -117,7 +117,7 @@ extern CStdStringA GetDshowError(HRESULT hr);
 // Conversion
 extern CStdStringW  AnsiToUTF16(const CStdStringA strFrom);
 CStdStringW  AToW(CStdStringA str);
-CStdStringA  WToA(CStdStringW str);
+std::string  WToA(CStdStringW str);
 
 class CPinInfo : public PIN_INFO
 {
@@ -136,34 +136,34 @@ public:
 
 /* BeginEnumFilters */
 #define BeginEnumFilters(pFilterGraph, pEnumFilters, pBaseFilter) \
-{Com::SmartPtr<IEnumFilters> pEnumFilters; \
+{Com::SComPtr<IEnumFilters> pEnumFilters; \
   if(pFilterGraph && SUCCEEDED(pFilterGraph->EnumFilters(&pEnumFilters))) \
 { \
-  for(Com::SmartPtr<IBaseFilter> pBaseFilter; S_OK == pEnumFilters->Next(1, &pBaseFilter, 0); pBaseFilter = NULL) \
+  for(Com::SComPtr<IBaseFilter> pBaseFilter; S_OK == pEnumFilters->Next(1, &pBaseFilter, 0); pBaseFilter = NULL) \
 { \
 
 #define EndEnumFilters }}}
 
 #define BeginEnumCachedFilters(pGraphConfig, pEnumFilters, pBaseFilter) \
-{Com::SmartPtr<IEnumFilters> pEnumFilters; \
+{Com::SComPtr<IEnumFilters> pEnumFilters; \
   if(pGraphConfig && SUCCEEDED(pGraphConfig->EnumCacheFilter(&pEnumFilters))) \
 { \
-  for(Com::SmartPtr<IBaseFilter> pBaseFilter; S_OK == pEnumFilters->Next(1, &pBaseFilter, 0); pBaseFilter = NULL) \
+  for(Com::SComPtr<IBaseFilter> pBaseFilter; S_OK == pEnumFilters->Next(1, &pBaseFilter, 0); pBaseFilter = NULL) \
 { \
 
 #define EndEnumCachedFilters }}}
 
 #define BeginEnumPins(pBaseFilter, pEnumPins, pPin) \
-{Com::SmartPtr<IEnumPins> pEnumPins; \
+{Com::SComPtr<IEnumPins> pEnumPins; \
   if(pBaseFilter && SUCCEEDED(pBaseFilter->EnumPins(&pEnumPins))) \
 { \
-  for(Com::SmartPtr<IPin> pPin; S_OK == pEnumPins->Next(1, &pPin, 0); pPin = NULL) \
+  for(Com::SComPtr<IPin> pPin; S_OK == pEnumPins->Next(1, &pPin, 0); pPin = NULL) \
 { \
 
 #define EndEnumPins }}}
 
 #define BeginEnumMediaTypes(pPin, pEnumMediaTypes, pMediaType) \
-{Com::SmartPtr<IEnumMediaTypes> pEnumMediaTypes; \
+{Com::SComPtr<IEnumMediaTypes> pEnumMediaTypes; \
   if(pPin && SUCCEEDED(pPin->EnumMediaTypes(&pEnumMediaTypes))) \
 { \
   AM_MEDIA_TYPE* pMediaType = NULL; \
@@ -173,13 +173,13 @@ public:
 #define EndEnumMediaTypes(pMediaType) } if(pMediaType) DeleteMediaType(pMediaType); }}
 
 #define BeginEnumSysDev(clsid, pMoniker) \
-{Com::SmartPtr<ICreateDevEnum> pDevEnum4$##clsid; \
+{Com::SComPtr<ICreateDevEnum> pDevEnum4$##clsid; \
   pDevEnum4$##clsid.CoCreateInstance(CLSID_SystemDeviceEnum); \
-  Com::SmartPtr<IEnumMoniker> pClassEnum4$##clsid; \
+  Com::SComPtr<IEnumMoniker> pClassEnum4$##clsid; \
   if(SUCCEEDED(pDevEnum4$##clsid->CreateClassEnumerator(clsid, &pClassEnum4$##clsid, 0)) \
   && pClassEnum4$##clsid) \
 { \
-  for(Com::SmartPtr<IMoniker> pMoniker; pClassEnum4$##clsid->Next(1, &pMoniker, 0) == S_OK; pMoniker = NULL) \
+  for(Com::SComPtr<IMoniker> pMoniker; pClassEnum4$##clsid->Next(1, &pMoniker, 0) == S_OK; pMoniker = NULL) \
 { \
 
 #define EndEnumSysDev }}}

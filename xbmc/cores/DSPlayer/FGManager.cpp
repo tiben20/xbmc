@@ -36,7 +36,7 @@
 #include "utils/CharsetConverter.h"
 #include "DSUtil/DSUtil.h"
 #include "DSUtil/DShowCommon.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "utils/SystemInfo.h" //g_sysinfo
 #include "settings/Settings.h"//g_guiSettings
 
@@ -203,11 +203,11 @@ STDMETHODIMP CFGManager::ConnectDirect(IPin* pPinOut, IPin* pPinIn, const AM_MED
 
   CSingleExit CSingleExit(*this);
 
-  Com::SmartPtr<IBaseFilter> pBF = GetFilterFromPin(pPinIn);
+  Com::SComPtr<IBaseFilter> pBF = GetFilterFromPin(pPinIn);
   CLSID clsid = GetCLSID(pBF);
 
   // TODO: GetUpStreamFilter goes up on the first input pin only
-  for (Com::SmartPtr<IBaseFilter> pBFUS = GetFilterFromPin(pPinOut); pBFUS; pBFUS = GetUpStreamFilter(pBFUS))
+  for (Com::SComPtr<IBaseFilter> pBFUS = GetFilterFromPin(pPinOut); pBFUS; pBFUS = GetUpStreamFilter(pBFUS))
   {
     if (pBFUS == pBF) return VFW_E_CIRCULAR_GRAPH;
     if (GetCLSID(pBFUS) == clsid) return VFW_E_CANNOT_CONNECT;
@@ -215,12 +215,12 @@ STDMETHODIMP CFGManager::ConnectDirect(IPin* pPinOut, IPin* pPinIn, const AM_MED
 
 
 
-  HRESULT hr = Com::SmartQIPtr<IFilterGraph2>(m_pUnkInner)->ConnectDirect(pPinOut, pPinIn, pmt);
+  HRESULT hr = Com::SComQIPtr<IFilterGraph2>(m_pUnkInner)->ConnectDirect(pPinOut, pPinIn, pmt);
 
 #ifdef _DSPLAYER_DEBUG
   std::string filterNameIn, filterNameOut;
   std::string pinNameIn, pinNameOut;
-  Com::SmartPtr<IBaseFilter> pBFOut = GetFilterFromPin(pPinOut);
+  Com::SComPtr<IBaseFilter> pBFOut = GetFilterFromPin(pPinOut);
   std::string strPinType;
   strPinType = GetPinMainTypeString(pPinOut);
   g_charsetConverter.wToUTF8(GetFilterName(pBFOut), filterNameOut);
@@ -561,8 +561,8 @@ HRESULT CFGManager::AddToROT()
   if (m_dwRegister)
     return S_FALSE;
 
-  Com::SmartPtr<IRunningObjectTable> pROT;
-  Com::SmartPtr<IMoniker> pMoniker;
+  Com::SComPtr<IRunningObjectTable> pROT;
+  Com::SComPtr<IMoniker> pMoniker;
   WCHAR wsz[256] = { 0 };
   _snwprintf_s(wsz, _countof(wsz), 255, L"FilterGraph %08p pid %08x (XBMC)", (DWORD_PTR)this, GetCurrentProcessId());
 
@@ -745,7 +745,7 @@ void CFGManager::InitManager()
 
 HRESULT CFGManager::RecoverFromGraphError(const CFileItem& pFileItem)
 {
-  Com::SmartPtr<IBaseFilter> pBF = CGraphFilters::Get()->Splitter.pBF;
+  Com::SComPtr<IBaseFilter> pBF = CGraphFilters::Get()->Splitter.pBF;
   int nVideoPin = 0, nAudioPin = 0;
   int nConnectedVideoPin = 0, nConnectedAudioPin = 0;
   bool videoError = false, audioError = false;
@@ -847,7 +847,7 @@ HRESULT CFGManager::RecoverFromGraphError(const CFileItem& pFileItem)
     if (!videoError)
     {
       IBaseFilter *pBFV = CGraphFilters::Get()->VideoRenderer.pBF;
-      Com::SmartPtr<IPin> pPinV = GetFirstPin(pBFV, PINDIR_INPUT);
+      Com::SComPtr<IPin> pPinV = GetFirstPin(pBFV, PINDIR_INPUT);
       if (IsPinConnected(pPinV))
       {
         CLog::Log(LOGINFO, "{} There were some errors in your rendering chain. Filters have been changed.", __FUNCTION__);

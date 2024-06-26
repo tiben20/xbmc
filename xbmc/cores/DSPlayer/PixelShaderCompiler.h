@@ -30,7 +30,7 @@
 
 #include <d3dx9shader.h>
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "threads/CriticalSection.h"
 #include "threads/SingleLock.h"
 

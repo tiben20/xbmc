@@ -152,9 +152,9 @@ public:
 private:
   void ConfigureMadvr();
   bool SetResolutionInternal(const RESOLUTION res, bool forceChange = false);
-  Com::SmartPtr<IUnknown> m_pDXR;
-  Com::SmartPtr<IOsdRenderCallback> m_pORCB;
-  Com::SmartPtr<ISubRenderCallback2> m_pSRCB;
+  Com::SComPtr<IUnknown> m_pDXR;
+  Com::SComPtr<IOsdRenderCallback> m_pORCB;
+  Com::SComPtr<ISubRenderCallback2> m_pSRCB;
   Com::SmartSize m_ScreenSize;
   EXCLUSIVEMODECALLBACK m_exclusiveCallback;
   bool m_bIsFullscreen;

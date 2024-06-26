@@ -31,7 +31,7 @@
 
 #include "IPinHook.h"
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #define LOG_FILE        _T("dxva.log")
 #include "StreamsManager.h"
 
@@ -1029,7 +1029,7 @@ static void LogDecodeBufferDesc(DXVA2_DecodeBufferDesc* pDecodeBuff)
 class CFakeDirectXVideoDecoder : public CUnknown, public IDirectXVideoDecoder
 {
 private:
-  Com::SmartPtr<IDirectXVideoDecoder>  m_pDec;
+  Com::SComPtr<IDirectXVideoDecoder>  m_pDec;
   BYTE* m_ppBuffer[MAX_BUFFER_TYPE];
   UINT m_ppBufferLen[MAX_BUFFER_TYPE];
 

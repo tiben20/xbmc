@@ -261,17 +261,17 @@ bool CGraphFilters::SetLavInternal(const std::string &type, IBaseFilter *pBF)
 
   if (type == INTERNAL_LAVVIDEO)
   {
-    Com::SmartQIPtr<ILAVVideoSettings> pLAVVideoSettings = pBF;
+    Com::SComQIPtr<ILAVVideoSettings> pLAVVideoSettings = pBF;
     pLAVVideoSettings->SetRuntimeConfig(TRUE);
   }
   else if (type == INTERNAL_LAVAUDIO)
   {
-    Com::SmartQIPtr<ILAVAudioSettings> pLAVAudioSettings = pBF;
+    Com::SComQIPtr<ILAVAudioSettings> pLAVAudioSettings = pBF;
     pLAVAudioSettings->SetRuntimeConfig(TRUE);
   }
   else if (type == INTERNAL_LAVSPLITTER)
   {
-    Com::SmartQIPtr<ILAVFSettings> pLAVFSettings = pBF;
+    Com::SComQIPtr<ILAVFSettings> pLAVFSettings = pBF;
     pLAVFSettings->SetRuntimeConfig(TRUE);
   }
 
@@ -285,7 +285,7 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
 
   if (type == INTERNAL_LAVVIDEO)
   {
-    Com::SmartQIPtr<ILAVVideoSettings> pLAVVideoSettings = pBF;
+    Com::SComQIPtr<ILAVVideoSettings> pLAVVideoSettings = pBF;
 
     CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -352,7 +352,7 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
   } 
   if (type == INTERNAL_LAVAUDIO)
   {
-    Com::SmartQIPtr<ILAVAudioSettings> pLAVAudioSettings = pBF;
+    Com::SComQIPtr<ILAVAudioSettings> pLAVAudioSettings = pBF;
 
     CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -387,7 +387,7 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
   }
   if (type == INTERNAL_LAVSPLITTER)
   {
-    Com::SmartQIPtr<ILAVFSettings> pLAVFSettings = pBF;
+    Com::SComQIPtr<ILAVFSettings> pLAVFSettings = pBF;
 
     CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -440,7 +440,7 @@ bool CGraphFilters::SetLavSettings(const std::string &type, IBaseFilter* pBF)
 
   if (type == INTERNAL_LAVVIDEO)
   {
-    Com::SmartQIPtr<ILAVVideoSettings> pLAVVideoSettings = pBF;
+    Com::SComQIPtr<ILAVVideoSettings> pLAVVideoSettings = pBF;
 
     CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -482,12 +482,12 @@ bool CGraphFilters::SetLavSettings(const std::string &type, IBaseFilter* pBF)
     pLAVVideoSettings->SetDVDVideoSupport(lavSettings.video_bDVDVideoSupport);
 
     // Custom interface
-    if (Com::SmartQIPtr<ILAVVideoSettingsDSPlayerCustom> pLAVFSettingsDSPlayerCustom = pLAVVideoSettings)
+    if (Com::SComQIPtr<ILAVVideoSettingsDSPlayerCustom> pLAVFSettingsDSPlayerCustom = pLAVVideoSettings.p)
       pLAVFSettingsDSPlayerCustom->SetPropertyPageCallback(CDSPropertyPage::PropertyPageCallback);
   }
   if (type == INTERNAL_LAVAUDIO)
   {
-    Com::SmartQIPtr<ILAVAudioSettings> pLAVAudioSettings = pBF;
+    Com::SComQIPtr<ILAVAudioSettings> pLAVAudioSettings = pBF;
 
     CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -527,12 +527,12 @@ bool CGraphFilters::SetLavSettings(const std::string &type, IBaseFilter* pBF)
     pLAVAudioSettings->SetFormatConfiguration(Codec_WMALL, TRUE);
 
     // Custom interface
-    if (Com::SmartQIPtr<ILAVAudioSettingsDSPlayerCustom> pLAVFSettingsDSPlayerCustom = pLAVAudioSettings)
+    if (Com::SComQIPtr<ILAVAudioSettingsDSPlayerCustom> pLAVFSettingsDSPlayerCustom = pLAVAudioSettings.p)
       pLAVFSettingsDSPlayerCustom->SetPropertyPageCallback(CDSPropertyPage::PropertyPageCallback);
   }
   if (type == INTERNAL_LAVSPLITTER)
   {
-    Com::SmartQIPtr<ILAVFSettings> pLAVFSettings = pBF;
+    Com::SComQIPtr<ILAVFSettings> pLAVFSettings = pBF;
 
     CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
@@ -557,7 +557,7 @@ bool CGraphFilters::SetLavSettings(const std::string &type, IBaseFilter* pBF)
     pLAVFSettings->SetNetworkStreamAnalysisDuration(lavSettings.splitter_dwNetworkAnalysisDuration);
 
     // Custom interface
-    if (Com::SmartQIPtr<ILAVFSettingsDSPlayerCustom> pLAVFSettingsDSPlayerCustom = pLAVFSettings)
+    if (Com::SComQIPtr<ILAVFSettingsDSPlayerCustom> pLAVFSettingsDSPlayerCustom = pLAVFSettings.p)
       pLAVFSettingsDSPlayerCustom->SetPropertyPageCallback(CDSPropertyPage::PropertyPageCallback);
   }
   return true;
@@ -631,7 +631,7 @@ void CGraphFilters::GetActiveDecoder(std::pair<std::string, bool> &activeDecoder
   activeDecoder.first = "";
   activeDecoder.second = false;
 
-  if (Com::SmartQIPtr<ILAVVideoStatus> pLAVFStatus = Video.pBF)
+  if (Com::SComQIPtr<ILAVVideoStatus> pLAVFStatus = Video.pBF.p)
   {
     const WCHAR *activeDecoderNameW = pLAVFStatus->GetActiveDecoderName();
 
@@ -654,7 +654,7 @@ void CGraphFilters::GetActiveDecoder(std::pair<std::string, bool> &activeDecoder
       }
       else 
       {
-        Com::SmartQIPtr<ILAVVideoSettings> pLAVVideoSettings = Video.pBF;
+        Com::SComQIPtr<ILAVVideoSettings> pLAVVideoSettings = Video.pBF.p;
         if (!pLAVVideoSettings)
           return;
 

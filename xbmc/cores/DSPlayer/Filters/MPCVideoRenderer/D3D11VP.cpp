@@ -112,8 +112,8 @@ HRESULT CD3D11VP::InitVideoDevice(ID3D11Device *pDevice, ID3D11DeviceContext *pC
 				}
 			}
 		}
-		DLog(WToA(input));
-		DLog(WToA(output));
+		//CLog::Log(LOGINFO,WToA(input).c_str());
+		//CLog::Log(LOGINFO, WToA(output).c_str());
 	}
 #endif
 
@@ -242,7 +242,7 @@ HRESULT CD3D11VP::InitVideoProcessor(
 		if (m_VPCaps.AutoStreamCaps & D3D11_VIDEO_PROCESSOR_AUTO_STREAM_CAPS_ANAMORPHIC_SCALING)  { dbgstr.append(L" Anamorphic scaling"); }
 		dbgstr = dbgstr.TrimRight(',');
 	}
-	DLog(WToA(dbgstr));
+	//CLog::Log(LOGINFO, WToA(dbgstr));
 #endif
 
 	// select output format
@@ -330,7 +330,7 @@ HRESULT CD3D11VP::InitVideoProcessor(
 				dbgstr = dbgstr.TrimRight(',');
 				dbgstr.AppendFormat(L"\n  PastFrames   : %u", m_RateConvCaps.PastFrames);
 				dbgstr.AppendFormat(L"\n  FutureFrames : %u", m_RateConvCaps.FutureFrames);
-				DLog(WToA(dbgstr));
+				//CLog::Log(LOGINFO, WToA(dbgstr));
 #endif
 			}
 		}

@@ -30,7 +30,7 @@
 #include "PixelShaderList.h"
 #include "streamsmanager.h"
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 
 #include "utils/charsetconverter.h"
 #include "utils/Log.h"
@@ -65,8 +65,8 @@ namespace
   {
     std::vector<std::pair<std::string, std::string>> ret;
 
-    Com::SmartPtr<IMMDeviceEnumerator> enumerator;
-    Com::SmartPtr<IMMDeviceCollection> collection;
+    Com::SComPtr<IMMDeviceEnumerator> enumerator;
+    Com::SComPtr<IMMDeviceCollection> collection;
     UINT count = 0;
 
     if (SUCCEEDED(enumerator.CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER)) &&
@@ -75,8 +75,8 @@ namespace
 
       for (UINT i = 0; i < count; i++) {
         LPWSTR id = nullptr;
-        Com::SmartPtr<IMMDevice> device;
-        Com::SmartPtr<IPropertyStore> devicePropertyStore;
+        Com::SComPtr<IMMDevice> device;
+        Com::SComPtr<IPropertyStore> devicePropertyStore;
         PROPVARIANT friendlyName;
         PropVariantInit(&friendlyName);
 
@@ -185,8 +185,8 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
   {
     //TODO
     //add IAMOpenProgress for requesting the status of stream without this interface the player failed if connection is too slow
-    Com::SmartQIPtr<IFileSourceFilter> pSourceUrl;
-    Com::SmartPtr<IUnknown> pUnk = NULL;
+    Com::SComQIPtr<IFileSourceFilter> pSourceUrl;
+    Com::SComPtr<IUnknown> pUnk = NULL;
 
     pUnk.CoCreateInstance(CLSID_URLReader, NULL);
     hr = pUnk->QueryInterface(IID_IBaseFilter, (void**)&CGraphFilters::Get()->Source.pBF);
@@ -233,8 +233,8 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
   * windows UNC: \\\\HOSTNAME\share\file.ts
   */
   pWinFilePath = CDSFile::SmbToUncPath(pWinFilePath);
-
-  if (!pFileItem.IsInternetStream(true))
+  
+  if (!URIUtils::IsInternetStream(pFileItem.GetDynPath(), true))
     StringUtils::Replace(pWinFilePath, "/", "\\");
 
   std::wstring strFileW;
@@ -249,7 +249,7 @@ HRESULT CFGLoader::InsertSourceFilter(CFileItem& pFileItem, const std::string& f
       return E_FAIL;
     }
 
-    Com::SmartQIPtr<IFileSourceFilter> pFS = infos.pBF;
+    Com::SComQIPtr<IFileSourceFilter> pFS = infos.pBF.p;
 
     if (SUCCEEDED(pFS->Load(strFileW.c_str(), NULL)))
       CLog::Log(LOGINFO, "{} Successfully loaded file in the splitter/source", __FUNCTION__);
@@ -478,7 +478,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
 {
   CFileItem pFileItem = _pFileItem;
 
-  if (!pFileItem.IsInternetStream() && !CFilterCoreFactory::SomethingMatch(pFileItem))
+  if (!URIUtils::IsInternetStream(pFileItem.GetDynPath()) && !CFilterCoreFactory::SomethingMatch(pFileItem))
   {
 
     CLog::Log(LOGERROR, "{} Extension \"{}\" not found. Please check mediasconfig.xml",

@@ -410,7 +410,7 @@ HRESULT ISubPicQueueImpl::RenderTo(ISubPic* pSubPic, REFERENCE_TIME rtStart, REF
   if(!pSubPic)
     return hr;
 
-  Com::SmartPtr<ISubPicProvider> pSubPicProvider; // FIXME: May crash
+  Com::SComPtr<ISubPicProvider> pSubPicProvider; // FIXME: May crash
   if(FAILED(GetSubPicProvider(&pSubPicProvider)) || !pSubPicProvider)
     return hr;
 
@@ -507,7 +507,7 @@ STDMETHODIMP CSubPicQueue::Invalidate(REFERENCE_TIME rtInvalidate)
   return S_OK;
 }
 
-STDMETHODIMP_(bool) CSubPicQueue::LookupSubPic(REFERENCE_TIME rtNow, Com::SmartPtr<ISubPic>& ppSubPic)
+STDMETHODIMP_(bool) CSubPicQueue::LookupSubPic(REFERENCE_TIME rtNow, Com::SComPtr<ISubPic>& ppSubPic)
 {
 
   CAutoLock cQueueLock(&m_csQueueLock);
@@ -733,7 +733,7 @@ DWORD CSubPicQueue::ThreadProc()
 
     int nMaxSubPic = m_nMaxSubPic;
 
-    Com::SmartPtr<ISubPicProvider> pSubPicProvider;
+    Com::SComPtr<ISubPicProvider> pSubPicProvider;
     if(SUCCEEDED(GetSubPicProvider(&pSubPicProvider)) && pSubPicProvider
     && SUCCEEDED(pSubPicProvider->Lock()))
     {
@@ -766,7 +766,7 @@ DWORD CSubPicQueue::ThreadProc()
             if (SUCCEEDED (hr2 = pSubPicProvider->GetTextureSize(pos, MaxTextureSize, VirtualSize, VirtualTopLeft)))
               m_pAllocator->SetMaxTextureSize(MaxTextureSize);
 
-            Com::SmartPtr<ISubPic> pStatic;
+            Com::SComPtr<ISubPic> pStatic;
             if(FAILED(m_pAllocator->GetStatic(&pStatic)))
               break;
 
@@ -807,7 +807,7 @@ DWORD CSubPicQueue::ThreadProc()
             if(S_OK != hr) // subpic was probably empty
               continue;
 
-            Com::SmartPtr<ISubPic> pDynamic;
+            Com::SComPtr<ISubPic> pDynamic;
             if(FAILED(m_pAllocator->AllocDynamic(&pDynamic))
             || FAILED(pStatic->CopyTo(pDynamic)))
               break;
@@ -896,7 +896,7 @@ STDMETHODIMP CSubPicQueueNoThread::Invalidate(REFERENCE_TIME rtInvalidate)
   return S_OK;
 }
 
-STDMETHODIMP_(bool) CSubPicQueueNoThread::LookupSubPic(REFERENCE_TIME rtNow, Com::SmartPtr<ISubPic>& ppSubPic)
+STDMETHODIMP_(bool) CSubPicQueueNoThread::LookupSubPic(REFERENCE_TIME rtNow, Com::SComPtr<ISubPic>& ppSubPic)
 {
 
   ISubPic* pSubPic;
@@ -919,7 +919,7 @@ STDMETHODIMP_(bool) CSubPicQueueNoThread::LookupSubPic(REFERENCE_TIME rtNow, Com
   }
   else
   {
-    Com::SmartPtr<ISubPicProvider> pSubPicProvider;
+    Com::SComPtr<ISubPicProvider> pSubPicProvider;
     if(SUCCEEDED(GetSubPicProvider(&pSubPicProvider)) && pSubPicProvider
     && SUCCEEDED(pSubPicProvider->Lock()))
     {
@@ -946,7 +946,7 @@ STDMETHODIMP_(bool) CSubPicQueueNoThread::LookupSubPic(REFERENCE_TIME rtNow, Com
           
           if(m_pAllocator->IsDynamicWriteOnly())
           {
-            Com::SmartPtr<ISubPic> pStatic;
+            Com::SComPtr<ISubPic> pStatic;
             if(SUCCEEDED(m_pAllocator->GetStatic(&pStatic))
             && SUCCEEDED(RenderTo(pStatic, rtStart, rtStop, fps, false))
             && SUCCEEDED(pStatic->CopyTo(pSubPic)))
@@ -1048,7 +1048,7 @@ STDMETHODIMP ISubPicAllocatorPresenterImpl::NonDelegatingQueryInterface(REFIID r
 
 void ISubPicAllocatorPresenterImpl::AlphaBltSubPic(Com::SmartSize size, SubPicDesc* pTarget)
 {
-  Com::SmartPtr<ISubPic> pSubPic;
+  Com::SComPtr<ISubPic> pSubPic;
   if(m_pSubPicQueue->LookupSubPic(m_rtNow, pSubPic))
   {
     Com::SmartRect rcSource, rcDest;

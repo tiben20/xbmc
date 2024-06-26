@@ -22,7 +22,7 @@
 #pragma once
 
 #include "CoordGeom.h"
-#include "../DSUtil/SmartPtr.h"
+#include "../SComCli.h"
 #include "dsutil/Geometry.h"
 #include <list>
 #pragma pack(push, 1)
@@ -73,7 +73,7 @@ ISubPic : public IUnknown
   STDMETHOD (Lock) (SubPicDesc& spd /*[out]*/) PURE;
   STDMETHOD (Unlock) (RECT* pDirtyRect /*[in]*/) PURE;
 
-  //STDMETHOD (GetTexture) (Com::SmartPtr<IDirect3DTexture9>&  pTexture) PURE;
+  //STDMETHOD (GetTexture) (Com::SComPtr<IDirect3DTexture9>&  pTexture) PURE;
   STDMETHOD (AlphaBlt) (RECT* pSrc, RECT* pDst, SubPicDesc* pTarget = NULL /*[in]*/) PURE;
   STDMETHOD (GetSourceAndDest) (SIZE* pSize /*[in]*/, RECT* pRcSource /*[out]*/, RECT* pRcDest /*[out]*/) PURE;
   STDMETHOD (SetVirtualTextureSize) (const SIZE pSize, const POINT pTopLeft) PURE;
@@ -156,7 +156,7 @@ public:
   STDMETHODIMP Unlock(RECT* pDirtyRect) = 0;
 
   STDMETHODIMP AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget) = 0;
-  //STDMETHODIMP GetTexture(Com::SmartPtr<IDirect3DTexture9>&  pTexture) = 0;
+  //STDMETHODIMP GetTexture(Com::SComPtr<IDirect3DTexture9>&  pTexture) = 0;
 
   STDMETHODIMP SetVirtualTextureSize (const SIZE pSize, const POINT pTopLeft);
   STDMETHODIMP GetSourceAndDest(SIZE* pSize, RECT* pRcSource, RECT* pRcDest);
@@ -204,7 +204,7 @@ private:
 protected:
   bool  m_bInvAlpha = false;
   bool m_fPow2Textures;
-  Com::SmartPtr<ISubPic> m_pStatic;
+  Com::SComPtr<ISubPic> m_pStatic;
   Com::SmartSize m_cursize;
 
 public:
@@ -287,7 +287,7 @@ ISubPicQueue : public IUnknown
   STDMETHOD (SetTime) (REFERENCE_TIME rtNow /*[in]*/) PURE;
 
   STDMETHOD (Invalidate) (REFERENCE_TIME rtInvalidate = -1) PURE;
-  STDMETHOD_(bool, LookupSubPic) (REFERENCE_TIME rtNow /*[in]*/, Com::SmartPtr<ISubPic>& pSubPic /*[out]*/) PURE;
+  STDMETHOD_(bool, LookupSubPic) (REFERENCE_TIME rtNow /*[in]*/, Com::SComPtr<ISubPic>& pSubPic /*[out]*/) PURE;
 
   STDMETHOD (GetStats) (int& nSubPics, REFERENCE_TIME& rtNow, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop /*[out]*/) PURE;
   STDMETHOD (GetStats) (int nSubPic /*[in]*/, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop /*[out]*/) PURE;
@@ -296,14 +296,14 @@ ISubPicQueue : public IUnknown
 class ISubPicQueueImpl : public CUnknown, public ISubPicQueue
 {
   CCritSec m_csSubPicProvider;
-  Com::SmartPtr<ISubPicProvider> m_pSubPicProvider;
+  Com::SComPtr<ISubPicProvider> m_pSubPicProvider;
 
 protected:
   double m_fps;
   REFERENCE_TIME m_rtNow;
   REFERENCE_TIME m_rtNowLast;
 
-  Com::SmartPtr<ISubPicAllocator> m_pAllocator;
+  Com::SComPtr<ISubPicAllocator> m_pAllocator;
 
   HRESULT RenderTo(ISubPic* pSubPic, REFERENCE_TIME rtStart, REFERENCE_TIME rtStop, double fps, BOOL bIsAnimated);
 
@@ -363,7 +363,7 @@ public:
   STDMETHODIMP SetTime(REFERENCE_TIME rtNow);
 
   STDMETHODIMP Invalidate(REFERENCE_TIME rtInvalidate = -1);
-  STDMETHODIMP_(bool) LookupSubPic(REFERENCE_TIME rtNow, Com::SmartPtr<ISubPic>& pSubPic);
+  STDMETHODIMP_(bool) LookupSubPic(REFERENCE_TIME rtNow, Com::SComPtr<ISubPic>& pSubPic);
 
   STDMETHODIMP GetStats(int& nSubPics, REFERENCE_TIME& rtNow, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
   STDMETHODIMP GetStats(int nSubPic, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
@@ -372,7 +372,7 @@ public:
 class CSubPicQueueNoThread : public ISubPicQueueImpl
 {
   CCritSec m_csLock;
-  Com::SmartPtr<ISubPic> m_pSubPic;
+  Com::SComPtr<ISubPic> m_pSubPic;
 
 public:
   CSubPicQueueNoThread(ISubPicAllocator* pAllocator, HRESULT* phr);
@@ -381,7 +381,7 @@ public:
   // ISubPicQueue
 
   STDMETHODIMP Invalidate(REFERENCE_TIME rtInvalidate = -1);
-  STDMETHODIMP_(bool) LookupSubPic(REFERENCE_TIME rtNow, Com::SmartPtr<ISubPic>& pSubPic);
+  STDMETHODIMP_(bool) LookupSubPic(REFERENCE_TIME rtNow, Com::SComPtr<ISubPic>& pSubPic);
 
   STDMETHODIMP GetStats(int& nSubPics, REFERENCE_TIME& rtNow, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
   STDMETHODIMP GetStats(int nSubPic, REFERENCE_TIME& rtStart, REFERENCE_TIME& rtStop);
@@ -437,9 +437,9 @@ protected:
   REFERENCE_TIME m_rtNow;
   float m_fps; //float is enought
 
-  Com::SmartPtr<ISubPicProvider> m_SubPicProvider;
-  Com::SmartPtr<ISubPicAllocator> m_pAllocator;
-  Com::SmartPtr<ISubPicQueue> m_pSubPicQueue;
+  Com::SComPtr<ISubPicProvider> m_SubPicProvider;
+  Com::SComPtr<ISubPicAllocator> m_pAllocator;
+  Com::SComPtr<ISubPicQueue> m_pSubPicQueue;
 
   bool m_bPendingResetDevice;
 

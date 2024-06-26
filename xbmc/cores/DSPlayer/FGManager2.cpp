@@ -35,7 +35,7 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "video/VideoFileItemClassify.h"
-
+#include "Utils/URIUtils.h"
 HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
 {
 
@@ -68,10 +68,10 @@ HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
   if (StringUtils::EqualsNoCase(StringUtils::Left(pWinFilePath, 6), "smb://"))
     StringUtils::Replace(pWinFilePath,"smb://", "\\\\");
 
-  if (!FileItem.IsInternetStream())
+  if (!URIUtils::IsInternetStream(FileItem.GetDynPath()))
     StringUtils::Replace(pWinFilePath,"/", "\\");
 
-  Com::SmartPtr<IBaseFilter> pBF;
+  Com::SComPtr<IBaseFilter> pBF;
   std::wstring strFileW;
   g_charsetConverter.utf8ToW(pWinFilePath, strFileW);
   if (FAILED(hr = g_dsGraph->pFilterGraph->AddSourceFilter(strFileW.c_str(), NULL, &pBF)))
@@ -110,7 +110,7 @@ HRESULT CFGManager2::RenderFileXbmc(const CFileItem& pFileItem)
       CGraphFilters::Get()->Splitter.pBF = pBF;
       break;
     }
-    Com::SmartPtr<IBaseFilter> pNext;
+    Com::SComPtr<IBaseFilter> pNext;
     hr = GetNextFilter(pBF, DOWNSTREAM, &pNext);
     pBF = pNext;
   } while (hr == S_OK);

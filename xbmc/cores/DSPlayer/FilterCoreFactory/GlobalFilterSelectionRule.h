@@ -35,6 +35,7 @@
 #include "video/VideoInfoTag.h"
 #include "utils/StreamDetails.h"
 #include "utils/DSFileUtils.h"
+#include "utils/URIUtils.h"
 
 class CGlobalFilterSelectionRule
 {
@@ -82,7 +83,7 @@ public:
     }
 
     if (!checkUrl && m_url > 0) return false;
-    if (checkUrl && pFileItem.IsInternetStream() && m_url < 1) return false;
+    if (checkUrl && URIUtils::IsInternetStream(pFileItem.GetDynPath()) && m_url < 1) return false;
     if (CompileRegExp(m_fileTypes, regExp) && !MatchesRegExp(url.GetFileType(), regExp)) return false;
     if (CompileRegExp(m_fileName, regExp) && !MatchesRegExp(pFileItem.GetPath(), regExp)) return false;
     if (CompileRegExp(m_Protocols, regExp) && !MatchesRegExp(url.GetProtocol(), regExp)) return false;

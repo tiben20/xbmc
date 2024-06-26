@@ -37,11 +37,11 @@
 #endif
 
 template <typename... Args>
-inline void DebugLogFmt(const std::string_view& format, Args&&... args)
+inline void DebugLogFmt(fmt::format_string<Args...> format, Args&&... args)
 {
 
-	auto message = fmt::format(format, std::forward<Args>(args)...);
-	CLog::Log(LOGINFO, message);
+	//auto message = fmt::format(format, std::forward<Args>(args)...);
+	CLog::Log(LOGINFO, format, std::forward<Args>(args)...);
 	//Log(MapLogLevel(level), format, std::forward<Args>(args)...);
 }
 #if 0

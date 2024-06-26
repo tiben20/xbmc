@@ -107,7 +107,7 @@
 
 */
 
-#include "SmartPtr.h"
+#include "SComCli.h"
 #include "strsafe.h"
 #include <assert.h>
 #include "DSUtil.h"
@@ -115,15 +115,6 @@
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
 #endif
-
-#define BeginEnumPins(pBaseFilter, pEnumPins, pPin) \
-{Com::SmartPtr<IEnumPins> pEnumPins; \
-  if(pBaseFilter && SUCCEEDED(pBaseFilter->EnumPins(&pEnumPins))) \
-{ \
-  for(Com::SmartPtr<IPin> pPin; S_OK == pEnumPins->Next(1, &pPin, 0); pPin = NULL) \
-{ \
-
-#define EndEnumPins }}}
 
 
 const LONGLONG ONE_SECOND = 10000000;  // One second, in 100-nanosecond units.
@@ -1118,7 +1109,7 @@ inline HRESULT DisconnectPin(IGraphBuilder *pGraph, IPin *pPin)
   }
 
   HRESULT hr = S_OK;
-  Com::SmartPtr<IPin> pPinTo = NULL;
+  Microsoft::WRL::ComPtr<IPin> pPinTo = NULL;
 
   hr = pPin->ConnectedTo(&pPinTo);
   if (hr == VFW_E_NOT_CONNECTED)
@@ -1135,7 +1126,7 @@ inline HRESULT DisconnectPin(IGraphBuilder *pGraph, IPin *pPin)
     if (SUCCEEDED(hr))
     {
       // Disconnect the other pin.
-      hr = pGraph->Disconnect(pPinTo);
+      hr = pGraph->Disconnect(pPinTo.Get());
     }
   }
 

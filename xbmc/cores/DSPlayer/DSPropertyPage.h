@@ -30,7 +30,7 @@
 
 #include "streams.h"
 #include "threads/Thread.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "GraphFilters.h"
 #include "prsht.h"
 

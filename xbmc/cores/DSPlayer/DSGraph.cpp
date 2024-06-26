@@ -48,7 +48,7 @@
 
 #include "FgManager.h"
 #include "qnetwork.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "DVDSubtitles/DVDFactorySubtitle.h"
 #include "guilib/GUIWindowManager.h"
 #include "GUIUserMessages.h"
@@ -610,8 +610,8 @@ void CDSGraph::Stop(bool rewind)
 
   BeginEnumFilters(g_dsGraph->pFilterGraph, pEF, pBF)
   {
-    Com::SmartQIPtr<IFileSourceFilter> pFSF;
-    pFSF = Com::SmartQIPtr<IAMNetworkStatus, &IID_IAMNetworkStatus>(pBF);
+    Com::SComQIPtr<IFileSourceFilter> pFSF;
+    pFSF = Com::SComQIPtr<IAMNetworkStatus, &IID_IAMNetworkStatus>(pBF);
     if (pFSF)
     {
       WCHAR* pFN = NULL;

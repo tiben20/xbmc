@@ -30,7 +30,7 @@
 #include "GraphFilters.h"
 #include "FgFilter.h"
 #include "FileItem.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 
 enum ESettingsType
 {

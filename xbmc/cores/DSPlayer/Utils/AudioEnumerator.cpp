@@ -28,7 +28,7 @@
 #include "streams.h"
 
 #include "DSUtil/DSUtil.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 
 #include "utils/StringUtils.h"
 
@@ -41,7 +41,7 @@ HRESULT CAudioEnumerator::GetAudioRenderers(std::vector<DSFilterInfo>& pRenderer
   CSingleExit lock(m_critSection);
   pRenderers.clear();
 
-  Com::SmartPtr<IPropertyBag> propBag = NULL;
+  Com::SComPtr<IPropertyBag> propBag = NULL;
   BeginEnumSysDev(CLSID_AudioRendererCategory, pMoniker)
   {
     std::string displayName;
@@ -83,7 +83,7 @@ bool CAudioEnumerator::IsDevice(std::string strDevice)
   if (strDevice.empty())
     return false;
 
-  Com::SmartPtr<IPropertyBag> propBag = NULL;
+  Com::SComPtr<IPropertyBag> propBag = NULL;
   BeginEnumSysDev(CLSID_AudioRendererCategory, pMoniker)
   {
     if (SUCCEEDED(pMoniker->BindToStorage(NULL, NULL, IID_IPropertyBag, (void**)&propBag)))

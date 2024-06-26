@@ -140,11 +140,11 @@ void CDSPropertyPage::Process()
 {
   bool wasFullscreen = false;
   HRESULT hr;
-  Com::SmartQIPtr<ISpecifyPropertyPages> pProp = m_pBF;
+  Com::SComQIPtr<ISpecifyPropertyPages> pProp = m_pBF;
   CAUUID pPages;
   if (!pProp)
   {
-    Com::SmartQIPtr<ISpecifyPropertyPages2> pProp2 = m_pBF;
+    Com::SComQIPtr<ISpecifyPropertyPages2> pProp2 = m_pBF;
     pProp = pProp2;
   }
   
@@ -199,7 +199,7 @@ void CDSPropertyPage::Process()
 
     xBaseUnit = GdiGetCharDimensions(hdc, NULL, &yBaseUnit);
 
-    Com::SmartQIPtr<ISpecifyPropertyPages2> pProp2 = pProp;
+    Com::SComQIPtr<ISpecifyPropertyPages2> pProp2 = pProp.p;
 
     for (unsigned int page = 0; page < pPages.cElems; page++)
     {

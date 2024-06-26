@@ -69,7 +69,7 @@ CDX9SubPic::~CDX9SubPic()
 
 STDMETHODIMP_(void*) CDX9SubPic::GetObject()
 {
-  Com::SmartPtr<IDirect3DTexture9> pTexture;
+  Com::SComPtr<IDirect3DTexture9> pTexture;
   if(SUCCEEDED(m_pSurface->GetContainer(IID_IDirect3DTexture9, (void**)&pTexture)))
     return (void*)(IDirect3DTexture9*)pTexture;
 
@@ -105,18 +105,18 @@ STDMETHODIMP CDX9SubPic::CopyTo(ISubPic* pSubPic)
   if(m_rcDirty.IsRectEmpty())
     return S_FALSE;
 
-  Com::SmartPtr<IDirect3DDevice9> pD3DDev;
+  Com::SComPtr<IDirect3DDevice9> pD3DDev;
   if(!m_pSurface || FAILED(m_pSurface->GetDevice(&pD3DDev)) || !pD3DDev)
     return E_FAIL;
 
   IDirect3DTexture9* pSrcTex = (IDirect3DTexture9*)GetObject();
-  Com::SmartPtr<IDirect3DSurface9> pSrcSurf;
+  Com::SComPtr<IDirect3DSurface9> pSrcSurf;
   pSrcTex->GetSurfaceLevel(0, &pSrcSurf);
   D3DSURFACE_DESC srcDesc;
   pSrcSurf->GetDesc(&srcDesc);
 
   IDirect3DTexture9* pDstTex = (IDirect3DTexture9*)pSubPic->GetObject();
-  Com::SmartPtr<IDirect3DSurface9> pDstSurf;
+  Com::SComPtr<IDirect3DSurface9> pDstSurf;
   pDstTex->GetSurfaceLevel(0, &pDstSurf);
   D3DSURFACE_DESC dstDesc;
   pDstSurf->GetDesc(&dstDesc);
@@ -134,7 +134,7 @@ STDMETHODIMP CDX9SubPic::ClearDirtyRect(DWORD color)
   if(m_rcDirty.IsRectEmpty())
     return S_FALSE;
 
-  Com::SmartPtr<IDirect3DDevice9> pD3DDev;
+  Com::SComPtr<IDirect3DDevice9> pD3DDev;
   if(!m_pSurface || FAILED(m_pSurface->GetDevice(&pD3DDev)) || !pD3DDev)
     return E_FAIL;
 
@@ -224,7 +224,7 @@ STDMETHODIMP CDX9SubPic::Unlock(RECT* pDirtyRect)
     m_rcDirty = Com::SmartRect(Com::SmartPoint(0, 0), m_size);
   }
 
-  Com::SmartPtr<IDirect3DTexture9> pTexture = (IDirect3DTexture9*)GetObject();
+  Com::SComPtr<IDirect3DTexture9> pTexture = (IDirect3DTexture9*)GetObject();
   if (pTexture && !((Com::SmartRect*)pDirtyRect)->IsRectEmpty())
     pTexture->AddDirtyRect(&m_rcDirty);
 
@@ -240,8 +240,8 @@ STDMETHODIMP CDX9SubPic::AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget)
 
   Com::SmartRect src(*pSrc), dst(*pDst);
 
-  Com::SmartPtr<IDirect3DDevice9> pD3DDev;
-  Com::SmartPtr<IDirect3DTexture9> pTexture = (IDirect3DTexture9*)GetObject();
+  Com::SComPtr<IDirect3DDevice9> pD3DDev;
+  Com::SComPtr<IDirect3DTexture9> pTexture = (IDirect3DTexture9*)GetObject();
   if(!pTexture || FAILED(pTexture->GetDevice(&pD3DDev)) || !pD3DDev)
     return E_NOINTERFACE;
 
@@ -319,7 +319,7 @@ STDMETHODIMP CDX9SubPic::AlphaBlt(RECT* pSrc, RECT* pDst, SubPicDesc* pTarget)
   return E_FAIL;
 }
 
-STDMETHODIMP CDX9SubPic::GetTexture( Com::SmartPtr<IDirect3DTexture9>& pTexture )
+STDMETHODIMP CDX9SubPic::GetTexture( Com::SComPtr<IDirect3DTexture9>& pTexture )
 {
   pTexture = (IDirect3DTexture9*)GetObject();
   if(! pTexture)
@@ -365,7 +365,7 @@ void CDX9SubPicAllocator::FreeTextures()
   }
   m_AllocatedSurfaces.clear();
 
-  for (std::list<Com::SmartPtrForList<IDirect3DSurface9>>::iterator it = m_FreeSurfaces.begin();
+  for (std::list<Com::SComPtrForList<IDirect3DSurface9>>::iterator it = m_FreeSurfaces.begin();
     it != m_FreeSurfaces.end(); it++)
     it->FullRelease();
 
@@ -395,7 +395,7 @@ void CDX9SubPicAllocator::ClearCache()
 STDMETHODIMP CDX9SubPicAllocator::ChangeDevice(IUnknown* pDev)
 {
   ClearCache();
-  Com::SmartQIPtr<IDirect3DDevice9> pD3DDev = pDev;
+  Com::SComQIPtr<IDirect3DDevice9> pD3DDev = pDev;
   if(!pD3DDev) return E_NOINTERFACE;
 
   CAutoLock cAutoLock(this);
@@ -427,7 +427,7 @@ bool CDX9SubPicAllocator::Alloc(bool fStatic, ISubPic** ppSubPic)
 
   *ppSubPic = NULL;
 
-  Com::SmartPtr<IDirect3DSurface9> pSurface;
+  Com::SComPtr<IDirect3DSurface9> pSurface;
 
   int Width = m_maxsize.cx;
   int Height = m_maxsize.cy;
@@ -441,7 +441,7 @@ bool CDX9SubPicAllocator::Alloc(bool fStatic, ISubPic** ppSubPic)
   if (!fStatic)
   {
     CAutoLock cAutoLock(&ms_SurfaceQueueLock);
-    std::list<Com::SmartPtrForList<IDirect3DSurface9>>::iterator FreeSurf = m_FreeSurfaces.begin();
+    std::list<Com::SComPtrForList<IDirect3DSurface9>>::iterator FreeSurf = m_FreeSurfaces.begin();
     if (FreeSurf != m_FreeSurfaces.end())
     {
       pSurface = m_FreeSurfaces.front();
@@ -451,7 +451,7 @@ bool CDX9SubPicAllocator::Alloc(bool fStatic, ISubPic** ppSubPic)
 
   if (!pSurface)
   {
-    Com::SmartPtr<IDirect3DTexture9> pTexture;
+    Com::SComPtr<IDirect3DTexture9> pTexture;
     if(FAILED(m_pD3DDev->CreateTexture(Width, Height, 1, 0, D3DFMT_A8R8G8B8, fStatic?D3DPOOL_SYSTEMMEM:D3DPOOL_DEFAULT, &pTexture, NULL)))
       return(false);
 

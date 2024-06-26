@@ -1,5 +1,5 @@
 #pragma once
-#ifndef _SMARTPTR_H
+#if 0
 #define _SMARTPTR_H
 
 

@@ -37,7 +37,7 @@ void ILogImpl::Log(int loglevel, const char *format, ...)
 
   va_end(va);
   
-  CLog::Log(loglevel, msg.c_str());
+  //CLog::Log(loglevel, msg.c_str());
 
 }
 

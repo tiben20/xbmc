@@ -108,7 +108,7 @@ HRESULT CFilterCoreFactory::GetSourceFilter(const CFileItem& pFileItem, std::str
   CGlobalFilterSelectionRule * pRule = GetGlobalFilterSelectionRule(pFileItem, true);
   if (!pRule)
   {
-    if (pFileItem.IsInternetStream())
+    if (URIUtils::IsInternetStream(pFileItem.GetDynPath()))
     {
       filter = CGraphFilters::INTERNAL_LAVSPLITTER;
       return S_OK;

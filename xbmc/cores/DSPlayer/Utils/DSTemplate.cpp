@@ -23,7 +23,7 @@
 #if HAS_DS_PLAYER
 
 #include "DSTemplate.h"
-#include "DSUtil/SmartPtr.h"
+#include "SComCli.h"
 #include "DSUtil/DSUtil.h"
 #include "ShlObj.h"
 #include "dmoreg.h"
@@ -442,8 +442,8 @@ namespace Com
     // let's try it with a moniker display name
     do
     {
-      Com::SmartPtr<IMoniker>		loc_moniker;
-      Com::SmartPtr<IBindCtx>		bind;
+      Com::SComPtr<IMoniker>		loc_moniker;
+      Com::SComPtr<IBindCtx>		bind;
       ULONG					eaten = 0;
 
       if (FAILED(CreateBindCtx(0, &bind)))
@@ -491,9 +491,9 @@ namespace Com
         */
 
     HRESULT					hr;
-    Com::SmartPtr<IMoniker>		loc_moniker;
-    Com::SmartPtr<IBindCtx>		bind;
-    Com::SmartPtr<IPropertyBag>	propbag;
+    Com::SComPtr<IMoniker>		loc_moniker;
+    Com::SComPtr<IBindCtx>		bind;
+    Com::SComPtr<IPropertyBag>	propbag;
     ULONG					f, eaten = 0;
 
     if (FAILED(CreateBindCtx(0, &bind))) return -1;
@@ -781,8 +781,8 @@ namespace Com
 
   int FilterTemplates::EnumerateVideoRenderers()
   {
-    Com::SmartPtr<IFilterMapper2>		mapper;
-    Com::SmartPtr<IEnumMoniker>		emoniker;
+    Com::SComPtr<IFilterMapper2>		mapper;
+    Com::SComPtr<IEnumMoniker>		emoniker;
     HRESULT						hr;
     int							ret = 0;
 
@@ -1402,7 +1402,7 @@ namespace Com
         Remove using the filter mapper object.
         */
 
-    Com::SmartPtr<IFilterMapper2>		mapper;
+    Com::SComPtr<IFilterMapper2>		mapper;
     HRESULT						hr;
 
     hr = mapper.CoCreateInstance(CLSID_FilterMapper2);

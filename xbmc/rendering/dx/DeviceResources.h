@@ -164,6 +164,7 @@ namespace DX
 #if defined(TARGET_WINDOWS_STORE)
     winrt::Windows::UI::Core::CoreWindow m_coreWindow = nullptr;
 #endif
+    
     Microsoft::WRL::ComPtr<IDXGIFactory2> m_dxgiFactory;
     Microsoft::WRL::ComPtr<IDXGIAdapter1> m_adapter;
     Microsoft::WRL::ComPtr<IDXGIOutput1> m_output;

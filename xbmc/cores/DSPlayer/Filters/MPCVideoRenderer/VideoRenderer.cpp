@@ -146,7 +146,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	}
 
 	DLog("Windows {}", WToA(GetWindowsVersion()));
-	DLog(GetNameAndVersion().c_str());
+	//DLog(GetNameAndVersion().c_str());
 
 	ASSERT(S_OK == *phr);
 	m_pInputPin = new CVideoRendererInputPin(this, phr, L"In", this);

@@ -27,7 +27,7 @@
 // CNullRenderer
 //
 
-CNullRenderer::CNullRenderer(REFCLSID clsid, TCHAR* pName, LPUNKNOWN pUnk, HRESULT* phr) 
+CNullRenderer::CNullRenderer(REFCLSID clsid, LPCTSTR pName, LPUNKNOWN pUnk, HRESULT* phr)
   : CDSBaseRenderer(clsid, pName, pUnk, phr)
 {
 }

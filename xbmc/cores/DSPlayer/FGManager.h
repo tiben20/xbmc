@@ -80,9 +80,9 @@ private:
   std::vector<CStreamDeadEnd> m_deadends;
 
 protected:
-  Com::SmartPtr<IFilterMapper2> m_pFM;
-  Com::SmartPtr<IUnknown> m_pUnkInner;
-  Com::SmartPtr<IDvdGraphBuilder> m_pDvdGraph;
+  Com::SComPtr<IFilterMapper2> m_pFM;
+  Com::SComPtr<IUnknown> m_pUnkInner;
+  Com::SComPtr<IDvdGraphBuilder> m_pDvdGraph;
 
   bool m_audioPinConnected;
   bool m_videoPinConnected;
