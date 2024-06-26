@@ -41,6 +41,7 @@ set(HEADERS ChaptersManager.h
             StreamsManager.h
             subtitles/ILogImpl.h
             subtitles/DllLibSubs.h
-            subtitles/ILog.h)
+            subtitles/ILog.h
+			SComCli.h)
 
 core_add_library(DSPlayer)
