@@ -309,7 +309,6 @@ int CRegExp::PrivateRegFind(size_t bufferLen, const char *str, unsigned int star
   m_offset      = 0;
   m_bMatched    = false;
   m_iMatchCount = 0;
-  m_iCurOvertor = -1;
 
   if (!m_re)
   {
@@ -345,13 +344,11 @@ int CRegExp::PrivateRegFind(size_t bufferLen, const char *str, unsigned int star
     bufferLen = std::min<size_t>(bufferLen, startoffset + maxNumberOfCharsToTest);
 
   m_subject.assign(str + startoffset, bufferLen - startoffset);
-  
-  md = pcre2_match_data_create_from_pattern(m_re, NULL);
+  md = pcre2_match_data_create(OVECCOUNT, nullptr);
   int rc = pcre2_match(m_re, reinterpret_cast<PCRE2_SPTR>(m_subject.c_str()), m_subject.length(), 0,
                        0, md, m_ctxt);
   m_iOvector = pcre2_get_ovector_pointer(md);
   offset = pcre2_get_startchar(md);
-  m_iCurOvertor = m_iOvector[0];
   pcre2_match_data_free(md);
 
   if (rc<1)
@@ -425,7 +422,7 @@ int CRegExp::PrivateRegFind(size_t bufferLen, const char *str, unsigned int star
   m_offset = startoffset;
   m_bMatched = true;
   m_iMatchCount = rc;
-  return m_iCurOvertor + m_offset;
+  return m_iOvector[0] + m_offset;
 }
 
 int CRegExp::GetCaptureTotal() const
