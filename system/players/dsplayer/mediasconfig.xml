@@ -3,36 +3,36 @@
     <!-- DVD RULES -->
     <!-- Iso still return a crash on this filter. -->
     <rule filetypes="iso">
-      <source filter="avsource" />
+      <source filter="lavfsplitter" />
       <splitter filter="avsource" />
-      <video filter="ffdvideodec" />
-      <audio filter="ffdaudiodec" />
+      <video filter="lavvideodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <!-- If you want to play a dvd select the file /dvdfolder/VIDEO_TS/VIDEO_TS.ifo -->
     <rule filetypes="ifo">
       <source filter="dvdnavigator" />
       <splitter filter="dvdnavigator" />
-      <video filter="mpeg2videodec" />
+      <video filter="lavvideodec" />
       <audio filter="mpaaudiodec" />
     </rule>
     <!-- END DVD RULES -->
     <rule filetypes="avi|divx">
-      <source filter="avisource" />
-      <splitter filter="avisplitter" />
-      <video filter="mpcvideodec" />
-      <audio filter="ffdaudiodec" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
+      <video filter="lavvideodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="ogm">
-      <source filter="oggsource" />
+      <source filter="lavfsplitter" />
       <splitter filter="oggsplitter" />
       <video filter="mpcvideodec" />
-      <audio filter="ffdaudiodec" />
+      <audio filter="lavaudiodec" />
     </rule>  
       <rule filetypes="flv">
-      <source filter="flvsource" />
-      <splitter filter="flvsplitter" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
       <video filter="mpcvideodec" />
-      <audio filter="ffdaudiodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="mp4">
       <source filter="lavfsplitter" />
@@ -41,22 +41,22 @@
       <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="mov|m4v">
-      <source filter="mp4source" />
-      <splitter filter="mp4splitter" />
-      <video filter="ffdvideodec" />
-      <audio filter="ffdaudiodec" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
+      <video filter="lavvideodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="m2v">
-      <source filter="mpegsource" />
-      <splitter filter="mpegsplitter" />
-      <video filter="mpeg2videodec" />
-      <audio filter="ffdaudiodec" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
+      <video filter="lavvideodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="ts|mpeg|mpg|m2ts">
-      <source filter="avsource" />
-      <splitter filter="avsource" />
+      <source filter="lavfsplitter" />
+      <splitter filter="lavf_splitter" />
       <video filter="cyberlinkvideodec" />
-      <audio filter="ffdaudiodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     <rule filetypes="mkv">
       <source filter="lavfsplitter" />
@@ -109,7 +109,7 @@
       <source filter="urlfilesource" />
       <splitter filter="avsplitter" />
       <video filter="cyberlinkvideodec" />
-      <audio filter="ffdaudiodec" />
+      <audio filter="lavaudiodec" />
     </rule>
     
   </rules>

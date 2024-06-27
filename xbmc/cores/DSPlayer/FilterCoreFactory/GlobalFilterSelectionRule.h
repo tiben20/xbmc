@@ -84,10 +84,14 @@ public:
 
     if (!checkUrl && m_url > 0) return false;
     if (checkUrl && URIUtils::IsInternetStream(pFileItem.GetDynPath()) && m_url < 1) return false;
-    if (CompileRegExp(m_fileTypes, regExp) && !MatchesRegExp(url.GetFileType(), regExp)) return false;
-    if (CompileRegExp(m_fileName, regExp) && !MatchesRegExp(pFileItem.GetPath(), regExp)) return false;
-    if (CompileRegExp(m_Protocols, regExp) && !MatchesRegExp(url.GetProtocol(), regExp)) return false;
-    if (CompileRegExp(m_videoCodec, regExp) && !MatchesRegExp(streamDetails.GetVideoCodec(), regExp)) return false;
+    if (CompileRegExp(m_fileTypes, regExp) && !MatchesRegExp(url.GetFileType(), regExp))
+      return false;
+    if (CompileRegExp(m_fileName, regExp) && !MatchesRegExp(pFileItem.GetPath(), regExp))
+      return false;
+    if (CompileRegExp(m_Protocols, regExp) && !MatchesRegExp(url.GetProtocol(), regExp)) 
+      return false;
+    if (CompileRegExp(m_videoCodec, regExp) && !MatchesRegExp(streamDetails.GetVideoCodec(), regExp)) 
+      return false;
     std::string audioCodec = streamDetails.GetAudioCodec();
     if (audioCodec == "dca")
       audioCodec = "dts";
@@ -175,7 +179,8 @@ private:
   }
   bool MatchesRegExp(const std::string& str, CRegExp& regExp) const
   {
-    return regExp.RegFind(str, 0) == 0;
+    int res = regExp.RegFind(str);
+    return (res > -1);
   }
 
   void Initialize(TiXmlElement* pRule, int iPriority)

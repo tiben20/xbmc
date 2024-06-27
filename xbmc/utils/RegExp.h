@@ -135,6 +135,7 @@ private:
   static const int OVECCOUNT=(m_MaxNumOfBackrefrences + 1) * 3;
   unsigned int m_offset;
   PCRE2_SIZE* m_iOvector;
+  size_t      m_iCurOvertor;
   utf8Mode    m_utf8Mode;
   int         m_iMatchCount;
   uint32_t m_iOptions;
