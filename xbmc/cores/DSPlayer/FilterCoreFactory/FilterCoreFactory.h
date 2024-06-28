@@ -87,6 +87,7 @@ public:
     // CLog::Log(LOGDEBUG, "{} Ressources released", __FUNCTION__);
   }
 
+  static void DebugRules();
 private:
   static bool CompareCFGFilterFileToString(CFGFilterFile * f, std::string s)
   {

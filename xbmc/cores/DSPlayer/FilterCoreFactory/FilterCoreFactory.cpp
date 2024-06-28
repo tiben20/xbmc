@@ -80,6 +80,14 @@ HRESULT CFilterCoreFactory::LoadFiltersConfiguration(TiXmlElement* pConfig)
   return S_OK;
 }
 
+void CFilterCoreFactory::DebugRules()
+{
+  for (std::vector<CGlobalFilterSelectionRule*>::iterator it = m_selecRules.begin(); it != m_selecRules.end(); it++)
+  {
+    CLog::Log(LOGINFO,"{}",(*it)->GetRuleInfo().c_str());
+  }
+}
+
 CGlobalFilterSelectionRule* CFilterCoreFactory::GetGlobalFilterSelectionRule(const CFileItem& pFileItem, bool checkUrl /*= false*/)
 {
   std::sort(m_selecRules.begin(), m_selecRules.end(), compare_by_word);

@@ -145,6 +145,14 @@ public:
     return m_priority;
   }
 
+  std::string GetRuleInfo()
+  {
+    
+    std::string rule = StringUtils::Format("Filter Rules name: {}, file: {}, type: {} protocol: {}", m_name.c_str(), m_fileName.c_str(), m_fileTypes.c_str(), m_Protocols.c_str());
+    
+    rule.append(StringUtils::Format("video codec{}", m_videoCodec.c_str()));
+    return rule;
+  }
 private:
   int        m_url;
   bool       m_bStreamDetails;

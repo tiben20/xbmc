@@ -59,6 +59,7 @@
 #include "guilib/GUIComponent.h"
 #include "Filters/MPCVideoRenderer/VideoRenderer.h"
 #include "video/VideoFileItemClassify.h"
+#include <filesystem/SpecialProtocol.h>
 namespace
 {
   std::vector<std::pair<std::string, std::string>> GetDevices()
@@ -697,13 +698,14 @@ HRESULT CFGLoader::LoadConfig(FILTERSMAN_TYPE filterManager)
   }
   else if (filterManager == INTERNALFILTERS)
   {
-    LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/filtersconfig_internal.xml", FILTERS, true);
     LoadFilterCoreFactorySettings(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/filtersconfig.xml"), FILTERS, false);
-    //added here dont know why we use filtersman_type its never used
     LoadFilterCoreFactorySettings(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/mediasconfig.xml"), MEDIAS, false);
     LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/filtersconfig.xml", FILTERS, false);
-    LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/mediasconfig_internal.xml", MEDIAS, false);
+    LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/mediasconfig.xml", MEDIAS, false);
   }
+
+  CFilterCoreFactory::DebugRules();
+
   return S_OK;
 }
 
@@ -824,9 +826,11 @@ bool CFGLoader::LoadFilterCoreFactorySettings(const std::string& fileStr, ESetti
     CFilterCoreFactory::Destroy();
   }
 
-  CLog::Log(LOGINFO, "Loading filter core factory settings from {} ({} configuration).", fileStr.c_str(), (type == MEDIAS) ? "medias" : "filters");
+  CLog::Log(LOGINFO, "Loading filter core factory settings from {} ({} configuration).", CSpecialProtocol::TranslatePath(fileStr).c_str(), (type == MEDIAS) ? "medias" : "filters");
+  
   if (!XFILE::CFile::Exists(fileStr))
   { // tell the user it doesn't exist
+    
     CLog::Log(LOGINFO, "{} does not exist. Skipping.", fileStr.c_str());
     return false;
   }
