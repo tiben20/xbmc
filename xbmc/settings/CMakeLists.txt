@@ -4,7 +4,7 @@ set(SOURCES AdvancedSettings.cpp
             LibExportSettings.cpp
             MediaSettings.cpp
             MediaSourceSettings.cpp
-			PlayerSettings.cpp
+            PlayerSettings.cpp
             ServicesSettings.cpp
             SettingAddon.cpp
             SettingConditions.cpp
@@ -29,7 +29,7 @@ set(HEADERS AdvancedSettings.h
             LibExportSettings.h
             MediaSettings.h
             MediaSourceSettings.h
-			PlayerSettings.h
+            PlayerSettings.h
             ServicesSettings.h
             SettingAddon.h
             SettingConditions.h

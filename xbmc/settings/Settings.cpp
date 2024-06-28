@@ -432,9 +432,9 @@ void CSettings::InitializeOptionFillers()
   GetSettingsManager()->RegisterSettingOptionsFiller(
       "filecachechunksizes", CServicesSettings::SettingOptionsCacheChunkSizesFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller(
-    "playerqueuetimesizes", CPlayerSettings::SettingOptionsQueueTimeSizesFiller);
+      "playerqueuetimesizes", CPlayerSettings::SettingOptionsQueueTimeSizesFiller);
   GetSettingsManager()->RegisterSettingOptionsFiller(
-    "playerqueuedatasizes", CPlayerSettings::SettingOptionsQueueDataSizesFiller);
+      "playerqueuedatasizes", CPlayerSettings::SettingOptionsQueueDataSizesFiller);
 }
 
 void CSettings::UninitializeOptionFillers()
@@ -489,9 +489,6 @@ void CSettings::UninitializeOptionFillers()
   GetSettingsManager()->UnregisterSettingOptionsFiller("keyboardlayouts");
   GetSettingsManager()->UnregisterSettingOptionsFiller("filechunksizes");
   GetSettingsManager()->UnregisterSettingOptionsFiller("filecachebuffermodes");
-  GetSettingsManager()->UnregisterSettingOptionsFiller("filecachememorysizes");
-  GetSettingsManager()->UnregisterSettingOptionsFiller("filecachereadfactors");
-  GetSettingsManager()->UnregisterSettingOptionsFiller("filecachechunksizes");
   GetSettingsManager()->UnregisterSettingOptionsFiller("filecachememorysizes");
   GetSettingsManager()->UnregisterSettingOptionsFiller("filecachereadfactors");
   GetSettingsManager()->UnregisterSettingOptionsFiller("filecachechunksizes");
