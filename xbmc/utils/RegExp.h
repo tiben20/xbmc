@@ -8,7 +8,7 @@
 
 #pragma once
 
-//! @todo - move to std::regex (after switching to gcc 4.9 or higher) and get rid of CRegExp
+ //! @todo - move to std::regex (after switching to gcc 4.9 or higher) and get rid of CRegExp
 
 #include <string>
 #include <vector>
@@ -21,16 +21,16 @@ class CRegExp
 public:
   enum studyMode
   {
-    NoStudy          = 0, // do not study expression
-    StudyRegExp      = 1, // study expression (slower compilation, faster find)
+    NoStudy = 0, // do not study expression
+    StudyRegExp = 1, // study expression (slower compilation, faster find)
     StudyWithJitComp      // study expression and JIT-compile it, if possible (heavyweight optimization)
   };
   enum utf8Mode
   {
-    autoUtf8  = -1, // analyze regexp for UTF-8 multi-byte chars, for Unicode codes > 0xFF
-                    // or explicit Unicode properties (\p, \P and \X), enable UTF-8 mode if any of them are found
-    asciiOnly =  0, // process regexp and strings as single-byte encoded strings
-    forceUtf8 =  1  // enable UTF-8 mode (with Unicode properties)
+    autoUtf8 = -1, // analyze regexp for UTF-8 multi-byte chars, for Unicode codes > 0xFF
+    // or explicit Unicode properties (\p, \P and \X), enable UTF-8 mode if any of them are found
+    asciiOnly = 0, // process regexp and strings as single-byte encoded strings
+    forceUtf8 = 1  // enable UTF-8 mode (with Unicode properties)
   };
 
   static const int m_MaxNumOfBackrefrences = 20;
@@ -50,7 +50,7 @@ public:
    * @param study (optional) Controls study of expression, useful if expression will be used
    *                         several times
    */
-  CRegExp(bool caseless, utf8Mode utf8, const char *re, studyMode study = NoStudy);
+  CRegExp(bool caseless, utf8Mode utf8, const char* re, studyMode study = NoStudy);
 
   CRegExp(const CRegExp& re);
   ~CRegExp();
@@ -62,7 +62,7 @@ public:
    *                         several times
    * @return true on success, false on any error
    */
-  bool RegComp(const char *re, studyMode study = NoStudy);
+  bool RegComp(const char* re, studyMode study = NoStudy);
 
   /**
    * Compile (prepare) regular expression
@@ -72,7 +72,9 @@ public:
    * @return true on success, false on any error
    */
   bool RegComp(const std::string& re, studyMode study = NoStudy)
-  { return RegComp(re.c_str(), study); }
+  {
+    return RegComp(re.c_str(), study);
+  }
 
   /**
    * Find first match of regular expression in given string
@@ -92,7 +94,9 @@ public:
    * @return staring position of match in string, negative value in case of error or no match
    */
   int RegFind(const std::string& str, unsigned int startoffset = 0, int maxNumberOfCharsToTest = -1)
-  { return PrivateRegFind(str.length(), str.c_str(), startoffset, maxNumberOfCharsToTest); }
+  {
+    return PrivateRegFind(str.length(), str.c_str(), startoffset, maxNumberOfCharsToTest);
+  }
   std::string GetReplaceString(const std::string& sReplaceExp) const;
   int GetFindLen() const
   {
@@ -106,6 +110,7 @@ public:
   int GetSubLength(int iSub) const;
   int GetCaptureTotal() const;
   std::string GetMatch(int iSub = 0) const;
+  bool HasMatched() const { return m_bMatched; };
   const std::string& GetPattern() const { return m_pattern; }
   void DumpOvector(int iLog);
   /**
@@ -113,7 +118,9 @@ public:
    * @return true if RegExp object is ready for matching, false otherwise
    */
   inline bool IsCompiled(void) const
-  { return !m_pattern.empty(); }
+  {
+    return !m_pattern.empty();
+  }
   CRegExp& operator= (const CRegExp& re);
   static bool IsUtf8Supported(void);
   static bool AreUnicodePropertiesSupported(void);
@@ -121,7 +128,7 @@ public:
   static bool IsJitSupported(void);
 
 private:
-  int PrivateRegFind(size_t bufferLen, const char *str, unsigned int startoffset = 0, int maxNumberOfCharsToTest = -1);
+  int PrivateRegFind(size_t bufferLen, const char* str, unsigned int startoffset = 0, int maxNumberOfCharsToTest = -1);
   void InitValues(bool caseless = false, CRegExp::utf8Mode utf8 = asciiOnly);
   static bool requireUtf8(const std::string& regexp);
   static int readCharXCode(const std::string& regexp, size_t& pos);
@@ -132,7 +139,7 @@ private:
 
   pcre2_code* m_re;
   pcre2_match_context* m_ctxt;
-  static const int OVECCOUNT=(m_MaxNumOfBackrefrences + 1) * 3;
+  static const int OVECCOUNT = (m_MaxNumOfBackrefrences + 1) * 3;
   unsigned int m_offset;
   PCRE2_SIZE* m_iOvector;
   utf8Mode    m_utf8Mode;
@@ -149,4 +156,3 @@ private:
 };
 
 typedef std::vector<CRegExp> VECCREGEXP;
-
