@@ -215,10 +215,9 @@ bool CPVRGUIActionsChannels::HideChannel(const CFileItem& item) const
           CVariant{""}, CVariant{channel->ChannelName()}))
     return false;
 
-  if (!CServiceBroker::GetPVRManager()
-           .ChannelGroups()
-           ->GetGroupAll(channel->IsRadio())
-           ->RemoveFromGroup(groupMember))
+  const auto groups{CServiceBroker::GetPVRManager().ChannelGroups()};
+  if (!groups->Get(channel->IsRadio())
+           ->RemoveFromGroup(groups->GetGroupAll(channel->IsRadio()), groupMember))
     return false;
 
   CGUIWindowPVRBase* pvrWindow =
@@ -312,10 +311,8 @@ bool CPVRGUIActionsChannels::StartChannelScan(int clientId)
 
   /* do the scan */
   if (scanClient->StartChannelScan() != PVR_ERROR_NO_ERROR)
-    HELPERS::ShowOKDialogText(
-        CVariant{257}, // "Error"
-        CVariant{
-            19193}); // "The channel scan can't be started. Check the log for more information about this message."
+    HELPERS::ShowOKDialogText(CVariant{257}, // "Error"
+                              CVariant{19193}); // "The channel scan can't be started."
 
   auto end = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
