@@ -26,6 +26,7 @@
 #include "Shaders.h"
 #include "DSUtil/DSUtil.h"
 #include "DSResource.h"
+#include "Filters/RendererSettings.h"
 
 HRESULT CompileShader(const std::string& srcCode, const char* entryPoint, LPCSTR target, ID3DBlob** ppShaderBlob, const char* sourceName, ID3DInclude* d3dinc)
 {

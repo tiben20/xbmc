@@ -33,7 +33,72 @@
 #include "..\Subtitles\libsubs\ISubManager.h"
 #include <memory>
 
+
 class CPixelShaderList;
+
+enum :int {
+  TEXFMT_AUTOINT = 0,
+  TEXFMT_8INT = 8,
+  TEXFMT_10INT = 10,
+  TEXFMT_16FLOAT = 16,
+};
+
+enum :int {
+  SUPERRES_Disable = 0,
+  SUPERRES_SD,
+  SUPERRES_720p,
+  SUPERRES_1080p,
+  SUPERRES_1440p,
+  SUPERRES_COUNT
+};
+
+enum :int {
+  CHROMA_Nearest = 0,
+  CHROMA_Bilinear,
+  CHROMA_CatmullRom,
+  CHROMA_COUNT
+};
+
+enum :int {
+  UPSCALE_Nearest = 0,
+  UPSCALE_Mitchell,
+  UPSCALE_CatmullRom,
+  UPSCALE_Lanczos2,
+  UPSCALE_Lanczos3,
+  UPSCALE_Jinc2,
+  UPSCALE_COUNT
+};
+
+enum :int {
+  DOWNSCALE_Box = 0,
+  DOWNSCALE_Bilinear,
+  DOWNSCALE_Hamming,
+  DOWNSCALE_Bicubic,
+  DOWNSCALE_BicubicSharp,
+  DOWNSCALE_Lanczos,
+  DOWNSCALE_COUNT
+};
+
+enum :int {
+  SWAPEFFECT_Discard = 0,
+  SWAPEFFECT_Flip,
+  SWAPEFFECT_COUNT
+};
+
+enum :int {
+  HDRTD_Disabled = 0,
+  HDRTD_On_Fullscreen,
+  HDRTD_On,
+  HDRTD_OnOff_Fullscreen,
+  HDRTD_OnOff
+};
+
+struct VPEnableFormats_t {
+  bool bNV12;
+  bool bP01x;
+  bool bYUY2;
+  bool bOther;
+};
 
 enum AP_SURFACE_USAGE
 {
@@ -75,8 +140,6 @@ public:
   virtual void SetDefault()
   {
     apSurfaceUsage = VIDRNDT_AP_TEXTURE3D; // Fixed setting
-    displayStats = DS_STATS_1; // On GUI
-    m_pPlaceboOptions = PLACEBO_DEFAULT;
     vSyncOffset = 0;
     vSyncAccurate = true;
 
@@ -95,9 +158,7 @@ public:
   }
 
 public:
-  //libplacebo options
-  LIBPLACEBO_SHADERS m_pPlaceboOptions;
-  DS_STATS displayStats;
+  
   bool alterativeVSync;
   int vSyncOffset;
   bool vSyncAccurate;
@@ -124,6 +185,8 @@ public:
   {
     CRendererSettings::SetDefault();
 
+    displayStats = DS_STATS_1; // On GUI
+    m_pPlaceboOptions = PLACEBO_DEFAULT;
     bD3D11TextureSampler = D3D11_INTERNAL_SHADERS;//D3D11_VP
     bUseHDR = false;
     enableFrameTimeCorrection = false;
@@ -143,6 +206,28 @@ public:
   bool                  bHdrPassthrough;     //if we passthrough the hdr metadata
   bool                  enableFrameTimeCorrection;//not implemented
   int                   iBuffers;
+  //libplacebo options
+  LIBPLACEBO_SHADERS m_pPlaceboOptions;
+  DS_STATS displayStats;
+  //to add in gui settings
+  int  iResizeStats = 0;
+  int  iTexFormat = TEXFMT_AUTOINT;
+  
+  bool bDeintDouble = true;
+  bool bVPScaling = true;
+  int  iChromaScaling = CHROMA_Bilinear;
+  int  iUpscaling = UPSCALE_CatmullRom; // interpolation
+  int  iDownscaling = DOWNSCALE_Hamming;  // convolution
+  bool bInterpolateAt50pct = true;
+  bool bUseDither = true;
+  bool bDeintBlend = false;
+  int  iSwapEffect = SWAPEFFECT_Flip;
+  bool bVBlankBeforePresent = false;
+  bool bHdrPreferDoVi = false;
+
+  int  iHdrToggleDisplay = HDRTD_On;
+  int  iHdrOsdBrightness = 0;
+  bool bConvertToSdr = true;
 };
 
 class CMADVRRendererSettings : public CRendererSettings

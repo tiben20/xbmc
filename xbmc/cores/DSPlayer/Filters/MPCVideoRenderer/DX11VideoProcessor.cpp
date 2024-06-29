@@ -218,35 +218,16 @@ MPCPixFmtDesc getPixelFormatDesc(DXGI_FORMAT fmt)
 
 // CDX11VideoProcessor
 
-CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr)
+CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr)
 	: CVideoProcessor(pFilter)
 {
 	g_dsSettings.Initialize("mpcvr");
-	m_bShowStats           = config.bShowStats;
-	m_iResizeStats         = config.iResizeStats;
-	m_iTexFormat           = config.iTexFormat;
-	m_VPFormats            = config.VPFmts;
-	m_bDeintDouble         = config.bDeintDouble;
-	m_bVPScaling           = config.bVPScaling;
-	m_iChromaScaling       = config.iChromaScaling;
-	m_iUpscaling           = config.iUpscaling;
-	m_iDownscaling         = config.iDownscaling;
-	m_bInterpolateAt50pct  = config.bInterpolateAt50pct;
-	m_bUseDither           = config.bUseDither;
-	m_bDeintBlend          = config.bDeintBlend;
-	m_iSwapEffect          = config.iSwapEffect;
-	m_bVBlankBeforePresent = config.bVBlankBeforePresent;
-	m_bHdrPreferDoVi       = config.bHdrPreferDoVi;
-	m_iHdrToggleDisplay    = config.iHdrToggleDisplay;
-	m_iHdrOsdBrightness    = config.iHdrOsdBrightness;
-	m_bConvertToSdr        = config.bConvertToSdr;
-
 	
-	 g_dsSettings.pRendererSettings->displayStats = (DS_STATS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
-	 g_dsSettings.pRendererSettings->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
-	MPC_SETTINGS->bVPUseRTXVideoHDR       = config.bVPRTXVideoHDR;
+	MPC_SETTINGS->displayStats = (DS_STATS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
+	MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
+	MPC_SETTINGS->bVPUseRTXVideoHDR = true;// config.bVPRTXVideoHDR;
 
-	m_iVPSuperRes          = config.iVPSuperRes;
+	m_iVPSuperRes = true;// config.iVPSuperRes;
 
 	m_nCurrentAdapter = -1;
 	CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
@@ -515,7 +496,7 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 
 void CDX11VideoProcessor::UpdateTexParams(int cdepth)
 {
-	switch (m_iTexFormat) {
+	switch (MPC_SETTINGS->iTexFormat) {
 	case TEXFMT_AUTOINT:
 		m_InternalTexFmt = (cdepth > 8 || MPC_SETTINGS->bVPUseRTXVideoHDR) ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
 		break;
@@ -737,7 +718,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 	m_pPSConvertColorDeint = nullptr;
 	ID3DBlob* pShaderCode = nullptr;
 
-	int convertType = (m_bConvertToSdr && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough)) ? SHADER_CONVERT_TO_SDR
+	int convertType = (MPC_SETTINGS->bConvertToSdr && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough)) ? SHADER_CONVERT_TO_SDR
 		: (m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && m_srcExFmt.VideoTransferFunction == MFVideoTransFunc_HLG) ? SHADER_CONVERT_TO_PQ
 		: SHADER_CONVERT_NONE;
 
@@ -747,7 +728,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 		m_srcWidth,
 		m_TexSrcVideo.desc.Width, m_TexSrcVideo.desc.Height,
 		m_srcRect, m_srcParams, m_srcExFmt, pDOVIMetadata,
-		m_iChromaScaling, convertType, false,
+		MPC_SETTINGS->iChromaScaling, convertType, false,
 		&pShaderCode);
 	if (S_OK == hr) {
 		hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColor);
@@ -759,7 +740,7 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 			m_srcWidth,
 			m_TexSrcVideo.desc.Width, m_TexSrcVideo.desc.Height,
 			m_srcRect, m_srcParams, m_srcExFmt, pDOVIMetadata,
-			m_iChromaScaling, convertType, true,
+			MPC_SETTINGS->iChromaScaling, convertType, true,
 			&pShaderCode);
 		if (S_OK == hr) {
 			hr = GetDevice->CreatePixelShader(pShaderCode->GetBufferPointer(), pShaderCode->GetBufferSize(), nullptr, &m_pPSConvertColorDeint);
@@ -823,7 +804,7 @@ HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
 	m_pDeviceContext.Get()->RSSetViewports(1, &VP);
 	m_pDeviceContext.Get()->OMSetBlendState(nullptr, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
 	m_pDeviceContext.Get()->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
-	if (m_bDeintBlend && m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE && m_pPSConvertColorDeint) {
+	if (MPC_SETTINGS->bDeintBlend && m_SampleFormat != D3D11_VIDEO_FRAME_FORMAT_PROGRESSIVE && m_pPSConvertColorDeint) {
 		m_pDeviceContext.Get()->PSSetShader(m_pPSConvertColorDeint.Get(), nullptr, 0);
 	}
 	else {
@@ -1193,7 +1174,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	
 	pl_swapchain_colorspace_hint(pHelper->GetPLSwapChain(), &csp);
 
-	switch (g_dsSettings.pRendererSettings->m_pPlaceboOptions)
+	switch (MPC_SETTINGS->m_pPlaceboOptions)
 	{
 	case PLACEBO_DEFAULT:
 		params = pl_render_default_params;
@@ -1371,7 +1352,7 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 		if (GetDisplayConfig(mi.szDevice, displayConfig)) {
 			const auto& ac = displayConfig.advancedColor;
 
-			if (ac.advancedColorSupported && m_iHdrToggleDisplay) {
+			if (ac.advancedColorSupported && MPC_SETTINGS->iHdrToggleDisplay) {
 				BOOL bHDREnabled = FALSE;
 				const auto it = m_hdrModeStartState.find(mi.szDevice);
 				if (it != m_hdrModeStartState.cend()) {
@@ -1379,10 +1360,10 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 				}
 
 				const bool bNeedToggleOn  = !ac.advancedColorEnabled &&
-											(m_iHdrToggleDisplay == HDRTD_On || m_iHdrToggleDisplay == HDRTD_OnOff
-											 || m_bIsFullscreen && (m_iHdrToggleDisplay == HDRTD_On_Fullscreen || m_iHdrToggleDisplay == HDRTD_OnOff_Fullscreen));
+											(MPC_SETTINGS->iHdrToggleDisplay == HDRTD_On || MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff
+											 || m_bIsFullscreen && (MPC_SETTINGS->iHdrToggleDisplay == HDRTD_On_Fullscreen || MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff_Fullscreen));
 				const bool bNeedToggleOff = ac.advancedColorEnabled &&
-											!bHDREnabled && !m_bIsFullscreen && m_iHdrToggleDisplay == HDRTD_OnOff_Fullscreen;
+											!bHDREnabled && !m_bIsFullscreen && MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff_Fullscreen;
 				CLog::LogF(LOGINFO,"HandleHDRToggle() : {}, {}", bNeedToggleOn, bNeedToggleOff);
 				if (bNeedToggleOn) {
 					bRet = ToggleHDR(displayConfig, TRUE);
@@ -1409,7 +1390,7 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 				}
 			}
 		}
-	} else if (m_iHdrToggleDisplay) {
+	} else if (MPC_SETTINGS->iHdrToggleDisplay) {
 		MONITORINFOEXW mi = { sizeof(mi) };
 		GetMonitorInfoW(MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), (MONITORINFO*)&mi);
 		DisplayConfig_t displayConfig = {};
@@ -1425,7 +1406,7 @@ bool CDX11VideoProcessor::HandleHDRToggle()
 			}
 
 			if (ac.advancedColorSupported && ac.advancedColorEnabled &&
-					(!bWindowsHDREnabled || (m_iHdrToggleDisplay == HDRTD_OnOff || m_iHdrToggleDisplay == HDRTD_OnOff_Fullscreen && m_bIsFullscreen))) {
+					(!bWindowsHDREnabled || (MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff || MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff_Fullscreen && m_bIsFullscreen))) {
 				bRet = ToggleHDR(displayConfig, FALSE);
 				DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
 
@@ -1682,7 +1663,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 								|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_709
 								|| m_srcExFmt.VideoTransferFunction == DXVA2_VideoTransFunc_240M;
 
-			if (m_srcExFmt.VideoTransferFunction == MFVideoTransFunc_2084 && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough) && m_bConvertToSdr) {
+			if (m_srcExFmt.VideoTransferFunction == MFVideoTransFunc_2084 && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough) && MPC_SETTINGS->bConvertToSdr) {
 				resId = m_D3D11VP.IsPqSupported() ? IDF_PS_11_CONVERT_PQ_TO_SDR : IDF_PS_11_FIXCONVERT_PQ_TO_SDR;
 				m_strCorrection = L"PQ to SDR";
 			}
@@ -1691,7 +1672,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 					resId = IDF_PS_11_CONVERT_HLG_TO_PQ;
 					m_strCorrection = L"HLG to PQ";
 				}
-				else if (m_bConvertToSdr) {
+				else if (MPC_SETTINGS->bConvertToSdr) {
 					resId = IDF_PS_11_FIXCONVERT_HLG_TO_SDR;
 					m_strCorrection = L"HLG to SDR";
 				}
@@ -1766,10 +1747,10 @@ HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, co
 		return hr;
 	}
 
-	auto superRes = (m_bVPScaling && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && SourceIsHDR())) ? m_iVPSuperRes : SUPERRES_Disable;
+	auto superRes = (MPC_SETTINGS->bVPScaling && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && SourceIsHDR())) ? m_iVPSuperRes : SUPERRES_Disable;
 	m_bVPUseSuperRes = (m_D3D11VP.SetSuperRes(superRes) == S_OK);
 	
-	auto rtxHDR = MPC_SETTINGS->bVPUseRTXVideoHDR && m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && m_iTexFormat != TEXFMT_8INT && !SourceIsHDR();
+	auto rtxHDR = MPC_SETTINGS->bVPUseRTXVideoHDR && m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && MPC_SETTINGS->iTexFormat != TEXFMT_8INT && !SourceIsHDR();
 	MPC_SETTINGS->bVPUseRTXVideoHDR = (m_D3D11VP.SetRTXVideoHDR(rtxHDR) == S_OK);
 
 	if ((MPC_SETTINGS->bVPUseRTXVideoHDR)
@@ -1861,19 +1842,7 @@ BOOL CDX11VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 
 			if (!m_Alignment.texture.pTexture) {
 				auto VP11Format = FmtParams.VP11Format;
-				if (VP11Format != DXGI_FORMAT_UNKNOWN) {
-					bool disableD3D11VP = false;
-					switch (FmtParams.cformat) {
-						case CF_NV12: disableD3D11VP = !m_VPFormats.bNV12;  break;
-						case CF_P010:
-						case CF_P016: disableD3D11VP = !m_VPFormats.bP01x;  break;
-						case CF_YUY2: disableD3D11VP = !m_VPFormats.bYUY2;  break;
-						default:      disableD3D11VP = !m_VPFormats.bOther; break;
-					}
-					if (disableD3D11VP) {
-						VP11Format = DXGI_FORMAT_UNKNOWN;
-					}
-				}
+				
 
 				HRESULT hr = E_FAIL;
 				if (VP11Format != DXGI_FORMAT_UNKNOWN) {
@@ -2055,7 +2024,7 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 					} else {
 						m_SampleFormat = D3D11_VIDEO_FRAME_FORMAT_INTERLACED_BOTTOM_FIELD_FIRST; // Bottom-field first
 					}
-					m_bDoubleFrames = m_bDeintDouble && m_D3D11VP.IsReady();
+					m_bDoubleFrames = MPC_SETTINGS->bDeintDouble && m_D3D11VP.IsReady();
 				}
 			}
 		}
@@ -2103,7 +2072,7 @@ HRESULT CDX11VideoProcessor::CopySample(IMediaSample* pSample)
 			m_nStereoSubtitlesOffsetInPixels = offset->offset[0];
 		}
 
-		if (m_srcParams.CSType == CS_YUV && (m_bHdrPreferDoVi || !SourceIsPQorHLG())) {
+		if (m_srcParams.CSType == CS_YUV && (MPC_SETTINGS->bHdrPreferDoVi || !SourceIsPQorHLG())) {
 			MediaSideDataDOVIMetadata* pDOVIMetadata = nullptr;
 			hr = pMediaSideData->GetSideData(IID_MediaSideDataDOVIMetadata, (const BYTE**)&pDOVIMetadata, &size);
 			if (SUCCEEDED(hr) && size == sizeof(MediaSideDataDOVIMetadata) && CheckDoviMetadata(pDOVIMetadata, 1)) {
@@ -2401,7 +2370,7 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 	}
 	Microsoft::WRL::ComPtr<IDXGIOutput>    pDXGIOutput;
 	DX::DeviceResources::Get()->GetOutput(&pDXGIOutput);
-	if (m_bVBlankBeforePresent && pDXGIOutput) {
+	if (MPC_SETTINGS->bVBlankBeforePresent && pDXGIOutput) {
 		hr = pDXGIOutput->WaitForVBlank();
 		DLogIf(FAILED(hr), "WaitForVBlank failed with error %s", WToA(HR2Str(hr)));
 	}
@@ -2446,7 +2415,7 @@ void CDX11VideoProcessor::UpdateTexures()
 	// TODO: try making w and h a multiple of 128.
 	HRESULT hr = S_OK;
 	if (m_D3D11VP.IsReady()) {
-		if (m_bVPScaling) {
+		if (MPC_SETTINGS->bVPScaling) {
 			Com::SmartSize texsize = m_renderRect.Size();
 			hr = m_TexConvertOutput.CheckCreate(GetDevice, m_D3D11OutputFmt, texsize.cx, texsize.cy, Tex2D_DefaultShaderRTarget);
 		} else {
@@ -2464,7 +2433,7 @@ void CDX11VideoProcessor::UpdateBitmapShader()
 			&& (SourceIsPQorHLG() || MPC_SETTINGS->bVPUseRTXVideoHDR)) {
 		std::string resid;
 		float SDR_peak_lum;
-		switch (m_iHdrOsdBrightness) {
+		switch (MPC_SETTINGS->iHdrOsdBrightness) {
 		default:
 			resid = IDF_PS_11_CONVERT_BITMAP_TO_PQ;
 			SDR_peak_lum = 100;
@@ -2542,7 +2511,7 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 	Tex2D_t* pInputTexture = nullptr;
 
 	if (m_D3D11VP.IsReady()) {
-		if (!(m_iSwapEffect == SWAPEFFECT_Discard && (m_VendorId == PCIV_AMD || m_VendorId == PCIV_Intel))) {
+		if (!(MPC_SETTINGS->iSwapEffect == SWAPEFFECT_Discard && (m_VendorId == PCIV_AMD || m_VendorId == PCIV_Intel))) {
 			const bool bNeedShaderTransform =
 				(m_TexConvertOutput.desc.Width != dstRect.Width() || m_TexConvertOutput.desc.Height != dstRect.Height() || m_bFlip
 				|| dstRect.right > m_windowRect.right || dstRect.bottom > m_windowRect.bottom);
@@ -2733,7 +2702,7 @@ HRESULT CDX11VideoProcessor::Reset()
 				m_hdrModeSavedState.erase(mi.szDevice);
 
 				if (m_pFilter->m_inputMT.IsValid()) {
-					if (m_iSwapEffect == SWAPEFFECT_Discard && !ac.advancedColorEnabled) {
+					if (MPC_SETTINGS->iSwapEffect == SWAPEFFECT_Discard && !ac.advancedColorEnabled) {
 						m_pFilter->Init(true);
 					} else {
 						Init(m_hWnd);
@@ -2889,198 +2858,6 @@ HRESULT CDX11VideoProcessor::GetDisplayedImage(BYTE **ppDib, unsigned* pSize)
 	return hr;
 }
 
-void CDX11VideoProcessor::Configure(const Settings_t& config)
-{
-	bool changeWindow            = false;
-	bool changeDevice            = false;
-	bool changeVP                = false;
-	bool changeHDR               = false;
-	bool changeTextures          = false;
-	bool changeConvertShader     = false;
-	bool changeBitmapShader      = false;
-	bool changeUpscalingShader   = false;
-	bool changeDowndcalingShader = false;
-	bool changeNumTextures       = false;
-	bool changeResizeStats       = false;
-	bool changeSuperRes          = false;
-	bool changeRTXVideoHDR       = false;
-
-	// settings that do not require preparation
-	m_bShowStats           = config.bShowStats;
-	m_bDeintDouble         = config.bDeintDouble;
-	m_bInterpolateAt50pct  = config.bInterpolateAt50pct;
-	m_bVBlankBeforePresent = config.bVBlankBeforePresent;
-	m_bDeintBlend          = config.bDeintBlend;
-
-	// checking what needs to be changed
-
-	if (config.iResizeStats != m_iResizeStats) {
-		m_iResizeStats = config.iResizeStats;
-		changeResizeStats = true;
-	}
-
-	if (config.iTexFormat != m_iTexFormat) {
-		m_iTexFormat = config.iTexFormat;
-		changeTextures = true;
-	}
-
-	if (m_srcParams.cformat == CF_NV12) {
-		changeVP = config.VPFmts.bNV12 != m_VPFormats.bNV12;
-	}
-	else if (m_srcParams.cformat == CF_P010 || m_srcParams.cformat == CF_P016) {
-		changeVP = config.VPFmts.bP01x != m_VPFormats.bP01x;
-	}
-	else if (m_srcParams.cformat == CF_YUY2) {
-		changeVP = config.VPFmts.bYUY2 != m_VPFormats.bYUY2;
-	}
-	else {
-		changeVP = config.VPFmts.bOther != m_VPFormats.bOther;
-	}
-	m_VPFormats = config.VPFmts;
-
-	if (config.bVPScaling != m_bVPScaling) {
-		m_bVPScaling = config.bVPScaling;
-		changeTextures = true;
-		changeVP = true; // temporary solution
-	}
-
-	if (config.iChromaScaling != m_iChromaScaling) {
-		m_iChromaScaling = config.iChromaScaling;
-		changeConvertShader = m_PSConvColorData.bEnable && (m_srcParams.Subsampling == 420 || m_srcParams.Subsampling == 422);
-	}
-
-	if (config.iHdrOsdBrightness != m_iHdrOsdBrightness) {
-		m_iHdrOsdBrightness = config.iHdrOsdBrightness;
-		changeBitmapShader = true;
-	}
-
-	if (config.iUpscaling != m_iUpscaling) {
-		m_iUpscaling = config.iUpscaling;
-		changeUpscalingShader = true;
-	}
-	if (config.iDownscaling != m_iDownscaling) {
-		m_iDownscaling = config.iDownscaling;
-		changeDowndcalingShader = true;
-	}
-
-	if (config.bUseDither != m_bUseDither) {
-		m_bUseDither = config.bUseDither;
-		changeNumTextures = m_InternalTexFmt != DXGI_FORMAT_B8G8R8A8_UNORM;
-	}
-
-	if (config.iSwapEffect != m_iSwapEffect) {
-		m_iSwapEffect = config.iSwapEffect;
-		changeWindow = !m_pFilter->m_bIsFullscreen;
-	}
-
-	if (config.bHdrPreferDoVi != m_bHdrPreferDoVi) {
-		if (m_Dovi.bValid && !config.bHdrPreferDoVi && SourceIsPQorHLG()) {
-			m_Dovi = {};
-			changeVP = true;
-		}
-		m_bHdrPreferDoVi = config.bHdrPreferDoVi;
-	}
-
-	if (config.bHdrPassthrough != MPC_SETTINGS->bHdrPassthrough) {
-		MPC_SETTINGS->bHdrPassthrough = config.bHdrPassthrough;
-		changeHDR = true;
-	}
-
-	if (config.iHdrToggleDisplay != m_iHdrToggleDisplay) {
-		if (config.iHdrToggleDisplay == HDRTD_Disabled || m_iHdrToggleDisplay == HDRTD_Disabled) {
-			changeHDR = true;
-		}
-		m_iHdrToggleDisplay = config.iHdrToggleDisplay;
-	}
-
-	if (config.bConvertToSdr != m_bConvertToSdr) {
-		m_bConvertToSdr = config.bConvertToSdr;
-		if (SourceIsHDR()) {
-			if (m_D3D11VP.IsReady()) {
-				changeNumTextures = true;
-				changeVP = true; // temporary solution
-			} else {
-				changeConvertShader = true;
-			}
-		}
-	}
-
-	if (config.iVPSuperRes != m_iVPSuperRes) {
-		m_iVPSuperRes = config.iVPSuperRes;
-		changeSuperRes = true;
-	}
-
-	if (config.bVPRTXVideoHDR != MPC_SETTINGS->bVPUseRTXVideoHDR) {
-		MPC_SETTINGS->bVPUseRTXVideoHDR = config.bVPRTXVideoHDR;
-		changeRTXVideoHDR = true;
-	}
-
-	if (!m_pFilter->GetActive()) {
-		return;
-	}
-
-	// apply new settings
-
-	if (changeWindow) {
-		EXECUTE_ASSERT(S_OK == m_pFilter->Init(true));
-
-		if (changeHDR && (SourceIsPQorHLG() || MPC_SETTINGS->bVPUseRTXVideoHDR || MPC_SETTINGS->bVPUseRTXVideoHDR) || m_iHdrToggleDisplay) {
-			m_srcVideoTransferFunction = 0;
-			InitMediaType(&m_pFilter->m_inputMT);
-		}
-		return;
-	}
-
-	if (changeHDR) {
-		if (SourceIsPQorHLG() || MPC_SETTINGS->bVPUseRTXVideoHDR || MPC_SETTINGS->bVPUseRTXVideoHDR || m_iHdrToggleDisplay) {
-			if (m_iSwapEffect == SWAPEFFECT_Discard) {
-				m_pFilter->Init(true);
-			}
-
-			m_srcVideoTransferFunction = 0;
-			InitMediaType(&m_pFilter->m_inputMT);
-
-			return;
-		}
-	}
-
-	if (m_Dovi.bValid) {
-		changeVP = false;
-	}
-	if (changeVP) {
-		InitMediaType(&m_pFilter->m_inputMT);
-		if (MPC_SETTINGS->bVPUseRTXVideoHDR || MPC_SETTINGS->bVPUseRTXVideoHDR) {
-			InitSwapChain();
-		}
-
-		return; // need some test
-	}
-
-	if (changeTextures) {
-		UpdateTexParams(m_srcParams.CDepth);
-		if (m_D3D11VP.IsReady()) {
-			// update m_D3D11OutputFmt
-			EXECUTE_ASSERT(S_OK == InitializeD3D11VP(m_srcParams, m_srcWidth, m_srcHeight));
-		}
-		UpdateTexures();
-	}
-
-	if (changeBitmapShader) {
-		UpdateBitmapShader();
-	}
-
-	if (changeSuperRes) {
-		auto superRes = (m_bVPScaling && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && SourceIsHDR())) ? m_iVPSuperRes : SUPERRES_Disable;
-		m_bVPUseSuperRes = (m_D3D11VP.SetSuperRes(superRes) == S_OK);
-	}
-
-	if (changeRTXVideoHDR) {
-		InitMediaType(&m_pFilter->m_inputMT);
-	}
-
-	UpdateStatsStatic();
-}
-
 void CDX11VideoProcessor::SetRotation(int value)
 {
 	m_iRotation = value;
@@ -3117,7 +2894,7 @@ void CDX11VideoProcessor::UpdateStatsPresent()
 	DXGI_SWAP_CHAIN_DESC1 swapchain_desc;
 	if (GetSwapChain && S_OK == GetSwapChain->GetDesc1(&swapchain_desc)) {
 		m_strStatsPresent.assign(L"\nPresentation  : ");
-		if (m_bVBlankBeforePresent /*&& m_pDXGIOutput*/) {
+		if (MPC_SETTINGS->bVBlankBeforePresent /*&& m_pDXGIOutput*/) {
 			m_strStatsPresent.append(L"wait VBlank, ");
 		}
 		switch (swapchain_desc.SwapEffect) {
@@ -3164,7 +2941,7 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 				if (m_lastHdr10.bValid) {
 					m_strStatsHDR.AppendFormat(L", %u nits", m_lastHdr10.hdr10.MaxMasteringLuminance / 10000);
 				}
-			} else if (m_bConvertToSdr) {
+			} else if (MPC_SETTINGS->bConvertToSdr) {
 				m_strStatsHDR.append(L"Convert to SDR");
 			} else {
 				m_strStatsHDR.append(L"Not used");
@@ -3195,7 +2972,7 @@ bool ShouldShowHdr(double val)
 void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struct pl_color_repr repr)
 {
 	CStdStringW str;
-	if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_2)
+	if (MPC_SETTINGS->displayStats == DS_STATS_2)
 	{
 		str.reserve(700);
 		CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetSystemInfoProvider().UpdateFPS();
@@ -3206,7 +2983,7 @@ void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struc
 
 		str.AppendFormat(L"BackBuffer Size: width:%u height:%u\n", DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight());
 	}
-	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_1)
+	else if (MPC_SETTINGS->displayStats == DS_STATS_1)
 	{
 		str.reserve(700);
 		str.assign(m_strStatsHeader);
@@ -3250,7 +3027,7 @@ void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struc
 
 		str.AppendFormat(L"\nSync offset   : %i ms", (m_RenderStats.syncoffset + 5000) / 10000);
 	}
-	else if (g_dsSettings.pRendererSettings->displayStats == DS_STATS_3)
+	else if (MPC_SETTINGS->displayStats == DS_STATS_3)
 	{
 		str.reserve(700);
 

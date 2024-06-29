@@ -43,10 +43,7 @@ STDMETHODIMP CVideoRendererInputPin::NonDelegatingQueryInterface(REFIID riid, vo
 {
 	CheckPointer(ppv, E_POINTER);
 
-	if (riid == __uuidof(IMFGetService) && m_pBaseRenderer->m_VideoProcessor->Type() == VP_DX9) {
-		return GetInterface((IMFGetService*)this, ppv);
-	}
-	else if (riid == __uuidof(ID3D11DecoderConfiguration) && m_pBaseRenderer->m_VideoProcessor->Type() == VP_DX11) {
+  if (riid == __uuidof(ID3D11DecoderConfiguration)) {
 		return GetInterface((ID3D11DecoderConfiguration*)this, ppv);
 	}
 	else {
@@ -193,12 +190,13 @@ STDMETHODIMP CVideoRendererInputPin::SetSurfaceType(DXVA2_SurfaceType dwType)
 STDMETHODIMP CVideoRendererInputPin::ActivateD3D11Decoding(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, HANDLE hMutex, UINT nFlags)
 {
 	HRESULT hr = E_FAIL;
-	if (m_pBaseRenderer->m_VideoProcessor->Type() == VP_DX11) {
-		if (auto pDX11VP = dynamic_cast<CDX11VideoProcessor*>(m_pBaseRenderer->m_VideoProcessor.get())) {
-			hr = S_OK;
-			//hr = pDX11VP->SetDevice(pDevice, pContext, true);
-		}
+	
+	if (auto pDX11VP = dynamic_cast<CDX11VideoProcessor*>(m_pBaseRenderer->m_VideoProcessor.get())) {
+		hr = S_OK;
+		hr = pDX11VP->SetDevice((ID3D11Device1*)pDevice, true);
 	}
+
+	
 	m_bD3D11 = (hr == S_OK);
 	DLog("CVideoRendererInputPin::ActivateD3D11Decoding() : {}", m_bD3D11 ? "completed successfully" : "failed");
 	return hr;

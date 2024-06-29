@@ -33,9 +33,7 @@
  //
  // Defines a smart pointer class that does not depend on any ATL headers
  // From a Microsoft Sample
-#ifndef _GEOMETRYHELPER_H
-#include "Geometry.h"
-#endif
+
 namespace Com
 {
 

@@ -151,210 +151,11 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	ASSERT(S_OK == *phr);
 	m_pInputPin = new CVideoRendererInputPin(this, phr, L"In", this);
 	ASSERT(S_OK == *phr);
-
-	// read settings
-#if 1
-	CRegistry key;
-	if (key.KeyExists(OPT_REGKEY_VIDEORENDERER, HKEY_CURRENT_USER) || key.SetRootKey(HKEY_CURRENT_USER)) {
-		key.SetKey(OPT_REGKEY_VIDEORENDERER,TRUE);
-		DWORD dw;
-		if (key.ReadDword(OPT_UseD3D11, dw)) {
-			m_Sets.bUseD3D11 = !!dw;
-		}
-		if (key.ReadDword(OPT_ShowStatistics, dw)) {
-			m_Sets.bShowStats = !!dw;
-		}
-		if (key.ReadDword(OPT_ResizeStatistics, dw)) {
-			m_Sets.iResizeStats = discard<int>(dw, 0, 0, 1);
-		}
-		if (key.ReadDword(OPT_TextureFormat, dw)) {
-			switch (dw) {
-			case TEXFMT_AUTOINT:
-			case TEXFMT_8INT:
-			case TEXFMT_10INT:
-			case TEXFMT_16FLOAT:
-				m_Sets.iTexFormat = dw;
-				break;
-			default:
-				m_Sets.iTexFormat = TEXFMT_AUTOINT;
-			}
-		}
-		if (key.ReadDword(OPT_VPEnableNV12, dw)) {
-			m_Sets.VPFmts.bNV12 = !!dw;
-		}
-		if (key.ReadDword(OPT_VPEnableP01x, dw)) {
-			m_Sets.VPFmts.bP01x = !!dw;
-		}
-		if (key.ReadDword(OPT_VPEnableYUY2, dw)) {
-			m_Sets.VPFmts.bYUY2 = !!dw;
-		}
-		if (key.ReadDword(OPT_VPEnableOther, dw)) {
-			m_Sets.VPFmts.bOther = !!dw;
-		}
-		if (key.ReadDword(OPT_DoubleFrateDeint, dw)) {
-			m_Sets.bDeintDouble = !!dw;
-		}
-		if (key.ReadDword(OPT_VPScaling, dw)) {
-			m_Sets.bVPScaling = !!dw;
-		}
-		if (key.ReadDword(OPT_VPSuperResolution, dw)) {
-			m_Sets.iVPSuperRes = discard<int>(dw, SUPERRES_Disable, 0, SUPERRES_COUNT - 1);
-		}
-		if (key.ReadDword(OPT_VPRTXVideoHDR, dw)) {
-			m_Sets.bVPRTXVideoHDR = !!dw;
-		}
-		if (key.ReadDword(OPT_ChromaUpsampling, dw)) {
-			m_Sets.iChromaScaling = discard<int>(dw, CHROMA_Bilinear, 0, CHROMA_COUNT - 1);
-		}
-		if (key.ReadDword(OPT_Upscaling, dw)) {
-			m_Sets.iUpscaling = discard<int>(dw, UPSCALE_CatmullRom, 0, UPSCALE_COUNT - 1);
-		}
-		if (key.ReadDword(OPT_Downscaling, dw)) {
-			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, 0, DOWNSCALE_COUNT - 1);
-		}
-		if (key.ReadDword(OPT_InterpolateAt50pct, dw)) {
-			m_Sets.bInterpolateAt50pct = !!dw;
-		}
-		if (key.ReadDword(OPT_Dither, dw)) {
-			m_Sets.bUseDither = !!dw;
-		}
-		if (key.ReadDword(OPT_DeintBlend, dw)) {
-			m_Sets.bDeintBlend = !!dw;
-		}
-		if (key.ReadDword(OPT_SwapEffect, dw)) {
-			m_Sets.iSwapEffect = discard<int>(dw, SWAPEFFECT_Flip, SWAPEFFECT_Discard, SWAPEFFECT_Flip);
-		}
-		if (key.ReadDword(OPT_ExclusiveFullscreen, dw)) {
-			m_Sets.bExclusiveFS = !!dw;
-		}
-		if (key.ReadDword(OPT_VBlankBeforePresent, dw)) {
-			m_Sets.bVBlankBeforePresent = !!dw;
-		}
-		if (key.ReadDword(OPT_ReinitByDisplay, dw)) {
-			m_Sets.bReinitByDisplay = !!dw;
-		}
-		if (key.ReadDword(OPT_HdrPreferDoVi, dw)) {
-			m_Sets.bHdrPreferDoVi = !!dw;
-		}
-		if (key.ReadDword(OPT_HdrPassthrough, dw)) {
-			m_Sets.bHdrPassthrough = !!dw;
-		}
-		if (key.ReadDword(OPT_HdrToggleDisplay, dw)) {
-			m_Sets.iHdrToggleDisplay = discard<int>(dw, HDRTD_On, HDRTD_Disabled, HDRTD_OnOff);
-		}
-		if (key.ReadDword(OPT_HdrOsdBrightness, dw)) {
-			m_Sets.iHdrOsdBrightness = discard<int>(dw, 0, 0, 2);
-		}
-		if (key.ReadDword(OPT_ConvertToSdr, dw)) {
-			m_Sets.bConvertToSdr = !!dw;
-		}
-	}
-#else
-	CRegKey key;
-
-	if (ERROR_SUCCESS == key.Open(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER, KEY_READ)) {
-		DWORD dw;
-		if (ERROR_SUCCESS == key.ReadDword(OPT_UseD3D11, dw)) {
-			m_Sets.bUseD3D11 = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_ShowStatistics, dw)) {
-			m_Sets.bShowStats = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_ResizeStatistics, dw)) {
-			m_Sets.iResizeStats = discard<int>(dw, 0, 0, 1);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_TextureFormat, dw)) {
-			switch (dw) {
-			case TEXFMT_AUTOINT:
-			case TEXFMT_8INT:
-			case TEXFMT_10INT:
-			case TEXFMT_16FLOAT:
-				m_Sets.iTexFormat = dw;
-				break;
-			default:
-				m_Sets.iTexFormat = TEXFMT_AUTOINT;
-			}
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPEnableNV12, dw)) {
-			m_Sets.VPFmts.bNV12 = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPEnableP01x, dw)) {
-			m_Sets.VPFmts.bP01x = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPEnableYUY2, dw)) {
-			m_Sets.VPFmts.bYUY2 = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPEnableOther, dw)) {
-			m_Sets.VPFmts.bOther = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_DoubleFrateDeint, dw)) {
-			m_Sets.bDeintDouble = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPScaling, dw)) {
-			m_Sets.bVPScaling = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPSuperResolution, dw)) {
-			m_Sets.iVPSuperRes = discard<int>(dw, SUPERRES_Disable, 0, SUPERRES_COUNT-1);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VPRTXVideoHDR, dw)) {
-			m_Sets.bVPRTXVideoHDR = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_ChromaUpsampling, dw)) {
-			m_Sets.iChromaScaling = discard<int>(dw, CHROMA_Bilinear, 0, CHROMA_COUNT-1);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_Upscaling, dw)) {
-			m_Sets.iUpscaling = discard<int>(dw, UPSCALE_CatmullRom, 0, UPSCALE_COUNT-1);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_Downscaling, dw)) {
-			m_Sets.iDownscaling = discard<int>(dw, DOWNSCALE_Hamming, 0, DOWNSCALE_COUNT-1);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_InterpolateAt50pct, dw)) {
-			m_Sets.bInterpolateAt50pct = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_Dither, dw)) {
-			m_Sets.bUseDither = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_DeintBlend, dw)) {
-			m_Sets.bDeintBlend = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_SwapEffect, dw)) {
-			m_Sets.iSwapEffect = discard<int>(dw, SWAPEFFECT_Flip, SWAPEFFECT_Discard, SWAPEFFECT_Flip);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_ExclusiveFullscreen, dw)) {
-			m_Sets.bExclusiveFS = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_VBlankBeforePresent, dw)) {
-			m_Sets.bVBlankBeforePresent = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_ReinitByDisplay, dw)) {
-			m_Sets.bReinitByDisplay = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_HdrPreferDoVi, dw)) {
-			m_Sets.bHdrPreferDoVi = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_HdrPassthrough, dw)) {
-			m_Sets.bHdrPassthrough = !!dw;
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_HdrToggleDisplay, dw)) {
-			m_Sets.iHdrToggleDisplay = discard<int>(dw, HDRTD_On, HDRTD_Disabled, HDRTD_OnOff);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_HdrOsdBrightness, dw)) {
-			m_Sets.iHdrOsdBrightness = discard<int>(dw, 0, 0, 2);
-		}
-		if (ERROR_SUCCESS == key.ReadDword(OPT_ConvertToSdr, dw)) {
-			m_Sets.bConvertToSdr = !!dw;
-		}
-	}
-#endif
-	if (!CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10)) {
-		m_Sets.bHdrPassthrough = false;
-		m_Sets.iHdrToggleDisplay = HDRTD_Disabled;
-	}
-
+	
 	HRESULT hr = S_FALSE;
 
-	if (m_Sets.bUseD3D11 && IsWindows7SP1OrGreater()) {
-		m_VideoProcessor.reset(new CDX11VideoProcessor(this, m_Sets, hr));
+	
+		m_VideoProcessor.reset(new CDX11VideoProcessor(this, hr));
 		if (SUCCEEDED(hr)) {
 			hr = m_VideoProcessor->Init(g_hWnd);
 		}
@@ -363,7 +164,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 			m_VideoProcessor.reset();
 		}
 		DLogIf(S_OK == hr, "Direct3D11 initialization successfully!");
-	}
+	
 
 	*phr = hr;
 
@@ -689,24 +490,24 @@ void CMpcVideoRenderer::OnDisplayModeChange(const bool bReset/* = false*/)
 
 void CMpcVideoRenderer::OnWindowMove()
 {
-	if (GetActive()) {
-		const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-		if (hMon != m_hMon) {
-			if (m_Sets.bReinitByDisplay) {
-				CAutoLock cRendererLock(&m_RendererLock);
+	/*
+	const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
+	if (hMon != m_hMon) {
+		if (m_Sets.bReinitByDisplay) {
+			CAutoLock cRendererLock(&m_RendererLock);
 
-				Init(true);
-			}
-			else if (m_VideoProcessor->Type() == VP_DX11) {
-				CAutoLock cRendererLock(&m_RendererLock);
-
-				m_VideoProcessor->Reset();
-			}
-
-			m_hMon = hMon;
-			UpdateDisplayInfo();
+			Init(true);
 		}
-	}
+		else if (m_VideoProcessor->Type() == VP_DX11) {
+			CAutoLock cRendererLock(&m_RendererLock);
+
+			m_VideoProcessor->Reset();
+		}
+
+		m_hMon = hMon;
+		UpdateDisplayInfo();
+	}*/
+	
 }
 
 STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
@@ -720,10 +521,8 @@ STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** 
 		QI(IBasicVideo2)
 		QI(IVideoWindow)
 		QI(ISpecifyPropertyPages)
-		QI(IVideoRenderer)
 		QI(IExFilterConfig)
-		(riid == __uuidof(ISubRender) && m_VideoProcessor && m_VideoProcessor->Type() == 9) ? GetInterface((ISubRender*)this, ppv) :
-		(riid == __uuidof(ISubRender11) && m_VideoProcessor && m_VideoProcessor->Type() == 11) ? GetInterface((ISubRender11*)this, ppv) :
+		(riid == __uuidof(ISubRender11) && m_VideoProcessor ) ? GetInterface((ISubRender11*)this, ppv) :
 		(riid == __uuidof(ID3DFullscreenControl) && m_bEnableFullscreenControl) ? GetInterface((ID3DFullscreenControl*)this, ppv) :
 		__super::NonDelegatingQueryInterface(riid, ppv);
 }
@@ -1017,7 +816,7 @@ void CMpcVideoRenderer::SwitchFullScreen()
 	m_bIsFullscreen = true;
 
 	if (m_hWnd) {
-		Init(m_VideoProcessor->Type() == VP_DX9 ? false : true);
+		Init(true);
 		Redraw();
 
 		if (m_hWndParentMain) {
@@ -1109,7 +908,7 @@ HRESULT CMpcVideoRenderer::Init(const bool bCreateWindow/* = false*/)
 		}
 	}
 
-	m_hWnd = m_bIsFullscreen && m_VideoProcessor->Type() == VP_DX9 ? m_hWndParentMain : m_hWndWindow;
+	m_hWnd = m_bIsFullscreen ? m_hWndParentMain : m_hWndWindow;
 	if (m_bIsD3DFullscreen) {
 		m_hWnd = m_hWndParent;
 	}
@@ -1162,6 +961,7 @@ STDMETHODIMP CMpcVideoRenderer::get_MessageDrain(OAHWND* Drain)
 
 STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Width, long Height)
 {
+#if 0
 	const Com::SmartRect windowRect(Left, Top, Left + Width, Top + Height);
 	if (windowRect == m_windowRect) {
 		return S_OK;
@@ -1211,105 +1011,6 @@ STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Widt
 	if (m_bForceRedrawing) {
 		Redraw();
 	}
-
-	return S_OK;
-}
-
-// IVideoRenderer
-
-STDMETHODIMP_(bool) CMpcVideoRenderer::GetActive()
-{
-	return m_pInputPin && m_pInputPin->GetConnected();
-}
-
-STDMETHODIMP_(void) CMpcVideoRenderer::GetSettings(Settings_t& setings)
-{
-	setings = m_Sets;
-}
-
-STDMETHODIMP_(void) CMpcVideoRenderer::SetSettings(const Settings_t& setings)
-{
-	CAutoLock cRendererLock(&m_RendererLock);
-
-	m_Sets = setings;
-	m_VideoProcessor->Configure(m_Sets);
-
-	if (m_State == State_Paused) {
-		if (!m_bValidBuffer && m_pMediaSample) {
-			m_bInReceive = FALSE;
-
-			DoRenderSample(m_pMediaSample);
-		}
-		Redraw();
-	}
-}
-
-STDMETHODIMP CMpcVideoRenderer::SaveSettings()
-{
-#if 1
-	CRegistry key;
-	key.SetRootKey(HKEY_CURRENT_USER);
-	
-	if (key.SetKey(OPT_REGKEY_VIDEORENDERER, TRUE)) {
-		key.WriteDword(OPT_UseD3D11, m_Sets.bUseD3D11);
-		key.WriteDword(OPT_ShowStatistics, m_Sets.bShowStats);
-		key.WriteDword(OPT_ResizeStatistics, m_Sets.iResizeStats);
-		key.WriteDword(OPT_TextureFormat, m_Sets.iTexFormat);
-		key.WriteDword(OPT_VPEnableNV12, m_Sets.VPFmts.bNV12);
-		key.WriteDword(OPT_VPEnableP01x, m_Sets.VPFmts.bP01x);
-		key.WriteDword(OPT_VPEnableYUY2, m_Sets.VPFmts.bYUY2);
-		key.WriteDword(OPT_VPEnableOther, m_Sets.VPFmts.bOther);
-		key.WriteDword(OPT_DoubleFrateDeint, m_Sets.bDeintDouble);
-		key.WriteDword(OPT_VPScaling, m_Sets.bVPScaling);
-		key.WriteDword(OPT_VPSuperResolution, m_Sets.iVPSuperRes);
-		key.WriteDword(OPT_VPRTXVideoHDR, m_Sets.bVPRTXVideoHDR);
-		key.WriteDword(OPT_ChromaUpsampling, m_Sets.iChromaScaling);
-		key.WriteDword(OPT_Upscaling, m_Sets.iUpscaling);
-		key.WriteDword(OPT_Downscaling, m_Sets.iDownscaling);
-		key.WriteDword(OPT_InterpolateAt50pct, m_Sets.bInterpolateAt50pct);
-		key.WriteDword(OPT_Dither, m_Sets.bUseDither);
-		key.WriteDword(OPT_DeintBlend, m_Sets.bDeintBlend);
-		key.WriteDword(OPT_SwapEffect, m_Sets.iSwapEffect);
-		key.WriteDword(OPT_ExclusiveFullscreen, m_Sets.bExclusiveFS);
-		key.WriteDword(OPT_VBlankBeforePresent, m_Sets.bVBlankBeforePresent);
-		key.WriteDword(OPT_ReinitByDisplay, m_Sets.bReinitByDisplay);
-		key.WriteDword(OPT_HdrPreferDoVi, m_Sets.bHdrPreferDoVi);
-		key.WriteDword(OPT_HdrPassthrough, m_Sets.bHdrPassthrough);
-		key.WriteDword(OPT_HdrToggleDisplay, m_Sets.iHdrToggleDisplay);
-		key.WriteDword(OPT_HdrOsdBrightness, m_Sets.iHdrOsdBrightness);
-		key.WriteDword(OPT_ConvertToSdr, m_Sets.bConvertToSdr);
-	}
-#else
-	CRegKey key;
-	if (ERROR_SUCCESS == key.Create(HKEY_CURRENT_USER, OPT_REGKEY_VIDEORENDERER)) {
-		key.WriteDword(OPT_UseD3D11,            m_Sets.bUseD3D11);
-		key.WriteDword(OPT_ShowStatistics,      m_Sets.bShowStats);
-		key.WriteDword(OPT_ResizeStatistics,    m_Sets.iResizeStats);
-		key.WriteDword(OPT_TextureFormat,       m_Sets.iTexFormat);
-		key.WriteDword(OPT_VPEnableNV12,        m_Sets.VPFmts.bNV12);
-		key.WriteDword(OPT_VPEnableP01x,        m_Sets.VPFmts.bP01x);
-		key.WriteDword(OPT_VPEnableYUY2,        m_Sets.VPFmts.bYUY2);
-		key.WriteDword(OPT_VPEnableOther,       m_Sets.VPFmts.bOther);
-		key.WriteDword(OPT_DoubleFrateDeint,    m_Sets.bDeintDouble);
-		key.WriteDword(OPT_VPScaling,           m_Sets.bVPScaling);
-		key.WriteDword(OPT_VPSuperResolution,   m_Sets.iVPSuperRes);
-		key.WriteDword(OPT_VPRTXVideoHDR,       m_Sets.bVPRTXVideoHDR);
-		key.WriteDword(OPT_ChromaUpsampling,    m_Sets.iChromaScaling);
-		key.WriteDword(OPT_Upscaling,           m_Sets.iUpscaling);
-		key.WriteDword(OPT_Downscaling,         m_Sets.iDownscaling);
-		key.WriteDword(OPT_InterpolateAt50pct,  m_Sets.bInterpolateAt50pct);
-		key.WriteDword(OPT_Dither,              m_Sets.bUseDither);
-		key.WriteDword(OPT_DeintBlend,          m_Sets.bDeintBlend);
-		key.WriteDword(OPT_SwapEffect,          m_Sets.iSwapEffect);
-		key.WriteDword(OPT_ExclusiveFullscreen, m_Sets.bExclusiveFS);
-		key.WriteDword(OPT_VBlankBeforePresent, m_Sets.bVBlankBeforePresent);
-		key.WriteDword(OPT_ReinitByDisplay,     m_Sets.bReinitByDisplay);
-		key.WriteDword(OPT_HdrPreferDoVi,       m_Sets.bHdrPreferDoVi);
-		key.WriteDword(OPT_HdrPassthrough,      m_Sets.bHdrPassthrough);
-		key.WriteDword(OPT_HdrToggleDisplay,    m_Sets.iHdrToggleDisplay);
-		key.WriteDword(OPT_HdrOsdBrightness,    m_Sets.iHdrOsdBrightness);
-		key.WriteDword(OPT_ConvertToSdr,        m_Sets.bConvertToSdr);
-	}
 #endif
 	return S_OK;
 }
@@ -1328,185 +1029,6 @@ STDMETHODIMP CMpcVideoRenderer::SetCallback11(ISubRender11Callback* cb)
 	m_pSub11CallBack = cb;
 
 	return S_OK;
-}
-
-// IExFilterConfig
-
-STDMETHODIMP CMpcVideoRenderer::Flt_GetBool(LPCSTR field, bool* value)
-{
-	CheckPointer(value, E_POINTER);
-
-	if (!strcmp(field, "statsEnable")) {
-		*value = m_Sets.bShowStats;
-		return S_OK;
-	}
-
-	if (!strcmp(field, "flip")) {
-		*value = m_VideoProcessor->GetFlip();
-		return S_OK;
-	}
-
-	if (!strcmp(field, "doubleRate")) {
-		CAutoLock cRendererLock(&m_RendererLock);
-		*value = m_VideoProcessor->GetDoubleRate();
-		return S_OK;
-	}
-
-	return E_INVALIDARG;
-}
-
-STDMETHODIMP CMpcVideoRenderer::Flt_GetInt(LPCSTR field, int* value)
-{
-	CheckPointer(value, E_POINTER);
-
-	if (!strcmp(field, "renderType")) {
-		if (m_inputMT.IsValid()) {
-			*value = m_VideoProcessor->Type();
-		} else {
-			*value = 0; // not initialized
-		}
-		return S_OK;
-	}
-	if (!strcmp(field, "playbackState")) {
-		*value = m_filterState;
-		return S_OK;
-	}
-	if (!strcmp(field, "rotation")) {
-		*value = m_VideoProcessor->GetRotation();
-		return S_OK;
-	}
-
-	return E_INVALIDARG;
-}
-
-STDMETHODIMP CMpcVideoRenderer::Flt_GetInt64(LPCSTR field, __int64 *value)
-{
-	CheckPointer(value, E_POINTER);
-
-	if (!strcmp(field, "version")) {
-		*value  = ((uint64_t)VER_MAJOR << 48)
-				| ((uint64_t)VER_MINOR << 32)
-				| ((uint64_t)VER_BUILD << 16)
-				| ((uint64_t)REV_NUM);
-		return S_OK;
-	}
-
-	return E_INVALIDARG;
-}
-
-STDMETHODIMP CMpcVideoRenderer::Flt_GetBin(LPCSTR field, LPVOID* value, unsigned* size)
-{
-	if (!strcmp(field, "displayedImage")) {
-		CAutoLock cRendererLock(&m_RendererLock);
-
-		HRESULT hr = m_VideoProcessor->GetDisplayedImage((BYTE**)value, size);
-
-		return hr;
-	}
-
-	return E_INVALIDARG;
-}
-
-STDMETHODIMP CMpcVideoRenderer::Flt_SetBool(LPCSTR field, bool value)
-{
-	if (!strcmp(field, "cmd_redraw") && value) {
-		Redraw();
-		return S_OK;
-	}
-
-	if (!strcmp(field, "statsEnable")) {
-		m_Sets.bShowStats = value;
-		m_VideoProcessor->SetShowStats(m_Sets.bShowStats);
-
-		SaveSettings();
-		if (m_filterState != State_Running) {
-			Redraw();
-		}
-		return S_OK;
-	}
-
-	if (!strcmp(field, "lessRedraws")) {
-		m_bForceRedrawing = !value;
-		return S_OK;
-	}
-
-	if (!strcmp(field, "d3dFullscreenControl")) {
-		m_bEnableFullscreenControl = value;
-		return S_OK;
-	}
-
-	if (!strcmp(field, "flip")) {
-		CAutoLock cRendererLock(&m_RendererLock);
-
-		m_VideoProcessor->SetFlip(value);
-		return S_OK;
-	}
-
-	return E_INVALIDARG;
-}
-
-STDMETHODIMP CMpcVideoRenderer::Flt_SetInt(LPCSTR field, int value)
-{
-	if (!strcmp(field, "rotation")) {
-		// Allowed angles are multiples of 90.
-		if (value % 90 == 0) {
-			// The allowed rotation angle is reduced to 0, 90, 180, 270.
-			value %= 360;
-			if (value < 0) {
-				value += 360;
-			}
-
-			CAutoLock cRendererLock(&m_RendererLock);
-
-			m_VideoProcessor->SetRotation(value);
-			return S_OK;
-		}
-	}
-
-	if (!strcmp(field, "stereo3dTransform")) {
-		if (value == STEREO3D_AsIs || value == STEREO3D_HalfOverUnder_to_Interlace) {
-			CAutoLock cRendererLock(&m_RendererLock);
-
-			m_VideoProcessor->SetStereo3dTransform(value);
-			return S_OK;
-		}
-	}
-
-	return E_INVALIDARG;
-}
-
-STDMETHODIMP CMpcVideoRenderer::Flt_SetBin(LPCSTR field, LPVOID value, int size)
-{
-	if (size > 0) {
-		auto ReadShaderData = [&](CStdStringW& shaderName, CStdStringA& shaderCode) {
-			BYTE* p = (BYTE*)value;
-			const BYTE* end = p + size;
-			uint32_t chunkcode;
-			int32_t chunksize;
-
-			while (p + 8 < end) {
-				memcpy(&chunkcode, p, 4);
-				p += 4;
-				memcpy(&chunksize, p, 4);
-				p += 4;
-				if (chunksize <= 0 || p + chunksize > end) {
-					break;
-				}
-
-				switch (chunkcode) {
-				case FCC('NAME'):
-					shaderName.assign((LPCWSTR)p, chunksize / sizeof(wchar_t));
-					break;
-				case FCC('CODE'):
-					shaderCode.assign((LPCSTR)p, chunksize);
-					break;
-				}
-				p += chunksize;
-			}
-		};
-	}
-
-	return E_INVALIDARG;
 }
 
 // ID3DFullscreenControl

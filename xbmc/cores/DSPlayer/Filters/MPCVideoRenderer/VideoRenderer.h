@@ -31,6 +31,7 @@
 #include "Include/ID3DFullscreenControl.h"
 #include "Include/FilterInterfacesImpl.h"
 
+
 /* kodi related headers */
 #include "rendering/dx/DeviceResources.h"
 #include <combase.h>
@@ -78,7 +79,6 @@ class __declspec(uuid("71F080AA-8661-4093-B15E-4F6903E77D0A"))
 	, public IMFGetService
 	, public IBasicVideo2
 	, public IVideoWindow
-	, public IVideoRenderer
 	, public ISubRender
 	, public ISubRender11
 	, public CExFilterConfigImpl
@@ -88,9 +88,6 @@ private:
 	friend class CVideoRendererInputPin;
 	friend class CVideoProcessor;
 	friend class CDX11VideoProcessor;
-
-	// Options
-	Settings_t m_Sets;
 
 	FILTER_STATE m_filterState = State_Stopped;
 	bool m_bFlushing = false;
@@ -249,29 +246,11 @@ public:
 	STDMETHODIMP HideCursor(long HideCursor) { return E_NOTIMPL; }
 	STDMETHODIMP IsCursorHidden(long *CursorHidden) { return E_NOTIMPL; }
 
-	// IVideoRenderer
-	STDMETHODIMP_(bool) GetActive();
-
-	STDMETHODIMP_(void) GetSettings(Settings_t& setings);
-	STDMETHODIMP_(void) SetSettings(const Settings_t& setings);
-
-	STDMETHODIMP SaveSettings();
-
 	// ISubRender (DX9)
 	STDMETHODIMP SetCallback(ISubRenderCallback* cb) override;
 
 	// ISubRender11 (DX11)
 	STDMETHODIMP SetCallback11(ISubRender11Callback* cb) override;
-
-	// IExFilterConfig
-	STDMETHODIMP Flt_GetBool(LPCSTR field, bool* value) override;
-	STDMETHODIMP Flt_GetInt(LPCSTR field,  int*  value) override;
-	STDMETHODIMP Flt_GetInt64(LPCSTR field, __int64* value) override;
-	STDMETHODIMP Flt_GetBin(LPCSTR field, LPVOID* value, unsigned* size) override;
-
-	STDMETHODIMP Flt_SetBool(LPCSTR field, bool value) override;
-	STDMETHODIMP Flt_SetInt(LPCSTR field, int value) override;
-	STDMETHODIMP Flt_SetBin(LPCSTR field, LPVOID value, int size) override;
 
 	// ID3DFullscreenControl
 	STDMETHODIMP SetD3DFullscreen(bool bEnabled);

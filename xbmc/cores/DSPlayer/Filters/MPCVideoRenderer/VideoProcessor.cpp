@@ -60,7 +60,7 @@ HRESULT CVideoProcessor::GetAspectRatio(long *plAspectX, long *plAspectY)
 
 void CVideoProcessor::CalcStatsFont()
 {
-	if (m_iResizeStats == 1) {
+	if (1 == 1) {
 		int w = std::max(512, m_windowRect.Width() / 2 - 10) - 5 - 3;
 		int h = std::max(280, m_windowRect.Height() - 10) - 5 - 3;
 		m_StatsFontH = (int)std::ceil(std::min(w / 36.0, h / 19.4));

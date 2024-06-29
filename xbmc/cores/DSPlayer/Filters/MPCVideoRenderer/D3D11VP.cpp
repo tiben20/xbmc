@@ -25,7 +25,7 @@
 #include "Helper.h"
 #include "DX11Helper.h"
 #include "IVideoRenderer.h"
-
+#include "Filters/RendererSettings.h"
 #include "D3D11VP.h"
 #include "rendering/dx/DirectXHelper.h"
 #define ENABLE_FUTUREFRAMES 0

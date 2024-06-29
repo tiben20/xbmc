@@ -23,11 +23,7 @@
 #include <evr9.h>
 #include "DisplayConfig.h"
 #include "FrameStats.h"
-
-enum : int {
-	VP_DX9 = 9,
-	VP_DX11 = 11
-};
+#include "dsutil/Geometry.h"
 
 enum : int {
 	STEREO3D_AsIs = 0,
@@ -44,25 +40,7 @@ protected:
 	long m_nRefCount = 1;
 	CMpcVideoRenderer* m_pFilter = nullptr;
 	// Settings
-	bool m_bShowStats                      = false;
-	int  m_iResizeStats                    = 0;
-	int  m_iTexFormat                      = TEXFMT_AUTOINT;
-	VPEnableFormats_t m_VPFormats          = {true, true, true, true};
-	bool m_bDeintDouble                    = true;
-	bool m_bVPScaling                      = true;
-	int  m_iChromaScaling                  = CHROMA_Bilinear;
-	int  m_iUpscaling                      = UPSCALE_CatmullRom; // interpolation
-	int  m_iDownscaling                    = DOWNSCALE_Hamming;  // convolution
-	bool m_bInterpolateAt50pct             = true;
-	bool m_bUseDither                      = true;
-	bool m_bDeintBlend                     = false;
-	int  m_iSwapEffect                     = SWAPEFFECT_Flip;
-	bool m_bVBlankBeforePresent            = false;
-	bool m_bHdrPreferDoVi                  = false;
-
-	int  m_iHdrToggleDisplay               = HDRTD_On;
-	int  m_iHdrOsdBrightness               = 0;
-	bool m_bConvertToSdr                   = true;
+	
 
 	bool m_bVPScalingUseShaders = false;
 
@@ -154,8 +132,6 @@ protected:
 public:
 	virtual ~CVideoProcessor() = default;
 
-	virtual int Type() = 0;
-
 	virtual HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) = 0;
 
 	virtual IDirect3DDeviceManager9* GetDeviceManager9() { return nullptr; }
@@ -184,10 +160,6 @@ public:
 
 	HRESULT GetVideoSize(long *pWidth, long *pHeight);
 	HRESULT GetAspectRatio(long *plAspectX, long *plAspectY);
-
-	// Settings
-	void SetShowStats(bool value) { m_bShowStats   = value; }
-	virtual void Configure(const Settings_t& config) = 0;
 
 	int GetRotation() { return m_iRotation; }
 	virtual void SetRotation(int value) = 0;

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "d3d9types.h"
 #include <DXGI1_2.h>
 #include <dxva2api.h>
 #include <dxgi1_5.h>
@@ -31,6 +32,7 @@
 #include "D3D11Font.h"
 #include "D3D11Geometry.h"
 #include "VideoProcessor.h"
+#include "Filters/RendererSettings.h"
 /*kodi*/
 #include "guilib/D3DResource.h"
 #include "../IDSPlayer.h"
@@ -160,10 +162,8 @@ private:
 	bool m_bKodiResizeBuffers = false;
 
 public:
-	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, const Settings_t& config, HRESULT& hr);
+	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr);
 	~CDX11VideoProcessor() override;
-
-	int Type() override { return VP_DX11; }
 
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	bool Initialized();
@@ -226,9 +226,6 @@ public:
 
 	HRESULT GetCurentImage(long *pDIBImage) override;
 	HRESULT GetDisplayedImage(BYTE **ppDib, unsigned* pSize) override;
-
-	// Settings
-	void Configure(const Settings_t& config) override;
 
 	void SetRotation(int value) override;
 	void SetStereo3dTransform(int value) override;

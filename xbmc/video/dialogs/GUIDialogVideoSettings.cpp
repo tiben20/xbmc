@@ -121,13 +121,13 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
   else if (settingId == VIDEO_SETTINGS_DS_STATS)
   {
     m_dsStats = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
-    g_dsSettings.pRendererSettings->displayStats = (DS_STATS)m_dsStats;
+    MPC_SETTINGS->displayStats = (DS_STATS)m_dsStats;
     CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS, m_dsStats);
   }
   else if (settingId == VIDEO_SETTINGS_PLACEBO_OPTION)
   {
     m_placeboOption = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
-    g_dsSettings.pRendererSettings->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)m_placeboOption;
+    MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)m_placeboOption;
     CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS, m_placeboOption);
   }
 #endif
