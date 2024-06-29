@@ -37,6 +37,10 @@
 #include "utils/DSFileUtils.h"
 #include "utils/URIUtils.h"
 
+#define APPENDIFTEXT(strin,thetype,thetext) if (thetype.length() > 0){                         \
+                                  strin.append(StringUtils::Format(thetext, thetype.c_str())); \
+                                }                                                              \
+
 class CGlobalFilterSelectionRule
 {
 public:
@@ -169,9 +173,16 @@ public:
   std::string GetRuleInfo()
   {
     
-    std::string rule = StringUtils::Format("Filter Rules name: {}, file: {}, type: {} protocol: {}", m_name.c_str(), m_fileName.c_str(), m_fileTypes.c_str(), m_Protocols.c_str());
-    
-    rule.append(StringUtils::Format("video codec{}", m_videoCodec.c_str()));
+    std::string rule = "Filter Rule ";
+    //StringUtils::Format(" name: {}, file: {}, type: {} protocol: {}", m_name.c_str(), m_fileName.c_str(), m_fileTypes.c_str(), m_Protocols.c_str());
+    APPENDIFTEXT(rule, m_name, "name: {} ")
+    APPENDIFTEXT(rule, m_fileName, "filename: {} ")
+    APPENDIFTEXT(rule, m_fileTypes, "filetype: {} ");
+    APPENDIFTEXT(rule, m_Protocols, "protocols: {} ");
+    APPENDIFTEXT(rule, m_videoCodec, "video codec: {} ");
+    APPENDIFTEXT(rule, m_audioCodec, "audio codec: {} ");
+    APPENDIFTEXT(rule, m_priority, "priority: {} ");
+
     return rule;
   }
 private:
@@ -226,7 +237,7 @@ private:
     m_bStreamDetails = m_videoCodec.length() > 0 || m_audioCodec.length() > 0;
 
     if (!CDSXMLUtils::GetString(pRule, "priority", &m_priority))
-      m_priority = StringUtils::Format("%i", iPriority);
+      m_priority = StringUtils::Format("{}", iPriority);
 
     // Source rules
     m_pSource = new CFilterSelectionRule(pRule->FirstChildElement("source"), "source");
