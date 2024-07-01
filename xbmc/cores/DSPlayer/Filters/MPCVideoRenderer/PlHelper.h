@@ -89,6 +89,11 @@ namespace PL
     pl_renderer GetPLRenderer() { return m_plRenderer; };
     pl_swapchain GetPLSwapChain() { return m_plSwapchain; };
 
+    // pass metadata
+    struct pl_dispatch_info blend_info[MAX_BLEND_FRAMES][MAX_BLEND_PASSES];
+    struct pl_dispatch_info frame_info[MAX_FRAME_PASSES];
+    int num_frame_passes;
+    int num_blend_passes[MAX_BLEND_FRAMES];
   protected:
     //options
     pl_options m_plOptions;
@@ -122,11 +127,7 @@ namespace PL
     std::vector<const pl_hook*> m_pShaderHooks;
     std::vector<std::string> m_pShaderPaths;
 
-    // pass metadata
-    struct pl_dispatch_info blend_info[MAX_BLEND_FRAMES][MAX_BLEND_PASSES];
-    struct pl_dispatch_info frame_info[MAX_FRAME_PASSES];
-    int num_frame_passes;
-    int num_blend_passes[MAX_BLEND_FRAMES];
+
   };
 
 

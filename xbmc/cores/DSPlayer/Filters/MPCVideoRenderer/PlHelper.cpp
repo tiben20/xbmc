@@ -125,6 +125,9 @@ CPlHelper::CPlHelper()
   for (int i = 0; i < MAX_BLEND_FRAMES; i++)
     for (int ii = 0; ii < MAX_BLEND_FRAMES; ii++)
       blend_info[i][ii] = {};
+  for (int i = 0 ;i<8;i++)
+    num_blend_passes[i] = 0;
+  num_frame_passes = 0;
   m_pIcc = nullptr;
   m_pCache = nullptr;
 }
@@ -143,7 +146,7 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
  
     pl_log_params log_param{};
     log_param.log_cb = pl_log_cb;
-    log_param.log_level = PL_LOG_WARN;
+    log_param.log_level = PL_LOG_DEBUG;
     m_plLog = pl_log_create(PL_API_VER, &log_param);
   }
   if (m_plD3d11)

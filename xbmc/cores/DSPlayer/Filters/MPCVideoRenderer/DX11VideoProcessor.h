@@ -197,7 +197,7 @@ public:
 	HRESULT SetShaderDoviCurves();
 
 	/*libplacebo*/
-	
+	static void render_info_cb(void* priv, const struct pl_render_info* info);
 	HRESULT CopySampleToLibplacebo(IMediaSample* pSample);
 
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);

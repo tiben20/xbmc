@@ -316,6 +316,8 @@ static bool ToggleHDR(const DisplayConfig_t& displayConfig, const BOOL bEnableAd
 	return ret == ERROR_SUCCESS;
 }
 
+
+
 CDX11VideoProcessor::~CDX11VideoProcessor()
 {
 	for (const auto& [displayName, state] : m_hdrModeSavedState) {
@@ -926,6 +928,31 @@ void CDX11VideoProcessor::SetShaderLuminanceParams()
 	}
 }
 
+void CDX11VideoProcessor::render_info_cb(void* priv, const pl_render_info* info)
+{
+	PL::CPlHelper* p = (PL::CPlHelper*)priv;
+	
+	switch (info->stage) {
+	case PL_RENDER_STAGE_FRAME:
+		if (info->index >= MAX_FRAME_PASSES)
+			return;
+		p->num_frame_passes = info->index + 1;
+		pl_dispatch_info_move(&p->frame_info[info->index], info->pass);
+		return;
+
+	case PL_RENDER_STAGE_BLEND:
+		if (info->index >= MAX_BLEND_PASSES || info->count >= MAX_BLEND_FRAMES)
+			return;
+		p->num_blend_passes[info->count] = info->index + 1;
+		pl_dispatch_info_move(&p->blend_info[info->count][info->index], info->pass);
+		return;
+
+	case PL_RENDER_STAGE_COUNT:
+		break;
+	}
+	CLog::Log(LOGERROR, "");
+}
+
 HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 {
 	HRESULT hr;
@@ -1192,6 +1219,9 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		break;
 	}
 
+	params.info_priv = pHelper;
+	params.info_callback = render_info_cb;
+
 	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
 
@@ -1203,7 +1233,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 
 	SendStats(csp, repr);
-
+	
 	return S_OK;
 }
 
@@ -2408,12 +2438,10 @@ HRESULT CDX11VideoProcessor::Render(int field, const REFERENCE_TIME frameStartTi
 
 void CDX11VideoProcessor::UpdateTexures()
 {
-	if (!m_srcWidth || !m_srcHeight) {
+	if (!m_srcWidth || !m_srcHeight)
 		return;
-	}
-
-	// TODO: try making w and h a multiple of 128.
 	HRESULT hr = S_OK;
+	
 	if (m_D3D11VP.IsReady()) {
 		if (MPC_SETTINGS->bVPScaling) {
 			Com::SmartSize texsize = m_renderRect.Size();
