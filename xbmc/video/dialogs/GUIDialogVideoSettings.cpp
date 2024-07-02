@@ -66,7 +66,7 @@
 #if HAS_DS_PLAYER
 #define VIDEO_SETTINGS_DS_STATS           "video.dsstats"
 #define VIDEO_SETTINGS_PLACEBO_CURRENT    "video.libplacebocurrent"
-#define VIDEO_SETTINGS_PLACEBO_OPTION     "video.libplacebooption"
+#define VIDEO_SETTINGS_DS_PLANES          "video.planemerger"
 #define VIDEO_SETTINGS_DS_FILTERS         "video.dsfilters"
 #endif
 
@@ -129,6 +129,12 @@ void CGUIDialogVideoSettings::OnSettingChanged(const std::shared_ptr<const CSett
     m_placeboOption = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
     MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)m_placeboOption;
     CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS, m_placeboOption);
+  }
+  else if (settingId == VIDEO_SETTINGS_DS_PLANES)
+  {
+    m_pPlaneMerger = std::static_pointer_cast<const CSettingInt>(setting)->GetValue();
+    MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)m_pPlaneMerger;
+    CServiceBroker::GetSettingsComponent()->GetSettings()->SetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER, m_pPlaneMerger);
   }
 #endif
   else if (settingId == SETTING_VIDEO_SCALINGMETHOD)
@@ -310,10 +316,6 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
   else if (settingId == SETTING_VIDEO_MAKE_DEFAULT)
     Save();
 #if HAS_DS_PLAYER
-  else if (settingId == VIDEO_SETTINGS_PLACEBO_OPTION)
-  {
-    CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_LIBPLACEBO_OPTIONS);
-  }
   else if (settingId == VIDEO_SETTINGS_DS_FILTERS)
   {
     CGUIDialogSelect *pDlg = (CGUIDialogSelect *)CServiceBroker::GetGUI()->GetWindowManager().GetWindow(WINDOW_DIALOG_SELECT);
@@ -586,7 +588,11 @@ void CGUIDialogVideoSettings::InitializeSettings()
       entries.push_back(TranslatableIntegerSettingOption(55037, PLACEBO_CUSTOM));
 
       AddSpinner(groupVideo, VIDEO_SETTINGS_PLACEBO_CURRENT, 55033, SettingLevel::Basic, static_cast<int>(m_placeboOption), entries);
-      AddButton(groupVideo, VIDEO_SETTINGS_PLACEBO_OPTION, 55200, SettingLevel::Basic);
+      entries.clear();
+      entries.push_back(TranslatableIntegerSettingOption(55202, D3D11_VP));
+      entries.push_back(TranslatableIntegerSettingOption(55203, D3D11_LIBPLACEBO));
+      entries.push_back(TranslatableIntegerSettingOption(55204, D3D11_INTERNAL_SHADERS));
+      AddSpinner(groupVideo, VIDEO_SETTINGS_DS_PLANES, 55201, SettingLevel::Basic, static_cast<int>(m_pPlaneMerger), entries);
     } 
     AddButton(groupFilters, VIDEO_SETTINGS_DS_FILTERS, 55062,SettingLevel::Basic);
   }

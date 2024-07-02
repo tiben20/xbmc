@@ -24571,7 +24571,7 @@ msgid "Stats MPCVR Style"
 msgstr ""
 
 msgctxt "#55013"
-msgid "Stats Scaling debug"
+msgid "Stats mpv style"
 msgstr ""
 
 msgctxt "#55014"
@@ -24579,7 +24579,7 @@ msgid "Other renderer info..."
 msgstr ""
 
 msgctxt "#55015"
-msgid "Renderer stats"
+msgid "Renderer statistics osd"
 msgstr ""
 
 msgctxt "#55016"
@@ -24997,19 +24997,19 @@ msgid "Libplacebo Settings"
 msgstr ""
 
 msgctxt "#55201"
-msgid "Debend params"
+msgid "Planer merger"
 msgstr ""
 
 msgctxt "#55202"
-msgid "iterations"
+msgid "D3D11 video processor"
 msgstr ""
 
 msgctxt "#55203"
-msgid "threshold"
+msgid "Libplacebo Not working correctly"
 msgstr ""
 
 msgctxt "#55204"
-msgid "radius"
+msgid "internal shaders"
 msgstr ""
 
 msgctxt "#55205"

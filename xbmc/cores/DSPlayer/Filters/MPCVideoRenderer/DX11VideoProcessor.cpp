@@ -226,6 +226,8 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	MPC_SETTINGS->displayStats = (DS_STATS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
 	MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
 	MPC_SETTINGS->bVPUseRTXVideoHDR = true;// config.bVPRTXVideoHDR;
+	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
+	
 
 	m_iVPSuperRes = true;// config.iVPSuperRes;
 
@@ -1117,7 +1119,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		}
 		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
 		{
-			
+			frameIn = pHelper->CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight);
 		}
 		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
 		{
@@ -1146,23 +1148,20 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	inParams.tex = m_pInputTexture.Get();
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
 
-	
-	frameIn.num_planes = 1;   
-	frameIn.planes[0].texture = inTexture;
-	frameIn.planes[0].components = 3;
-	frameIn.planes[0].component_mapping[0] = 0;
-	frameIn.planes[0].component_mapping[1] = 1;
-	frameIn.planes[0].component_mapping[2] = 2;
-	frameIn.planes[0].component_mapping[3] = -1;
-	frameIn.planes[0].flipped = false;
-	repr.bits.color_depth = 10;
-	frameIn.repr = repr;
-	frameIn.color = csp;
-	if (inParams.fmt == DXGI_FORMAT_R10G10B10A2_UNORM)
+	if (MPC_SETTINGS->bD3D11TextureSampler != D3D11_LIBPLACEBO)
 	{
-
+		frameIn.num_planes = 1;
+		frameIn.planes[0].texture = inTexture;
+		frameIn.planes[0].components = 3;
+		frameIn.planes[0].component_mapping[0] = 0;
+		frameIn.planes[0].component_mapping[1] = 1;
+		frameIn.planes[0].component_mapping[2] = 2;
+		frameIn.planes[0].component_mapping[3] = -1;
+		frameIn.planes[0].flipped = false;
+		repr.bits.color_depth = 10;
+		frameIn.repr = repr;
+		frameIn.color = csp;
 	}
-	
 	CD3DTexture outputTarget = CMPCVRRenderer::Get()->GetIntermediateTarget();
 	outputParams.w = outputTarget.GetWidth();
 	outputParams.h = outputTarget.GetHeight();

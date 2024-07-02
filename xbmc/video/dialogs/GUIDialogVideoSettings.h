@@ -66,5 +66,6 @@ private:
   int m_scalingMethod;
   int m_dsStats;
   int m_placeboOption;
+  int m_pPlaneMerger;
 #endif
 };

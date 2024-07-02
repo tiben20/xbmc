@@ -146,7 +146,7 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
  
     pl_log_params log_param{};
     log_param.log_cb = pl_log_cb;
-    log_param.log_level = PL_LOG_DEBUG;
+    log_param.log_level = PL_LOG_TRACE;
     m_plLog = pl_log_create(PL_API_VER, &log_param);
   }
   if (m_plD3d11)
@@ -226,6 +226,23 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
   struct pl_plane_data data[4] = {};
 
   pl_chroma_location loc;
+  switch (pFormat.VideoChromaSubsampling) {
+    //case AVCHROMA_LOC_UNSPECIFIED:  return PL_CHROMA_UNKNOWN;
+  case DXVA2_VideoChromaSubsampling_MPEG2:
+    loc = PL_CHROMA_LEFT;
+    break;
+  case DXVA2_VideoChromaSubsampling_MPEG1:
+    loc = PL_CHROMA_CENTER;
+    break;
+  case DXVA2_VideoChromaSubsampling_Cosited:
+    loc = PL_CHROMA_TOP_LEFT;
+    break;
+    //case AVCHROMA_LOC_TOP:          return PL_CHROMA_TOP_CENTER;
+    //case AVCHROMA_LOC_BOTTOMLEFT:   return PL_CHROMA_BOTTOM_LEFT;
+    //case AVCHROMA_LOC_BOTTOM:       return PL_CHROMA_BOTTOM_CENTER;
+    //case AVCHROMA_LOC_NB:           return PL_CHROMA_COUNT;
+  }
+
   /*static const struct pl_plane_data nv12[] = {
         {
             .type = PL_FMT_UNORM,
@@ -272,10 +289,10 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
   img.num_planes = 2;
   img.planes[0] = pl_planes[0];
   img.planes[1] = pl_planes[1];
+  
   img.repr = GetPlColorRepresentation(pFormat);
   img.color = GetPlColorSpace(pFormat);
 
-  loc = PL_CHROMA_LEFT;
   pl_frame_set_chroma_location(&img, loc);
   return img;
 
@@ -303,23 +320,8 @@ pl_frame CPlHelper::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSam
     for (int c = plane->components; c < 4; c++)
       plane->component_mapping[c] = PL_CHANNEL_NONE;
   }
-  switch (pFormat.VideoChromaSubsampling) {
-  //case AVCHROMA_LOC_UNSPECIFIED:  return PL_CHROMA_UNKNOWN;
-  case DXVA2_VideoChromaSubsampling_MPEG2:
-    loc = PL_CHROMA_LEFT;
-    break;
-  case DXVA2_VideoChromaSubsampling_MPEG1:
-    loc = PL_CHROMA_CENTER; 
-    break;
-  case DXVA2_VideoChromaSubsampling_Cosited:      
-    loc = PL_CHROMA_TOP_LEFT;
-    break;
-  //case AVCHROMA_LOC_TOP:          return PL_CHROMA_TOP_CENTER;
-  //case AVCHROMA_LOC_BOTTOMLEFT:   return PL_CHROMA_BOTTOM_LEFT;
-  //case AVCHROMA_LOC_BOTTOM:       return PL_CHROMA_BOTTOM_CENTER;
-  //case AVCHROMA_LOC_NB:           return PL_CHROMA_COUNT;
-  }
-  loc = PL_CHROMA_CENTER;
+  
+ 
   pl_frame_set_chroma_location(&outFrame, loc);
 
   BYTE* pDataOut = nullptr;

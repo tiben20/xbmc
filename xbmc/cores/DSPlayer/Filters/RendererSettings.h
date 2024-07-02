@@ -187,7 +187,7 @@ public:
 
     displayStats = DS_STATS_1; // On GUI
     m_pPlaceboOptions = PLACEBO_DEFAULT;
-    bD3D11TextureSampler = D3D11_INTERNAL_SHADERS;//D3D11_VP
+    bD3D11TextureSampler = D3D11_INTERNAL_SHADERS;// D3D11_INTERNAL_SHADERS;//D3D11_VP
     bUseHDR = false;
     enableFrameTimeCorrection = false;
     iBuffers = 4;

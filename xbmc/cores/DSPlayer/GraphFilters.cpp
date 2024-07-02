@@ -177,7 +177,7 @@ bool CGraphFilters::ShowOSDPPage(IBaseFilter *pBF)
 void CGraphFilters::CreateInternalFilter(const std::string &type, IBaseFilter **ppBF)
 {
   std::string filterName = type;
-  if (type == INTERNAL_XYSUBFILTER && CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER) == "EVR") 
+  if (type == INTERNAL_XYSUBFILTER) 
     filterName = CGraphFilters::INTERNAL_XYVSFILTER;
 
   CFGLoader *pLoader = new CFGLoader();
