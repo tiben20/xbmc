@@ -51,7 +51,7 @@ protected:
 
   virtual void SetupView();
 
-  static void TypeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void TypeOptionFiller(const std::shared_ptr<const CSetting>& setting, StringSettingOptions& list, std::string& current, void* data);
   std::string GetFilterName(std::string guid);
 
   bool m_bEdited;

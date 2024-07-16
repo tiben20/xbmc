@@ -95,6 +95,14 @@ struct StringSettingOption
   {
   }
 
+  bool operator == (StringSettingOption a)
+  {
+    if (this->label == a.label)
+      return true;
+
+    return false;
+  }
+
   std::string label;
   std::string label2;
   std::string value;

@@ -134,11 +134,10 @@ void CGUIDialogDSFilters::InitializeSettings()
   {
     m_dsmanager->InitConfig(m_filterList, OSDGUID, "dsfilters.osdname", 65003, "", "osdname");
     m_dsmanager->InitConfig(m_filterList, EDITATTR, "dsfilters.name", 65004, "name");
-#if TODO
     m_dsmanager->InitConfig(m_filterList, FILTER, "dsfilters.type", 65005, "type", "", TypeOptionFiller);
     m_dsmanager->InitConfig(m_filterList, OSDGUID, "dsfilters.guid", 65006, "", "guid");
     m_dsmanager->InitConfig(m_filterList, FILTERSYSTEM, "dsfilters.systemfilter", 65010, "", "", m_dsmanager->DSFilterOptionFiller);
-#endif
+
   }
 
   // Reset Button value
@@ -354,7 +353,7 @@ void CGUIDialogDSFilters::ShowDSFiltersList()
     CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_DIALOG_DSFILTERS);
 }
 
-void CGUIDialogDSFilters::TypeOptionFiller(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSFilters::TypeOptionFiller(const std::shared_ptr<const CSetting>& setting, StringSettingOptions& list, std::string& current, void* data)
 {
   list.emplace_back("", "[null]");
   list.emplace_back("Source Filter (source)", "source");

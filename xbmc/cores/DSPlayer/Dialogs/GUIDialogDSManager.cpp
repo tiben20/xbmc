@@ -215,7 +215,7 @@ void CGUIDialogDSManager::LoadDsXML(xmlType type, TiXmlElement* &pNode, bool for
   }
 }
 
-void CGUIDialogDSManager::GetFilterList(xmlType type, std::vector<DynamicStringSettingOption> &list)
+void CGUIDialogDSManager::GetFilterList(xmlType type, std::vector<StringSettingOption> &list)
 {
   list.emplace_back("", "[null]");
 
@@ -246,23 +246,43 @@ void CGUIDialogDSManager::GetFilterList(xmlType type, std::vector<DynamicStringS
   }
 }
 
+template <typename T>
+const bool Contains(std::vector<T>& Vec, const T& Element)
+{
+  if (std::find(Vec.begin(), Vec.end(), Element) != Vec.end())
+    return true;
+
+  return false;
+}
+
 void CGUIDialogDSManager::AllFiltersConfigOptionFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data)
 {
-#if TODO
-  std::vector<DynamicStringSettingOption> listUserdata;
-  std::vector<DynamicStringSettingOption> listHome;
+  std::vector<StringSettingOption> listUserdata;
+  std::vector<StringSettingOption> listHome;
   Get()->GetFilterList(FILTERSCONFIG, listUserdata);
   Get()->GetFilterList(HOMEFILTERSCONFIG, listHome);
 
-  std::sort(listUserdata.begin(), listUserdata.end());
-  std::sort(listHome.begin(), listHome.end());
+  //std::sort(listUserdata.begin(), listUserdata.end());
+  //std::sort(listHome.begin(), listHome.end());
 
   list.reserve(listUserdata.size() + listHome.size());
-  std::merge(listUserdata.begin(), listUserdata.end(), listHome.begin(), listHome.end(), std::back_inserter(list));
+  for (std::vector<StringSettingOption>::iterator it = listUserdata.begin(); it != listUserdata.end(); it++)
+    list.push_back(*it);
+
+  for (std::vector<StringSettingOption>::iterator it = listHome.begin(); it != listHome.end(); it++)
+  {
+    if (Contains(listUserdata,*it))
+      CLog::Log(LOGDEBUG, "already found {}", __FUNCTION__);
+    else
+      list.push_back(*it);
+    
+  }
+
+  //std::merge(listUserdata.begin(), listUserdata.end(), listHome.begin(), listHome.end(), std::back_inserter(list));
 
   std::sort(list.begin(), list.end(), compare_by_word);
-  list.erase(unique(list.begin(), list.end()), list.end());
-#endif
+  //list.erase(unique(list.begin(), list.end()), list.end());
+
 }
 
 void CGUIDialogDSManager::ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
@@ -299,7 +319,7 @@ void CGUIDialogDSManager::ShadersScaleOptionFiller(std::shared_ptr<const CSettin
   list.emplace_back("Post-resize", "postresize");
 }
 
-void CGUIDialogDSManager::DSFilterOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::DSFilterOptionFiller(const std::shared_ptr<const CSetting>& setting, StringSettingOptions& list, std::string& current, void* data)
 {
   CDSFilterEnumerator p_dfilter;
   std::vector<DSFiltersInfo> filterList;
@@ -346,10 +366,10 @@ TiXmlElement* CGUIDialogDSManager::KeepSelectedNode(TiXmlElement* pNode, const s
   return pRule;
 }
 
-bool CGUIDialogDSManager::compare_by_word(const DynamicStringSettingOption& lhs, const DynamicStringSettingOption& rhs)
+bool CGUIDialogDSManager::compare_by_word(const StringSettingOption& lhs, const StringSettingOption& rhs)
 {
-  std::string strLine1 = lhs.first;
-  std::string strLine2 = rhs.first;
+  std::string strLine1 = lhs.label;
+  std::string strLine2 = rhs.label;
   StringUtils::ToLower(strLine1);
   StringUtils::ToLower(strLine2);
   return strcmp(strLine1.c_str(), strLine2.c_str()) < 0;

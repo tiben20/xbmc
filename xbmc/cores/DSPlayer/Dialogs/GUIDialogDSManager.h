@@ -49,9 +49,6 @@ enum xmlType {
   PLAYERCOREFACTORY
 };
 
-typedef std::pair<std::string, std::string> DynamicStringSettingOption;
-typedef std::vector<DynamicStringSettingOption> DynamicStringSettingOptions;
-
 class DSConfigList
 {
 public:
@@ -94,11 +91,11 @@ public:
   static void AllFiltersConfigOptionFiller(const std::shared_ptr<const CSetting>& setting, std::vector<StringSettingOption>& list, std::string& current, void* data);
   static void ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
   static void ShadersScaleOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static void DSFilterOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void DSFilterOptionFiller(const std::shared_ptr<const CSetting>& setting, StringSettingOptions& list, std::string& current, void* data);
   static void BoolOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
   static void PriorityOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
-  static bool compare_by_word(const DynamicStringSettingOption& lhs, const DynamicStringSettingOption& rhs);
-  void GetFilterList(xmlType type, std::vector<DynamicStringSettingOption> &list);
+  static bool compare_by_word(const StringSettingOption& lhs, const StringSettingOption& rhs);
+  void GetFilterList(xmlType type, std::vector<StringSettingOption> &list);
   TiXmlElement* KeepSelectedNode(TiXmlElement* pNode, const std::string &subNodeName);
   bool FindPrepend(TiXmlElement* &pNode, const std::string &xmlNode);
 
