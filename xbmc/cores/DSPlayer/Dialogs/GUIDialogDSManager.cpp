@@ -285,7 +285,10 @@ void CGUIDialogDSManager::AllFiltersConfigOptionFiller(const std::shared_ptr<con
 
 }
 
-void CGUIDialogDSManager::ShadersOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::ShadersOptionFiller(const std::shared_ptr<const CSetting>& setting,
+  StringSettingOptions& list,
+  std::string& current,
+  void* data)
 {
   list.emplace_back("", "[null]");
 
@@ -313,7 +316,10 @@ void CGUIDialogDSManager::ShadersOptionFiller(std::shared_ptr<const CSetting>& s
   }
 }
 
-void CGUIDialogDSManager::ShadersScaleOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::ShadersScaleOptionFiller(const std::shared_ptr<const CSetting>& setting,
+  StringSettingOptions& list,
+  std::string& current,
+  void* data)
 {
   list.emplace_back("Pre-resize", "preresize");
   list.emplace_back("Post-resize", "postresize");
@@ -338,7 +344,10 @@ void CGUIDialogDSManager::BoolOptionFiller(std::shared_ptr<const CSetting>& sett
   list.emplace_back("false", "false");
 }
 
-void CGUIDialogDSManager::PriorityOptionFiller(std::shared_ptr<const CSetting>& setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogDSManager::PriorityOptionFiller(const std::shared_ptr<const CSetting>& setting,
+  StringSettingOptions& list,
+  std::string& current,
+  void* data)
 {
   list.emplace_back("", "[null]");
 

@@ -232,7 +232,6 @@ void CGUIDialogDSRules::InitializeSettings()
 
   if (m_ruleList.size() == 0)
   {
-#if TODO
     // RULE
     m_dsmanager->InitConfig(m_ruleList, SPINNERATTR, "rules.priority", 60024, "priority", "",m_dsmanager->PriorityOptionFiller);
     m_dsmanager->InitConfig(m_ruleList, EDITATTR, "rules.name", 60002, "name"); 
@@ -284,7 +283,6 @@ void CGUIDialogDSRules::InitializeSettings()
     m_dsmanager->InitConfig(m_ruleList, SPINNERATTRSHADER, "rules.shprepost2", 60023, "stage", "shader", m_dsmanager->ShadersScaleOptionFiller, 2, "shaders");
     m_dsmanager->InitConfig(m_ruleList, EDITATTRSHADER, "rules.shvideores2", 60019, "videoresolution", "shader", 0, 2, "shaders");
     m_dsmanager->InitConfig(m_ruleList, EDITATTRSHADER, "rules.shvideocodec2", 60020, "videocodec", "shader", 0, 2, "shaders");
-#endif
   }
 
   // Reset Button value
