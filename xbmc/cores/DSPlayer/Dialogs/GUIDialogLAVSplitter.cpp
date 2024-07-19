@@ -51,6 +51,7 @@
 #include "addons/Skin.h"
 #include "GraphFilters.h"
 #include "utils/CharsetConverter.h"
+#include <application/ApplicationPlayer.h>
 
 #define LAVSPLITTER_PROPERTYPAGE      "lavsplitter.propertypage"
 #define LAVSPLITTER_TRAYICON          "lavsplitter.trayicon"
@@ -67,6 +68,10 @@
 #define LAVSPLITTER_PREFHQAUDIO       "lavsplitter.prefhqaudio"
 #define LAVSPLITTER_IMPAIREDAUDIO     "lavsplitter.impairedaudio"
 #define LAVSPLITTER_RESET             "lavsplitter.reset"
+#define LAVSPLITTER_NOSUBS            "lavsplitter.sub.nosubs"
+#define LAVSPLITTER_FORCEDONLY        "lavsplitter.sub.forcedonly"
+#define LAVSPLITTER_DEFAULT           "lavsplitter.sub.default"
+#define LAVSPLITTER_ADVANCED          "lavsplitter.sub.advanced"
 
 using namespace std;
 
@@ -92,7 +97,7 @@ void CGUIDialogLAVSplitter::SetupView()
 
 void CGUIDialogLAVSplitter::InitializeSettings()
 {
-#if TODO
+#if 1
   CGUIDialogSettingsManualBase::InitializeSettings();
 
   bool usePopup = g_SkinInfo->HasSkinFile("DialogSlider.xml");
@@ -168,27 +173,27 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   CGraphFilters::Get()->GetInternalFilter(CGraphFilters::INTERNAL_LAVSPLITTER, &pBF);
   CGraphFilters::Get()->GetLavSettings(CGraphFilters::INTERNAL_LAVSPLITTER, pBF);
 
-  StaticIntegerSettingOptions entries;
+  std::vector<IntegerSettingOption> entries;
   CLavSettings &lavSettings = CMediaSettings::GetInstance().GetCurrentLavSettings();
 
   // BUTTON
-  AddButton(groupProperty, LAVSPLITTER_PROPERTYPAGE, 80013, 0);
+  AddButton(groupProperty, LAVSPLITTER_PROPERTYPAGE, 80013, SettingLevel::Basic);
 
   // TRAYICON
-  AddToggle(group, LAVSPLITTER_TRAYICON, 80001, 0, lavSettings.splitter_bTrayIcon);
+  AddToggle(group, LAVSPLITTER_TRAYICON, 80001, SettingLevel::Basic, lavSettings.splitter_bTrayIcon);
 
   // PREFLANG
 
   // dependencies
   CSettingDependency dependencyPrefSubLangVisible(SettingDependencyType::Visible, GetSettingsManager());
   dependencyPrefSubLangVisible.Or()
-    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperatorEquals, true, m_settingsManager)));
+    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperator::Equals, true, GetSettingsManager())));
   SettingDependencies depsPrefSubLangVisible;
   depsPrefSubLangVisible.push_back(dependencyPrefSubLangVisible);
 
-  std::shared_ptr<CSetting> Dependency dependencyPrefSubAdvVisible(SettingDependencyTypeVisible, m_settingsManager);
+  CSettingDependency dependencyPrefSubAdvVisible(SettingDependencyType::Visible, GetSettingsManager());
   dependencyPrefSubAdvVisible.Or()
-    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperatorEquals, false, m_settingsManager)));
+    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(LAVSPLITTER_SUBMODE, "3", SettingDependencyOperator::Equals, false, GetSettingsManager())));
   SettingDependencies depsPrefSubAdvVisible;
   depsPrefSubAdvVisible.push_back(dependencyPrefSubAdvVisible);
 
@@ -208,10 +213,10 @@ void CGUIDialogLAVSplitter::InitializeSettings()
 
   //SUBMODE
   entries.clear();
-  entries.emplace_back(82004, LAVSubtitleMode_NoSubs);
-  entries.emplace_back(82005, LAVSubtitleMode_ForcedOnly);
-  entries.emplace_back(82006, LAVSubtitleMode_Default);
-  entries.emplace_back(82007, LAVSubtitleMode_Advanced);
+  entries.emplace_back(LAVSPLITTER_NOSUBS, (int)LAVSubtitleMode_NoSubs);
+  entries.emplace_back(LAVSPLITTER_FORCEDONLY, (int)LAVSubtitleMode_ForcedOnly);
+  entries.emplace_back(LAVSPLITTER_DEFAULT, (int)LAVSubtitleMode_Default);
+  entries.emplace_back(LAVSPLITTER_ADVANCED, (int)LAVSubtitleMode_Advanced);
   AddList(groupSubmode, LAVSPLITTER_SUBMODE, 82003, SettingLevel::Basic, lavSettings.splitter_subtitleMode, entries, 82003);
 
   //BLURAYSUB
@@ -219,18 +224,18 @@ void CGUIDialogLAVSplitter::InitializeSettings()
   AddToggle(groupBluraysub, LAVSPLITTER_PGSONLYFORCED, 82009, SettingLevel::Basic, lavSettings.splitter_bPGSOnlyForced);
 
   //FORMAT
-  AddToggle(groupFormat, LAVSPLITTER_IVC1MODE, 82010, 0, lavSettings.splitter_iVC1Mode);
-  AddToggle(groupFormat, LAVSPLITTER_MATROSKAEXTERNAL, 82011, 0, lavSettings.splitter_bMatroskaExternalSegments);
+  AddToggle(groupFormat, LAVSPLITTER_IVC1MODE, 82010, SettingLevel::Basic, lavSettings.splitter_iVC1Mode);
+  AddToggle(groupFormat, LAVSPLITTER_MATROSKAEXTERNAL, 82011, SettingLevel::Basic, lavSettings.splitter_bMatroskaExternalSegments);
 
   //DEMUXER
-  AddToggle(groupDemuxer, LAVSPLITTER_SUBSTREAM, 82012, 0, lavSettings.splitter_bSubstreams);
-  AddToggle(groupDemuxer, LAVSPLITTER_REMAUDIOSTREAM, 82013, 0, lavSettings.splitter_bStreamSwitchRemoveAudio);
-  AddToggle(groupDemuxer, LAVSPLITTER_PREFHQAUDIO, 82014, 0, lavSettings.splitter_bPreferHighQualityAudio);
-  AddToggle(groupDemuxer, LAVSPLITTER_IMPAIREDAUDIO, 82015, 0, lavSettings.splitter_bImpairedAudio);
+  AddToggle(groupDemuxer, LAVSPLITTER_SUBSTREAM, 82012, SettingLevel::Basic, lavSettings.splitter_bSubstreams);
+  AddToggle(groupDemuxer, LAVSPLITTER_REMAUDIOSTREAM, 82013, SettingLevel::Basic, lavSettings.splitter_bStreamSwitchRemoveAudio);
+  AddToggle(groupDemuxer, LAVSPLITTER_PREFHQAUDIO, 82014, SettingLevel::Basic, lavSettings.splitter_bPreferHighQualityAudio);
+  AddToggle(groupDemuxer, LAVSPLITTER_IMPAIREDAUDIO, 82015, SettingLevel::Basic, lavSettings.splitter_bImpairedAudio);
 
   // BUTTON RESET
   if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
-    AddButton(groupReset, LAVSPLITTER_RESET, 10041, 0);
+    AddButton(groupReset, LAVSPLITTER_RESET, 10041, SettingLevel::Basic);
 #endif
 }
 
