@@ -307,13 +307,18 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
       lavSettings.video_bPixFmts[i] = pLAVVideoSettings->GetPixelFormat((LAVOutPixFmts)i);
     }
     lavSettings.video_dwHWAccel = pLAVVideoSettings->GetHWAccel();
-    for (int i = 0; i < HWAccel_NB; ++i) {
-
+    for (int i = 0; i < HWAccel_NB; ++i)
+    {
+      std::string sval;
+      int ival;
+      ival = -1;
+     
       if ( i == HWAccel_D3D11)
-        m_mapHWAccelDeviceInfo[i].emplace_back("Automatic (Native)", -1);
+        sval = "Automatic (Native)";
       else
-        m_mapHWAccelDeviceInfo[i].emplace_back("Automatic", -1);
-
+        sval = "Automatic";
+     //TranslatableIntegerSettingOption
+      //m_mapHWAccelDeviceInfo[i].emplace_back(sval, ival);
       int iDevices;
       iDevices = pLAVVideoSettings->GetHWAccelNumDevices((LAVHWAccel)i);
       lavSettings.video_dwHWAccelDeviceIndex[(LAVHWAccel)i] = -1;
@@ -332,7 +337,7 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
           }
 
 
-          m_mapHWAccelDeviceInfo[i].emplace_back(sDeviceInfo, index);
+          //m_mapHWAccelDeviceInfo[i].emplace_back(sDeviceInfo, index);
 
         }
       }

@@ -389,7 +389,6 @@ void CGUIDialogAudioSettings::AudioStreamsOptionFiller(const SettingConstPtr& se
       textInfo += info.codecDesc + ", ";
 
     textInfo += std::to_string(info.channels) + " " + channelsLabel + ")";
-    strItem += FormatFlags(info.flags);
 
     textInfo += FormatFlags(info.flags);
     textInfo += StringUtils::Format(" ({}/{})", i + 1, audioStreamCount);
@@ -397,11 +396,11 @@ void CGUIDialogAudioSettings::AudioStreamsOptionFiller(const SettingConstPtr& se
 	
 #if HAS_DS_PLAYER
     if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer")
-      strItem = info.name;
+      textInfo = info.name;
 #endif
 
-    strItem += StringUtils::Format(" ({}/{})", i + 1, audioStreamCount);
-    list.emplace_back(strItem, i);
+    textInfo += StringUtils::Format(" ({}/{})", i + 1, audioStreamCount);
+    list.emplace_back(textInfo, i);
   }
 
   if (list.empty())

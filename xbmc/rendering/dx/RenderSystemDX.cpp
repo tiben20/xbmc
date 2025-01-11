@@ -737,8 +737,8 @@ void CRenderSystemDX::SetWindowedForMadvr()
     hr = DX::DeviceResources::Get()->GetSwapChain()->SetFullscreenState(false, NULL);
     m_bResizeRequred = S_OK == hr;
 
-    if (S_OK != hr)
-      CLog::Log(LOGERROR, "%s - Failed switch full screen state: %s.", __FUNCTION__, DX::GetErrorDescription(hr).c_str());
+    //if (S_OK != hr)
+      //CLog::Log(LOGERROR, "%s - Failed switch full screen state: %s.", __FUNCTION__, DX::GetErrorDescription(hr).c_str());
     // wait until switching screen state is done
         DXWait(DX::DeviceResources().GetD3DDevice(), DX::DeviceResources().GetD3DContext());
     return;

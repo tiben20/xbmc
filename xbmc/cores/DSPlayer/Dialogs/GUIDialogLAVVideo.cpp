@@ -160,7 +160,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
     CLog::Log(LOGERROR, "CGUIDialogLAVAudio: unable to setup settings");
     return;
   }
-
+#if TODO
   // Get settings from the current running filter
   IBaseFilter *pBF;
   CGraphFilters::Get()->GetInternalFilter(CGraphFilters::INTERNAL_LAVVIDEO, &pBF);
@@ -208,9 +208,9 @@ void CGUIDialogLAVVideo::InitializeSettings()
   if (lavSettings.video_dwHWAccelResFlags & LAVHWResFlag_HD)
     values.emplace_back(LAVHWResFlag_HD);
   if (lavSettings.video_dwHWAccelResFlags & LAVHWResFlag_UHD)
-    values.emplace_back(LAVHWResFlag_UHD)q;
-  std::shared_ptr<CSetting>  *settingHWRes;
-  IntegerSettingOption
+    values.emplace_back(LAVHWResFlag_UHD);
+  std::shared_ptr<CSettingInt>  *settingHWRes;
+
   settingHWRes = AddList(groupHW, LAVVIDEO_HWACCELRES, 80015,SettingLevel::Basic, values, ResolutionsFiller, 80015);
   settingHWRes->SetParent(LAVVIDEO_HWACCEL);
   settingHWRes->SetDependencies(depsHWAccelEnabled);
@@ -309,7 +309,7 @@ void CGUIDialogLAVVideo::InitializeSettings()
   // BUTTON RESET
   if (!g_application.GetComponent<CApplicationPlayer>()->IsPlayingVideo())
     AddButton(groupReset, LAVVIDEO_RESET, 10041, 0);
-
+#endif
 }
 
 void CGUIDialogLAVVideo::OnSettingChanged(const std::shared_ptr<const CSetting>& setting)

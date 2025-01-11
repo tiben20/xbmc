@@ -1140,9 +1140,9 @@ int CGUIWindowVideoNav::GetSettingSelecTvShow()
   if (KODI::VIDEO::IsVideoDb(*m_vecItems->Get(0).get()) && iValue > -1)
   {
     bool bIsItemSelected = (m_viewControl.GetSelectedItem() > 0);
-    NODE_TYPE nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
+    NodeType nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
 
-    if (nodeType == NODE_TYPE_TITLE_TVSHOWS && !bIsItemSelected)
+    if (nodeType == NodeType::TITLE_TVSHOWS && !bIsItemSelected)
     {
       CDSPlayerDatabase dspdb;
       if (!dspdb.Open())
