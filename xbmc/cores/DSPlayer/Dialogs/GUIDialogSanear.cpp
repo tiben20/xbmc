@@ -144,9 +144,9 @@ void CGUIDialogSanear::InitializeSettings()
   // BITSTREAM
 
   // dependencies
-  std::shared_ptr<CSetting> Dependency dependencySanearExclusiveEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencySanearExclusiveEnabled(SettingDependencyTypeEnable, GetSettingsManager());
   dependencySanearExclusiveEnabled.Or()
-    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SANEAR_EXCLUSIVE, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
+    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SANEAR_EXCLUSIVE, "true", SettingDependencyOperatorEquals, false, GetSettingsManager())));
   SettingDependencies depsSanearExclusiveEnabled;
   depsSanearExclusiveEnabled.push_back(dependencySanearExclusiveEnabled);
 
@@ -164,9 +164,9 @@ void CGUIDialogSanear::InitializeSettings()
   // STEREOCROSSFEED
 
   // dependencies
-  std::shared_ptr<CSetting> Dependency dependencySanearStereoCFEnabled(SettingDependencyTypeEnable, m_settingsManager);
+  std::shared_ptr<CSetting> Dependency dependencySanearStereoCFEnabled(SettingDependencyTypeEnable, GetSettingsManager());
   dependencySanearStereoCFEnabled.Or()
-    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SANEAR_CROSSFEED, "true", SettingDependencyOperatorEquals, false, m_settingsManager)));
+    ->Add(CSettingDependencyConditionPtr(new CSettingDependencyCondition(SANEAR_CROSSFEED, "true", SettingDependencyOperatorEquals, false, GetSettingsManager())));
   SettingDependencies depsSanearStereoCFEnabled;
   depsSanearStereoCFEnabled.push_back(dependencySanearStereoCFEnabled);
 

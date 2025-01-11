@@ -38,6 +38,18 @@ namespace PL
 
   const wchar_t* PLCspTransfertToString(const pl_color_transfer csp);
 
+  struct PlShader
+  {
+    const pl_hook* shader;
+    std::unique_ptr<pl_sample_filter_params> sample_params;
+    std::unique_ptr<pl_sigmoid_params> sigmoid_params;
+    enum pl_color_transfer trc;
+    int linear;
+    int subw;
+    int subh;
+    std::string msg;
+  };
+
   // playback statistics
   struct RenderStats {
     uint32_t decoded;
@@ -65,6 +77,8 @@ namespace PL
 
     bool Init(DXGI_FORMAT fmt);
     void Release();
+
+    const pl_hook* SetupShader();
 
     pl_frame CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSample, int width, int height);
 
@@ -95,6 +109,9 @@ namespace PL
     int num_frame_passes;
     int num_blend_passes[MAX_BLEND_FRAMES];
   protected:
+    //shader for plane merging
+    pl_dispatch m_plDispatch;
+
     //options
     pl_options m_plOptions;
     pl_rotation target_rot = {};

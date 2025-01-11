@@ -308,12 +308,12 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
     }
     lavSettings.video_dwHWAccel = pLAVVideoSettings->GetHWAccel();
     for (int i = 0; i < HWAccel_NB; ++i) {
-#if TODO
+
       if ( i == HWAccel_D3D11)
         m_mapHWAccelDeviceInfo[i].emplace_back("Automatic (Native)", -1);
       else
         m_mapHWAccelDeviceInfo[i].emplace_back("Automatic", -1);
-#endif
+
       int iDevices;
       iDevices = pLAVVideoSettings->GetHWAccelNumDevices((LAVHWAccel)i);
       lavSettings.video_dwHWAccelDeviceIndex[(LAVHWAccel)i] = -1;
@@ -331,9 +331,9 @@ bool CGraphFilters::GetLavSettings(const std::string &type, IBaseFilter* pBF)
             SysFreeString(deviceInfo);
           }
 
-#if TODO
+
           m_mapHWAccelDeviceInfo[i].emplace_back(sDeviceInfo, index);
-#endif
+
         }
       }
     }

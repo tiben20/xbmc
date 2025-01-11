@@ -966,6 +966,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 
 	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
+	//const pl_hook* hook = pHelper->SetupShader();
 	pl_frame frameOut{};
 	pl_d3d11_wrap_params outputParams{};
 	pl_d3d11_wrap_params inParams{};
@@ -1101,7 +1102,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	{
 		// do not use UpdateSubresource for D3D11 VP here
 		// because it can cause green screens and freezes on some configurations
-		hr = MemCopyToTexSrcVideo(data, m_srcPitch);
+		if (!MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
+			hr = MemCopyToTexSrcVideo(data, m_srcPitch);
 		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get())
 		{
 			CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
@@ -1177,11 +1179,13 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameOut.planes[0].component_mapping[2] = 2;
 	frameOut.planes[0].component_mapping[3] = -1;
 	frameOut.planes[0].flipped = false;
-
+	frameIn.crop.x1 = m_srcWidth;
+	frameIn.crop.y1 = m_srcHeight;
 	frameOut.crop.x1 = m_srcWidth;
 	frameOut.crop.y1 = m_srcHeight;
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
+
 	pl_chroma_location loc = PL_CHROMA_UNKNOWN;
 	//todo fix when not left
 	switch (m_srcExFmt.VideoChromaSubsampling) {
@@ -1217,7 +1221,9 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	default:
 		break;
 	}
-
+	/*params = {};
+	params.hooks = &hook;
+	params.num_hooks = 1;*/
 	params.info_priv = pHelper;
 	params.info_callback = render_info_cb;
 
@@ -1346,6 +1352,14 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 {
 	const auto& FmtParams = GetFmtConvParams(pmt);
+	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
+	{
+		if (FmtParams.cformat == CF_YV12)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
 	if (FmtParams.VP11Format == DXGI_FORMAT_UNKNOWN && FmtParams.DX11Format == DXGI_FORMAT_UNKNOWN) {
 		return FALSE;
 	}
@@ -1736,7 +1750,13 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 		}
 	}
 	CMPCVRRenderer::Get()->GetPlHelper()->Init(FmtParams.DX11Format);
-	
+	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
+	{
+		m_srcWidth = origW;
+		m_srcHeight = origH;
+		m_srcParams = FmtParams;
+		hr = S_OK;
+	}
 	if (SUCCEEDED(hr)) {
 		UpdateBitmapShader();
 		UpdateTexures();

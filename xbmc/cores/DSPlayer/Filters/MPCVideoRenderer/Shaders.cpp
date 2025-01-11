@@ -141,7 +141,7 @@ void ShaderGetPixels(
 			}
 		}
 	}
-	DLog("ConvertColorShader: frame consists of %f planes", planes);
+	DLog("ConvertColorShader: frame consists of {} planes", planes);
 
 	const bool packed422 = (fmtParams.cformat == CF_YUY2 || fmtParams.cformat == CF_Y210 || fmtParams.cformat == CF_Y216);
 	const bool blendDeint420 = (blendDeinterlace && fmtParams.Subsampling == 420);

@@ -31,9 +31,9 @@ public:
   CGUIDialogLAVVideo();
   virtual ~CGUIDialogLAVVideo();
   
-  static void HWAccellIndexFiller(const CSetting *setting, TranslatableStringSettingOptions &list, int &current, void *data);
-  static void CodecsFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
-  static void ResolutionsFiller(const CSetting *setting, std::vector< std::pair<std::string, int> > &list, int &current, void *data);
+  static void HWAccellIndexFiller(const std::shared_ptr<const CSetting>& setting, StringSettingOptions& list, std::string& current, void* data);
+  static void CodecsFiller(const std::shared_ptr<const CSetting>& setting, IntegerSettingOptions& list, int& current, void* data);
+  static void ResolutionsFiller(const std::shared_ptr<const CSetting>& setting, IntegerSettingOptions& list, int& current, void* data);
 
 protected:
 
