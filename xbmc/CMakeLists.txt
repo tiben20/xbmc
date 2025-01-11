@@ -57,7 +57,7 @@ set(HEADERS AutoSwitch.h
             IProgressCallback.h
             InfoScanner.h
             LangInfo.h
-            LockType.h
+            LockMode.h
             MediaSource.h
             NfoFile.h
             PartyModeManager.h
@@ -68,6 +68,7 @@ set(HEADERS AutoSwitch.h
             ServiceBroker.h
             ServiceManager.h
             SortFileItem.h
+            SourceType.h
             TextureCache.h
             TextureCacheJob.h
             TextureDatabase.h

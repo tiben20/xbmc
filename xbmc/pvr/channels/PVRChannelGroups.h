@@ -97,7 +97,7 @@ public:
    * @return The channel group members that could be added to the group
    */
   std::vector<std::shared_ptr<CPVRChannelGroupMember>> GetMembersAvailableForGroup(
-      const std::shared_ptr<const CPVRChannelGroup>& group);
+      const std::shared_ptr<const CPVRChannelGroup>& group) const;
 
   /*!
    * @brief Get a pointer to a channel group given its ID.
@@ -293,6 +293,8 @@ private:
   };
   void GroupStateChanged(const std::shared_ptr<CPVRChannelGroup>& group,
                          GroupState state = GroupState::CHANGED);
+
+  void UpdateSystemChannelGroups();
 
   bool m_bRadio{false};
   std::vector<std::shared_ptr<CPVRChannelGroup>> m_groups;

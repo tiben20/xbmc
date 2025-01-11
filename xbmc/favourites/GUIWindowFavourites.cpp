@@ -8,21 +8,16 @@
 
 #include "GUIWindowFavourites.h"
 
-#include "ContextMenuManager.h"
 #include "FileItem.h"
-#include "ServiceBroker.h"
 #include "favourites/FavouritesURL.h"
 #include "favourites/FavouritesUtils.h"
-#include "guilib/GUIComponent.h"
 #include "guilib/GUIMessage.h"
-#include "guilib/GUIWindowManager.h"
 #include "input/actions/Action.h"
 #include "input/actions/ActionIDs.h"
 #include "messaging/ApplicationMessenger.h"
 #include "utils/PlayerUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/guilib/GUIContentUtils.h"
-#include "video/VideoUtils.h"
 #include "video/guilib/VideoGUIUtils.h"
 #include "video/guilib/VideoPlayActionProcessor.h"
 #include "video/guilib/VideoSelectActionProcessor.h"
@@ -48,78 +43,6 @@ void CGUIWindowFavourites::OnFavouritesEvent(const CFavouritesService::Favourite
   CServiceBroker::GetAppMessenger()->SendGUIMessage(m);
 }
 
-namespace
-{
-class CVideoSelectActionProcessor : public VIDEO::GUILIB::CVideoSelectActionProcessorBase
-{
-public:
-  explicit CVideoSelectActionProcessor(const std::shared_ptr<CFileItem>& item)
-    : CVideoSelectActionProcessorBase(item)
-  {
-  }
-
-protected:
-  bool OnPlayPartSelected(unsigned int part) override
-  {
-    // part numbers are 1-based
-    FAVOURITES_UTILS::ExecuteAction(
-        {"PlayMedia", *m_item, StringUtils::Format("playoffset={}", part - 1)});
-    return true;
-  }
-
-  bool OnResumeSelected() override
-  {
-    FAVOURITES_UTILS::ExecuteAction({"PlayMedia", *m_item, "resume"});
-    return true;
-  }
-
-  bool OnPlaySelected() override
-  {
-    FAVOURITES_UTILS::ExecuteAction({"PlayMedia", *m_item, "noresume"});
-    return true;
-  }
-
-  bool OnQueueSelected() override
-  {
-    FAVOURITES_UTILS::ExecuteAction({"QueueMedia", *m_item, ""});
-    return true;
-  }
-
-  bool OnInfoSelected() override
-  {
-    return UTILS::GUILIB::CGUIContentUtils::ShowInfoForItem(*m_item);
-  }
-
-  bool OnMoreSelected() override
-  {
-    CONTEXTMENU::ShowFor(m_item, CContextMenuManager::MAIN);
-    return true;
-  }
-};
-
-class CVideoPlayActionProcessor : public VIDEO::GUILIB::CVideoPlayActionProcessorBase
-{
-public:
-  explicit CVideoPlayActionProcessor(const ::std::shared_ptr<CFileItem>& item)
-    : CVideoPlayActionProcessorBase(item)
-  {
-  }
-
-protected:
-  bool OnResumeSelected() override
-  {
-    FAVOURITES_UTILS::ExecuteAction({"PlayMedia", *m_item, "resume"});
-    return true;
-  }
-
-  bool OnPlaySelected() override
-  {
-    FAVOURITES_UTILS::ExecuteAction({"PlayMedia", *m_item, "noresume"});
-    return true;
-  }
-};
-} // namespace
-
 bool CGUIWindowFavourites::OnSelect(int itemIdx)
 {
   if (itemIdx < 0 || itemIdx >= m_vecItems->Size())
@@ -132,25 +55,24 @@ bool CGUIWindowFavourites::OnSelect(int itemIdx)
 
   const bool isPlayMedia{favURL.GetAction() == CFavouritesURL::Action::PLAY_MEDIA};
 
-  const auto target{CServiceBroker::GetFavouritesService().ResolveFavourite(*item)};
-  if (!target)
+  std::shared_ptr<CFileItem> targetItem{
+      CServiceBroker::GetFavouritesService().ResolveFavourite(*item)};
+  if (!targetItem)
     return false;
 
-  CFileItem targetItem{*target};
-
   // video select action setting is for files only, except exec func is playmedia...
-  if (targetItem.HasVideoInfoTag() && (!targetItem.m_bIsFolder || isPlayMedia))
+  if (targetItem->HasVideoInfoTag() && (!targetItem->m_bIsFolder || isPlayMedia))
   {
     // play the given/default video version, even if multiple versions are available
-    targetItem.SetProperty("has_resolved_video_asset", true);
+    targetItem->SetProperty("has_resolved_video_asset", true);
 
-    CVideoSelectActionProcessor proc{std::make_shared<CFileItem>(targetItem)};
+    KODI::VIDEO::GUILIB::CVideoSelectActionProcessor proc{targetItem};
     if (proc.ProcessDefaultAction())
       return true;
   }
 
   // exec the execute string for the original (!) item
-  return FAVOURITES_UTILS::ExecuteAction(favURL);
+  return FAVOURITES_UTILS::ExecuteAction(favURL, targetItem);
 }
 
 bool CGUIWindowFavourites::OnAction(const CAction& action)
@@ -161,31 +83,31 @@ bool CGUIWindowFavourites::OnAction(const CAction& action)
 
   if (action.GetID() == ACTION_PLAYER_PLAY)
   {
-    const auto target{
+    const auto targetItem{
         CServiceBroker::GetFavouritesService().ResolveFavourite(*(*m_vecItems)[selectedItem])};
-    if (!target)
+    if (!targetItem)
       return false;
 
-    const auto item{std::make_shared<CFileItem>(*target)};
+    const auto item{std::make_shared<CFileItem>(*targetItem)};
 
     // video play action setting is for files and folders...
     if (item->HasVideoInfoTag() || (item->m_bIsFolder && VIDEO::UTILS::IsItemPlayable(*item)))
     {
-      CVideoPlayActionProcessor proc{item};
+      KODI::VIDEO::GUILIB::CVideoPlayActionProcessor proc{item};
       if (proc.ProcessDefaultAction())
         return true;
     }
 
     if (CPlayerUtils::IsItemPlayable(*item))
     {
-      CFavouritesURL target{*item, {}};
-      if (target.GetAction() != CFavouritesURL::Action::PLAY_MEDIA)
+      CFavouritesURL targetURL{*item, {}};
+      if (targetURL.GetAction() != CFavouritesURL::Action::PLAY_MEDIA)
       {
         // build a playmedia execute string for given target
-        target = CFavouritesURL{CFavouritesURL::Action::PLAY_MEDIA,
-                                {StringUtils::Paramify(item->GetPath())}};
+        targetURL = CFavouritesURL{CFavouritesURL::Action::PLAY_MEDIA,
+                                   {StringUtils::Paramify(item->GetPath())}};
       }
-      return FAVOURITES_UTILS::ExecuteAction(target);
+      return FAVOURITES_UTILS::ExecuteAction(targetURL, targetItem);
     }
     return false;
   }

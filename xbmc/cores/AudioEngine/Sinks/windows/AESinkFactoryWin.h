@@ -178,9 +178,11 @@ struct RendererDetail
   std::string strDeviceId;
   std::string strDescription;
   std::string strWinDevType;
+  std::string strDeviceEnumerator;
   AEDeviceType eDeviceType;
   unsigned int nChannels;
   unsigned int uiChannelMask;
+  unsigned long m_samplesPerSec; //!< Sample rate of the system default format
   bool bDefault;
 };
 
@@ -196,9 +198,13 @@ class CAESinkFactoryWin
 {
 public:
   /*
-    Gets list of audio renderers available on platform
+    Gets list of available audio renderers - using MMDevice
   */
   static std::vector<RendererDetail> GetRendererDetails();
+  /*
+    Gets list of available audio renderers - using WinRT
+  */
+  static std::vector<RendererDetail> GetRendererDetailsWinRT();
   /*
     Gets default device id
   */

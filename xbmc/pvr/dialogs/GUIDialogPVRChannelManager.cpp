@@ -426,7 +426,7 @@ bool CGUIDialogPVRChannelManager::OnClickButtonChannelLogo()
   items.Add(nothumb);
 
   std::string strThumb;
-  VECSOURCES shares;
+  std::vector<CMediaSource> shares;
   const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
   if (settings->GetString(CSettings::SETTING_PVRMENU_ICONPATH) != "")
   {
@@ -771,8 +771,8 @@ bool CGUIDialogPVRChannelManager::OnContextButton(int itemNumber, CONTEXT_BUTTON
         PVR_ERROR ret = client->DeleteChannel(channel);
         if (ret == PVR_ERROR_NO_ERROR)
         {
-          CPVRChannelGroups* groups =
-              CServiceBroker::GetPVRManager().ChannelGroups()->Get(m_bIsRadio);
+          const std::shared_ptr<CPVRChannelGroups> groups{
+              CServiceBroker::GetPVRManager().ChannelGroups()->Get(m_bIsRadio)};
           if (groups)
           {
             groups->UpdateFromClients({});
@@ -840,8 +840,6 @@ void CGUIDialogPVRChannelManager::Update()
   for (const auto& member : groupMembers)
   {
     channelFile = std::make_shared<CFileItem>(member);
-    if (!channelFile)
-      continue;
     const std::shared_ptr<const CPVRChannel> channel(channelFile->GetPVRChannelInfoTag());
 
     channelFile->SetProperty(PROPERTY_CHANNEL_ENABLED, !channel->IsHidden());
@@ -1046,10 +1044,9 @@ void CGUIDialogPVRChannelManager::SaveList()
   pDlgProgress->SetPercentage(0);
 
   /* persist all channels */
-  std::shared_ptr<CPVRChannelGroup> group =
-      CServiceBroker::GetPVRManager().ChannelGroups()->GetGroupAll(m_bIsRadio);
-  if (!group)
-    return;
+  const std::shared_ptr<const CPVRChannelGroupsContainer> groupsContainer{
+      CServiceBroker::GetPVRManager().ChannelGroups()};
+  const std::shared_ptr<CPVRChannelGroup> group{groupsContainer->GetGroupAll(m_bIsRadio)};
 
   for (int iListPtr = 0; iListPtr < m_channelItems->Size(); ++iListPtr)
   {
@@ -1080,10 +1077,7 @@ void CGUIDialogPVRChannelManager::SaveList()
   }
 
   group->SortAndRenumber();
-
-  auto channelGroups = CServiceBroker::GetPVRManager().ChannelGroups()->Get(m_bIsRadio);
-  channelGroups->UpdateChannelNumbersFromAllChannelsGroup();
-  channelGroups->PersistAll();
+  groupsContainer->Get(m_bIsRadio)->PersistAll();
   pDlgProgress->Close();
 
   CONTROL_DISABLE(BUTTON_APPLY);

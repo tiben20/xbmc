@@ -95,7 +95,7 @@ bool CShoutcastFile::Open(const CURL& url)
   bool result = m_file.Open(url2);
   if (result)
   {
-    m_fileCharset = m_file.GetProperty(XFILE::FILE_PROPERTY_CONTENT_CHARSET);
+    m_fileCharset = m_file.GetProperty(FileProperty::CONTENT_CHARSET);
 
     icyTitle = m_file.GetHttpHeader().GetValue("icy-name");
     if (icyTitle.empty())
@@ -323,9 +323,9 @@ void CShoutcastFile::ReadTruncated(char* buf2, int size)
   }
 }
 
-int CShoutcastFile::IoControl(EIoControl control, void* payload)
+int CShoutcastFile::IoControl(IOControl control, void* payload)
 {
-  if (control == IOCTRL_SET_CACHE && m_cacheReader == nullptr)
+  if (control == IOControl::SET_CACHE && m_cacheReader == nullptr)
   {
     std::unique_lock<CCriticalSection> lock(m_tagSection);
     m_cacheReader = static_cast<CFileCache*>(payload);

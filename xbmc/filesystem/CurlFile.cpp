@@ -44,9 +44,13 @@ using namespace std::chrono_literals;
 
 #define FITS_INT(a) (((a) <= INT_MAX) && ((a) >= INT_MIN))
 
-curl_proxytype proxyType2CUrlProxyType[] = {
-    CURLPROXY_HTTP,   CURLPROXY_SOCKS4,          CURLPROXY_SOCKS4A,
-    CURLPROXY_SOCKS5, CURLPROXY_SOCKS5_HOSTNAME, CURLPROXY_HTTPS,
+static const auto proxyType2CUrlProxyType = std::unordered_map<XFILE::CCurlFile::ProxyType, int>{
+    {CCurlFile::ProxyType::HTTP, CURLPROXY_HTTP},
+    {CCurlFile::ProxyType::SOCKS4, CURLPROXY_SOCKS4},
+    {CCurlFile::ProxyType::SOCKS4A, CURLPROXY_SOCKS4A},
+    {CCurlFile::ProxyType::SOCKS5, CURLPROXY_SOCKS5},
+    {CCurlFile::ProxyType::SOCKS5_REMOTE, CURLPROXY_SOCKS5_HOSTNAME},
+    {CCurlFile::ProxyType::HTTPS, CURLPROXY_HTTPS},
 };
 
 #define FILLBUFFER_OK         0
@@ -624,7 +628,7 @@ void CCurlFile::SetCommonOptions(CReadState* state, bool failOnError /* = true *
 
   if (!m_proxyhost.empty())
   {
-    g_curlInterface.easy_setopt(h, CURLOPT_PROXYTYPE, proxyType2CUrlProxyType[m_proxytype]);
+    g_curlInterface.easy_setopt(h, CURLOPT_PROXYTYPE, proxyType2CUrlProxyType.at(m_proxytype));
 
     const std::string hostport = m_proxyhost + StringUtils::Format(":{}", m_proxyport);
     g_curlInterface.easy_setopt(h, CURLOPT_PROXY, hostport.c_str());
@@ -848,7 +852,7 @@ void CCurlFile::ParseAndCorrectUrl(CURL &url2)
       m_proxyuser = s->GetString(CSettings::SETTING_NETWORK_HTTPPROXYUSERNAME);
       m_proxypassword = s->GetString(CSettings::SETTING_NETWORK_HTTPPROXYPASSWORD);
       CLog::LogFC(LOGDEBUG, LOGCURL, "<{}> Using proxy {}, type {}", url2.GetRedacted(),
-                  m_proxyhost, proxyType2CUrlProxyType[m_proxytype]);
+                  m_proxyhost, proxyType2CUrlProxyType.at(m_proxytype));
     }
 
     // get username and password
@@ -1048,19 +1052,19 @@ void CCurlFile::Reset()
 void CCurlFile::SetProxy(const std::string &type, const std::string &host,
   uint16_t port, const std::string &user, const std::string &password)
 {
-  m_proxytype = CCurlFile::PROXY_HTTP;
+  m_proxytype = CCurlFile::ProxyType::HTTP;
   if (type == "http")
-    m_proxytype = CCurlFile::PROXY_HTTP;
+    m_proxytype = CCurlFile::ProxyType::HTTP;
   else if (type == "https")
-    m_proxytype = CCurlFile::PROXY_HTTPS;
+    m_proxytype = CCurlFile::ProxyType::HTTPS;
   else if (type == "socks4")
-    m_proxytype = CCurlFile::PROXY_SOCKS4;
+    m_proxytype = CCurlFile::ProxyType::SOCKS4;
   else if (type == "socks4a")
-    m_proxytype = CCurlFile::PROXY_SOCKS4A;
+    m_proxytype = CCurlFile::ProxyType::SOCKS4A;
   else if (type == "socks5")
-    m_proxytype = CCurlFile::PROXY_SOCKS5;
+    m_proxytype = CCurlFile::ProxyType::SOCKS5;
   else if (type == "socks5-remote")
-    m_proxytype = CCurlFile::PROXY_SOCKS5_REMOTE;
+    m_proxytype = CCurlFile::ProxyType::SOCKS5_REMOTE;
   else
     CLog::Log(LOGERROR, "CCurFile::{} - <{}> Invalid proxy type \"{}\"", __FUNCTION__,
               CURL::GetRedacted(m_url), type);
@@ -1097,13 +1101,21 @@ bool CCurlFile::Open(const CURL& url)
 
   m_httpresponse = m_state->Connect(m_bufferSize);
 
-  if (m_httpresponse <= 0 || (m_failOnError && m_httpresponse >= 400))
+  long hte = 0;
+
+  // Allow HTTP response code 0 for file:// protocol
+  if (url2.IsProtocol("file"))
+  {
+    hte = -1;
+  }
+
+  if (m_httpresponse <= hte || (m_failOnError && m_httpresponse >= 400))
   {
     std::string error;
     if (m_httpresponse >= 400 && CServiceBroker::GetLogging().CanLogComponent(LOGCURL))
     {
       error.resize(4096);
-      ReadString(&error[0], 4095);
+      ReadLine(&error[0], 4095);
     }
 
     CLog::Log(LOGERROR, "CCurlFile::{} - <{}> Failed with code {}:\n{}", __FUNCTION__,
@@ -1254,12 +1266,12 @@ ssize_t CCurlFile::Write(const void* lpBuf, size_t uiBufSize)
   return m_state->m_filePos;
 }
 
-bool CCurlFile::CReadState::ReadString(char *szLine, int iLineLength)
+CCurlFile::ReadLineResult CCurlFile::CReadState::ReadLine(char* buffer, std::size_t bufferSize)
 {
-  unsigned int want = (unsigned int)iLineLength;
+  unsigned int want = (unsigned int)bufferSize;
 
   if((m_fileSize == 0 || m_filePos < m_fileSize) && FillBuffer(want) != FILLBUFFER_OK)
-    return false;
+    return {ReadLineResult::FAILURE, 0};
 
   // ensure only available data is considered
   want = std::min(m_buffer.getMaxReadSize(), want);
@@ -1273,20 +1285,31 @@ bool CCurlFile::CReadState::ReadString(char *szLine, int iLineLength)
           "CCurlFile::{} - ({}) Transfer ended before entire file was retrieved pos {}, size {}",
           __FUNCTION__, fmt::ptr(this), m_filePos, m_fileSize);
 
-    return false;
+    return {ReadLineResult::FAILURE, 0};
   }
 
-  char* pLine = szLine;
-  do
+  std::size_t bytesRead = 0;
+  bool foundNewline = false;
+  bool reachedEnd = false;
+  for (; bytesRead < want - 1 && !foundNewline; ++bytesRead)
   {
-    if (!m_buffer.ReadData(pLine, 1))
+    reachedEnd = m_buffer.ReadData(buffer + bytesRead, 1) == 0;
+    if (reachedEnd)
       break;
 
-    pLine++;
-  } while (((pLine - 1)[0] != '\n') && ((unsigned int)(pLine - szLine) < want));
-  pLine[0] = 0;
-  m_filePos += (pLine - szLine);
-  return (pLine - szLine) > 0;
+    foundNewline = buffer[bytesRead] == '\n';
+  }
+
+  buffer[bytesRead] = '\0';
+  m_filePos += bytesRead;
+  if (bytesRead == 0)
+    return {ReadLineResult::FAILURE, 0};
+  else if (foundNewline)
+    return {ReadLineResult::OK, bytesRead - 1};
+  else if (reachedEnd)
+    return {ReadLineResult::OK, bytesRead};
+  else
+    return {ReadLineResult::TRUNCATED, bytesRead};
 }
 
 bool CCurlFile::ReOpen(const CURL& url)
@@ -1929,11 +1952,6 @@ void CCurlFile::SetRequestHeader(const std::string& header, long value)
   m_requestheaders[header] = std::to_string(value);
 }
 
-std::string CCurlFile::GetURL(void)
-{
-  return m_url;
-}
-
 std::string CCurlFile::GetRedirectURL()
 {
   return GetInfoString(CURLINFO_REDIRECT_URL);
@@ -1987,7 +2005,7 @@ bool CCurlFile::GetMimeType(const CURL &url, std::string &content, const std::st
     if (buffer.st_mode == _S_IFDIR)
       content = "x-directory/normal";
     else
-      content = file.GetProperty(XFILE::FILE_PROPERTY_MIME_TYPE);
+      content = file.GetProperty(XFILE::FileProperty::MIME_TYPE);
     CLog::Log(LOGDEBUG, "CCurlFile::{} - <{}> -> {}", __FUNCTION__, redactUrl, content);
     return true;
   }
@@ -2009,7 +2027,7 @@ bool CCurlFile::GetContentType(const CURL &url, std::string &content, const std:
     if (buffer.st_mode == _S_IFDIR)
       content = "x-directory/normal";
     else
-      content = file.GetProperty(XFILE::FILE_PROPERTY_CONTENT_TYPE, "");
+      content = file.GetProperty(XFILE::FileProperty::CONTENT_TYPE, "");
     CLog::Log(LOGDEBUG, "CCurlFile::{} - <{}> -> {}", __FUNCTION__, redactUrl, content);
     return true;
   }
@@ -2080,12 +2098,12 @@ bool CCurlFile::GetCookies(const CURL &url, std::string &cookies)
   return false;
 }
 
-int CCurlFile::IoControl(EIoControl request, void* param)
+int CCurlFile::IoControl(IOControl request, void* param)
 {
-  if (request == IOCTRL_SEEK_POSSIBLE)
+  if (request == IOControl::SEEK_POSSIBLE)
     return m_seekable ? 1 : 0;
 
-  if (request == IOCTRL_SET_RETRY)
+  if (request == IOControl::SET_RETRY)
   {
     m_allowRetry = *(bool*) param;
     return 0;
@@ -2098,22 +2116,22 @@ const std::string CCurlFile::GetProperty(XFILE::FileProperty type, const std::st
 {
   switch (type)
   {
-  case FILE_PROPERTY_RESPONSE_PROTOCOL:
-    return m_state->m_httpheader.GetProtoLine();
-  case FILE_PROPERTY_RESPONSE_HEADER:
-    return m_state->m_httpheader.GetValue(name);
-  case FILE_PROPERTY_CONTENT_TYPE:
-    return m_state->m_httpheader.GetValue("content-type");
-  case FILE_PROPERTY_CONTENT_CHARSET:
-    return m_state->m_httpheader.GetCharset();
-  case FILE_PROPERTY_MIME_TYPE:
-    return m_state->m_httpheader.GetMimeType();
-  case FILE_PROPERTY_EFFECTIVE_URL:
-  {
-    char *url = nullptr;
-    g_curlInterface.easy_getinfo(m_state->m_easyHandle, CURLINFO_EFFECTIVE_URL, &url);
-    return url ? url : "";
-  }
+    case FileProperty::RESPONSE_PROTOCOL:
+      return m_state->m_httpheader.GetProtoLine();
+    case FileProperty::RESPONSE_HEADER:
+      return m_state->m_httpheader.GetValue(name);
+    case FileProperty::CONTENT_TYPE:
+      return m_state->m_httpheader.GetValue("content-type");
+    case FileProperty::CONTENT_CHARSET:
+      return m_state->m_httpheader.GetCharset();
+    case FileProperty::MIME_TYPE:
+      return m_state->m_httpheader.GetMimeType();
+    case FileProperty::EFFECTIVE_URL:
+    {
+      char* url = nullptr;
+      g_curlInterface.easy_getinfo(m_state->m_easyHandle, CURLINFO_EFFECTIVE_URL, &url);
+      return url ? url : "";
+    }
   default:
     return "";
   }
@@ -2121,7 +2139,7 @@ const std::string CCurlFile::GetProperty(XFILE::FileProperty type, const std::st
 
 const std::vector<std::string> CCurlFile::GetPropertyValues(XFILE::FileProperty type, const std::string &name) const
 {
-  if (type == FILE_PROPERTY_RESPONSE_HEADER)
+  if (type == FileProperty::RESPONSE_HEADER)
   {
     return m_state->m_httpheader.GetValues(name);
   }

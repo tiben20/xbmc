@@ -146,18 +146,33 @@ void CBackgroundPicLoader::LoadPic(int iPic, int iSlideNumber, const std::string
 }
 
 CGUIWindowSlideShow::CGUIWindowSlideShow(void)
-    : CGUIDialog(WINDOW_SLIDESHOW, "SlideShow.xml")
+    : CGUIDialog(WINDOW_SLIDESHOW, "SlideShow.xml"),
+      m_Resolution(RES_INVALID)
 {
-  m_Resolution = RES_INVALID;
   m_loadType = KEEP_IN_MEMORY;
   m_bLoadNextPic = false;
   CServiceBroker::GetSlideShowDelegator().SetDelegate(this);
+  CServiceBroker::GetAnnouncementManager()->AddAnnouncer(this, ANNOUNCEMENT::Player);
   Reset();
 }
 
 CGUIWindowSlideShow::~CGUIWindowSlideShow()
 {
   CServiceBroker::GetSlideShowDelegator().ResetDelegate();
+  CServiceBroker::GetAnnouncementManager()->RemoveAnnouncer(this);
+}
+
+void CGUIWindowSlideShow::Announce(ANNOUNCEMENT::AnnouncementFlag flag,
+                                   const std::string& sender,
+                                   const std::string& message,
+                                   const CVariant& data)
+{
+  if (message == "OnPlay" || message == "OnResume")
+  {
+    if (data.isMember("player") && data["player"].isMember("playerid") &&
+        data["player"]["playerid"] == static_cast<int>(PLAYLIST::Id::TYPE_VIDEO))
+      Close();
+  }
 }
 
 void CGUIWindowSlideShow::AnnouncePlayerPlay(const CFileItemPtr& item)

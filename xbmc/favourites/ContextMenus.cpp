@@ -17,12 +17,14 @@
 #include "guilib/LocalizeStrings.h"
 #include "utils/URIUtils.h"
 #include "utils/Variant.h"
+#include "utils/guilib/GUIBuiltinsUtils.h"
 #include "utils/guilib/GUIContentUtils.h"
 #include "video/VideoUtils.h"
 #include "video/guilib/VideoGUIUtils.h"
 
 using namespace CONTEXTMENU;
 using namespace KODI;
+using namespace KODI::UTILS::GUILIB;
 
 bool CFavouriteContextMenuAction::IsVisible(const CFileItem& item) const
 {
@@ -123,7 +125,7 @@ bool CFavouritesTargetBrowse::IsVisible(const CFileItem& item) const
 
 bool CFavouritesTargetBrowse::Execute(const std::shared_ptr<CFileItem>& item) const
 {
-  return FAVOURITES_UTILS::ExecuteAction({*item, -1});
+  return FAVOURITES_UTILS::ExecuteAction({*item, -1}, item);
 }
 
 std::string CFavouritesTargetResume::GetLabel(const CFileItem& item) const
@@ -150,7 +152,7 @@ bool CFavouritesTargetResume::Execute(const std::shared_ptr<CFileItem>& item) co
 {
   const std::shared_ptr<CFileItem> targetItem{ResolveFavouriteItem(*item)};
   if (targetItem)
-    return FAVOURITES_UTILS::ExecuteAction({"PlayMedia", *targetItem, "resume"});
+    return CGUIBuiltinsUtils::ExecutePlayMediaTryResume(targetItem);
 
   return false;
 }
@@ -173,7 +175,7 @@ bool CFavouritesTargetPlay::Execute(const std::shared_ptr<CFileItem>& item) cons
 {
   const std::shared_ptr<CFileItem> targetItem{ResolveFavouriteItem(*item)};
   if (targetItem)
-    return FAVOURITES_UTILS::ExecuteAction({"PlayMedia", *targetItem, "noresume"});
+    return CGUIBuiltinsUtils::ExecutePlayMediaNoResume(targetItem);
 
   return false;
 }

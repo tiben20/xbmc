@@ -13,6 +13,7 @@
 #include "pvr_defines.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 //¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // "C" Definitions group 1 - General PVR
@@ -113,6 +114,77 @@ extern "C"
   //----------------------------------------------------------------------------
 
   //============================================================================
+  /// @defgroup cpp_kodi_addon_pvr_Defs_General_PVR_SOURCE enum PVR_SOURCE
+  /// @ingroup cpp_kodi_addon_pvr_Defs_General
+  /// @brief **PVR add-on playback source**\n
+  /// Used in call to GetChannelStreamProperties() to indicate where the playback
+  /// call initiated.
+  ///
+  /// - @ref kodi::addon::CInstancePVRClient::GetChannelStreamProperties()
+  ///
+  ///@{
+  typedef enum PVR_SOURCE
+  {
+    /// @brief __0__ : Regular live playback
+    DEFAULT = 0,
+
+    /// @brief __1__ : From EPG, but playing back as live
+    PVR_SOURCE_EPG_AS_LIVE = 1,
+  } PVR_SOURCE;
+  ///@}
+  //----------------------------------------------------------------------------
+
+  //============================================================================
+  /// @defgroup cpp_kodi_addon_pvr_Defs_General_PVR_SETTING_READONLY_CONDITION enum PVR_SETTING_READONLY_CONDITION
+  /// @ingroup cpp_kodi_addon_pvr_Defs_General
+  /// @brief **Read-only conditions for settings**\n
+  /// To define read-only conditions for settings.
+  ///
+  ///@{
+  typedef enum PVR_SETTING_READONLY_CONDITION
+  {
+    /// @brief __0000 0000 0000 0000 0000 0000 0000 0000__ :\n Empty value.
+    PVR_SETTING_READONLY_CONDITION_NONE = 0,
+
+    /// @brief __0000 0000 0000 0000 0000 0000 0000 0001__ :\n Readonly, if associated timer is
+    /// disabled (PVR_TIMER_STATE_DISABLED. Applicable to timer settings only).
+    PVR_SETTING_READONLY_CONDITION_TIMER_DISABLED = (1 << 0),
+
+    /// @brief __0000 0000 0000 0000 0000 0000 0000 0010__ :\n Readonly, if associated timer is
+    /// scheduled (PVR_TIMER_STATE_SCHEDULED. Applicable to timer settings only).
+    PVR_SETTING_READONLY_CONDITION_TIMER_SCHEDULED = (1 << 1),
+
+    /// @brief __0000 0000 0000 0000 0000 0000 0000 0100__ :\n Readonly, if associated timer is
+    /// currently recording (PVR_TIMER_STATE_RECORDING. Applicable to timer settings only).
+    PVR_SETTING_READONLY_CONDITION_TIMER_RECORDING = (1 << 2),
+
+    /// @brief __0000 0000 0000 0000 0000 0000 0000 1000__ :\n Readonly, if associated timer is
+    /// currently recording (PVR_TIMER_STATE_COMPLETED. Applicable to timer settings only).
+    PVR_SETTING_READONLY_CONDITION_TIMER_COMPLETED = (1 << 3),
+
+  } PVR_SETTING_READONLY_CONDITION;
+  ///@}
+  //----------------------------------------------------------------------------
+
+  //============================================================================
+  /// @defgroup cpp_kodi_addon_pvr_Defs_General_PVR_SETTING_TYPE enum PVR_SETTING_TYPE
+  /// @ingroup cpp_kodi_addon_pvr_Defs_General
+  /// @brief **PVR setting type**\n
+  ///
+  ///@{
+  typedef enum PVR_SETTING_TYPE
+  {
+    /// @brief __0__ : Integer
+    INTEGER = 0,
+
+    /// @brief __1__ : String
+    STRING = 1,
+
+  } PVR_SETTING_TYPE;
+  ///@}
+  //----------------------------------------------------------------------------
+
+  //============================================================================
   /// @defgroup cpp_kodi_addon_pvr_Defs_General_PVR_STREAM_PROPERTY definition PVR_STREAM_PROPERTY
   /// @ingroup cpp_kodi_addon_pvr_Defs_General_Inputstream
   /// @brief **PVR related stream property values**\n
@@ -134,6 +206,7 @@ extern "C"
   /// ...
   ///
   /// PVR_ERROR CMyPVRInstance::GetChannelStreamProperties(const kodi::addon::PVRChannel& channel,
+  ///                                                      PVR_SOURCE source,
   ///                                                      std::vector<PVRStreamProperty>& properties)
   /// {
   ///   ...
@@ -193,6 +266,7 @@ extern "C"
   ///
   /// // On PVR instance of addon
   /// PVR_ERROR CMyPVRInstance::GetChannelStreamProperties(const kodi::addon::PVRChannel& channel,
+  ///                                                      PVR_SOURCE source,
   ///                                                      std::vector<PVRStreamProperty>& properties)
   /// {
   ///   ...
@@ -250,6 +324,14 @@ extern "C"
   ///
 #define PVR_STREAM_PROPERTY_EPGPLAYBACKASLIVE "epgplaybackaslive"
 
+  /// @brief <b>"true"</b> to denote that if the stream is from a channel but should
+  /// be played as an EPG tag.
+  ///
+  /// It should be played as an epg/catchup stream. Otherwise if it's a channel it will
+  /// played as live stream.
+  ///
+#define PVR_STREAM_PROPERTY_LIVEPLAYBACKASEPG "liveplaybackasepg"
+
   /// @brief Special value for @ref PVR_STREAM_PROPERTY_INPUTSTREAM to use
   /// ffmpeg to directly play a stream URL.
 #define PVR_STREAM_PROPERTY_VALUE_INPUTSTREAMFFMPEG STREAM_PROPERTY_VALUE_INPUTSTREAMFFMPEG
@@ -288,10 +370,80 @@ extern "C"
     bool bSupportsRecordingSize;
     bool bSupportsProviders;
     bool bSupportsRecordingsDelete;
+    bool bSupportsMultipleRecordedStreams;
 
     unsigned int iRecordingsLifetimesSize;
-    struct PVR_ATTRIBUTE_INT_VALUE recordingsLifetimeValues[PVR_ADDON_ATTRIBUTE_VALUES_ARRAY_SIZE];
+    struct PVR_ATTRIBUTE_INT_VALUE* recordingsLifetimeValues;
   } PVR_ADDON_CAPABILITIES;
+
+  /*!
+   * @brief "C" Representation of an integer setting definition.
+   *
+   * Structure used to interface in "C" between Kodi and Addon.
+   *
+   * See @ref cpp_kodi_addon_pvr_Defs_PVRIntSettingDefinition "kodi::addon::PVRIntSettingDefinition"
+   * for description of values.
+   */
+  typedef struct PVR_INT_SETTING_DEFINITION
+  {
+    unsigned int iValuesSize;
+    struct PVR_ATTRIBUTE_INT_VALUE* values;
+    int iDefaultValue;
+    int iMinValue;
+    int iStep;
+    int iMaxValue;
+  } PVR_INT_SETTING_DEFINITION;
+
+  /*!
+ * @brief "C" Representation of a string setting definition.
+ *
+ * Structure used to interface in "C" between Kodi and Addon.
+ *
+ * See @ref cpp_kodi_addon_pvr_Defs_PVRStringSettingDefinition "kodi::addon::PVRStringSettingDefinition"
+ * for description of values.
+ */
+  typedef struct PVR_STRING_SETTING_DEFINITION
+  {
+    unsigned int iValuesSize;
+    struct PVR_ATTRIBUTE_STRING_VALUE* values;
+    const char* strDefaultValue;
+    bool bAllowEmptyValue;
+  } PVR_STRING_SETTING_DEFINITION;
+
+  /*!
+ * @brief "C" Representation of a setting definition.
+ *
+ * Structure used to interface in "C" between Kodi and Addon.
+ *
+ * See @ref cpp_kodi_addon_pvr_Defs_PVRSettingDefinition "kodi::addon::PVRSettingDefinition"
+ * for description of values.
+ */
+  typedef struct PVR_SETTING_DEFINITION
+  {
+    unsigned int iId;
+    const char* strName;
+    enum PVR_SETTING_TYPE eType;
+    uint64_t iReadonlyConditions;
+    struct PVR_INT_SETTING_DEFINITION* intSettingDefinition;
+    struct PVR_STRING_SETTING_DEFINITION* stringSettingDefinition;
+  } PVR_SETTING_DEFINITION;
+
+  /*!
+   * @brief "C" Representation of a key-value pair, either {int,int} or {int,string}, depending on
+   * the type set.
+   *
+   * Structure used to interface in "C" between Kodi and Addon.
+   *
+   * See @ref cpp_kodi_addon_pvr_Defs_PVRSettingKeyValuePair "kodi::addon::PVRSettingKeyValuePair" for description
+   * of values.
+   */
+  typedef struct PVR_SETTING_KEY_VALUE_PAIR
+  {
+    unsigned int iKey;
+    enum PVR_SETTING_TYPE eType;
+    int iValue;
+    const char* strValue;
+  } PVR_SETTING_KEY_VALUE_PAIR;
 
 #ifdef __cplusplus
 }

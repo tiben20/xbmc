@@ -14,17 +14,13 @@
 #include "TextureCache.h"
 #include "imagefiles/ImageFileURL.h"
 #include "pvr/PVRManager.h"
-#include "pvr/filesystem/PVRGUIDirectory.h"
-#include "settings/AdvancedSettings.h"
-#include "settings/Settings.h"
-#include "settings/SettingsComponent.h"
 #include "utils/StringUtils.h"
 #include "utils/log.h"
 
 #include <ctime>
 
-using namespace PVR;
-
+namespace PVR
+{
 bool CPVRThumbLoader::LoadItem(CFileItem* item)
 {
   bool result = LoadItemCached(item);
@@ -105,3 +101,5 @@ std::string CPVRThumbLoader::CreateChannelGroupThumb(const CFileItem& channelGro
                              IMAGE_FILES::URLFromFile(channelGroupItem.GetPath(), "pvr"),
                              std::time(nullptr));
 }
+
+} // namespace PVR

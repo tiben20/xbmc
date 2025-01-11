@@ -16,6 +16,7 @@
 #include "cores/AudioEngine/AESinkFactory.h"
 #include "cores/AudioEngine/Sinks/AESinkDirectSound.h"
 #include "cores/AudioEngine/Sinks/AESinkWASAPI.h"
+#include "cores/AudioEngine/Sinks/AESinkXaudio.h"
 #include "filesystem/File.h"
 #include "filesystem/SpecialProtocol.h"
 #include "messaging/ApplicationMessenger.h"
@@ -81,6 +82,7 @@ CWinSystemWin32::CWinSystemWin32()
   AE::CAESinkFactory::ClearSinks();
   CAESinkDirectSound::Register();
   CAESinkWASAPI::Register();
+  CAESinkXAudio::Register();
   CScreenshotSurfaceWindows::Register();
 
   if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bScanIRServer)

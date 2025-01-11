@@ -11,7 +11,6 @@ REM read the version values from version.txt
 FOR /f "tokens=1,2" %%i IN (%WORKSPACE%\version.txt) DO IF "%%i" == "APP_NAME" SET APP_NAME=%%j
 
 CLS
-COLOR 1B
 TITLE %APP_NAME% testsuite Build-/Runscript
 
 rem -------------------------------------------------------------
@@ -42,6 +41,11 @@ ECHO ------------------------------------------------------------
 :RUNTESTSUITE
 ECHO Running testsuite...
   "%buildconfig%\%APP_NAME%-test.exe" --gtest_output=xml:%WORKSPACE%\gtestresults.xml
+
+  IF NOT EXIST %WORKSPACE%\gtestresults.xml (
+    set DIETEXT="%APP_NAME%-test.exe failed to execute or output test results!"
+    goto DIE
+  )
 
   rem Adapt gtest xml output to be conform with junit xml
   rem this basically looks for lines which have "notrun" in the <testcase /> tag

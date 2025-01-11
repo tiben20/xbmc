@@ -9,10 +9,13 @@
 #pragma once
 
 #include "XBDateTime.h"
+#include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_general.h" // PVR_SETTING_TYPE
 #include "pvr/timers/PVRTimerType.h"
 #include "threads/CriticalSection.h"
 #include "utils/ISerializable.h"
+#include "utils/Variant.h"
 
+#include <map>
 #include <memory>
 #include <string>
 
@@ -44,12 +47,6 @@ public:
 
   bool operator==(const CPVRTimerInfoTag& right) const;
   bool operator!=(const CPVRTimerInfoTag& right) const;
-
-  /*!
-   * @brief Copy over data to the given PVR_TIMER instance.
-   * @param timer The timer instance to fill.
-   */
-  void FillAddonData(PVR_TIMER& timer) const;
 
   // ISerializable implementation
   void Serialize(CVariant& value) const override;
@@ -83,13 +80,11 @@ public:
    * @param bCreateRule if true, create a timer rule, create a one shot timer otherwise
    * @param bCreateReminder if true, create a reminder timer or rule, create a recording timer
    * or rule otherwise
-   * @param bReadOnly whether the timer/rule is read only
    * @return the timer or null if timer could not be created
    */
   static std::shared_ptr<CPVRTimerInfoTag> CreateFromEpg(const std::shared_ptr<CPVREpgInfoTag>& tag,
                                                          bool bCreateRule,
-                                                         bool bCreateReminder,
-                                                         bool bReadOnly = false);
+                                                         bool bCreateReminder);
 
   /*!
    * @brief create a timer or timer rule for the given epg info tag.
@@ -233,7 +228,7 @@ public:
 
   /*!
    * @brief The ID of the client for this timer.
-   * @return The client ID or -1  if this is a local timer.
+   * @return The client ID or PVR_CLIENT_INVALID_UID  if this is a local timer.
    */
   int ClientID() const { return m_iClientId; }
 
@@ -485,6 +480,67 @@ public:
   const std::string& SeriesLink() const;
 
   /*!
+   * @brief The directory for the recordings for this timer.
+   * @return The directory.
+   */
+  const std::string& Directory() const { return m_strDirectory; }
+
+  /*!
+   * @brief The priority for this timer.
+   * @return The priority.
+   */
+  int Priority() const { return m_iPriority; }
+
+  /*!
+   * @brief The life time for this timer.
+   * @return The life time.
+   */
+  int Lifetime() const { return m_iLifetime; }
+
+  /*!
+   * @brief The maximum number of recordings for this timer.
+   * @return The number of maximum recordings.
+   */
+  int MaxRecordings() const { return m_iMaxRecordings; }
+
+  /*!
+   * @brief The policy to be used to prevent duplicate episodes for this timer.
+   * @return The policy for preventing duplicate episodes.
+   */
+  int PreventDupEpisodesPolicy() const { return m_iPreventDupEpisodes; }
+
+  /*!
+   * @brief The recording group for this timer.
+   * @return The recording group.
+   */
+  int RecordingGroup() const { return m_iRecordingGroup; }
+
+  /*!
+   * @brief custom property detail: type, value
+   */
+  struct CustomPropDetails
+  {
+    PVR_SETTING_TYPE type{PVR_SETTING_TYPE::INTEGER};
+    CVariant value;
+
+    bool operator==(const CustomPropDetails& right) const
+    {
+      return type == right.type && value == right.value;
+    }
+  };
+
+  /*!
+   * @brief custom properties map: <prop id, details>
+   */
+  using CustomPropsMap = std::map<unsigned int, CustomPropDetails>;
+
+  /*!
+   * @brief Get custom properties for this tag.
+   * @return The list of properties or an empty list if none present.
+   */
+  const CustomPropsMap& GetCustomProperties() const { return m_customProps; }
+
+  /*!
    * @brief Get the UID of the epg event associated with this timer tag, if any.
    * @return The UID or EPG_TAG_INVALID_UID.
    */
@@ -582,8 +638,7 @@ private:
       const std::shared_ptr<CPVRChannel>& channel,
       const CDateTime& start,
       int iDuration,
-      bool bCreateReminder,
-      bool bReadOnly);
+      bool bCreateReminder);
 
   mutable CCriticalSection m_critSection;
 
@@ -621,6 +676,7 @@ private:
   mutable unsigned int
       m_iEpgUid; /*!< id of epg event associated with this timer, EPG_TAG_INVALID_UID if none. */
   std::string m_strSeriesLink; /*!< series link */
+  CustomPropsMap m_customProps; /*!< the map with custom properties supplied by the client. */
 
   CDateTime m_StartTime; /*!< start time */
   CDateTime m_StopTime; /*!< stop time */

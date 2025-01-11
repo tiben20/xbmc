@@ -20,13 +20,13 @@
 #include <utility>
 #include <vector>
 
-struct PVR_CHANNEL_GROUP;
-
 namespace PVR
 {
 static constexpr int PVR_GROUP_TYPE_CLIENT = 0;
-static constexpr int PVR_GROUP_TYPE_SYSTEM_ALL_CHANNELS = 1;
+static constexpr int PVR_GROUP_TYPE_SYSTEM_ALL_CHANNELS_ALL_CLIENTS = 1;
 static constexpr int PVR_GROUP_TYPE_USER = 2;
+static constexpr int PVR_GROUP_TYPE_SYSTEM_ALL_CHANNELS_SINGLE_CLIENT = 3;
+static constexpr int PVR_GROUP_TYPE_SYSTEM_MERGED_BY_NAME = 4;
 
 static constexpr int PVR_GROUP_CLIENT_ID_UNKNOWN = -2;
 static constexpr int PVR_GROUP_CLIENT_ID_LOCAL = -1;
@@ -68,12 +68,6 @@ public:
 
   bool operator==(const CPVRChannelGroup& right) const;
   bool operator!=(const CPVRChannelGroup& right) const;
-
-  /*!
-   * @brief Copy over data to the given PVR_CHANNEL_GROUP instance.
-   * @param group The group instance to fill.
-   */
-  void FillAddonData(PVR_CHANNEL_GROUP& group) const;
 
   /*!
    * @brief Query the events available for CEventStream
@@ -383,6 +377,22 @@ public:
   std::shared_ptr<CPVRChannelGroupMember> GetByUniqueID(const std::pair<int, int>& id) const;
 
   /*!
+   * @brief Check whether at least one channel of this group is offered by the given provider.
+   * @param clientId The clientId to check.
+   * @param providerId The providerId to check.
+   * @return True, if the group countains at least one channel offered by the provider, false otherwise.
+   */
+  bool HasChannelForProvider(int clientId, int providerId) const;
+
+  /*!
+   * @brief Get the total count of channels of this group offered by the given provider.
+   * @param clientId The clientId of the provider.
+   * @param providerId The providerId.
+   * @return The total count of matching channels.
+   */
+  unsigned int GetChannelCountByProvider(int clientId, int providerId) const;
+
+  /*!
    * @brief Set the hidden state of this group.
    * @param bHidden True to set hidden state, false to unhide the group.
    * @return True if hidden state was changed, false otherwise.
@@ -446,12 +456,6 @@ public:
    * @brief Remove this group from database.
    */
   void Delete();
-
-  /*!
-   * @brief Remove the given group member from the database.
-   * @param member The member to remove from the database.
-   */
-  void DeleteGroupMember(const std::shared_ptr<CPVRChannelGroupMember>& member);
 
   /*!
    * @brief Whether this group is deleted.
@@ -525,6 +529,19 @@ public:
    */
   virtual bool ShouldBeIgnored(
       const std::vector<std::shared_ptr<CPVRChannelGroup>>& allChannelGroups) const;
+
+  /*!
+   * @brief Update all group members.
+   * @param allChannelsGroup The all channels group.
+   * @param allChannelGroups All available channel groups.
+   * @return True on success, false otherwise.
+   */
+  virtual bool UpdateGroupMembers(
+      const std::shared_ptr<CPVRChannelGroup>& allChannelsGroup,
+      const std::vector<std::shared_ptr<CPVRChannelGroup>>& allChannelGroups)
+  {
+    return true;
+  }
 
 protected:
   /*!

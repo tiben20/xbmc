@@ -12,14 +12,14 @@
 
 class CFileItemList;
 
-enum SelectFirstUnwatchedItem
+enum class SelectFirstUnwatchedItem
 {
   NEVER = 0,
   ON_FIRST_ENTRY = 1,
   ALWAYS = 2
 };
 
-enum IncludeAllSeasonsAndSpecials
+enum class IncludeAllSeasonsAndSpecials
 {
   NEITHER = 0,
   BOTH = 1,
@@ -56,7 +56,7 @@ protected:
   bool OnClick(int iItem, const std::string &player = "") override;
   std::string GetStartFolder(const std::string &dir) override;
 
-  VECSOURCES m_shares;
+  std::vector<CMediaSource> m_shares;
 
 private:
 #if HAS_DS_PLAYER

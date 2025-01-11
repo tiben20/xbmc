@@ -57,6 +57,7 @@
 #include "platform/android/activity/IInputDeviceCallbacks.h"
 #include "platform/android/activity/IInputDeviceEventHandler.h"
 #include "platform/android/powermanagement/AndroidPowerSyscall.h"
+#include "platform/android/storage/AndroidStorageProvider.h"
 
 #include <memory>
 #include <mutex>
@@ -70,7 +71,6 @@
 #include <android/log.h>
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
-#include <androidjni/ActivityManager.h>
 #include <androidjni/ApplicationInfo.h>
 #include <androidjni/BitmapFactory.h>
 #include <androidjni/BroadcastReceiver.h>
@@ -82,8 +82,8 @@
 #include <androidjni/Cursor.h>
 #include <androidjni/Display.h>
 #include <androidjni/DisplayManager.h>
-#include <androidjni/Environment.h>
 #include <androidjni/File.h>
+#include <androidjni/FileProvider.h>
 #include <androidjni/Intent.h>
 #include <androidjni/IntentFilter.h>
 #include <androidjni/JNIThreading.h>
@@ -92,7 +92,6 @@
 #include <androidjni/NetworkInfo.h>
 #include <androidjni/PackageManager.h>
 #include <androidjni/Resources.h>
-#include <androidjni/StatFs.h>
 #include <androidjni/System.h>
 #include <androidjni/SystemClock.h>
 #include <androidjni/SystemProperties.h>
@@ -105,8 +104,6 @@
 #include <jni.h>
 #include <rapidjson/document.h>
 #include <unistd.h>
-
-#define GIGABYTES       1073741824
 
 #define ACTION_XBMC_RESUME "android.intent.XBMC_RESUME"
 
@@ -225,6 +222,11 @@ void CXBMCApp::Announce(ANNOUNCEMENT::AnnouncementFlag flag,
       m_mediaSessionUpdated = false;
       UpdateSessionState();
     }
+    else if (message == "OnAVStart")
+    {
+      m_mediaSessionUpdated = false;
+      UpdateSessionState();
+    }
   }
   else if (flag & Info)
   {
@@ -262,8 +264,6 @@ void CXBMCApp::onStart()
     intentFilter.addAction(CJNIConnectivityManager::CONNECTIVITY_ACTION);
     registerReceiver(*this, intentFilter);
     m_mediaSession = std::make_unique<CJNIXBMCMediaSession>();
-    m_activityManager =
-        std::make_unique<CJNIActivityManager>(getSystemService(CJNIContext::ACTIVITY_SERVICE));
     m_inputHandler.setDPI(GetDPI());
     runNativeOnUiThread(RegisterDisplayListenerCallback, nullptr);
   }
@@ -317,6 +317,10 @@ void CXBMCApp::onResume()
     const auto appPower = components.GetComponent<CApplicationPowerHandling>();
     appPower->ResetShutdownTimers();
   }
+
+  const auto messenger = CServiceBroker::GetAppMessenger();
+  if (messenger)
+    messenger->PostMsg(TMSG_RESUMEAPP);
 
   m_headsetPlugged = isHeadsetPlugged();
 
@@ -476,7 +480,8 @@ void CXBMCApp::UnregisterDisplayListener()
 
 void CXBMCApp::Initialize()
 {
-  CServiceBroker::GetAnnouncementManager()->AddAnnouncer(this);
+  CServiceBroker::GetAnnouncementManager()->AddAnnouncer(
+      this, ANNOUNCEMENT::Input | ANNOUNCEMENT::Player | ANNOUNCEMENT::Info);
 }
 
 void CXBMCApp::Deinitialize()
@@ -638,7 +643,9 @@ void CXBMCApp::RequestVisibleBehind(bool requested)
   if (requested == m_hasReqVisible)
     return;
 
-  m_hasReqVisible = requestVisibleBehind(requested);
+  if (CJNIBuild::SDK_INT < 26)
+    m_hasReqVisible = requestVisibleBehind(requested);
+
   CLog::Log(LOGDEBUG, "Visible Behind request: {}", m_hasReqVisible ? "true" : "false");
 }
 
@@ -926,9 +933,9 @@ void CXBMCApp::OnPlayBackStopped()
   CLog::Log(LOGDEBUG, "{}", __PRETTY_FUNCTION__);
 
   m_playback_state = PLAYBACK_STATE_STOPPED;
+  m_mediaSessionUpdated = false;
   UpdateSessionState();
   m_mediaSession->activate(false);
-  m_mediaSessionUpdated = false;
 
   RequestVisibleBehind(false);
   CAndroidKey::SetHandleMediaKeys(true);
@@ -1026,6 +1033,21 @@ bool CXBMCApp::StartActivity(const std::string& package,
     if (!jniURI)
       return false;
 
+    // decoded path or null if this is not a hierarchical URI
+    const std::string pathname = jniURI.getPath();
+
+    if (!pathname.empty() && StringUtils::StartsWith(pathname, "/storage/"))
+    {
+      // generate a content URI
+      jniURI = CJNIFileProvider::getUriForFile(CXBMCApp::Get(), "org.xbmc.kodi.fileprovider",
+                                               CJNIFile(pathname));
+
+      CLog::LogF(LOGINFO, "Share using FileProvider: {}", jniURI.toString());
+
+      // grant temporary permission to external app
+      CJNIContext::grantUriPermission(package, jniURI, CJNIIntent::FLAG_GRANT_READ_URI_PERMISSION);
+    }
+
     newIntent.setDataAndType(jniURI, dataType);
   }
 
@@ -1095,108 +1117,6 @@ bool CXBMCApp::StartActivity(const std::string& package,
 int CXBMCApp::GetBatteryLevel() const
 {
   return m_batteryLevel;
-}
-
-bool CXBMCApp::GetExternalStorage(std::string &path, const std::string &type /* = "" */)
-{
-  std::string sType;
-  std::string mountedState;
-  bool mounted = false;
-
-  if(type == "files" || type.empty())
-  {
-    CJNIFile external = CJNIEnvironment::getExternalStorageDirectory();
-    if (external)
-      path = external.getAbsolutePath();
-  }
-  else
-  {
-    if (type == "music")
-      sType = "Music"; // Environment.DIRECTORY_MUSIC
-    else if (type == "videos")
-      sType = "Movies"; // Environment.DIRECTORY_MOVIES
-    else if (type == "pictures")
-      sType = "Pictures"; // Environment.DIRECTORY_PICTURES
-    else if (type == "photos")
-      sType = "DCIM"; // Environment.DIRECTORY_DCIM
-    else if (type == "downloads")
-      sType = "Download"; // Environment.DIRECTORY_DOWNLOADS
-    if (!sType.empty())
-    {
-      CJNIFile external = CJNIEnvironment::getExternalStoragePublicDirectory(sType);
-      if (external)
-        path = external.getAbsolutePath();
-    }
-  }
-  mountedState = CJNIEnvironment::getExternalStorageState();
-  mounted = (mountedState == "mounted" || mountedState == "mounted_ro");
-  return mounted && !path.empty();
-}
-
-bool CXBMCApp::GetStorageUsage(const std::string &path, std::string &usage)
-{
-#define PATH_MAXLEN 38
-
-  if (path.empty())
-  {
-    std::ostringstream fmt;
-
-    fmt.width(PATH_MAXLEN);
-    fmt << std::left << "Filesystem";
-
-    fmt.width(12);
-    fmt << std::right << "Size";
-
-    fmt.width(12);
-    fmt << "Used";
-
-    fmt.width(12);
-    fmt << "Avail";
-
-    fmt.width(12);
-    fmt << "Use %";
-
-    usage = fmt.str();
-    return false;
-  }
-
-  CJNIStatFs fileStat(path);
-  int blockSize = fileStat.getBlockSize();
-  int blockCount = fileStat.getBlockCount();
-  int freeBlocks = fileStat.getFreeBlocks();
-
-  if (blockSize <= 0 || blockCount <= 0 || freeBlocks < 0)
-    return false;
-
-  float totalSize = (float)blockSize * blockCount / GIGABYTES;
-  float freeSize = (float)blockSize * freeBlocks / GIGABYTES;
-  float usedSize = totalSize - freeSize;
-  float usedPercentage = usedSize / totalSize * 100;
-
-  std::ostringstream fmt;
-
-  fmt << std::fixed;
-  fmt.precision(1);
-
-  fmt.width(PATH_MAXLEN);
-  fmt << std::left
-      << (path.size() < PATH_MAXLEN - 1 ? path : StringUtils::Left(path, PATH_MAXLEN - 4) + "...");
-
-  fmt.width(11);
-  fmt << std::right << totalSize << "G";
-
-  fmt.width(11);
-  fmt << usedSize << "G";
-
-  fmt.width(11);
-  fmt << freeSize << "G";
-
-  fmt.precision(0);
-  fmt.width(11);
-  fmt << usedPercentage << "%";
-
-  usage = fmt.str();
-  return true;
 }
 
 // Used in Application.cpp to figure out volume steps
@@ -1557,27 +1477,6 @@ float CXBMCApp::GetFrameLatencyMs() const
 bool CXBMCApp::WaitVSync(unsigned int milliSeconds)
 {
   return m_vsyncEvent.Wait(std::chrono::milliseconds(milliSeconds));
-}
-
-bool CXBMCApp::GetMemoryInfo(long& availMem, long& totalMem)
-{
-  if (m_activityManager)
-  {
-    CJNIActivityManager::MemoryInfo info;
-    m_activityManager->getMemoryInfo(info);
-    if (xbmc_jnienv()->ExceptionCheck())
-    {
-      xbmc_jnienv()->ExceptionClear();
-      return false;
-    }
-
-    availMem = info.availMem();
-    totalMem = info.totalMem();
-
-    return true;
-  }
-
-  return false;
 }
 
 void CXBMCApp::SetupEnv()

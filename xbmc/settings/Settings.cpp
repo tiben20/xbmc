@@ -577,6 +577,7 @@ void CSettings::InitializeISettingCallbacks()
   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_IMPORT);
   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_EXPORT);
   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS);
+  settingSet.insert(CSettings::SETTING_MAINTENANCE_CLEANIMAGECACHE);
 #if HAS_DS_PLAYER
   settingSet.insert(CSettings::SETTING_DSPLAYER_RULES);
   settingSet.insert(CSettings::SETTING_DSPLAYER_FILTERS);

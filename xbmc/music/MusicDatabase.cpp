@@ -9879,7 +9879,7 @@ bool CMusicDatabase::GetAlbumFolder(const CAlbum& album,
   // Create a valid unique folder name from album title
   // @todo: Does UFT8 matter or need normalizing?
   // @todo: Simplify punctuation removing unicode appostraphes, "..." etc.?
-  strFolder = CUtil::MakeLegalFileName(album.strAlbum, LEGAL_WIN32_COMPAT);
+  strFolder = CUtil::MakeLegalFileName(album.strAlbum, LegalPath::WIN32_COMPAT);
   StringUtils::Replace(strFolder, " _ ", "_");
 
   // Check <first albumartist name>/<albumname> is unique e.g. 2 x Bruckner Symphony No. 3
@@ -9915,7 +9915,7 @@ bool CMusicDatabase::GetArtistFolderName(const std::string& strArtist,
   // Create a valid unique folder name for artist
   // @todo: Does UFT8 matter or need normalizing?
   // @todo: Simplify punctuation removing unicode appostraphes, "..." etc.?
-  strFolder = CUtil::MakeLegalFileName(strArtist, LEGAL_WIN32_COMPAT);
+  strFolder = CUtil::MakeLegalFileName(strArtist, LegalPath::WIN32_COMPAT);
   StringUtils::Replace(strFolder, " _ ", "_");
 
   // Ensure <artist name> is unique e.g. 2 x John Williams.
@@ -10221,7 +10221,7 @@ bool CMusicDatabase::DeleteAlbumSources(int idAlbum)
   return ExecuteQuery(PrepareSQL("DELETE FROM album_source WHERE idAlbum = %i", idAlbum));
 }
 
-bool CMusicDatabase::CheckSources(VECSOURCES& sources)
+bool CMusicDatabase::CheckSources(std::vector<CMediaSource>& sources)
 {
   if (sources.empty())
   {
@@ -10283,7 +10283,7 @@ bool CMusicDatabase::CheckSources(VECSOURCES& sources)
 bool CMusicDatabase::MigrateSources()
 {
   //Fetch music sources from xml
-  VECSOURCES sources(*CMediaSourceSettings::GetInstance().GetSources("music"));
+  std::vector<CMediaSource> sources(*CMediaSourceSettings::GetInstance().GetSources("music"));
 
   std::string strSQL;
   try
@@ -10323,7 +10323,7 @@ bool CMusicDatabase::MigrateSources()
 bool CMusicDatabase::UpdateSources()
 {
   //Check library and xml sources match
-  VECSOURCES sources(*CMediaSourceSettings::GetInstance().GetSources("music"));
+  std::vector<CMediaSource> sources(*CMediaSourceSettings::GetInstance().GetSources("music"));
   if (CheckSources(sources))
     return true;
 
@@ -13234,6 +13234,13 @@ int CMusicDatabase::GetOrderFilter(const std::string& type,
     }
   }
 
+  // Get the right tableview as if we are using strArtistSort the column name is ambiguous
+  std::string table;
+  if (StringUtils::StartsWithNoCase(type, "album"))
+    table = "albumview.";
+  else if (StringUtils::StartsWithNoCase(type, "song"))
+    table = "songview.";
+
   // Convert field names into order by statement elements
   for (auto& name : orderfields)
   {
@@ -13242,7 +13249,8 @@ int CMusicDatabase::GetOrderFilter(const std::string& type,
     if (StringUtils::EndsWith(name, "strArtists") || StringUtils::EndsWith(name, "strArtist"))
     {
       if (StringUtils::EndsWith(name, "strArtists"))
-        sortSQL = SortnameBuildSQL("artistsortname", sorting.sortAttributes, name, "strArtistSort");
+        sortSQL = SortnameBuildSQL("artistsortname", sorting.sortAttributes, name,
+                                   table + "strArtistSort");
       else
         sortSQL = SortnameBuildSQL("artistsortname", sorting.sortAttributes, name, "strSortName");
       if (!sortSQL.empty())
@@ -13952,4 +13960,57 @@ bool CMusicDatabase::GetResumeBookmarkForAudioBook(const CFileItem& item, int& b
 
   bookmark = m_pDS->fv(0).get_asInt();
   return true;
+}
+
+std::vector<std::string> CMusicDatabase::GetUsedImages(
+    const std::vector<std::string>& imagesToCheck) const
+{
+  try
+  {
+    if (!m_pDB || !m_pDS)
+      return imagesToCheck;
+
+    if (!imagesToCheck.size())
+      return {};
+
+    int artworkLevel = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(
+        CSettings::SETTING_MUSICLIBRARY_ARTWORKLEVEL);
+    if (artworkLevel == CSettings::MUSICLIBRARY_ARTWORK_LEVEL_NONE)
+    {
+      return {};
+    }
+
+    std::string sql = "SELECT DISTINCT url FROM art WHERE url IN (";
+    for (const auto& image : imagesToCheck)
+    {
+      sql += PrepareSQL("'%s',", image.c_str());
+    }
+    sql.pop_back(); // remove last ','
+    sql += ")";
+
+    // add arttype filters if set to "Basic"
+    if (artworkLevel == CSettings::MUSICLIBRARY_ARTWORK_LEVEL_BASIC)
+    {
+      sql += PrepareSQL(" AND (media_type = 'album' AND type = 'thumb' OR media_type = 'artist' "
+                        "AND type IN ('thumb', 'fanart'))");
+    }
+
+    if (!m_pDS->query(sql))
+      return {};
+
+    std::vector<std::string> result;
+    while (!m_pDS->eof())
+    {
+      result.push_back(m_pDS->fv(0).get_asString());
+      m_pDS->next();
+    }
+    m_pDS->close();
+
+    return result;
+  }
+  catch (...)
+  {
+    CLog::Log(LOGERROR, "{}, failed", __FUNCTION__);
+  }
+  return {};
 }

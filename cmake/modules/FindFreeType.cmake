@@ -8,7 +8,7 @@
 #   ${APP_NAME_LC}::FreeType   - The FreeType library
 
 if(NOT TARGET ${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME})
-  find_package(PkgConfig)
+  find_package(PkgConfig QUIET)
   # Do not use pkgconfig on windows
   if(PKG_CONFIG_FOUND AND NOT (WIN32 OR WINDOWS_STORE))
     pkg_check_modules(PC_FREETYPE freetype2 QUIET)
@@ -36,6 +36,10 @@ if(NOT TARGET ${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME})
     set_target_properties(${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME} PROPERTIES
                                                                      IMPORTED_LOCATION "${FREETYPE_LIBRARY}"
                                                                      INTERFACE_INCLUDE_DIRECTORIES "${FREETYPE_INCLUDE_DIR}")
+
+    if(NOT TARGET Freetype::Freetype)
+      add_library(Freetype::Freetype ALIAS ${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME})
+    endif()
   else()
     if(Freetype_FIND_REQUIRED)
       message(FATAL_ERROR "Freetype libraries were not found.")

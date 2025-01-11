@@ -141,9 +141,6 @@
 					<scrolltime tween="sine">200</scrolltime>
 					<orientation>horizontal</orientation>
 					<onup>87</onup>
-					<ondown condition="Control.HasFocus(70043)">11104</ondown>
-					<ondown condition="Control.HasFocus(704)">12104</ondown>
-					<ondown condition="Control.HasFocus(255)">13103</ondown>
 					<onleft>608</onleft>
 					<onright>600</onright>
 					<control type="radiobutton" id="804">
@@ -200,44 +197,45 @@
 					</control>
 					<control type="radiobutton" id="70046">
 						<include content="OSDButton">
-							<param name="texture" value="osd/fullscreen/buttons/settings-subtitle.png"/>
+							<param name="texture" value="osd/fullscreen/buttons/streams.png"/>
 						</include>
-						<onclick>ActivateWindow(osdsubtitlesettings)</onclick>
-						<visible>!VideoPlayer.Content(LiveTV) | VideoPlayer.HasSubtitles</visible>
+						<onclick>SetProperty(settingsdialog_content,streamselection,home)</onclick>
+						<onclick>SetProperty(settingsdialog_header,$LOCALIZE[13392],home)</onclick>
+						<onclick>ActivateWindow(1101)</onclick>
 					</control>
 					<control type="radiobutton" id="70047">
 						<include content="OSDButton">
 							<param name="texture" value="osd/fullscreen/buttons/stereoscopic.png"/>
 						</include>
 						<visible>VideoPlayer.IsStereoscopic</visible>
-						<onclick>SetProperty(settingslist_content,3d,home)</onclick>
-						<onclick>SetProperty(settingslist_header,$LOCALIZE[36501],home)</onclick>
+						<onclick>SetProperty(settingsdialog_content,3d,home)</onclick>
+						<onclick>SetProperty(settingsdialog_header,$LOCALIZE[36501],home)</onclick>
 						<onclick>ActivateWindow(1101)</onclick>
 					</control>
 					<control type="radiobutton" id="70048">
 						<include content="OSDButton">
 							<param name="texture" value="osd/fullscreen/buttons/settings.png"/>
 						</include>
-						<onclick>SetProperty(settingslist_content,osd,home)</onclick>
-						<onclick>SetProperty(settingslist_header,$LOCALIZE[5],home)</onclick>
+						<onclick>SetProperty(settingsdialog_content,videosettings,home)</onclick>
+						<onclick>SetProperty(settingsdialog_header,$LOCALIZE[5],home)</onclick>
 						<onclick>ActivateWindow(1101)</onclick>
 					</control>
 				</control>
 			</control>
 			<control type="group" id="6000">
 				<top>60</top>
-				<animation type="WindowOpen" condition="!Window.IsVisible(fullscreeninfo)" reversible="False">
+				<animation type="WindowOpen" condition="!Window.IsVisible(fullscreeninfo)" reversible="false">
 					<effect type="fade" start="0" end="100" time="300"/>
 					<effect type="slide" start="0,200" end="0,0" time="300" tween="cubic" easing="out" />
 				</animation>
-				<animation type="WindowClose" condition="!Window.IsVisible(fullscreeninfo)" reversible="False">
+				<animation type="WindowClose" condition="!Window.IsVisible(fullscreeninfo)" reversible="false">
 					<effect type="fade" start="100" end="0" time="300"/>
 					<effect type="slide" start="0,0" end="0,200" time="300" tween="cubic" easing="out" />
 				</animation>
-				<animation type="WindowOpen" condition="Window.IsVisible(fullscreeninfo)" reversible="False">
+				<animation type="WindowOpen" condition="Window.IsVisible(fullscreeninfo)" reversible="false">
 					<effect type="fade" start="0" end="100" time="300"/>
 				</animation>
-				<animation type="WindowClose" condition="Window.IsVisible(fullscreeninfo)" reversible="False">
+				<animation type="WindowClose" condition="Window.IsVisible(fullscreeninfo)" reversible="false">
 					<effect type="fade" start="100" end="0" time="300"/>
 				</animation>
 				<visible>Player.SeekEnabled</visible>

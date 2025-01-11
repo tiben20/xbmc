@@ -882,6 +882,12 @@ public:
   std::string GetAlbumsLastModified();
   std::string GetArtistsLastModified();
 
+  /*!
+   * @brief Check the passed in list of images if used in this database. Used to clean the image cache.
+   * @param imagesToCheck
+   * @return a list of the passed in images used by this database.
+   */
+  std::vector<std::string> GetUsedImages(const std::vector<std::string>& imagesToCheck) const;
 
 protected:
   std::map<std::string, int> m_genreCache;
@@ -976,7 +982,7 @@ private:
   /*! \brief Checks that source table matches sources.xml
   returns true when they do
   */
-  bool CheckSources(VECSOURCES& sources);
+  bool CheckSources(std::vector<CMediaSource>& sources);
 
   /*! \brief Initially fills source table from sources.xml for use only at
   migration of db from an earlier version than 72

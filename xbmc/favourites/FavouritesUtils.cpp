@@ -15,15 +15,16 @@
 #include "favourites/GUIWindowFavourites.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIKeyboardFactory.h"
-#include "guilib/GUIMessage.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
 #include "storage/MediaManager.h"
-#include "utils/ExecString.h"
 #include "utils/Variant.h"
+#include "utils/guilib/GUIBuiltinsUtils.h"
 #include "view/GUIViewState.h"
 
 #include <string>
+
+using namespace KODI::UTILS::GUILIB;
 
 namespace FAVOURITES_UTILS
 {
@@ -56,7 +57,7 @@ bool ChooseAndSetNewThumbnail(CFileItem& item)
   prefilledItems.Add(none);
 
   std::string thumb;
-  VECSOURCES sources;
+  std::vector<CMediaSource> sources;
   CServiceBroker::GetMediaManager().GetLocalDrives(sources);
   if (CGUIDialogFileBrowser::ShowAndGetImage(prefilledItems, sources, g_localizeStrings.Get(1030),
                                              thumb)) // Browse for image
@@ -125,30 +126,10 @@ bool ShouldEnableMoveItems()
   return true;
 }
 
-namespace
-{
-bool ExecuteAction(const std::string& execString)
-{
-  if (!execString.empty())
-  {
-    CGUIMessage message(GUI_MSG_EXECUTE, 0, 0);
-    message.SetStringParam(execString);
-    CServiceBroker::GetGUI()->GetWindowManager().SendMessage(message);
-    return true;
-  }
-  return false;
-}
-} // unnamed namespace
-
-bool ExecuteAction(const CExecString& execString)
-{
-  return ExecuteAction(execString.GetExecString());
-}
-
-bool ExecuteAction(const CFavouritesURL& favURL)
+bool ExecuteAction(const CFavouritesURL& favURL, const std::shared_ptr<CFileItem>& item)
 {
   if (favURL.IsValid())
-    return ExecuteAction(favURL.GetExecString());
+    return CGUIBuiltinsUtils::ExecuteAction(favURL.GetExecString(), item);
 
   return false;
 }

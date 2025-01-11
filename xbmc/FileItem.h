@@ -13,7 +13,8 @@
  \brief
  */
 
-#include "LockType.h"
+#include "LockMode.h"
+#include "SourceType.h"
 #include "XBDateTime.h"
 #include "guilib/GUIListItem.h"
 #include "threads/CriticalSection.h"
@@ -28,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+class CMediaSource;
 enum class VideoDbContentType;
 
 namespace ADDON
@@ -56,6 +58,7 @@ class CPVRChannel;
 class CPVRChannelGroupMember;
 class CPVREpgInfoTag;
 class CPVREpgSearchFilter;
+class CPVRProvider;
 class CPVRRecording;
 class CPVRTimerInfoTag;
 }
@@ -78,21 +81,17 @@ typedef std::shared_ptr<const IEvent> EventPtr;
 /* special startoffset used to indicate that we wish to resume */
 #define STARTOFFSET_RESUME (-1)
 
-class CMediaSource;
-
 class CBookmark;
 
-enum EFileFolderType {
-  EFILEFOLDER_TYPE_ALWAYS     = 1<<0,
-  EFILEFOLDER_TYPE_ONCLICK    = 1<<1,
-  EFILEFOLDER_TYPE_ONBROWSE   = 1<<2,
+enum class FileFolderType
+{
+  ALWAYS = 1 << 0,
+  ONCLICK = 1 << 1,
+  ONBROWSE = 1 << 2,
 
-  EFILEFOLDER_MASK_ALL        = 0xff,
-  EFILEFOLDER_MASK_ONCLICK    = EFILEFOLDER_TYPE_ALWAYS
-                              | EFILEFOLDER_TYPE_ONCLICK,
-  EFILEFOLDER_MASK_ONBROWSE   = EFILEFOLDER_TYPE_ALWAYS
-                              | EFILEFOLDER_TYPE_ONCLICK
-                              | EFILEFOLDER_TYPE_ONBROWSE,
+  MASK_ALL = 0xff,
+  MASK_ONCLICK = ALWAYS | ONCLICK,
+  MASK_ONBROWSE = ALWAYS | ONCLICK | ONBROWSE,
 };
 
 /*!
@@ -123,6 +122,7 @@ public:
   explicit CFileItem(const std::shared_ptr<PVR::CPVRChannelGroupMember>& channelGroupMember);
   explicit CFileItem(const std::shared_ptr<PVR::CPVRRecording>& record);
   explicit CFileItem(const std::shared_ptr<PVR::CPVRTimerInfoTag>& timer);
+  explicit CFileItem(const std::string& path, const std::shared_ptr<PVR::CPVRProvider>& provider);
   explicit CFileItem(const CMediaSource& share);
   explicit CFileItem(std::shared_ptr<const ADDON::IAddon> addonInfo);
   explicit CFileItem(const EventPtr& eventLogEntry);
@@ -205,13 +205,14 @@ public:
   bool IsDeletedPVRRecording() const;
   bool IsInProgressPVRRecording() const;
   bool IsPVRTimer() const;
+  bool IsPVRProvider() const;
   bool IsType(const char *ext) const;
   bool IsVirtualDirectoryRoot() const;
   bool IsReadOnly() const;
   bool CanQueue() const;
   void SetCanQueue(bool bYesNo);
   bool IsParentFolder() const;
-  bool IsFileFolder(EFileFolderType types = EFILEFOLDER_MASK_ALL) const;
+  bool IsFileFolder(FileFolderType types = FileFolderType::MASK_ALL) const;
   bool IsRemovable() const;
   bool IsPVR() const;
   bool IsLiveTV() const;
@@ -223,7 +224,6 @@ public:
 
   void RemoveExtension();
   void CleanString();
-  void FillInDefaultIcon();
   void SetFileSizeLabel();
   void SetLabel(const std::string &strLabel) override;
   VideoDbContentType GetVideoContentType() const;
@@ -299,6 +299,13 @@ public:
   inline const std::shared_ptr<PVR::CPVRTimerInfoTag> GetPVRTimerInfoTag() const
   {
     return m_pvrTimerInfoTag;
+  }
+
+  inline bool HasPVRProviderInfoTag() const { return m_pvrProviderInfoTag != nullptr; }
+
+  inline const std::shared_ptr<PVR::CPVRProvider> GetPVRProviderInfoTag() const
+  {
+    return m_pvrProviderInfoTag;
   }
 
   /*!
@@ -388,39 +395,6 @@ public:
 
   CPictureInfoTag* GetPictureInfoTag();
 
-  /*!
-   \brief Get the local fanart for this item if it exists
-   \return path to the local fanart for this item, or empty if none exists
-   \sa GetFolderThumb, GetTBNFile
-   */
-  std::string GetLocalFanart() const;
-
-  /*!
-   \brief Assemble the base filename of local artwork for an item,
-   accounting for archives, stacks and multi-paths, and BDMV/VIDEO_TS folders.
-   `useFolder` is set to false
-   \return the path to the base filename for artwork lookup.
-   \sa GetLocalArt
-   */
-  std::string GetLocalArtBaseFilename() const;
-  /*!
-   \brief Assemble the base filename of local artwork for an item,
-   accounting for archives, stacks and multi-paths, and BDMV/VIDEO_TS folders.
-   \param useFolder whether to look in the folder for the art file. Defaults to false.
-   \return the path to the base filename for artwork lookup.
-   \sa GetLocalArt
-   */
-  std::string GetLocalArtBaseFilename(bool& useFolder) const;
-
-  /*! \brief Assemble the filename of a particular piece of local artwork for an item.
-             No file existence check is typically performed.
-   \param artFile the art file to search for.
-   \param useFolder whether to look in the folder for the art file. Defaults to false.
-   \return the path to the local artwork.
-   \sa FindLocalArt
-   */
-  std::string GetLocalArt(const std::string& artFile, bool useFolder = false) const;
-
   /*! \brief Assemble the filename of a particular piece of local artwork for an item,
              and check for file existence.
    \param artFile the art file to search for.
@@ -443,10 +417,6 @@ public:
    */
   std::string GetThumbHideIfUnwatched(const CFileItem* item) const;
 
-  // Gets the .tbn file associated with this item
-  std::string GetTBNFile() const;
-  // Gets the folder image associated with this item (defaults to folder.jpg)
-  std::string GetFolderThumb(const std::string &folderJPG = "folder.jpg") const;
   // Gets the correct movie title
   std::string GetMovieName(bool bUseFolderNames = false) const;
 
@@ -475,9 +445,6 @@ public:
      \sa URIUtils::GetParentPath
    */
   std::string GetLocalMetadataPath() const;
-
-  // finds a matching local trailer file
-  std::string FindTrailer() const;
 
   bool LoadMusicTag();
   bool LoadGameTag();
@@ -572,7 +539,9 @@ public:
   void SetFromSong(const CSong &song);
 
   bool m_bIsShareOrDrive;    ///< is this a root share/drive
-  int m_iDriveType;     ///< If \e m_bIsShareOrDrive is \e true, use to get the share type. Types see: CMediaSource::m_iDriveType
+  /// If \e m_bIsShareOrDrive is \e true, use to get the share type.
+  /// Types see: CMediaSource::m_iDriveType
+  SourceType m_iDriveType;
   CDateTime m_dateTime;             ///< file creation date & time
   int64_t m_dwSize;             ///< file size (0 for folders)
   std::string m_strDVDLabel;
@@ -580,7 +549,7 @@ public:
   int m_iprogramCount;
   int m_idepth;
   int m_lStartPartNumber;
-  LockType m_iLockMode;
+  LockMode m_iLockMode;
   std::string m_strLockCode;
   int m_iHasLock; // 0 - no lock 1 - lock, but unlocked 2 - locked
   int m_iBadPwdCount;
@@ -631,6 +600,7 @@ private:
   std::shared_ptr<PVR::CPVRRecording> m_pvrRecordingInfoTag;
   std::shared_ptr<PVR::CPVRTimerInfoTag> m_pvrTimerInfoTag;
   std::shared_ptr<PVR::CPVRChannelGroupMember> m_pvrChannelGroupMemberInfoTag;
+  std::shared_ptr<PVR::CPVRProvider> m_pvrProviderInfoTag;
   CPictureInfoTag* m_pictureInfoTag;
   std::shared_ptr<const ADDON::IAddon> m_addonInfo;
   KODI::GAME::CGameInfoTag* m_gameInfoTag;

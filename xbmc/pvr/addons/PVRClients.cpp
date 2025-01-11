@@ -15,6 +15,7 @@
 #include "addons/addoninfo/AddonType.h"
 #include "guilib/LocalizeStrings.h"
 #include "messaging/ApplicationMessenger.h"
+#include "pvr/PVRConstants.h" // PVR_CLIENT_INVALID_UID
 #include "pvr/PVREventLogJob.h"
 #include "pvr/PVRManager.h"
 #include "pvr/PVRPlaybackState.h"
@@ -114,11 +115,6 @@ void CPVRClients::UpdateClients(
           else
           {
             client = std::make_shared<CPVRClient>(addon, instanceId, clientId);
-            if (!client)
-            {
-              CLog::LogF(LOGERROR, "Severe error, incorrect add-on type");
-              continue;
-            }
           }
 
           // determine actual enabled state of instance
@@ -126,9 +122,17 @@ void CPVRClients::UpdateClients(
             instanceEnabled = client->IsEnabled();
 
           if (instanceEnabled)
+          {
+            CLog::LogF(LOGINFO, "Creating PVR client: addonId={}, instanceId={}, clientId={}",
+                       addon->ID(), instanceId, clientId);
             clientsToCreate.emplace_back(client);
+          }
           else if (isKnownClient)
+          {
+            CLog::LogF(LOGINFO, "Destroying PVR client: addonId={}, instanceId={}, clientId={}",
+                       addon->ID(), instanceId, clientId);
             clientsToDestroy.emplace_back(clientId);
+          }
         }
         else if (IsCreatedClient(clientId))
         {
@@ -140,9 +144,17 @@ void CPVRClients::UpdateClients(
           }
 
           if (instanceEnabled)
+          {
+            CLog::LogF(LOGINFO, "Recreating PVR client: addonId={}, instanceId={}, clientId={}",
+                       addon->ID(), instanceId, clientId);
             clientsToReCreate.emplace_back(clientId, addon->Name());
+          }
           else
+          {
+            CLog::LogF(LOGINFO, "Destroying PVR client: addonId={}, instanceId={}, clientId={}",
+                       addon->ID(), instanceId, clientId);
             clientsToDestroy.emplace_back(clientId);
+          }
         }
       }
     }
@@ -155,7 +167,7 @@ void CPVRClients::UpdateClients(
     auto progressHandler = std::make_unique<CPVRGUIProgressHandler>(
         g_localizeStrings.Get(19239)); // Creating PVR clients
 
-    unsigned int i = 0;
+    size_t i = 0;
     for (const auto& client : clientsToCreate)
     {
       progressHandler->UpdateProgress(client->Name(), i++,
@@ -279,7 +291,7 @@ void CPVRClients::OnAddonEvent(const AddonEvent& event)
 
 std::shared_ptr<CPVRClient> CPVRClients::GetClient(int clientId) const
 {
-  if (clientId <= PVR_INVALID_CLIENT_ID)
+  if (clientId == PVR_CLIENT_INVALID_UID)
     return {};
 
   std::unique_lock<CCriticalSection> lock(m_critSection);
@@ -290,7 +302,7 @@ std::shared_ptr<CPVRClient> CPVRClients::GetClient(int clientId) const
   return {};
 }
 
-int CPVRClients::CreatedClientAmount() const
+size_t CPVRClients::CreatedClientAmount() const
 {
   std::unique_lock<CCriticalSection> lock(m_critSection);
   return std::count_if(m_clientMap.cbegin(), m_clientMap.cend(),
@@ -358,9 +370,17 @@ std::vector<CVariant> CPVRClients::GetClientProviderInfos() const
     for (const auto& instanceId : instanceIds)
     {
       CVariant clientProviderInfo(CVariant::VariantTypeObject);
-      clientProviderInfo["clientid"] = CPVRClientUID(addonInfo->ID(), instanceId).GetUID();
+      const int clientId{CPVRClientUID(addonInfo->ID(), instanceId).GetUID()};
+      clientProviderInfo["clientid"] = clientId;
       clientProviderInfo["addonid"] = addonInfo->ID();
       clientProviderInfo["instanceid"] = instanceId;
+      std::string fullName;
+      const std::shared_ptr<const CPVRClient> client{GetClient(clientId)};
+      if (client)
+        fullName = client->GetFullClientName();
+      else
+        fullName = addonInfo->Name();
+      clientProviderInfo["fullname"] = fullName;
       clientProviderInfo["enabled"] =
           !CServiceBroker::GetAddonMgr().IsAddonDisabled(addonInfo->ID());
       clientProviderInfo["name"] = addonInfo->Name();
@@ -382,7 +402,7 @@ int CPVRClients::GetFirstCreatedClientID() const
   std::unique_lock<CCriticalSection> lock(m_critSection);
   const auto it = std::find_if(m_clientMap.cbegin(), m_clientMap.cend(),
                                [](const auto& client) { return client.second->ReadyToUse(); });
-  return it != m_clientMap.cend() ? (*it).second->GetID() : -1;
+  return it != m_clientMap.cend() ? (*it).second->GetID() : PVR_CLIENT_INVALID_UID;
 }
 
 PVR_ERROR CPVRClients::GetCallableClients(CPVRClientMap& clientsReady,
@@ -415,7 +435,7 @@ PVR_ERROR CPVRClients::GetCallableClients(CPVRClientMap& clientsReady,
   return clientsNotReady.empty() ? PVR_ERROR_NO_ERROR : PVR_ERROR_SERVER_ERROR;
 }
 
-int CPVRClients::EnabledClientAmount() const
+size_t CPVRClients::EnabledClientAmount() const
 {
   CPVRClientMap clientMap;
   {
@@ -424,9 +444,9 @@ int CPVRClients::EnabledClientAmount() const
   }
 
   ADDON::CAddonMgr& addonMgr = CServiceBroker::GetAddonMgr();
-  return std::count_if(clientMap.cbegin(), clientMap.cend(), [&addonMgr](const auto& client) {
-    return !addonMgr.IsAddonDisabled(client.second->ID());
-  });
+  return std::count_if(clientMap.cbegin(), clientMap.cend(),
+                       [&addonMgr](const auto& client)
+                       { return !addonMgr.IsAddonDisabled(client.second->ID()); });
 }
 
 bool CPVRClients::IsEnabledClient(int clientId) const
@@ -577,6 +597,8 @@ std::vector<SBackend> CPVRClients::GetBackendProperties() const
           properties.numRecordings = iAmount;
         if (client->GetRecordingsAmount(true, iAmount) == PVR_ERROR_NO_ERROR)
           properties.numDeletedRecordings = iAmount;
+        properties.clientname = client->GetClientName();
+        properties.instancename = client->GetInstanceName();
         properties.name = client->GetBackendName();
         properties.version = client->GetBackendVersion();
         properties.host = client->GetConnectionString();

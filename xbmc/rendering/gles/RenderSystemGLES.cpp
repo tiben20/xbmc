@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2018 Team Kodi
+ *  Copyright (C) 2005-2024 Team Kodi
  *  This file is part of Kodi - https://kodi.tv
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
@@ -8,11 +8,14 @@
 
 #include "RenderSystemGLES.h"
 
+#include "URL.h"
 #include "guilib/DirtyRegion.h"
 #include "guilib/GUITextureGLES.h"
+#include "platform/MessagePrinter.h"
 #include "rendering/MatrixGL.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/SettingsComponent.h"
+#include "utils/FileUtils.h"
 #include "utils/GLUtils.h"
 #include "utils/MathUtils.h"
 #include "utils/SystemInfo.h"
@@ -20,8 +23,6 @@
 #include "utils/XTimeUtils.h"
 #include "utils/log.h"
 #include "windowing/GraphicContext.h"
-
-#include <exception>
 
 #if defined(TARGET_LINUX)
 #include "utils/EGLUtils.h"
@@ -43,22 +44,17 @@ bool CRenderSystemGLES::InitRenderSystem()
   m_maxTextureSize = maxTextureSize;
 
   // Get the GLES version number
+  m_RenderVersion = "<none>";
   m_RenderVersionMajor = 0;
   m_RenderVersionMinor = 0;
 
   const char* ver = (const char*)glGetString(GL_VERSION);
-  if (ver != 0)
+  if (ver != NULL)
   {
     sscanf(ver, "%d.%d", &m_RenderVersionMajor, &m_RenderVersionMinor);
     if (!m_RenderVersionMajor)
       sscanf(ver, "%*s %*s %d.%d", &m_RenderVersionMajor, &m_RenderVersionMinor);
     m_RenderVersion = ver;
-  }
-  else
-  {
-    CLog::Log(LOGFATAL, "CRenderSystemGLES::{} - glGetString(GL_VERSION) returned NULL, exiting",
-              __FUNCTION__);
-    std::terminate();
   }
 
   // Get our driver vendor and renderer
@@ -72,15 +68,14 @@ bool CRenderSystemGLES::InitRenderSystem()
   if (tmpRenderer != NULL)
     m_RenderRenderer = tmpRenderer;
 
-  m_RenderExtensions  = " ";
+  m_RenderExtensions = "";
 
   const char *tmpExtensions = (const char*) glGetString(GL_EXTENSIONS);
   if (tmpExtensions != NULL)
   {
     m_RenderExtensions += tmpExtensions;
+    m_RenderExtensions += " ";
   }
-
-  m_RenderExtensions += " ";
 
 #if defined(GL_KHR_debug) && defined(TARGET_LINUX)
   if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_openGlDebugging)
@@ -104,6 +99,14 @@ bool CRenderSystemGLES::InitRenderSystem()
     }
   }
 #endif
+
+  // Shut down gracefully if OpenGL context could not be allocated
+  if (m_RenderVersionMajor == 0)
+  {
+    CLog::Log(LOGFATAL, "Can not initialize OpenGL context. Exiting");
+    CMessagePrinter::DisplayError("ERROR: Can not initialize OpenGL context. Exiting");
+    return false;
+  }
 
   LogGraphicsInfo();
 
@@ -468,6 +471,15 @@ void CRenderSystemGLES::InitialiseShaders()
     CLog::Log(LOGERROR, "GUI Shader gles_shader_texture.frag - compile and link failed");
   }
 
+  m_pShader[ShaderMethodGLES::SM_TEXTURE_111R] =
+      std::make_unique<CGLESShader>("gles_shader_texture_111r.frag", defines);
+  if (!m_pShader[ShaderMethodGLES::SM_TEXTURE_111R]->CompileAndLink())
+  {
+    m_pShader[ShaderMethodGLES::SM_TEXTURE_111R]->Free();
+    m_pShader[ShaderMethodGLES::SM_TEXTURE_111R].reset();
+    CLog::Log(LOGERROR, "GUI Shader gles_shader_texture_111r.frag - compile and link failed");
+  }
+
   m_pShader[ShaderMethodGLES::SM_MULTI] =
       std::make_unique<CGLESShader>("gles_shader_multi.frag", defines);
   if (!m_pShader[ShaderMethodGLES::SM_MULTI]->CompileAndLink())
@@ -475,6 +487,15 @@ void CRenderSystemGLES::InitialiseShaders()
     m_pShader[ShaderMethodGLES::SM_MULTI]->Free();
     m_pShader[ShaderMethodGLES::SM_MULTI].reset();
     CLog::Log(LOGERROR, "GUI Shader gles_shader_multi.frag - compile and link failed");
+  }
+
+  m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R] =
+      std::make_unique<CGLESShader>("gles_shader_multi_rgba_111r.frag", defines);
+  if (!m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R]->CompileAndLink())
+  {
+    m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R]->Free();
+    m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R].reset();
+    CLog::Log(LOGERROR, "GUI Shader gles_shader_multi_rgba_111r.frag - compile and link failed");
   }
 
   m_pShader[ShaderMethodGLES::SM_FONTS] =
@@ -512,6 +533,26 @@ void CRenderSystemGLES::InitialiseShaders()
     m_pShader[ShaderMethodGLES::SM_MULTI_BLENDCOLOR]->Free();
     m_pShader[ShaderMethodGLES::SM_MULTI_BLENDCOLOR].reset();
     CLog::Log(LOGERROR, "GUI Shader gles_shader_multi_blendcolor.frag - compile and link failed");
+  }
+
+  m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR] =
+      std::make_unique<CGLESShader>("gles_shader_multi_rgba_111r_blendcolor.frag", defines);
+  if (!m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR]->CompileAndLink())
+  {
+    m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR]->Free();
+    m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR].reset();
+    CLog::Log(LOGERROR,
+              "GUI Shader gles_shader_multi_rgba_111r_blendcolor.frag - compile and link failed");
+  }
+
+  m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR] =
+      std::make_unique<CGLESShader>("gles_shader_multi_111r_111r_blendcolor.frag", defines);
+  if (!m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR]->CompileAndLink())
+  {
+    m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR]->Free();
+    m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR].reset();
+    CLog::Log(LOGERROR,
+              "GUI Shader gles_shader_multi_111r_111r_blendcolor.frag - compile and link failed");
   }
 
   m_pShader[ShaderMethodGLES::SM_TEXTURE_RGBA] =
@@ -583,9 +624,17 @@ void CRenderSystemGLES::ReleaseShaders()
     m_pShader[ShaderMethodGLES::SM_TEXTURE]->Free();
   m_pShader[ShaderMethodGLES::SM_TEXTURE].reset();
 
+  if (m_pShader[ShaderMethodGLES::SM_TEXTURE_111R])
+    m_pShader[ShaderMethodGLES::SM_TEXTURE_111R]->Free();
+  m_pShader[ShaderMethodGLES::SM_TEXTURE_111R].reset();
+
   if (m_pShader[ShaderMethodGLES::SM_MULTI])
     m_pShader[ShaderMethodGLES::SM_MULTI]->Free();
   m_pShader[ShaderMethodGLES::SM_MULTI].reset();
+
+  if (m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R])
+    m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R]->Free();
+  m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R].reset();
 
   if (m_pShader[ShaderMethodGLES::SM_FONTS])
     m_pShader[ShaderMethodGLES::SM_FONTS]->Free();
@@ -602,6 +651,14 @@ void CRenderSystemGLES::ReleaseShaders()
   if (m_pShader[ShaderMethodGLES::SM_MULTI_BLENDCOLOR])
     m_pShader[ShaderMethodGLES::SM_MULTI_BLENDCOLOR]->Free();
   m_pShader[ShaderMethodGLES::SM_MULTI_BLENDCOLOR].reset();
+
+  if (m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR])
+    m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR]->Free();
+  m_pShader[ShaderMethodGLES::SM_MULTI_RGBA_111R_BLENDCOLOR].reset();
+
+  if (m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR])
+    m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR]->Free();
+  m_pShader[ShaderMethodGLES::SM_MULTI_111R_111R_BLENDCOLOR].reset();
 
   if (m_pShader[ShaderMethodGLES::SM_TEXTURE_RGBA])
     m_pShader[ShaderMethodGLES::SM_TEXTURE_RGBA]->Free();
@@ -773,4 +830,19 @@ GLint CRenderSystemGLES::GUIShaderGetCoordStep()
     return m_pShader[m_method]->GetShaderCoordStepLoc();
 
   return -1;
+}
+
+std::string CRenderSystemGLES::GetShaderPath(const std::string& filename)
+{
+  std::string path = "GLES/2.0/";
+
+  if (m_RenderVersionMajor >= 3 && m_RenderVersionMinor >= 1)
+  {
+    std::string file = "special://xbmc/system/shaders/GLES/3.1/" + filename;
+    const CURL pathToUrl(file);
+    if (CFileUtils::Exists(pathToUrl.Get()))
+      return "GLES/3.1/";
+  }
+
+  return path;
 }

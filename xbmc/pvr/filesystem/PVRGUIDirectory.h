@@ -12,6 +12,7 @@
 
 #include <string>
 
+class CFileItem;
 class CFileItemList;
 
 namespace PVR
@@ -96,10 +97,25 @@ public:
    */
   bool GetChannelsDirectory(CFileItemList& results) const;
 
+  /*!
+   * @brief Get the list of providers.
+   * @param results The file list to store the results in.
+   * @return True on success, false otherwise..
+   */
+  bool GetProvidersDirectory(CFileItemList& results) const;
+
+  /*!
+   * @brief Get info for a recording folder.
+   * @param item The folder.
+   * @return True on success, false otherwise..
+   */
+  static bool GetRecordingsDirectoryInfo(CFileItem& item);
+
 private:
   bool GetTimersDirectory(CFileItemList& results) const;
   bool GetRecordingsDirectory(CFileItemList& results) const;
   bool GetSavedSearchesDirectory(bool bRadio, CFileItemList& results) const;
+  bool GetSavedSearchResults(bool isRadio, int id, CFileItemList& results) const;
 
   const CURL m_url;
 };

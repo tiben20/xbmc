@@ -14,39 +14,38 @@ namespace XFILE
 {
 
 /* indicate that caller can handle truncated reads, where function returns before entire buffer has been filled */
-  static const unsigned int READ_TRUNCATED = 0x01;
-
-/* indicate that that caller support read in the minimum defined chunk size, this disables internal cache then */
-  static const unsigned int READ_CHUNKED = 0x02;
+static const unsigned int READ_TRUNCATED = 0x01;
 
 /* use cache to access this file */
-  static const unsigned int READ_CACHED = 0x04;
+static const unsigned int READ_CACHED = 0x04;
 
 /* open without caching. regardless to file type. */
-  static const unsigned int READ_NO_CACHE = 0x08;
+static const unsigned int READ_NO_CACHE = 0x08;
 
 /* calculate bitrate for file while reading */
-  static const unsigned int READ_BITRATE = 0x10;
+static const unsigned int READ_BITRATE = 0x10;
 
 /* indicate to the caller we will seek between multiple streams in the file frequently */
-  static const unsigned int READ_MULTI_STREAM = 0x20;
+static const unsigned int READ_MULTI_STREAM = 0x20;
 
-/* indicate to the caller file is audio and/or video (and e.g. may grow) */
-  static const unsigned int READ_AUDIO_VIDEO = 0x40;
+// Indicate to the caller file is audio and/or video and is suitable for caching with FileCache or StreamBuffer.
+// The final method used will depend on the user's settings and file location, e.g. user can disable FileCache.
+// This flag ensures that at least the buffer size necessary to read with the appropriate chunk size will be used.
+static const unsigned int READ_AUDIO_VIDEO = 0x40;
 
 /* indicate that caller will do write operations before reading  */
-  static const unsigned int READ_AFTER_WRITE = 0x80;
+static const unsigned int READ_AFTER_WRITE = 0x80;
 
 /* indicate that caller want to reopen a file if its already open  */
-  static const unsigned int READ_REOPEN = 0x100;
+static const unsigned int READ_REOPEN = 0x100;
 
 /* indicate that caller want open a file without intermediate buffer regardless to file type */
-  static const unsigned int READ_NO_BUFFER = 0x200;
+static const unsigned int READ_NO_BUFFER = 0x200;
 
 struct SNativeIoControl
 {
-  unsigned long int   request;
-  void*               param;
+  unsigned long int request;
+  void* param;
 };
 
 struct SCacheStatus
@@ -58,30 +57,31 @@ struct SCacheStatus
   uint32_t lowrate; /**< low speed read rate (bytes/second) (if any, else 0) */
 };
 
-enum CACHE_BUFFER_MODES
+enum class CacheBufferMode
 {
-  CACHE_BUFFER_MODE_INTERNET = 0,
-  CACHE_BUFFER_MODE_ALL = 1,
-  CACHE_BUFFER_MODE_TRUE_INTERNET = 2,
-  CACHE_BUFFER_MODE_NONE = 3,
-  CACHE_BUFFER_MODE_NETWORK = 4,
+  INTERNET = 0,
+  ALL = 1,
+  TRUE_INTERNET = 2,
+  NONE = 3,
+  NETWORK = 4,
 };
 
-typedef enum {
-  IOCTRL_NATIVE        = 1,  /**< SNativeIoControl structure, containing what should be passed to native ioctrl */
-  IOCTRL_SEEK_POSSIBLE = 2,  /**< return 0 if known not to work, 1 if it should work */
-  IOCTRL_CACHE_STATUS  = 3,  /**< SCacheStatus structure */
-  IOCTRL_CACHE_SETRATE = 4,  /**< unsigned int with speed limit for caching in bytes per second */
-  IOCTRL_SET_CACHE     = 8,  /**< CFileCache */
-  IOCTRL_SET_RETRY     = 16, /**< Enable/disable retry within the protocol handler (if supported) */
-} EIoControl;
-
-enum CURLOPTIONTYPE
+enum class IOControl
 {
-  CURL_OPTION_OPTION,     /**< Set a general option   */
-  CURL_OPTION_PROTOCOL,   /**< Set a protocol option (see below)  */
-  CURL_OPTION_CREDENTIALS,/**< Set User and password  */
-  CURL_OPTION_HEADER      /**< Add a Header           */
+  NATIVE = 1, /**< SNativeIoControl structure, containing what should be passed to native ioctrl */
+  SEEK_POSSIBLE = 2, /**< return 0 if known not to work, 1 if it should work */
+  CACHE_STATUS = 3, /**< SCacheStatus structure */
+  CACHE_SETRATE = 4, /**< unsigned int with speed limit for caching in bytes per second */
+  SET_CACHE = 8, /**< CFileCache */
+  SET_RETRY = 16, /**< Enable/disable retry within the protocol handler (if supported) */
+};
+
+enum class CURLOptionType
+{
+  OPTION, /**< Set a general option   */
+  PROTOCOL, /**< Set a protocol option (see below)  */
+  CREDENTIALS, /**< Set User and password  */
+  HEADER /**< Add a Header           */
 };
 
 /**
@@ -102,14 +102,14 @@ enum CURLOPTIONTYPE
  * sslcipherlist: Set list of accepted SSL ciphers.
  */
 
-enum FileProperty
+enum class FileProperty
 {
-  FILE_PROPERTY_RESPONSE_PROTOCOL,          /**< Get response protocol line  */
-  FILE_PROPERTY_RESPONSE_HEADER,            /**< Get response Header value  */
-  FILE_PROPERTY_CONTENT_TYPE,               /**< Get file content-type  */
-  FILE_PROPERTY_CONTENT_CHARSET,            /**< Get file content charset  */
-  FILE_PROPERTY_MIME_TYPE,                  /**< Get file mime type  */
-  FILE_PROPERTY_EFFECTIVE_URL               /**< Get effective URL for redirected streams  */
+  RESPONSE_PROTOCOL, /**< Get response protocol line  */
+  RESPONSE_HEADER, /**< Get response Header value  */
+  CONTENT_TYPE, /**< Get file content-type  */
+  CONTENT_CHARSET, /**< Get file content charset  */
+  MIME_TYPE, /**< Get file mime type  */
+  EFFECTIVE_URL /**< Get effective URL for redirected streams  */
 };
 
 class IFileCallback

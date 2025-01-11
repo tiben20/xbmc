@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+enum class IPlayerAudioCaps;
 class CVariant;
 struct IntegerSettingOption;
 
@@ -46,7 +47,7 @@ protected:
   // specialization of CGUIDialogSettingsManualBase
   void InitializeSettings() override;
 
-  bool SupportsAudioFeature(int feature);
+  bool SupportsAudioFeature(IPlayerAudioCaps feature);
 
   void AddAudioStreams(const std::shared_ptr<CSettingGroup>& group, const std::string& settingId);
 
@@ -77,8 +78,8 @@ protected:
   int m_audioStream;
   bool m_passthrough = false;
 
-  typedef std::vector<int> Features;
-  Features m_audioCaps;
+  std::vector<IPlayerAudioCaps> m_audioCaps;
+
   bool m_bIsDSPlayer;
 
 private:

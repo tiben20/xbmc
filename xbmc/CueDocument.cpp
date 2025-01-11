@@ -80,10 +80,9 @@ public:
   bool ReadLine(std::string &line) override
   {
     // Read the next line.
-    while (m_file.ReadString(m_szBuffer, 1023)) // Bigger than MAX_PATH_SIZE, for usage with relax!
+    while (m_file.ReadLine(line))
     {
       // Remove the white space at the beginning and end of the line.
-      line = m_szBuffer;
       StringUtils::Trim(line);
       if (!line.empty())
         return true;
@@ -104,7 +103,6 @@ public:
 private:
   CFile m_file;
   bool m_opened;
-  char m_szBuffer[1024]{};
 };
 
 class BufferReader
@@ -231,11 +229,6 @@ void CCueDocument::GetMediaFiles(std::vector<std::string>& mediaFiles)
 
   for (TSet::const_iterator it = uniqueFiles.begin(); it != uniqueFiles.end(); ++it)
     mediaFiles.push_back(*it);
-}
-
-std::string CCueDocument::GetMediaTitle()
-{
-  return m_strAlbum;
 }
 
 bool CCueDocument::IsLoaded() const

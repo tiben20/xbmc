@@ -13,34 +13,64 @@
 #include "cores/AudioEngine/Sinks/windows/AESinkFactoryWin.h"
 #include "cores/AudioEngine/Utils/AEDeviceInfo.h"
 #include "cores/AudioEngine/Utils/AEUtil.h"
-#include "utils/StringUtils.h"
-#include "utils/TimeUtils.h"
-#include "utils/XTimeUtils.h"
+#include "utils/SystemInfo.h"
 #include "utils/log.h"
 
-#include "platform/win10/AsyncHelpers.h"
 #include "platform/win32/CharsetConverter.h"
+#include "platform/win32/WIN32Util.h"
 
 #include <algorithm>
 #include <stdint.h>
 
 #include <ksmedia.h>
-#include <mfapi.h>
-#include <mmdeviceapi.h>
-#include <mmreg.h>
-#include <wrl/implements.h>
 
 using namespace Microsoft::WRL;
 
-extern const char *WASAPIErrToStr(HRESULT err);
+namespace
+{
+constexpr int XAUDIO_BUFFERS_IN_QUEUE = 2;
 
-#define EXIT_ON_FAILURE(hr, reason, ...) \
-  if (FAILED(hr)) \
-  { \
-    CLog::Log(LOGERROR, reason " - {}", __VA_ARGS__, WASAPIErrToStr(hr)); \
-    goto failed; \
+HRESULT KXAudio2Create(IXAudio2** ppXAudio2,
+                       UINT32 Flags X2DEFAULT(0),
+                       XAUDIO2_PROCESSOR XAudio2Processor X2DEFAULT(XAUDIO2_DEFAULT_PROCESSOR))
+{
+  typedef HRESULT(__stdcall * XAudio2CreateInfoFunc)(_Outptr_ IXAudio2**, UINT32,
+                                                     XAUDIO2_PROCESSOR);
+  static HMODULE dll = NULL;
+  static XAudio2CreateInfoFunc XAudio2CreateFn = nullptr;
+
+  if (dll == NULL)
+  {
+    dll = LoadLibraryEx(L"xaudio2_9redist.dll", NULL, LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+
+    if (dll == NULL)
+    {
+      dll = LoadLibraryEx(L"xaudio2_9.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+
+      if (dll == NULL)
+      {
+        // Windows 8 compatibility
+        dll = LoadLibraryEx(L"xaudio2_8.dll", NULL, LOAD_LIBRARY_SEARCH_SYSTEM32);
+
+        if (dll == NULL)
+          return HRESULT_FROM_WIN32(GetLastError());
+      }
+    }
+
+    XAudio2CreateFn = (XAudio2CreateInfoFunc)(void*)GetProcAddress(dll, "XAudio2Create");
+    if (!XAudio2CreateFn)
+    {
+      return HRESULT_FROM_WIN32(GetLastError());
+    }
   }
-#define XAUDIO_BUFFERS_IN_QUEUE 2
+
+  if (XAudio2CreateFn)
+    return (*XAudio2CreateFn)(ppXAudio2, Flags, XAudio2Processor);
+  else
+    return E_FAIL;
+}
+
+} // namespace
 
 template <class TVoice>
 inline void SafeDestroyVoice(TVoice **ppVoice)
@@ -52,36 +82,14 @@ inline void SafeDestroyVoice(TVoice **ppVoice)
   }
 }
 
-///  ----------------- CAESinkXAudio ------------------------
-
-CAESinkXAudio::CAESinkXAudio() :
-  m_masterVoice(nullptr),
-  m_sourceVoice(nullptr),
-  m_encodedChannels(0),
-  m_encodedSampleRate(0),
-  sinkReqFormat(AE_FMT_INVALID),
-  sinkRetFormat(AE_FMT_INVALID),
-  m_AvgBytesPerSec(0),
-  m_dwChunkSize(0),
-  m_dwFrameSize(0),
-  m_dwBufferLen(0),
-  m_sinkFrames(0),
-  m_framesInBuffers(0),
-  m_running(false),
-  m_initialized(false),
-  m_isSuspended(false),
-  m_isDirty(false),
-  m_uiBufferLen(0),
-  m_avgTimeWaiting(50)
+CAESinkXAudio::CAESinkXAudio()
 {
-  m_channelLayout.Reset();
-
-  HRESULT hr = XAudio2Create(m_xAudio2.ReleaseAndGetAddressOf(), 0);
+  HRESULT hr = KXAudio2Create(m_xAudio2.ReleaseAndGetAddressOf(), 0);
   if (FAILED(hr))
   {
-    CLog::LogF(LOGERROR, "XAudio initialization failed.");
+    CLog::LogF(LOGERROR, "XAudio initialization failed, error {:X}.", hr);
   }
-#ifdef  _DEBUG
+#ifdef _DEBUG
   else
   {
     XAUDIO2_DEBUG_CONFIGURATION config = {};
@@ -91,7 +99,10 @@ CAESinkXAudio::CAESinkXAudio() :
     config.LogFunctionName = true;
     m_xAudio2->SetDebugConfiguration(&config, 0);
   }
-#endif //  _DEBUG
+#endif // _DEBUG
+
+  // Get performance counter frequency for latency calculations
+  QueryPerformanceFrequency(&m_timerFreq);
 }
 
 CAESinkXAudio::~CAESinkXAudio()
@@ -112,6 +123,13 @@ void CAESinkXAudio::Register()
 std::unique_ptr<IAESink> CAESinkXAudio::Create(std::string& device, AEAudioFormat& desiredFormat)
 {
   auto sink = std::make_unique<CAESinkXAudio>();
+
+  if (!sink->m_xAudio2)
+  {
+    CLog::LogF(LOGERROR, "XAudio2 not loaded.");
+    return {};
+  }
+
   if (sink->Initialize(desiredFormat, device))
     return sink;
 
@@ -123,32 +141,20 @@ bool CAESinkXAudio::Initialize(AEAudioFormat &format, std::string &device)
   if (m_initialized)
     return false;
 
-  m_device = device;
-  bool bdefault = false;
-  HRESULT hr = S_OK;
-
   /* Save requested format */
-  /* Clear returned format */
-  sinkReqFormat = format.m_dataFormat;
-  sinkRetFormat = AE_FMT_INVALID;
+  AEDataFormat reqFormat = format.m_dataFormat;
 
   if (!InitializeInternal(device, format))
   {
-    CLog::Log(LOGINFO, __FUNCTION__": Could not Initialize voices with that format");
-    goto failed;
+    CLog::LogF(LOGINFO, "could not Initialize voices with format {}",
+               CAEUtil::DataFormatToStr(reqFormat));
+    CLog::LogF(LOGERROR, "XAudio initialization failed");
+    return false;
   }
 
-  format.m_frames       = m_uiBufferLen;
-  m_format              = format;
-  sinkRetFormat         = format.m_dataFormat;
-
   m_initialized = true;
-  m_isDirty     = false;
+  m_isDirty = false;
 
-  return true;
-
-failed:
-  CLog::Log(LOGERROR, __FUNCTION__": XAudio initialization failed.");
   return true;
 }
 
@@ -163,12 +169,26 @@ void CAESinkXAudio::Deinitialize()
     {
       m_sourceVoice->Stop();
       m_sourceVoice->FlushSourceBuffers();
+
+      // Stop and FlushSourceBuffers are async, wait for queued buffers to be released by XAudio2.
+      // callbacks don't seem to be called otherwise, with memory leakage.
+      XAUDIO2_VOICE_STATE state{};
+      do
+      {
+        if (WAIT_OBJECT_0 != WaitForSingleObject(m_voiceCallback.mBufferEnd.get(), 500))
+        {
+          CLog::LogF(LOGERROR, "timeout waiting for buffer flush - possible buffer memory leak");
+          break;
+        }
+        m_sourceVoice->GetState(&state, 0);
+      } while (state.BuffersQueued > 0);
+
       m_sinkFrames = 0;
       m_framesInBuffers = 0;
     }
     catch (...)
     {
-      CLog::Log(LOGDEBUG, "{}: Invalidated source voice - Releasing", __FUNCTION__);
+      CLog::LogF(LOGERROR, "invalidated source voice - Releasing");
     }
   }
   m_running = false;
@@ -179,20 +199,8 @@ void CAESinkXAudio::Deinitialize()
   m_initialized = false;
 }
 
-/**
- * @brief rescale uint64_t without overflowing on large values
- */
-static uint64_t rescale_u64(uint64_t val, uint64_t num, uint64_t den)
-{
-  return ((val / den) * num) + (((val % den) * num) / den);
-}
-
 void CAESinkXAudio::GetDelay(AEDelayStatus& status)
 {
-  HRESULT hr = S_OK;
-  uint64_t pos = 0, tick = 0;
-  int retries = 0;
-
   if (!m_initialized)
   {
     status.SetDelay(0.0);
@@ -202,8 +210,7 @@ void CAESinkXAudio::GetDelay(AEDelayStatus& status)
   XAUDIO2_VOICE_STATE state;
   m_sourceVoice->GetState(&state, 0);
 
-  double delay = (double)(m_sinkFrames - state.SamplesPlayed) / m_format.m_sampleRate;
-  status.SetDelay(delay);
+  status.SetDelay(static_cast<double>(m_sinkFrames - state.SamplesPlayed) / m_format.m_sampleRate);
   return;
 }
 
@@ -212,7 +219,7 @@ double CAESinkXAudio::GetCacheTotal()
   if (!m_initialized)
     return 0.0;
 
-  return XAUDIO_BUFFERS_IN_QUEUE * m_format.m_frames / (double)m_format.m_sampleRate;
+  return static_cast<double>(XAUDIO_BUFFERS_IN_QUEUE * m_format.m_frames) / m_format.m_sampleRate;
 }
 
 double CAESinkXAudio::GetLatency()
@@ -223,7 +230,7 @@ double CAESinkXAudio::GetLatency()
   XAUDIO2_PERFORMANCE_DATA perfData;
   m_xAudio2->GetPerformanceData(&perfData);
 
-  return perfData.CurrentLatencyInSamples / (double) m_format.m_sampleRate;
+  return static_cast<double>(perfData.CurrentLatencyInSamples) / m_format.m_sampleRate;
 }
 
 unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsigned int offset)
@@ -232,25 +239,11 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
     return 0;
 
   HRESULT hr = S_OK;
-  DWORD flags = 0;
 
-#ifndef _DEBUG
   LARGE_INTEGER timerStart;
   LARGE_INTEGER timerStop;
-  LARGE_INTEGER timerFreq;
-#endif
-  size_t dataLenght = frames * m_format.m_frameSize;
 
-  struct buffer_ctx *ctx = new buffer_ctx;
-  ctx->data = new uint8_t[dataLenght];
-  ctx->frames = frames;
-  ctx->sink = this;
-  memcpy(ctx->data, data[0] + offset * m_format.m_frameSize, dataLenght);
-
-  XAUDIO2_BUFFER xbuffer = {};
-  xbuffer.AudioBytes = dataLenght;
-  xbuffer.pAudioData = ctx->data;
-  xbuffer.pContext = ctx;
+  XAUDIO2_BUFFER xbuffer = BuildXAudio2Buffer(data, frames, offset);
 
   if (!m_running) //first time called, pre-fill buffer then start voice
   {
@@ -258,16 +251,16 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
     hr = m_sourceVoice->SubmitSourceBuffer(&xbuffer);
     if (FAILED(hr))
     {
-      CLog::LogF(LOGERROR, "voice submit buffer failed due to {}", WASAPIErrToStr(hr));
-      delete ctx;
+      CLog::LogF(LOGERROR, "voice submit buffer failed due to {}", CWIN32Util::FormatHRESULT(hr));
+      delete xbuffer.pContext;
       return 0;
     }
     hr = m_sourceVoice->Start(0, XAUDIO2_COMMIT_NOW);
     if (FAILED(hr))
     {
-      CLog::LogF(LOGERROR, "voice start failed due to {}", WASAPIErrToStr(hr));
+      CLog::LogF(LOGERROR, "voice start failed due to {}", CWIN32Util::FormatHRESULT(hr));
       m_isDirty = true; //flag new device or re-init needed
-      delete ctx;
+      delete xbuffer.pContext;
       return INT_MAX;
     }
     m_sinkFrames += frames;
@@ -276,15 +269,10 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
     return frames;
   }
 
-#ifndef _DEBUG
   /* Get clock time for latency checks */
-  QueryPerformanceFrequency(&timerFreq);
   QueryPerformanceCounter(&timerStart);
-#endif
 
   /* Wait for Audio Driver to tell us it's got a buffer available */
-  //XAUDIO2_VOICE_STATE state;
-  //while (m_sourceVoice->GetState(&state), state.BuffersQueued >= XAUDIO_BUFFERS_IN_QUEUE)
   while (m_format.m_frames * XAUDIO_BUFFERS_IN_QUEUE <= m_framesInBuffers.load())
   {
     DWORD eventAudioCallback;
@@ -292,7 +280,7 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
     if (eventAudioCallback != WAIT_OBJECT_0)
     {
       CLog::LogF(LOGERROR, "voice buffer timed out");
-      delete ctx;
+      delete xbuffer.pContext;
       return INT_MAX;
     }
   }
@@ -300,10 +288,9 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
   if (!m_running)
     return 0;
 
-#ifndef _DEBUG
   QueryPerformanceCounter(&timerStop);
-  LONGLONG timerDiff = timerStop.QuadPart - timerStart.QuadPart;
-  double timerElapsed = (double) timerDiff * 1000.0 / (double) timerFreq.QuadPart;
+  const LONGLONG timerDiff = timerStop.QuadPart - timerStart.QuadPart;
+  const double timerElapsed = static_cast<double>(timerDiff) * 1000.0 / m_timerFreq.QuadPart;
   m_avgTimeWaiting += (timerElapsed - m_avgTimeWaiting) * 0.5;
 
   if (m_avgTimeWaiting < 3.0)
@@ -311,15 +298,12 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
     CLog::LogF(LOGDEBUG, "Possible AQ Loss: Avg. Time Waiting for Audio Driver callback : {}msec",
                (int)m_avgTimeWaiting);
   }
-#endif
 
   hr = m_sourceVoice->SubmitSourceBuffer(&xbuffer);
   if (FAILED(hr))
   {
-    #ifdef _DEBUG
-    CLog::LogF(LOGERROR, "submiting buffer failed due to {}", WASAPIErrToStr(hr));
-#endif
-    delete ctx;
+    CLog::LogF(LOGERROR, "submiting buffer failed due to {}", CWIN32Util::FormatHRESULT(hr));
+    delete xbuffer.pContext;
     return INT_MAX;
   }
 
@@ -331,179 +315,61 @@ unsigned int CAESinkXAudio::AddPackets(uint8_t **data, unsigned int frames, unsi
 
 void CAESinkXAudio::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool force)
 {
-  HRESULT hr = S_OK, hr2 = S_OK;
+  HRESULT hr = S_OK;
   CAEDeviceInfo deviceInfo;
   CAEChannelInfo deviceChannels;
   WAVEFORMATEXTENSIBLE wfxex = {};
-  bool add192 = false;
-
-  UINT32 eflags = 0;// XAUDIO2_DEBUG_ENGINE;
-
+  UINT32 eflags = 0; // XAUDIO2_DEBUG_ENGINE;
   IXAudio2MasteringVoice* mMasterVoice = nullptr;
   IXAudio2SourceVoice* mSourceVoice = nullptr;
   Microsoft::WRL::ComPtr<IXAudio2> xaudio2;
-  hr = XAudio2Create(xaudio2.ReleaseAndGetAddressOf(), eflags);
+
+  // ForegroundOnlyMedia/BackgroundCapableMedia replaced in Windows 10 by Movie/Media
+  const AUDIO_STREAM_CATEGORY streamCategory{
+      CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10)
+          ? AudioCategory_Media
+          : AudioCategory_ForegroundOnlyMedia};
+
+  hr = KXAudio2Create(xaudio2.ReleaseAndGetAddressOf(), eflags);
   if (FAILED(hr))
   {
-    CLog::Log(LOGDEBUG, __FUNCTION__": Failed to activate XAudio for capability testing.");
-    goto failed;
+    CLog::LogF(LOGERROR, "failed to activate XAudio for capability testing ({})",
+               CWIN32Util::FormatHRESULT(hr));
+    return;
   }
 
-  for(RendererDetail& details : CAESinkFactoryWin::GetRendererDetails())
+  for (RendererDetail& details : CAESinkFactoryWin::GetRendererDetailsWinRT())
   {
     deviceInfo.m_channels.Reset();
     deviceInfo.m_dataFormats.clear();
     deviceInfo.m_sampleRates.clear();
+    deviceChannels.Reset();
 
-    std::wstring deviceId = KODI::PLATFORM::WINDOWS::ToW(details.strDeviceId);
-
-    /* Test format DTS-HD-MA */
-    wfxex.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-    wfxex.Format.nSamplesPerSec = 192000;
-    wfxex.dwChannelMask = KSAUDIO_SPEAKER_7POINT1_SURROUND;
-    wfxex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-    wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
-    wfxex.Format.wBitsPerSample = 16;
-    wfxex.Samples.wValidBitsPerSample = 16;
-    wfxex.Format.nChannels = 8;
-    wfxex.Format.nBlockAlign = wfxex.Format.nChannels * (wfxex.Format.wBitsPerSample >> 3);
-    wfxex.Format.nAvgBytesPerSec = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
-
-    hr2 = xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                        0, deviceId.c_str(), nullptr, AudioCategory_Media);
-    hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-
-    if (FAILED(hr))
+    for (unsigned int c = 0; c < WASAPI_SPEAKER_COUNT; c++)
     {
-      CLog::Log(
-          LOGINFO, __FUNCTION__ ": stream type \"{}\" on device \"{}\" seems to be not supported.",
-          CAEUtil::StreamTypeToStr(CAEStreamInfo::STREAM_TYPE_DTSHD_MA), details.strDescription);
-    }
-    else
-    {
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTSHD_MA);
-      add192 = true;
-    }
-    SafeDestroyVoice(&mSourceVoice);
-
-    /* Test format DTS-HD-HR */
-    wfxex.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-    wfxex.Format.nSamplesPerSec = 192000;
-    wfxex.dwChannelMask = KSAUDIO_SPEAKER_5POINT1;
-    wfxex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-    wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEC61937_DTS_HD;
-    wfxex.Format.wBitsPerSample = 16;
-    wfxex.Samples.wValidBitsPerSample = 16;
-    wfxex.Format.nChannels = 2;
-    wfxex.Format.nBlockAlign = wfxex.Format.nChannels * (wfxex.Format.wBitsPerSample >> 3);
-    wfxex.Format.nAvgBytesPerSec = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
-
-    hr2 = xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                        0, deviceId.c_str(), nullptr, AudioCategory_Media);
-    hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-
-    if (FAILED(hr))
-    {
-      CLog::Log(LOGINFO,
-                __FUNCTION__ ": stream type \"{}\" on device \"{}\" seems to be not supported.",
-                CAEUtil::StreamTypeToStr(CAEStreamInfo::STREAM_TYPE_DTSHD), details.strDescription);
-    }
-    else
-    {
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTSHD);
-      add192 = true;
-    }
-    SafeDestroyVoice(&mSourceVoice);
-
-    /* Test format Dolby TrueHD */
-    wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_MLP;
-    wfxex.Format.nChannels = 8;
-    wfxex.dwChannelMask = KSAUDIO_SPEAKER_7POINT1_SURROUND;
-
-    hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-    if (FAILED(hr))
-    {
-      CLog::Log(
-          LOGINFO, __FUNCTION__ ": stream type \"{}\" on device \"{}\" seems to be not supported.",
-          CAEUtil::StreamTypeToStr(CAEStreamInfo::STREAM_TYPE_TRUEHD), details.strDescription);
-    }
-    else
-    {
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_TRUEHD);
-      add192 = true;
+      if (details.uiChannelMask & WASAPIChannelOrder[c])
+        deviceChannels += AEChannelNames[c];
     }
 
-    /* Test format Dolby EAC3 */
-    wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL_PLUS;
-    wfxex.Format.nChannels = 2;
-    wfxex.Format.nBlockAlign = wfxex.Format.nChannels * (wfxex.Format.wBitsPerSample >> 3);
-    wfxex.Format.nAvgBytesPerSec = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
-
-    SafeDestroyVoice(&mSourceVoice);
-    SafeDestroyVoice(&mMasterVoice);
-    hr2 = xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                        0, deviceId.c_str(), nullptr, AudioCategory_Media);
-    hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-
-    if (FAILED(hr))
-    {
-      CLog::Log(LOGINFO,
-                __FUNCTION__ ": stream type \"{}\" on device \"{}\" seems to be not supported.",
-                CAEUtil::StreamTypeToStr(CAEStreamInfo::STREAM_TYPE_EAC3), details.strDescription);
-    }
-    else
-    {
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_EAC3);
-      add192 = true;
-    }
-
-    /* Test format DTS */
-    wfxex.Format.nSamplesPerSec = 48000;
-    wfxex.dwChannelMask = KSAUDIO_SPEAKER_5POINT1;
-    wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEC61937_DTS;
-    wfxex.Format.nBlockAlign = wfxex.Format.nChannels * (wfxex.Format.wBitsPerSample >> 3);
-    wfxex.Format.nAvgBytesPerSec = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
-
-    SafeDestroyVoice(&mSourceVoice);
-    SafeDestroyVoice(&mMasterVoice);
-    hr2 = xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                        0, deviceId.c_str(), nullptr, AudioCategory_Media);
-    hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-    if (FAILED(hr))
-    {
-      CLog::Log(LOGINFO,
-                __FUNCTION__ ": stream type \"{}\" on device \"{}\" seems to be not supported.",
-                "STREAM_TYPE_DTS", details.strDescription);
-    }
-    else
-    {
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTSHD_CORE);
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_2048);
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_1024);
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_512);
-    }
-    SafeDestroyVoice(&mSourceVoice);
-
-    /* Test format Dolby AC3 */
-    wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEC61937_DOLBY_DIGITAL;
-
-    hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-    if (FAILED(hr))
-    {
-      CLog::Log(LOGINFO,
-                __FUNCTION__ ": stream type \"{}\" on device \"{}\" seems to be not supported.",
-                CAEUtil::StreamTypeToStr(CAEStreamInfo::STREAM_TYPE_AC3), details.strDescription);
-    }
-    else
-    {
-      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_AC3);
-    }
+    const std::wstring deviceId = KODI::PLATFORM::WINDOWS::ToW(details.strDeviceId);
 
     /* Test format for PCM format iteration */
     wfxex.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+    wfxex.Format.nSamplesPerSec = 48000;
+    wfxex.Format.nChannels = 2;
     wfxex.dwChannelMask = KSAUDIO_SPEAKER_STEREO;
     wfxex.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
     wfxex.SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
+
+    hr = xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels,
+                                       wfxex.Format.nSamplesPerSec, 0, deviceId.c_str(), nullptr,
+                                       streamCategory);
+
+    if (FAILED(hr))
+    {
+      CLog::LogF(LOGERROR, "failed to create mastering voice (:X)", hr);
+      return;
+    }
 
     for (int p = AE_FMT_FLOAT; p > AE_FMT_INVALID; p--)
     {
@@ -546,25 +412,27 @@ void CAESinkXAudio::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool fo
 
     for (int j = 0; j < WASAPISampleRateCount; j++)
     {
+      if (WASAPISampleRates[j] < XAUDIO2_MIN_SAMPLE_RATE ||
+          WASAPISampleRates[j] > XAUDIO2_MAX_SAMPLE_RATE)
+        continue;
+
       SafeDestroyVoice(&mSourceVoice);
       SafeDestroyVoice(&mMasterVoice);
 
       wfxex.Format.nSamplesPerSec = WASAPISampleRates[j];
       wfxex.Format.nAvgBytesPerSec = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
 
-      hr2 = xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                          0, deviceId.c_str(), nullptr, AudioCategory_Media);
-      hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
-      if (SUCCEEDED(hr))
-        deviceInfo.m_sampleRates.push_back(WASAPISampleRates[j]);
-      else if (wfxex.Format.nSamplesPerSec == 192000 && add192)
+      if (SUCCEEDED(xaudio2->CreateMasteringVoice(&mMasterVoice, wfxex.Format.nChannels,
+                                                  wfxex.Format.nSamplesPerSec, 0, deviceId.c_str(),
+                                                  nullptr, streamCategory)))
       {
-        deviceInfo.m_sampleRates.push_back(WASAPISampleRates[j]);
-        CLog::Log(LOGINFO,
-                  __FUNCTION__ ": sample rate 192khz on device \"{}\" seems to be not supported.",
-                  details.strDescription);
+        hr = xaudio2->CreateSourceVoice(&mSourceVoice, &wfxex.Format);
+
+        if (SUCCEEDED(hr))
+          deviceInfo.m_sampleRates.push_back(WASAPISampleRates[j]);
       }
     }
+
     SafeDestroyVoice(&mSourceVoice);
     SafeDestroyVoice(&mMasterVoice);
 
@@ -572,7 +440,7 @@ void CAESinkXAudio::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool fo
     deviceInfo.m_displayName = details.strWinDevType.append(details.strDescription);
     deviceInfo.m_displayNameExtra = std::string("XAudio: ").append(details.strDescription);
     deviceInfo.m_deviceType = details.eDeviceType;
-    deviceInfo.m_channels = layoutsByChCount[details.nChannels];
+    deviceInfo.m_channels = deviceChannels;
 
     /* Store the device info */
     deviceInfo.m_wantsIECPassthrough = true;
@@ -593,19 +461,11 @@ void CAESinkXAudio::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool fo
       deviceInfoList.push_back(deviceInfo);
     }
   }
-
-failed:
-
-  if (FAILED(hr))
-    CLog::Log(LOGERROR, __FUNCTION__ ": Failed to enumerate XAudio endpoint devices ({}).",
-              WASAPIErrToStr(hr));
 }
-
-/// ------------------- Private utility functions -----------------------------------
 
 bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &format)
 {
-  std::wstring device = KODI::PLATFORM::WINDOWS::ToW(deviceId);
+  const std::wstring device = KODI::PLATFORM::WINDOWS::ToW(deviceId);
   WAVEFORMATEXTENSIBLE wfxex = {};
 
   if ( format.m_dataFormat <= AE_FMT_FLOAT
@@ -637,36 +497,43 @@ bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &form
     wfxex.SubFormat                   = KSDATAFORMAT_SUBTYPE_PCM;
   }
 
-  bool bdefault = StringUtils::EndsWithNoCase(deviceId, std::string("default"));
+  const bool bdefault = deviceId.find("default") != std::string::npos;
 
   HRESULT hr;
   IXAudio2MasteringVoice* pMasterVoice = nullptr;
+  const wchar_t* pDevice = device.c_str();
+  // ForegroundOnlyMedia/BackgroundCapableMedia replaced in Windows 10 by Movie/Media
+  const AUDIO_STREAM_CATEGORY streamCategory{
+      CSysInfo::IsWindowsVersionAtLeast(CSysInfo::WindowsVersionWin10)
+          ? AudioCategory_Media
+          : AudioCategory_ForegroundOnlyMedia};
 
   if (!bdefault)
   {
-    hr = m_xAudio2->CreateMasteringVoice(&pMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                          0, device.c_str(), nullptr, AudioCategory_Media);
+    hr = m_xAudio2->CreateMasteringVoice(&pMasterVoice, wfxex.Format.nChannels,
+                                         wfxex.Format.nSamplesPerSec, 0, pDevice, nullptr,
+                                         streamCategory);
   }
 
   if (!pMasterVoice)
   {
     if (!bdefault)
     {
-      CLog::Log(LOGINFO,
-                __FUNCTION__ ": Could not locate the device named \"{}\" in the list of Xaudio "
-                             "endpoint devices. Trying the default device...",
-                KODI::PLATFORM::WINDOWS::FromW(device));
+      CLog::LogF(LOGINFO,
+                 "could not locate the device named \"{}\" in the list of Xaudio endpoint devices. "
+                 "Trying the default device...",
+                 KODI::PLATFORM::WINDOWS::FromW(device));
     }
-
     // smartphone issue: providing device ID (even default ID) causes E_NOINTERFACE result
     // workaround: device = nullptr will initialize default audio endpoint
-    hr = m_xAudio2->CreateMasteringVoice(&pMasterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                          0, 0, nullptr, AudioCategory_Media);
+    pDevice = nullptr;
+    hr = m_xAudio2->CreateMasteringVoice(&pMasterVoice, wfxex.Format.nChannels,
+                                         wfxex.Format.nSamplesPerSec, 0, pDevice, nullptr,
+                                         streamCategory);
     if (FAILED(hr) || !pMasterVoice)
     {
-      CLog::Log(LOGINFO,
-                __FUNCTION__ ": Could not retrieve the default XAudio audio endpoint ({}).",
-                WASAPIErrToStr(hr));
+      CLog::LogF(LOGINFO, "Could not retrieve the default XAudio audio endpoint ({}).",
+                 CWIN32Util::FormatHRESULT(hr));
       return false;
     }
   }
@@ -680,7 +547,7 @@ bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &form
   hr = m_xAudio2->CreateSourceVoice(&m_sourceVoice, &wfxex.Format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &m_voiceCallback);
   if (SUCCEEDED(hr))
   {
-    CLog::Log(LOGINFO, __FUNCTION__": Format is Supported - will attempt to Initialize");
+    CLog::LogF(LOGINFO, "Format is Supported - will attempt to Initialize");
     goto initialize;
   }
 
@@ -688,9 +555,9 @@ bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &form
     return false;
 
   if (CServiceBroker::GetLogging().CanLogComponent(LOGAUDIO))
-    CLog::Log(LOGDEBUG,
-              __FUNCTION__ ": CreateSourceVoice failed ({}) - trying to find a compatible format",
-              WASAPIErrToStr(hr));
+    CLog::LogFC(LOGDEBUG, LOGAUDIO,
+                "CreateSourceVoice failed ({}) - trying to find a compatible format",
+                CWIN32Util::FormatHRESULT(hr));
 
   requestedChannels = wfxex.Format.nChannels;
 
@@ -725,11 +592,19 @@ bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &form
 
       for (int i = 0 ; i < WASAPISampleRateCount; i++)
       {
+        if (WASAPISampleRates[j] < XAUDIO2_MIN_SAMPLE_RATE ||
+            WASAPISampleRates[j] > XAUDIO2_MAX_SAMPLE_RATE)
+          continue;
+
+        SafeDestroyVoice(&m_sourceVoice);
+        SafeDestroyVoice(&m_masterVoice);
+
         wfxex.Format.nSamplesPerSec    = WASAPISampleRates[i];
         wfxex.Format.nAvgBytesPerSec   = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
 
-        hr = m_xAudio2->CreateMasteringVoice(&m_masterVoice, wfxex.Format.nChannels, wfxex.Format.nSamplesPerSec,
-                                             0, device.c_str(), nullptr, AudioCategory_Media);
+        hr = m_xAudio2->CreateMasteringVoice(&m_masterVoice, wfxex.Format.nChannels,
+                                             wfxex.Format.nSamplesPerSec, 0, pDevice, nullptr,
+                                             streamCategory);
         if (SUCCEEDED(hr))
         {
           hr = m_xAudio2->CreateSourceVoice(&m_sourceVoice, &wfxex.Format, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &m_voiceCallback);
@@ -745,19 +620,30 @@ bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &form
         }
 
         if (FAILED(hr))
-          CLog::Log(LOGERROR, __FUNCTION__ ": creating voices failed ({})", WASAPIErrToStr(hr));
+          CLog::LogF(LOGERROR, "creating voices failed ({})", CWIN32Util::FormatHRESULT(hr));
       }
 
       if (closestMatch >= 0)
       {
+        // Closest match may be different from the last successful sample rate tested
+        SafeDestroyVoice(&m_sourceVoice);
+        SafeDestroyVoice(&m_masterVoice);
+
         wfxex.Format.nSamplesPerSec    = WASAPISampleRates[closestMatch];
         wfxex.Format.nAvgBytesPerSec   = wfxex.Format.nSamplesPerSec * wfxex.Format.nBlockAlign;
-        goto initialize;
+
+        if (SUCCEEDED(m_xAudio2->CreateMasteringVoice(&m_masterVoice, wfxex.Format.nChannels,
+                                                      wfxex.Format.nSamplesPerSec, 0, pDevice,
+                                                      nullptr, streamCategory)) &&
+            SUCCEEDED(m_xAudio2->CreateSourceVoice(&m_sourceVoice, &wfxex.Format, 0,
+                                                   XAUDIO2_DEFAULT_FREQ_RATIO, &m_voiceCallback)))
+          goto initialize;
       }
     }
   }
 
-  CLog::Log(LOGERROR, __FUNCTION__": Unable to locate a supported output format for the device.  Check the speaker settings in the control panel.");
+  CLog::LogF(LOGERROR, "unable to locate a supported output format for the device. Check the "
+                       "speaker settings in the control panel.");
 
   /* We couldn't find anything supported. This should never happen      */
   /* unless the user set the wrong speaker setting in the control panel */
@@ -765,13 +651,9 @@ bool CAESinkXAudio::InitializeInternal(std::string deviceId, AEAudioFormat &form
 
 initialize:
 
-  CAESinkFactoryWin::AEChannelsFromSpeakerMask(m_channelLayout, wfxex.dwChannelMask);
-  format.m_channelLayout = m_channelLayout;
-
-  /* When the stream is raw, the values in the format structure are set to the link    */
-  /* parameters, so store the encoded stream values here for the IsCompatible function */
-  m_encodedChannels   = wfxex.Format.nChannels;
-  m_encodedSampleRate = (format.m_dataFormat == AE_FMT_RAW) ? format.m_streamInfo.m_sampleRate : format.m_sampleRate;
+  CAEChannelInfo channelLayout;
+  CAESinkFactoryWin::AEChannelsFromSpeakerMask(channelLayout, wfxex.dwChannelMask);
+  format.m_channelLayout = channelLayout;
 
   /* Set up returned sink format for engine */
   if (format.m_dataFormat != AE_FMT_RAW)
@@ -800,7 +682,7 @@ initialize:
   hr = m_sourceVoice->Start(0, XAUDIO2_COMMIT_NOW);
   if (FAILED(hr))
   {
-    CLog::Log(LOGERROR, __FUNCTION__ ": Voice start failed : {}", WASAPIErrToStr(hr));
+    CLog::LogF(LOGERROR, "Voice start failed : {}", CWIN32Util::FormatHRESULT(hr));
     CLog::Log(LOGDEBUG, "  Sample Rate     : {}", wfxex.Format.nSamplesPerSec);
     CLog::Log(LOGDEBUG, "  Sample Format   : {}", CAEUtil::DataFormatToStr(format.m_dataFormat));
     CLog::Log(LOGDEBUG, "  Bits Per Sample : {}", wfxex.Format.wBitsPerSample);
@@ -819,21 +701,35 @@ initialize:
   m_xAudio2->GetPerformanceData(&perfData);
   if (!perfData.TotalSourceVoiceCount)
   {
-    CLog::Log(LOGERROR, __FUNCTION__ ": GetPerformanceData Failed : {}", WASAPIErrToStr(hr));
+    CLog::LogF(LOGERROR, "GetPerformanceData Failed : {}", CWIN32Util::FormatHRESULT(hr));
     return false;
   }
 
-  m_uiBufferLen = (int)(format.m_sampleRate * 0.02);
-  m_dwFrameSize = wfxex.Format.nBlockAlign;
-  m_dwChunkSize = m_dwFrameSize * m_uiBufferLen;
-  m_dwBufferLen = m_dwChunkSize * 4;
-  m_AvgBytesPerSec = wfxex.Format.nAvgBytesPerSec;
+  format.m_frames = static_cast<int>(format.m_sampleRate * 0.02); // 20 ms chunks
 
-  CLog::Log(LOGINFO, __FUNCTION__ ": XAudio Sink Initialized using: {}, {}, {}",
-            CAEUtil::DataFormatToStr(format.m_dataFormat), wfxex.Format.nSamplesPerSec,
-            wfxex.Format.nChannels);
+  m_format = format;
+
+  CLog::LogF(LOGINFO, "XAudio Sink Initialized using: {}, {}, {}",
+             CAEUtil::DataFormatToStr(format.m_dataFormat), wfxex.Format.nSamplesPerSec,
+             wfxex.Format.nChannels);
 
   m_sourceVoice->Stop();
+
+  CLog::LogF(LOGDEBUG, "Initializing XAudio with the following parameters:");
+  CLog::Log(LOGDEBUG, "  Audio Device    : {}", KODI::PLATFORM::WINDOWS::FromW(device));
+  CLog::Log(LOGDEBUG, "  Sample Rate     : {}", wfxex.Format.nSamplesPerSec);
+  CLog::Log(LOGDEBUG, "  Sample Format   : {}", CAEUtil::DataFormatToStr(format.m_dataFormat));
+  CLog::Log(LOGDEBUG, "  Bits Per Sample : {}", wfxex.Format.wBitsPerSample);
+  CLog::Log(LOGDEBUG, "  Valid Bits/Samp : {}", wfxex.Samples.wValidBitsPerSample);
+  CLog::Log(LOGDEBUG, "  Channel Count   : {}", wfxex.Format.nChannels);
+  CLog::Log(LOGDEBUG, "  Block Align     : {}", wfxex.Format.nBlockAlign);
+  CLog::Log(LOGDEBUG, "  Avg. Bytes Sec  : {}", wfxex.Format.nAvgBytesPerSec);
+  CLog::Log(LOGDEBUG, "  Samples/Block   : {}", wfxex.Samples.wSamplesPerBlock);
+  CLog::Log(LOGDEBUG, "  Format cBSize   : {}", wfxex.Format.cbSize);
+  CLog::Log(LOGDEBUG, "  Channel Layout  : {}", ((std::string)format.m_channelLayout));
+  CLog::Log(LOGDEBUG, "  Channel Mask    : {}", wfxex.dwChannelMask);
+  CLog::Log(LOGDEBUG, "  Frames          : {}", format.m_frames);
+  CLog::Log(LOGDEBUG, "  Frame Size      : {}", format.m_frameSize);
 
   return true;
 }
@@ -843,47 +739,95 @@ void CAESinkXAudio::Drain()
   if(!m_sourceVoice)
     return;
 
-  AEDelayStatus status;
-  GetDelay(status);
-
-  KODI::TIME::Sleep(std::chrono::milliseconds(static_cast<int>(status.GetDelay() * 500)));
-
   if (m_running)
   {
     try
     {
+      // Contrary to MS doc, the voice must play a buffer with end of stream flag for the voice
+      // SamplesPlayed counter to be reset.
+      // Per MS doc, Discontinuity() may not take effect until after the entire buffer queue is
+      // consumed, which wouldn't invoke the callback or reset the voice stats.
+      // Solution: submit a 1 sample buffer with end of stream flag and wait for StreamEnd callback
+      // The StreamEnd event is manual reset so that it cannot be missed even if raised before this
+      // code starts waiting for it
+
+      AddEndOfStreamPacket();
+
+      constexpr uint32_t waitSafety = 100; // extra ms wait in case of scheduler issue
+      DWORD waitRc =
+          WaitForSingleObject(m_voiceCallback.m_StreamEndEvent,
+                              m_framesInBuffers * 1000 / m_format.m_sampleRate + waitSafety);
+
+      if (waitRc != WAIT_OBJECT_0)
+      {
+        if (waitRc == WAIT_FAILED)
+        {
+          //! @todo use FormatMessage for a human readable error message
+          CLog::LogF(LOGERROR,
+                     "error WAIT_FAILED while waiting for queued buffers to drain. GetLastError:{}",
+                     GetLastError());
+        }
+        else
+        {
+          CLog::LogF(LOGERROR, "error {} while waiting for queued buffers to drain.", waitRc);
+        }
+      }
+
       m_sourceVoice->Stop();
-      m_sourceVoice->FlushSourceBuffers();
+      ResetEvent(m_voiceCallback.m_StreamEndEvent);
+
       m_sinkFrames = 0;
       m_framesInBuffers = 0;
     }
     catch (...)
     {
-      CLog::Log(LOGDEBUG, "{}: Invalidated source voice - Releasing", __FUNCTION__);
+      CLog::LogF(LOGERROR, "invalidated source voice - Releasing");
     }
   }
   m_running = false;
 }
 
-bool CAESinkXAudio::IsUSBDevice()
+bool CAESinkXAudio::AddEndOfStreamPacket()
 {
-#if 0 // TODO
-  IPropertyStore *pProperty = nullptr;
-  PROPVARIANT varName;
-  PropVariantInit(&varName);
-  bool ret = false;
+  constexpr unsigned int frames{1};
 
-  HRESULT hr = m_pDevice->OpenPropertyStore(STGM_READ, &pProperty);
-  if (!SUCCEEDED(hr))
-    return ret;
-  hr = pProperty->GetValue(PKEY_Device_EnumeratorName, &varName);
+  XAUDIO2_BUFFER xbuffer = BuildXAudio2Buffer(nullptr, frames, 0);
+  xbuffer.Flags = XAUDIO2_END_OF_STREAM;
 
-  std::string str = localWideToUtf(varName.pwszVal);
-  StringUtils::ToUpper(str);
-  ret = (str == "USB");
-  PropVariantClear(&varName);
-  if (pProperty)
-    pProperty->Release();
-#endif
-  return false;
+  HRESULT hr = m_sourceVoice->SubmitSourceBuffer(&xbuffer);
+
+  if (hr != S_OK)
+  {
+    CLog::LogF(LOGERROR, "SubmitSourceBuffer failed due to {:X}", hr);
+    delete xbuffer.pContext;
+    return false;
+  }
+
+  m_sinkFrames += frames;
+  m_framesInBuffers += frames;
+  return true;
+}
+
+XAUDIO2_BUFFER CAESinkXAudio::BuildXAudio2Buffer(uint8_t** data,
+                                                 unsigned int frames,
+                                                 unsigned int offset)
+{
+  const unsigned int dataLength{frames * m_format.m_frameSize};
+
+  struct buffer_ctx* ctx = new buffer_ctx;
+  ctx->data = new uint8_t[dataLength];
+  ctx->frames = frames;
+  ctx->sink = this;
+
+  if (data)
+    memcpy(ctx->data, data[0] + offset * m_format.m_frameSize, dataLength);
+  else
+    CAEUtil::GenerateSilence(m_format.m_dataFormat, m_format.m_frameSize, ctx->data, frames);
+
+  XAUDIO2_BUFFER xbuffer{};
+  xbuffer.AudioBytes = dataLength;
+  xbuffer.pAudioData = ctx->data;
+  xbuffer.pContext = ctx;
+
+  return xbuffer;
 }

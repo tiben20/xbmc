@@ -51,7 +51,7 @@ std::string CGUIViewStateWindowPrograms::GetExtensions()
   return ".cut";
 }
 
-VECSOURCES& CGUIViewStateWindowPrograms::GetSources()
+std::vector<CMediaSource>& CGUIViewStateWindowPrograms::GetSources()
 {
 #if defined(TARGET_ANDROID)
   {
@@ -60,13 +60,14 @@ VECSOURCES& CGUIViewStateWindowPrograms::GetSources()
     source.strName = g_localizeStrings.Get(20244);
     if (CServiceBroker::GetGUI()->GetTextureManager().HasTexture("DefaultProgram.png"))
       source.m_strThumbnailImage = "DefaultProgram.png";
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
+    source.m_iDriveType = SourceType::LOCAL;
     source.m_ignore = true;
     m_sources.emplace_back(std::move(source));
   }
 #endif
 
-  VECSOURCES *programSources = CMediaSourceSettings::GetInstance().GetSources("programs");
+  std::vector<CMediaSource>* programSources =
+      CMediaSourceSettings::GetInstance().GetSources("programs");
   AddOrReplace(*programSources, CGUIViewState::GetSources());
   return *programSources;
 }

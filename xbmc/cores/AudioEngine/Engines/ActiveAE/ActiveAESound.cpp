@@ -110,7 +110,7 @@ CSoundPacket *CActiveAESound::GetSound(bool orig)
 
 bool CActiveAESound::Prepare()
 {
-  unsigned int flags = READ_TRUNCATED | READ_CHUNKED;
+  unsigned int flags = READ_TRUNCATED;
   m_pFile = new CFile();
 
   if (!m_pFile->Open(m_filename, flags))
@@ -119,7 +119,7 @@ bool CActiveAESound::Prepare()
     m_pFile = NULL;
     return false;
   }
-  m_isSeekPossible = m_pFile->IoControl(IOCTRL_SEEK_POSSIBLE, NULL) != 0;
+  m_isSeekPossible = m_pFile->IoControl(IOControl::SEEK_POSSIBLE, NULL) != 0;
   m_fileSize = m_pFile->GetLength();
   return true;
 }

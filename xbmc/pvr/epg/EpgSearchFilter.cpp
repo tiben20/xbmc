@@ -28,8 +28,7 @@
 
 using namespace PVR;
 
-CPVREpgSearchFilter::CPVREpgSearchFilter(bool bRadio)
-: m_bIsRadio(bRadio)
+CPVREpgSearchFilter::CPVREpgSearchFilter(bool bRadio) : m_bIsRadio(bRadio)
 {
   Reset();
 }
@@ -45,14 +44,12 @@ void CPVREpgSearchFilter::Reset()
   m_bRemoveDuplicates = false;
 
   /* pvr specific filters */
-  m_iClientID = -1;
+  m_iClientID = PVR_CLIENT_INVALID_UID;
   m_iChannelGroupID = -1;
   m_iChannelUID = -1;
   m_bFreeToAirOnly = false;
   m_bIgnorePresentTimers = true;
   m_bIgnorePresentRecordings = true;
-
-  m_groupIdMatches.reset();
 
   m_iDatabaseId = -1;
   m_title.clear();
@@ -151,11 +148,29 @@ void CPVREpgSearchFilter::SetStartDateTime(const CDateTime& startDateTime)
   }
 }
 
+void CPVREpgSearchFilter::SetStartAnyTime(bool startAnyTime)
+{
+  if (m_searchData.m_startAnyTime != startAnyTime)
+  {
+    m_searchData.m_startAnyTime = startAnyTime;
+    m_bChanged = true;
+  }
+}
+
 void CPVREpgSearchFilter::SetEndDateTime(const CDateTime& endDateTime)
 {
   if (m_searchData.m_endDateTime != endDateTime)
   {
     m_searchData.m_endDateTime = endDateTime;
+    m_bChanged = true;
+  }
+}
+
+void CPVREpgSearchFilter::SetEndAnyTime(bool endAnyTime)
+{
+  if (m_searchData.m_endAnyTime != endAnyTime)
+  {
+    m_searchData.m_endAnyTime = endAnyTime;
     m_bChanged = true;
   }
 }
@@ -192,7 +207,6 @@ void CPVREpgSearchFilter::SetChannelGroupID(int iChannelGroupID)
   if (m_iChannelGroupID != iChannelGroupID)
   {
     m_iChannelGroupID = iChannelGroupID;
-    m_groupIdMatches.reset();
     m_bChanged = true;
   }
 }
@@ -251,6 +265,15 @@ void CPVREpgSearchFilter::SetTitle(const std::string& title)
   }
 }
 
+void CPVREpgSearchFilter::SetIconPath(const std::string& iconPath)
+{
+  if (m_iconPath != iconPath)
+  {
+    m_iconPath = iconPath;
+    m_bChanged = true;
+  }
+}
+
 void CPVREpgSearchFilter::SetLastExecutedDateTime(const CDateTime& lastExecutedDateTime)
 {
   // Note: No need to set m_bChanged here
@@ -287,10 +310,10 @@ bool CPVREpgSearchFilter::MatchDuration(const std::shared_ptr<const CPVREpgInfoT
   bool bReturn(true);
 
   if (m_iMinimumDuration != EPG_SEARCH_UNSET)
-    bReturn = (tag->GetDuration() > m_iMinimumDuration * 60);
+    bReturn = (tag->GetDuration() > static_cast<unsigned int>(m_iMinimumDuration) * 60);
 
   if (bReturn && m_iMaximumDuration != EPG_SEARCH_UNSET)
-    bReturn = (tag->GetDuration() < m_iMaximumDuration * 60);
+    bReturn = (tag->GetDuration() < static_cast<unsigned int>(m_iMaximumDuration) * 60);
 
   return bReturn;
 }
@@ -342,7 +365,8 @@ void CPVREpgSearchFilter::RemoveDuplicates(std::vector<std::shared_ptr<CPVREpgIn
   for (auto it = results.begin(); it != results.end();)
   {
     it = results.erase(std::remove_if(results.begin(), results.end(),
-                                      [&it](const std::shared_ptr<const CPVREpgInfoTag>& entry) {
+                                      [&it](const std::shared_ptr<const CPVREpgInfoTag>& entry)
+                                      {
                                         return *it != entry && (*it)->Title() == entry->Title() &&
                                                (*it)->Plot() == entry->Plot() &&
                                                (*it)->PlotOutline() == entry->PlotOutline();
@@ -354,7 +378,7 @@ void CPVREpgSearchFilter::RemoveDuplicates(std::vector<std::shared_ptr<CPVREpgIn
 bool CPVREpgSearchFilter::MatchChannel(const std::shared_ptr<const CPVREpgInfoTag>& tag) const
 {
   return tag && (tag->IsRadio() == m_bIsRadio) &&
-         (m_iClientID == -1 || tag->ClientID() == m_iClientID) &&
+         (m_iClientID == PVR_CLIENT_INVALID_UID || tag->ClientID() == m_iClientID) &&
          (m_iChannelUID == -1 || tag->UniqueChannelID() == m_iChannelUID) &&
          CServiceBroker::GetPVRManager().Clients()->IsCreatedClient(tag->ClientID());
 }
@@ -363,17 +387,14 @@ bool CPVREpgSearchFilter::MatchChannelGroup(const std::shared_ptr<const CPVREpgI
 {
   if (m_iChannelGroupID != -1)
   {
-    if (!m_groupIdMatches.has_value())
+    const std::shared_ptr<const CPVRChannelGroupsContainer> groups{
+        CServiceBroker::GetPVRManager().ChannelGroups()};
+    if (groups)
     {
-      const std::shared_ptr<const CPVRChannelGroup> group = CServiceBroker::GetPVRManager()
-                                                                .ChannelGroups()
-                                                                ->Get(m_bIsRadio)
-                                                                ->GetById(m_iChannelGroupID);
-      m_groupIdMatches =
-          group && (group->GetByUniqueID({tag->ClientID(), tag->UniqueChannelID()}) != nullptr);
+      const std::shared_ptr<const CPVRChannelGroup> group{
+          groups->Get(m_bIsRadio)->GetById(m_iChannelGroupID)};
+      return group && (group->GetByUniqueID({tag->ClientID(), tag->UniqueChannelID()}) != nullptr);
     }
-
-    return *m_groupIdMatches;
   }
 
   return true;
@@ -393,10 +414,12 @@ bool CPVREpgSearchFilter::MatchFreeToAir(const std::shared_ptr<const CPVREpgInfo
 
 bool CPVREpgSearchFilter::MatchTimers(const std::shared_ptr<const CPVREpgInfoTag>& tag) const
 {
-  return (!m_bIgnorePresentTimers || !CServiceBroker::GetPVRManager().Timers()->GetTimerForEpgTag(tag));
+  return (!m_bIgnorePresentTimers ||
+          !CServiceBroker::GetPVRManager().Timers()->GetTimerForEpgTag(tag));
 }
 
 bool CPVREpgSearchFilter::MatchRecordings(const std::shared_ptr<const CPVREpgInfoTag>& tag) const
 {
-  return (!m_bIgnorePresentRecordings || !CServiceBroker::GetPVRManager().Recordings()->GetRecordingForEpgTag(tag));
+  return (!m_bIgnorePresentRecordings ||
+          !CServiceBroker::GetPVRManager().Recordings()->GetRecordingForEpgTag(tag));
 }

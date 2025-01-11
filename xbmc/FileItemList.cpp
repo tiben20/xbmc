@@ -23,6 +23,7 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/Archive.h"
+#include "utils/ArtUtils.h"
 #include "utils/Crc32.h"
 #include "utils/FileExtensionProvider.h"
 #include "utils/Random.h"
@@ -128,7 +129,7 @@ void CFileItemList::Clear()
   m_sortDescription.sortOrder = SortOrderNone;
   m_sortDescription.sortAttributes = SortAttributeNone;
   m_sortIgnoreFolders = false;
-  m_cacheToDisc = CACHE_IF_SLOW;
+  m_cacheToDisc = CacheType::IF_SLOW;
   m_sortDetails.clear();
   m_replaceListing = false;
   m_content.clear();
@@ -504,7 +505,7 @@ void CFileItemList::Archive(CArchive& ar)
     m_sortDescription.sortAttributes = (SortAttribute)tempint;
     ar >> m_sortIgnoreFolders;
     ar >> tempint;
-    m_cacheToDisc = CACHE_TYPE(tempint);
+    m_cacheToDisc = CacheType(tempint);
 
     unsigned int detailSize = 0;
     ar >> detailSize;
@@ -545,7 +546,7 @@ void CFileItemList::FillInDefaultIcons()
   for (int i = 0; i < (int)m_items.size(); ++i)
   {
     CFileItemPtr pItem = m_items[i];
-    pItem->FillInDefaultIcon();
+    ART::FillInDefaultIcon(*pItem);
   }
 }
 
@@ -1154,7 +1155,7 @@ void CFileItemList::AddSortMethod(SortBy sortBy,
   AddSortMethod(sorting, buttonLabel, labelMasks);
 }
 
-void CFileItemList::AddSortMethod(SortDescription sortDescription,
+void CFileItemList::AddSortMethod(const SortDescription& sortDescription,
                                   int buttonLabel,
                                   const LABEL_MASKS& labelMasks)
 {

@@ -18,6 +18,8 @@
 #include "dialogs/GUIDialogYesNo.h"
 #include "filesystem/Directory.h"
 #include "filesystem/VideoDatabaseDirectory.h"
+#include "filesystem/VideoDatabaseDirectory/DirectoryNode.h"
+#include "filesystem/VideoDatabaseDirectory/QueryParams.h"
 #include "filesystem/VideoDatabaseFile.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIKeyboardFactory.h"
@@ -188,7 +190,7 @@ bool CGUIWindowVideoNav::OnMessage(CGUIMessage& message)
           g_partyModeManager.Disable();
         else
         {
-          if (!g_partyModeManager.Enable(PARTYMODECONTEXT_VIDEO))
+          if (!g_partyModeManager.Enable(PartyModeContext::VIDEO))
           {
             SET_CONTROL_SELECTED(GetID(),CONTROL_BTNPARTYMODE,false);
             return false;
@@ -248,13 +250,14 @@ SelectFirstUnwatchedItem CGUIWindowVideoNav::GetSettingSelectFirstUnwatchedItem(
 {
   if (VIDEO::IsVideoDb(*m_vecItems))
   {
-    NODE_TYPE nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
+    NodeType nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
 
-    if (nodeType == NODE_TYPE_SEASONS || nodeType == NODE_TYPE_EPISODES)
+    if (nodeType == NodeType::SEASONS || nodeType == NodeType::EPISODES)
     {
       int iValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOLIBRARY_TVSHOWSSELECTFIRSTUNWATCHEDITEM);
-      if (iValue >= SelectFirstUnwatchedItem::NEVER && iValue <= SelectFirstUnwatchedItem::ALWAYS)
-        return (SelectFirstUnwatchedItem)iValue;
+      if (iValue >= static_cast<int>(SelectFirstUnwatchedItem::NEVER) &&
+          iValue <= static_cast<int>(SelectFirstUnwatchedItem::ALWAYS))
+        return static_cast<SelectFirstUnwatchedItem>(iValue);
     }
   }
 
@@ -264,8 +267,9 @@ SelectFirstUnwatchedItem CGUIWindowVideoNav::GetSettingSelectFirstUnwatchedItem(
 IncludeAllSeasonsAndSpecials CGUIWindowVideoNav::GetSettingIncludeAllSeasonsAndSpecials()
 {
   int iValue = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOLIBRARY_TVSHOWSINCLUDEALLSEASONSANDSPECIALS);
-  if (iValue >= IncludeAllSeasonsAndSpecials::NEITHER && iValue <= IncludeAllSeasonsAndSpecials::SPECIALS)
-    return (IncludeAllSeasonsAndSpecials)iValue;
+  if (iValue >= static_cast<int>(IncludeAllSeasonsAndSpecials::NEITHER) &&
+      iValue <= static_cast<int>(IncludeAllSeasonsAndSpecials::SPECIALS))
+    return static_cast<IncludeAllSeasonsAndSpecials>(iValue);
 
   return IncludeAllSeasonsAndSpecials::NEITHER;
 }
@@ -275,7 +279,7 @@ int CGUIWindowVideoNav::GetFirstUnwatchedItemIndex(bool includeAllSeasons, bool 
   int iIndex = 0;
   int iUnwatchedSeason = INT_MAX;
   int iUnwatchedEpisode = INT_MAX;
-  NODE_TYPE nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
+  NodeType nodeType = CVideoDatabaseDirectory::GetDirectoryChildType(m_vecItems->GetPath());
 
   // Run through the list of items and find the first unwatched season/episode
   for (int i = 0; i < m_vecItems->Size(); ++i)
@@ -293,7 +297,7 @@ int CGUIWindowVideoNav::GetFirstUnwatchedItemIndex(bool includeAllSeasons, bool 
     int iSeason = pTag->m_iSpecialSortSeason >= 0 ? pTag->m_iSpecialSortSeason : pTag->m_iSeason;
     int iEpisode = pTag->m_iSpecialSortEpisode >= 0 ? pTag->m_iSpecialSortEpisode : pTag->m_iEpisode;
 
-    if (nodeType == NODE_TYPE::NODE_TYPE_SEASONS)
+    if (nodeType == NodeType::SEASONS)
     {
       // Is the season unwatched, and is its season number lower than the currently identified
       // first unwatched season
@@ -304,7 +308,7 @@ int CGUIWindowVideoNav::GetFirstUnwatchedItemIndex(bool includeAllSeasons, bool 
       }
     }
 
-    if (nodeType == NODE_TYPE::NODE_TYPE_EPISODES)
+    if (nodeType == NodeType::EPISODES)
     {
       // Is the episode unwatched, and is its season number lower
       // or is its episode number lower within the current season
@@ -367,14 +371,14 @@ bool CGUIWindowVideoNav::GetDirectory(const std::string &strDirectory, CFileItem
       XFILE::CVideoDatabaseDirectory dir;
       CQueryParams params;
       dir.GetQueryParams(items.GetPath(),params);
-      VIDEODATABASEDIRECTORY::NODE_TYPE node = dir.GetDirectoryChildType(items.GetPath());
+      const auto node = dir.GetDirectoryChildType(items.GetPath());
 
       int iFlatten = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOLIBRARY_FLATTENTVSHOWS);
       int itemsSize = items.GetObjectCount();
       int firstIndex = items.Size() - itemsSize;
 
       // perform the flattening logic for tvshows with a single (unwatched) season (+ optional special season)
-      if (node == NODE_TYPE_SEASONS && !items.IsEmpty())
+      if (node == NodeType::SEASONS && !items.IsEmpty())
       {
         // check if the last item is the "All seasons" item which should be ignored for flattening
         if (!items[items.Size() - 1]->HasVideoInfoTag() || items[items.Size() - 1]->GetVideoInfoTag()->m_iSeason < 0)
@@ -409,20 +413,19 @@ bool CGUIWindowVideoNav::GetDirectory(const std::string &strDirectory, CFileItem
         }
       }
 
-      if (node == VIDEODATABASEDIRECTORY::NODE_TYPE_EPISODES ||
-          node == NODE_TYPE_SEASONS                          ||
-          node == NODE_TYPE_RECENTLY_ADDED_EPISODES)
+      if (node == NodeType::EPISODES || node == NodeType::SEASONS ||
+          node == NodeType::RECENTLY_ADDED_EPISODES)
       {
         CLog::Log(LOGDEBUG, "WindowVideoNav::GetDirectory");
         // grab the show thumb
         CVideoInfoTag details;
         m_database.GetTvShowInfo("", details, params.GetTvShowId());
         std::map<std::string, std::string> art;
-        if (m_database.GetArtForItem(details.m_iDbId, details.m_type, art))
+        if (m_database.GetArtForItem(details.m_iDbId, details.m_type, art) && !art.empty())
         {
           items.AppendArt(art, details.m_type);
           items.SetArtFallback("fanart", "tvshow.fanart");
-          if (node == NODE_TYPE_SEASONS)
+          if (node == NodeType::SEASONS)
           { // set an art fallback for "thumb"
             if (items.HasArt("tvshow.poster"))
               items.SetArtFallback("thumb", "tvshow.poster");
@@ -441,7 +444,7 @@ bool CGUIWindowVideoNav::GetDirectory(const std::string &strDirectory, CFileItem
         items.SetProperty("showtitle", details.m_strShowTitle);
 
         // the container folder thumb is the parent (i.e. season or show)
-        if (itemsSize && (node == NODE_TYPE_EPISODES || node == NODE_TYPE_RECENTLY_ADDED_EPISODES))
+        if (itemsSize && (node == NodeType::EPISODES || node == NodeType::RECENTLY_ADDED_EPISODES))
         {
           int seasonID = -1;
           int seasonParam = params.GetSeason();
@@ -456,7 +459,8 @@ bool CGUIWindowVideoNav::GetDirectory(const std::string &strDirectory, CFileItem
             seasonID = items[firstIndex]->GetVideoInfoTag()->m_iIdSeason;
 
           CGUIListItem::ArtMap seasonArt;
-          if (seasonID > -1 && m_database.GetArtForItem(seasonID, MediaTypeSeason, seasonArt))
+          if (seasonID > -1 && m_database.GetArtForItem(seasonID, MediaTypeSeason, seasonArt) &&
+              !seasonArt.empty())
           {
             items.AppendArt(seasonArt, MediaTypeSeason);
             // set an art fallback for "thumb"
@@ -467,13 +471,13 @@ bool CGUIWindowVideoNav::GetDirectory(const std::string &strDirectory, CFileItem
           }
         }
       }
-      else if (node == NODE_TYPE_TITLE_MOVIES ||
-               node == NODE_TYPE_RECENTLY_ADDED_MOVIES)
+      else if (node == NodeType::TITLE_MOVIES || node == NodeType::RECENTLY_ADDED_MOVIES)
       {
         if (params.GetSetId() > 0)
         {
           CGUIListItem::ArtMap setArt;
-          if (m_database.GetArtForItem(params.GetSetId(), MediaTypeVideoCollection, setArt))
+          if (m_database.GetArtForItem(params.GetSetId(), MediaTypeVideoCollection, setArt) &&
+              !setArt.empty())
           {
             items.AppendArt(setArt, MediaTypeVideoCollection);
             items.SetArtFallback("fanart", "set.fanart");
@@ -712,9 +716,7 @@ void CGUIWindowVideoNav::OnDeleteItem(const CFileItemPtr& pItem)
            m_vecItems->IsPath("special://videoplaylists/"))
   {
     pItem->m_bIsFolder = false;
-    CGUIComponent *gui = CServiceBroker::GetGUI();
-    if (gui && gui->ConfirmDelete(pItem->GetPath()))
-      CFileUtils::DeleteItem(pItem);
+    CFileUtils::DeleteItemWithConfirm(pItem);
   }
   else
   {
@@ -737,7 +739,7 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
   CGUIWindowVideoBase::GetContextButtons(itemNumber, buttons);
 
   CVideoDatabaseDirectory dir;
-  NODE_TYPE node = dir.GetDirectoryChildType(m_vecItems->GetPath());
+  const auto node = dir.GetDirectoryChildType(m_vecItems->GetPath());
 
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
@@ -814,17 +816,13 @@ void CGUIWindowVideoNav::GetContextButtons(int itemNumber, CContextButtons &butt
         {
           buttons.Add(CONTEXT_BUTTON_EDIT, 16106);
         }
-        if (node == NODE_TYPE_TITLE_TVSHOWS)
+        if (node == NodeType::TITLE_TVSHOWS)
         {
           buttons.Add(CONTEXT_BUTTON_SCAN, 13349);
         }
-
-        if (node == NODE_TYPE_ACTOR && !dir.IsAllItem(item->GetPath()) && item->m_bIsFolder)
+        if (node == NodeType::ACTOR && !dir.IsAllItem(item->GetPath()) && item->m_bIsFolder)
         {
-          if (StringUtils::StartsWithNoCase(m_vecItems->GetPath(), "videodb://musicvideos")) // mvids
-            buttons.Add(CONTEXT_BUTTON_SET_ARTIST_THUMB, 13359);
-          else
-            buttons.Add(CONTEXT_BUTTON_SET_ACTOR_THUMB, 20403);
+          buttons.Add(CONTEXT_BUTTON_SET_ART, 13511); // Choose art
         }
       }
 
@@ -907,19 +905,11 @@ bool CGUIWindowVideoNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
       }
       return true;
     }
-
-  case CONTEXT_BUTTON_SET_ACTOR_THUMB:
-  case CONTEXT_BUTTON_SET_ARTIST_THUMB:
+    case CONTEXT_BUTTON_SET_ART:
     {
-      std::string type = MediaTypeSeason;
-      if (button == CONTEXT_BUTTON_SET_ACTOR_THUMB)
-        type = "actor";
-      else if (button == CONTEXT_BUTTON_SET_ARTIST_THUMB)
-        type = MediaTypeArtist;
-
-      bool result = CGUIDialogVideoInfo::ManageVideoItemArtwork(m_vecItems->Get(itemNumber), type);
+      const bool result{
+          CGUIDialogVideoInfo::ChooseAndManageVideoItemArtwork(m_vecItems->Get(itemNumber))};
       Refresh();
-
       return result;
     }
   case CONTEXT_BUTTON_GO_TO_ARTIST:
@@ -1071,26 +1061,20 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
 {
   bool listchanged = false;
   CVideoDatabaseDirectory dir;
-  NODE_TYPE node = dir.GetDirectoryChildType(items.GetPath());
+  auto node = dir.GetDirectoryChildType(items.GetPath());
 
   // now filter watched items as necessary
   bool filterWatched=false;
-  if (node == NODE_TYPE_EPISODES
-  ||  node == NODE_TYPE_SEASONS
-  ||  node == NODE_TYPE_SETS
-  ||  node == NODE_TYPE_TAGS
-  ||  node == NODE_TYPE_TITLE_MOVIES
-  ||  node == NODE_TYPE_TITLE_TVSHOWS
-  ||  node == NODE_TYPE_TITLE_MUSICVIDEOS
-  ||  node == NODE_TYPE_RECENTLY_ADDED_EPISODES
-  ||  node == NODE_TYPE_RECENTLY_ADDED_MOVIES
-  ||  node == NODE_TYPE_RECENTLY_ADDED_MUSICVIDEOS)
+  if (node == NodeType::EPISODES || node == NodeType::SEASONS || node == NodeType::SETS ||
+      node == NodeType::TAGS || node == NodeType::TITLE_MOVIES || node == NodeType::TITLE_TVSHOWS ||
+      node == NodeType::TITLE_MUSICVIDEOS || node == NodeType::RECENTLY_ADDED_EPISODES ||
+      node == NodeType::RECENTLY_ADDED_MOVIES || node == NodeType::RECENTLY_ADDED_MUSICVIDEOS)
     filterWatched = true;
   if (!VIDEO::IsVideoDb(items))
     filterWatched = true;
   if (items.GetContent() == "tvshows" &&
       (PLAYLIST::IsSmartPlayList(items) || items.IsLibraryFolder()))
-    node = NODE_TYPE_TITLE_TVSHOWS; // so that the check below works
+    node = NodeType::TITLE_TVSHOWS; // so that the check below works
 
   int watchMode = CMediaSettings::GetInstance().GetWatchedMode(m_vecItems->GetContent());
 
@@ -1098,7 +1082,7 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
   {
     CFileItemPtr item = items.Get(i);
 
-    if(item->HasVideoInfoTag() && (node == NODE_TYPE_TITLE_TVSHOWS || node == NODE_TYPE_SEASONS))
+    if (item->HasVideoInfoTag() && (node == NodeType::TITLE_TVSHOWS || node == NodeType::SEASONS))
     {
       if (watchMode == WatchedModeUnwatched)
         item->GetVideoInfoTag()->m_iEpisode = (int)item->GetProperty("unwatchedepisodes").asInteger();
@@ -1127,7 +1111,7 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
   if (items.GetObjectCount() == 0 && items.GetFileCount() > 0 && items.Get(0)->IsParentFolder())
       items.Remove(0);
 
-  if(node == NODE_TYPE_TITLE_TVSHOWS || node == NODE_TYPE_SEASONS)
+  if (node == NodeType::TITLE_TVSHOWS || node == NodeType::SEASONS)
   {
     // the watched filter may change the "numepisodes" property which is reflected in the TV_SHOWS and SEASONS nodes
     // therefore, the items labels have to be refreshed, and possibly the list needs resorting as well.

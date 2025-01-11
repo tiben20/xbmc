@@ -46,6 +46,8 @@ typedef std::map<int, std::shared_ptr<CPVRClient>> CPVRClientMap;
    */
 struct SBackend
 {
+  std::string clientname;
+  std::string instancename;
   std::string name;
   std::string version;
   std::string host;
@@ -118,7 +120,7 @@ struct SBackend
      * @brief Get the number of created clients.
      * @return The amount of created clients.
      */
-    int CreatedClientAmount() const;
+    size_t CreatedClientAmount() const;
 
     /*!
      * @brief Check whether there are any created clients.
@@ -148,7 +150,7 @@ struct SBackend
 
     /*!
      * @brief Get the ID of the first created client.
-     * @return the ID or -1 if no clients are created;
+     * @return the ID or PVR_CLIENT_INVALID_UID if no clients are created;
      */
     int GetFirstCreatedClientID() const;
 
@@ -162,7 +164,7 @@ struct SBackend
      * @brief Get the number of enabled clients.
      * @return The amount of enabled clients.
      */
-    int EnabledClientAmount() const;
+    size_t EnabledClientAmount() const;
 
     /*!
      * @brief Check whether a given client ID points to an enabled client.

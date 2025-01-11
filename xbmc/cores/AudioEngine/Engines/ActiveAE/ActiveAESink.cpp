@@ -1192,8 +1192,8 @@ void CActiveAESink::GenerateNoise()
   srcConfig.bits_per_sample = CAEUtil::DataFormatToUsedBits(m_sinkFormat.m_dataFormat);
   srcConfig.dither_bits = CAEUtil::DataFormatToDitherBits(m_sinkFormat.m_dataFormat);
 
-  resampler->Init(dstConfig, srcConfig,
-                  false, false, M_SQRT1_2, nullptr, AE_QUALITY_UNKNOWN, false);
+  resampler->Init(dstConfig, srcConfig, false, false, M_SQRT1_2, nullptr, AE_QUALITY_UNKNOWN, false,
+                  0.0);
 
   resampler->Resample(m_sampleOfSilence.pkt->data, m_sampleOfSilence.pkt->max_nb_samples,
                      (uint8_t**)&noise, m_sampleOfSilence.pkt->max_nb_samples, 1.0);
@@ -1207,12 +1207,7 @@ void CActiveAESink::SetSilenceTimer()
     m_extSilenceTimeout = XbmcThreads::EndTime<decltype(m_extSilenceTimeout)>::Max();
   else if (m_extAppFocused) // handles no playback/GUI and playback in pause and seek
   {
-    // only true with AudioTrack RAW + passthrough + TrueHD
-    const bool noSilenceOnPause =
-        !m_needIecPack && m_requestedFormat.m_dataFormat == AE_FMT_RAW &&
-        m_sinkFormat.m_streamInfo.m_type == CAEStreamInfo::STREAM_TYPE_TRUEHD;
-
-    m_extSilenceTimeout = (noSilenceOnPause) ? 0ms : m_silenceTimeOut;
+    m_extSilenceTimeout = m_silenceTimeOut;
   }
   else
   {

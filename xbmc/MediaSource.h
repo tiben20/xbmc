@@ -8,7 +8,8 @@
 
 #pragma once
 
-#include "LockType.h"
+#include "LockMode.h"
+#include "SourceType.h"
 #include "media/MediaLockState.h"
 
 #include <string>
@@ -17,22 +18,11 @@
 /*!
 \ingroup windows
 \brief Represents a share.
-\sa VECMediaSource, IVECSOURCES
+\sa VECMediaSource, std::vector<CMediaSource>::iterator
 */
 class CMediaSource final
 {
 public:
-  enum SourceType
-  {
-    SOURCE_TYPE_UNKNOWN      = 0,
-    SOURCE_TYPE_LOCAL        = 1,
-    SOURCE_TYPE_DVD          = 2,
-    SOURCE_TYPE_VIRTUAL_DVD  = 3,
-    SOURCE_TYPE_REMOTE       = 4,
-    SOURCE_TYPE_VPATH        = 5,
-    SOURCE_TYPE_REMOVABLE    = 6
-  };
-
   bool operator==(const CMediaSource &right) const;
 
   void FromNameAndPaths(const std::string &category, const std::string &name, const std::vector<std::string> &paths);
@@ -50,35 +40,35 @@ public:
   Unknown source, maybe a wrong path.
   - SOURCE_TYPE_LOCAL \n
   Harddisk source.
-  - SOURCE_TYPE_DVD \n
+  - SOURCE_TYPE_OPTICAL_DISC \n
   DVD-ROM source of the build in drive, strPath may vary.
-  - SOURCE_TYPE_VIRTUAL_DVD \n
+  - SOURCE_TYPE_VIRTUAL_OPTICAL_DISC \n
   DVD-ROM source, strPath is fix.
   - SOURCE_TYPE_REMOTE \n
   Network source.
   */
-  SourceType m_iDriveType = SOURCE_TYPE_UNKNOWN;
+  SourceType m_iDriveType = SourceType::UNKNOWN;
 
   /*!
   \brief The type of Lock UI to show when accessing the media source.
 
   Value can be:
-  - CMediaSource::LOCK_MODE_EVERYONE \n
+  - LockMode::EVERYONE \n
   Default value.  No lock UI is shown, user can freely access the source.
-  - LOCK_MODE_NUMERIC \n
+  - LockMode::NUMERIC \n
   Lock code is entered via OSD numpad or IrDA remote buttons.
-  - LOCK_MODE_GAMEPAD \n
+  - LockMode::GAMEPAD \n
   Lock code is entered via XBOX gamepad buttons.
-  - LOCK_MODE_QWERTY \n
+  - LockMode::QWERTY \n
   Lock code is entered via OSD keyboard or PC USB keyboard.
-  - LOCK_MODE_SAMBA \n
+  - LockMode::SAMBA \n
   Lock code is entered via OSD keyboard or PC USB keyboard and passed directly to SMB for authentication.
-  - LOCK_MODE_EEPROM_PARENTAL \n
+  - LockMode::EEPROM_PARENTAL \n
   Lock code is retrieved from XBOX EEPROM and entered via XBOX gamepad or remote.
-  - LOCK_MODE_UNKNOWN \n
+  - LockMode::UNKNOWN \n
   Value is unknown or unspecified.
   */
-  LockType m_iLockMode = LOCK_MODE_EVERYONE;
+  LockMode m_iLockMode = LockMode::EVERYONE;
   std::string m_strLockCode;  ///< Input code for Lock UI to verify, can be chosen freely.
   int m_iHasLock = LOCK_STATE_NO_LOCK;
   int m_iBadPwdCount = 0; ///< Number of wrong passwords user has entered since share was last unlocked
@@ -90,20 +80,5 @@ public:
   bool m_allowSharing = true; /// <Allow browsing of source from UPnP / WebServer
 };
 
-/*!
-\ingroup windows
-\brief A vector to hold CMediaSource objects.
-\sa CMediaSource, IVECSOURCES
-*/
-typedef std::vector<CMediaSource> VECSOURCES;
-
-/*!
-\ingroup windows
-\brief Iterator of VECSOURCES.
-\sa CMediaSource, VECSOURCES
-*/
-typedef std::vector<CMediaSource>::iterator IVECSOURCES;
-typedef std::vector<CMediaSource>::const_iterator CIVECSOURCES;
-
-void AddOrReplace(VECSOURCES& sources, const VECSOURCES& extras);
-void AddOrReplace(VECSOURCES& sources, const CMediaSource& source);
+void AddOrReplace(std::vector<CMediaSource>& sources, const std::vector<CMediaSource>& extras);
+void AddOrReplace(std::vector<CMediaSource>& sources, const CMediaSource& source);

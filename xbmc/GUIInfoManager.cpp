@@ -26,6 +26,7 @@
 #include "messaging/ApplicationMessenger.h"
 #include "playlists/PlayListTypes.h"
 #include "settings/SkinSettings.h"
+#include "utils/ArtUtils.h"
 #include "utils/CharsetConverter.h"
 #include "utils/FileUtils.h"
 #include "utils/StringUtils.h"
@@ -2883,6 +2884,14 @@ const infomap musicpartymode[] = {{ "enabled",           MUSICPM_ENABLED },
 ///     @skinning_v19 **[New Infolabel]** \link MusicPlayer_Station `MusicPlayer.Station`\endlink
 ///     <p>
 ///   }
+///   \table_row3{   <b>`MusicPlayer.MediaProviders`</b>,
+///                  \anchor MusicPlayer_MediaProviders
+///                  _string_,
+///     @return string containing the names of the providers of the currently playing media\, separated by commas if muliple are present.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link MusicPlayer_MediaProviders `MusicPlayer.MediaProviders`\endlink
+///     <p>
+///   }
 /// \table_end
 ///
 /// -----------------------------------------------------------------------------
@@ -2931,7 +2940,8 @@ const infomap musicplayer[] =    {{ "title",            MUSICPLAYER_TITLE },
                                   { "bpm",              MUSICPLAYER_BPM },
                                   { "ismultidisc",      MUSICPLAYER_ISMULTIDISC },
                                   { "totaldiscs",       MUSICPLAYER_TOTALDISCS },
-                                  { "station",          MUSICPLAYER_STATIONNAME }
+                                  { "station",          MUSICPLAYER_STATIONNAME },
+                                  { "mediaproviders",   MUSICPLAYER_MEDIAPROVIDERS },
 };
 // clang-format on
 
@@ -3889,6 +3899,33 @@ const infomap musicplayer[] =    {{ "title",            MUSICPLAYER_TITLE },
 ///     @return The parental rating of the currently playing programme (PVR).
 ///     <p>
 ///   }
+///   \table_row3{   <b>`VideoPlayer.ParentalRatingCode`</b>,
+///                  \anchor VideoPlayer_ParentalRatingCode
+///                  _string_,
+///     @return The parental rating code (eg: 'PG'\, etc) of the currently playing programme (PVR).
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link VideoPlayer_ParentalRatingCode `VideoPlayer.ParentalRatingCode`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`VideoPlayer.ParentalRatingIcon`</b>,
+///                  \anchor VideoPlayer_ParentalRatingIcon
+///                  _string_,
+///     @return The parental rating icon path of the currently playing programme (PVR).
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link VideoPlayer_ParentalRatingIcon `VideoPlayer.ParentalRatingIcon`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`VideoPlayer.ParentalRatingSource`</b>,
+///                  \anchor VideoPlayer_ParentalRatingSource
+///                  _string_,
+///     @return The source used to determine the parental rating of the currently playing programme (PVR).
+///     Values could include the Country alpha-3 code or the name/abbreviation
+///     of the authority issuing the rating code.  Can be used with
+///     the \link VideoPlayer_ParentalRatingCode `ParentalRatingCode`\endlink for skin-derived icons if required.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link VideoPlayer_ParentalRatingSource `VideoPlayer.ParentalRatingSource`\endlink
+///     <p>
+///   }
 ///   \table_row3{   <b>`VideoPlayer.DBID`</b>,
 ///                  \anchor VideoPlayer_DBID
 ///                  _string_,
@@ -3939,6 +3976,14 @@ const infomap musicplayer[] =    {{ "title",            MUSICPLAYER_TITLE },
 ///     @skinning_v20 **[New Infolabel]** \link VideoPlayer_AudioStreamCount `VideoPlayer.AudioStreamCount`\endlink
 ///     <p>
 ///   }
+///   \table_row3{   <b>`VideoPlayer.VideoStreamCount`</b>,
+///                  \anchor VideoPlayer_VideoStreamCount
+///                  _integer_,
+///     @return The number of video streams of the currently playing video.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link VideoPlayer_VideoStreamCount `VideoPlayer.VideoStreamCount`\endlink
+///     <p>
+///   }
 ///   \table_row3{   <b>`VideoPlayer.HdrType`</b>,
 ///                  \anchor VideoPlayer_HdrType
 ///                  _string_,
@@ -3953,6 +3998,31 @@ const infomap musicplayer[] =    {{ "title",            MUSICPLAYER_TITLE },
 ///     @return String containing the version name of the currently playing video (movie) - empty if not a movie\, version name is not set or not a version
 ///     <p><hr>
 ///     @skinning_v21 **[New Infolabel]** \link VideoPlayer_VideoVersionName `VideoPlayer.VideoVersionName`\endlink
+///   }
+///   \table_row3{   <b>`VideoPlayer.EpisodePart`</b>,
+///                  \anchor VideoPlayer_EpisodePart
+///                  _string_,
+///     @return string containing the number of parts of a single episode - empty if no data provided
+///     <p><hr>
+///     @skinning_v22 **[Infolabel Updated]** \link VideoPlayer_EpisodePart `VideoPlayer.EpisodePart`\endlink
+///     also supports EPG.
+///     <p>
+///   }
+///   \table_row3{   <b>`VideoPlayer.MediaProviders`</b>,
+///                  \anchor VideoPlayer_MediaProviders
+///                  _string_,
+///     @return string containing the names of the providers of the currently playing media\, separated by commas if muliple are present.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link VideoPlayer_MediaProviders `VideoPlayer.MediaProviders`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`VideoPlayer.TitleExtraInfo`</b>,
+///                  \anchor VideoPlayer_TitleExtraInfo
+///                  _string_,
+///     @return string containing extra information, enriching the title of the currently playing media, if any.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link VideoPlayer_TitleExtraInfo `VideoPlayer.TitleExtraInfo`\endlink
+///     <p>
 ///   }
 /// \table_end
 ///
@@ -4020,6 +4090,9 @@ const infomap videoplayer[] =    {{ "title",            VIDEOPLAYER_TITLE },
                                   { "channelgroup",     VIDEOPLAYER_CHANNEL_GROUP },
                                   { "hasepg",           VIDEOPLAYER_HAS_EPG },
                                   { "parentalrating",   VIDEOPLAYER_PARENTAL_RATING },
+                                  { "parentalratingcode",   VIDEOPLAYER_PARENTAL_RATING_CODE },
+                                  { "parentalratingicon",   VIDEOPLAYER_PARENTAL_RATING_ICON },
+                                  { "parentalratingsource", VIDEOPLAYER_PARENTAL_RATING_SOURCE },
                                   { "isstereoscopic",   VIDEOPLAYER_IS_STEREOSCOPIC },
                                   { "stereoscopicmode", VIDEOPLAYER_STEREOSCOPIC_MODE },
                                   { "canresumelivetv",  VIDEOPLAYER_CAN_RESUME_LIVE_TV },
@@ -4029,10 +4102,14 @@ const infomap videoplayer[] =    {{ "title",            VIDEOPLAYER_TITLE },
                                   { "uniqueid",         VIDEOPLAYER_UNIQUEID },
                                   { "tvshowdbid",       VIDEOPLAYER_TVSHOWDBID },
                                   { "audiostreamcount", VIDEOPLAYER_AUDIOSTREAMCOUNT },
+                                  { "videostreamcount", VIDEOPLAYER_VIDEOSTREAMCOUNT },
                                   { "hdrtype",          VIDEOPLAYER_HDR_TYPE },
                                   { "art",              VIDEOPLAYER_ART},
                                   { "videoversionname", VIDEOPLAYER_VIDEOVERSION_NAME},
-                                  { "hasvideoversions", VIDEOPLAYER_HAS_VIDEOVERSIONS}
+                                  { "hasvideoversions", VIDEOPLAYER_HAS_VIDEOVERSIONS},
+                                  { "episodepart",      VIDEOPLAYER_EPISODEPART},
+                                  { "mediaproviders",   VIDEOPLAYER_MEDIAPROVIDERS },
+                                  { "titleextrainfo",   VIDEOPLAYER_TITLE_EXTRAINFO },
 };
 // clang-format on
 
@@ -6794,6 +6871,25 @@ const infomap container_str[]  = {{ "property",         CONTAINER_PROPERTY },
 ///     @skinning_v21 **[New Infolabel]** \link ListItem_ParentalRatingCode `ListItem.ParentalRatingCode`\endlink
 ///     <p>
 ///   }
+///   \table_row3{   <b>`ListItem.ParentalRatingIcon`</b>,
+///                  \anchor ListItem_ParentalRatingIcon
+///                  _string_,
+///     @return The parental rating icon path of the list item (PVR).
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link ListItem_ParentalRatingIcon `ListItem.ParentalRatingIcon`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`ListItem.ParentalRatingSource`</b>,
+///                  \anchor ListItem_ParentalRatingSource
+///                  _string_,
+///     @return The source used to determine the parental rating of the list item (PVR).
+///     Values could include the Country alpha-3 code or the name/abbreviation
+///     of the authority issuing the rating code.  Can be used with
+///     the \link ListItem_ParentalRatingCode `ParentalRatingCode`\endlink for skin-derived icons if required.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link ListItem_ParentalRatingSource `ListItem.ParentalRatingSource`\endlink
+///     <p>
+///   }
 ///   \table_row3{   <b>`ListItem.CurrentItem`</b>,
 ///                  \anchor ListItem_CurrentItem
 ///                  _string_,
@@ -6991,7 +7087,7 @@ const infomap container_str[]  = {{ "property",         CONTAINER_PROPERTY },
 ///                  \anchor ListItem_PVRClientName
 ///                  _string_,
 ///     @return If selected item is of type PVR (recording\, timer\, EPG)\, the name of the PVR client
-///     add-on\, as specified by the add-on developer. Empty if theitem is not of type PVR.
+///     add-on\, as specified by the add-on developer. Empty if the item is not of type PVR.
 ///     <p><hr>
 ///     @skinning_v22 **[New Infolabel]** \link ListItem_PVRClientName `ListItem.PVRClientName`\endlink
 ///     <p>
@@ -7004,6 +7100,39 @@ const infomap container_str[]  = {{ "property",         CONTAINER_PROPERTY },
 ///     PVR client add-on does not support multiple instances or item is not of type PVR.
 ///     <p><hr>
 ///     @skinning_v22 **[New Infolabel]** \link ListItem_PVRInstanceName `ListItem.PVRInstanceName`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`ListItem.PVRGroupOrigin`</b>,
+///                  \anchor ListItem_PVRGroupOrigin
+///                  _string_,
+///     @return If selected item is of type PVR channel group, the creator (user, system, client) of
+///     the group.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link ListItem_PVRGroupOrigin `ListItem.PVRGroupOrigin`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`ListItem.EpisodePart`</b>,
+///                  \anchor ListItem_EpisodePart
+///                  _string_,
+///     @return string containing the number of parts of a single episode - empty if no data provided
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link ListItem_EpisodePart `ListItem.EpisodePart`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`ListItem.MediaProviders`</b>,
+///                  \anchor ListItem_MediaProviders
+///                  _string_,
+///     @return string containing the names of the media providers of the item\, separated by commas if muliple are present.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link ListItem_MediaProviders `ListItem.MediaProviders`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`ListItem.TitleExtraInfo`</b>,
+///                  \anchor ListItem_TitleExtraInfo
+///                  _string_,
+///     @return string containing extra information, enriching the title of the item.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link ListItem_TitleExtraInfo `ListItem.TitleExtraInfo`\endlink
 ///     <p>
 ///   }
 /// \table_end
@@ -7205,6 +7334,8 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "property",         LISTITEM_PROPERTY },
                                   { "parentalrating",   LISTITEM_PARENTAL_RATING },
                                   { "parentalratingcode", LISTITEM_PARENTAL_RATING_CODE },
+                                  { "parentalratingicon", LISTITEM_PARENTAL_RATING_ICON },
+                                  { "parentalratingsource", LISTITEM_PARENTAL_RATING_SOURCE },
                                   { "currentitem",      LISTITEM_CURRENTITEM },
                                   { "isnew",            LISTITEM_IS_NEW },
                                   { "isboxset",         LISTITEM_IS_BOXSET },
@@ -7230,6 +7361,10 @@ const infomap listitem_labels[]= {{ "thumb",            LISTITEM_THUMB },
                                   { "hasvideoextras",   LISTITEM_HASVIDEOEXTRAS },
                                   { "pvrclientname",    LISTITEM_PVR_CLIENT_NAME },
                                   { "pvrinstancename",  LISTITEM_PVR_INSTANCE_NAME },
+                                  { "pvrgrouporigin",   LISTITEM_PVR_GROUP_ORIGIN },
+                                  { "episodepart",      LISTITEM_EPISODEPART },
+                                  { "mediaproviders",   LISTITEM_MEDIAPROVIDERS },
+                                  { "titleextrainfo",   LISTITEM_TITLE_EXTRAINFO },
 };
 // clang-format on
 
@@ -8249,6 +8384,23 @@ const infomap playlist[] =       {{ "length",           PLAYLIST_LENGTH },
 ///     @skinning_v22 **[New Integer Value]** \link PVR_ClientCount `PVR.ClientCount`\endlink
 ///     <p>
 ///   }
+///   \table_row3{   <b>`PVR.ClientName`</b>,
+///                  \anchor PVR_ClientName
+///                  _string_,
+///     @return The name of the PVR client add-on\, as specified by the add-on developer.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link PVR_ClientName `PVR.ClientName`\endlink
+///     <p>
+///   }
+///   \table_row3{   <b>`PVR.InstanceName`</b>,
+///                  \anchor PVR_InstanceName
+///                  _string_,
+///     @return The name of the instance of the PVR client add-on\, as specified by the user in
+///     the add-on settings. Empty if the PVR client add-on does not support multiple instances.
+///     <p><hr>
+///     @skinning_v22 **[New Infolabel]** \link PVR_InstanceName `PVR.InstanceName`\endlink
+///     <p>
+///   }
 /// \table_end
 ///
 /// -----------------------------------------------------------------------------
@@ -8332,7 +8484,9 @@ const infomap pvr[] =            {{ "isrecording",              PVR_IS_RECORDING
                                   { "timeshiftprogressbufferstart", PVR_TIMESHIFT_PROGRESS_BUFFER_START },
                                   { "timeshiftprogressbufferend", PVR_TIMESHIFT_PROGRESS_BUFFER_END },
                                   { "epgeventicon",               PVR_EPG_EVENT_ICON },
-                                  { "clientcount",                PVR_CLIENT_COUNT }};
+                                  { "clientcount",                PVR_CLIENT_COUNT },
+                                  { "clientname",                 PVR_CLIENT_NAME },
+                                  { "instancename",               PVR_INSTANCE_NAME }};
 // clang-format on
 
 /// \page modules__infolabels_boolean_conditions
@@ -11205,7 +11359,7 @@ void CGUIInfoManager::UpdateCurrentItem(const CFileItem &item)
 void CGUIInfoManager::SetCurrentItem(const CFileItem &item)
 {
   *m_currentFile = item;
-  m_currentFile->FillInDefaultIcon();
+  ART::FillInDefaultIcon(*m_currentFile);
 
   m_infoProviders.InitCurrentItem(m_currentFile);
 
@@ -11219,7 +11373,7 @@ void CGUIInfoManager::SetCurrentAlbumThumb(const std::string &thumbFileName)
   else
   {
     m_currentFile->SetArt("thumb", "");
-    m_currentFile->FillInDefaultIcon();
+    ART::FillInDefaultIcon(*m_currentFile);
   }
 }
 

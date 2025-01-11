@@ -12,6 +12,22 @@
 
 #include "system_gl.h"
 
+struct TextureFormat
+{
+  GLenum internalFormat{GL_FALSE};
+  GLenum internalFormatSRGB{GL_FALSE};
+  GLint format{GL_FALSE};
+  GLenum type{GL_UNSIGNED_BYTE};
+};
+
+struct Textureswizzle
+{
+  GLint r{GL_RED};
+  GLint g{GL_GREEN};
+  GLint b{GL_BLUE};
+  GLint a{GL_ALPHA};
+};
+
 /************************************************************************/
 /*    CGLTexture                                                       */
 /************************************************************************/
@@ -27,8 +43,17 @@ public:
   void SyncGPU() override;
   void BindToUnit(unsigned int unit) override;
 
+  bool SupportsFormat(KD_TEX_FMT textureFormat, KD_TEX_SWIZ textureSwizzle) override
+  {
+    return true;
+  }
+
 protected:
-  GLuint m_texture = 0;
-  bool m_isOglVersion3orNewer = false;
+  void SetSwizzle();
+  TextureFormat GetFormatGL(KD_TEX_FMT textureFormat);
+
+  GLuint m_texture{0};
+  bool m_isOglVersion3orNewer{false};
+  bool m_isOglVersion33orNewer{false};
 };
 

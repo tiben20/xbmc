@@ -36,6 +36,8 @@
 #include "dialogs/GUIDialogYesNo.h"
 #include "filesystem/Directory.h"
 #include "filesystem/MusicDatabaseDirectory.h"
+#include "filesystem/MusicDatabaseDirectory/DirectoryNode.h"
+#include "filesystem/MusicDatabaseDirectory/QueryParams.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
@@ -527,7 +529,7 @@ bool CGUIWindowMusicBase::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
     }
 
   case CONTEXT_BUTTON_PLAY_PARTYMODE:
-    g_partyModeManager.Enable(PARTYMODECONTEXT_MUSIC, item->GetPath());
+    g_partyModeManager.Enable(PartyModeContext::MUSIC, item->GetPath());
     return true;
 
   case CONTEXT_BUTTON_RIP_CD:

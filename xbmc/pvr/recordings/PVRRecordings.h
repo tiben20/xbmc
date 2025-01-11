@@ -83,6 +83,13 @@ public:
   bool ResetResumePoint(const std::shared_ptr<CPVRRecording>& recording);
 
   /*!
+   * @brief Delete a recording in the backend, cleanup db enries.
+   * @param recording The recording
+   * @return True on success, false otherwise
+   */
+  bool DeleteRecording(const std::shared_ptr<CPVRRecording>& recording);
+
+  /*!
    * @brief Get a list of all recordings
    * @return the list of all recordings
    */
@@ -91,6 +98,24 @@ public:
   std::shared_ptr<CPVRRecording> GetByPath(const std::string& path) const;
   std::shared_ptr<CPVRRecording> GetById(int iClientId, const std::string& strRecordingId) const;
   std::shared_ptr<CPVRRecording> GetById(unsigned int iId) const;
+
+  /*!
+   * @brief Check whether at least one recording is offered by the given provider.
+   * @param isRadio Check radio or TV recordings.
+   * @param clientId The clientId to check.
+   * @param providerId The providerId to check.
+   * @return True, if at least one matching recording is offered by the provider, false otherwise.
+   */
+  bool HasRecordingForProvider(bool isRadio, int clientId, int providerId) const;
+
+  /*!
+   * @brief Get the total count of recordings offered by the given provider.
+   * @param isRadio Check radio or TV recordings.
+   * @param clientId The clientId of the provider.
+   * @param providerId The providerId.
+   * @return The total count of matching recordings.
+   */
+  unsigned int GetRecordingCountByProvider(bool isRadio, int clientId, int providerId) const;
 
   /*!
    * @brief Get the recording for the given epg tag, if any.

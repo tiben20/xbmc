@@ -18,6 +18,7 @@
 #include "music/MusicDatabase.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
+#include "utils/ArtUtils.h"
 #include "utils/FileExtensionProvider.h"
 #include "utils/FileUtils.h"
 #include "utils/URIUtils.h"
@@ -140,6 +141,8 @@ void CVideoItemArtworkHandler::PersistArt(const std::string& art)
 
   videodb.SetArtForItem(m_item->GetVideoInfoTag()->m_iDbId, m_item->GetVideoInfoTag()->m_type,
                         m_artType, art);
+
+  videodb.UpdateArtForItem(m_item->GetVideoInfoTag()->m_iDbId, m_artType);
 }
 
 void CVideoItemArtworkHandler::AddItemPathStringToFileBrowserSources(
@@ -478,7 +481,7 @@ std::vector<std::string> CVideoItemArtworkFanartHandler::GetRemoteArt() const
 
 std::string CVideoItemArtworkFanartHandler::GetLocalArt() const
 {
-  return m_item->GetLocalFanart();
+  return ART::GetLocalFanart(*m_item);
 }
 
 std::string CVideoItemArtworkFanartHandler::UpdateEmbeddedArt(const std::string& art)

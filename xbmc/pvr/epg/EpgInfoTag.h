@@ -17,8 +17,12 @@
 #include <string>
 #include <vector>
 
+namespace EDL
+{
+struct Edit;
+}
+
 struct EPG_TAG;
-struct PVR_EDL_ENTRY;
 
 namespace PVR
 {
@@ -99,13 +103,13 @@ public:
    * @brief Get the progress of this tag in percent.
    * @return The current progress of this tag.
    */
-  float ProgressPercentage() const;
+  double ProgressPercentage() const;
 
   /*!
    * @brief Get the progress of this tag in seconds.
    * @return The current progress of this tag in seconds.
    */
-  int Progress() const;
+  unsigned int Progress() const;
 
   /*!
    * @brief Get EPG ID of this tag.
@@ -183,49 +187,55 @@ public:
    * @brief Get the duration of this event in seconds.
    * @return The duration.
    */
-  int GetDuration() const;
+  unsigned int GetDuration() const;
 
   /*!
    * @brief Get the title of this event.
    * @return The title.
    */
-  std::string Title() const;
+  const std::string& Title() const { return m_strTitle; }
+
+  /*!
+  * @brief Get the title extra information of this event.
+  * @return The title extra info.
+  */
+  const std::string& TitleExtraInfo() const { return m_titleExtraInfo; }
 
   /*!
    * @brief Get the plot outline of this event.
    * @return The plot outline.
    */
-  std::string PlotOutline() const;
+  const std::string& PlotOutline() const { return m_strPlotOutline; }
 
   /*!
    * @brief Get the plot of this event.
    * @return The plot.
    */
-  std::string Plot() const;
+  const std::string& Plot() const { return m_strPlot; }
 
   /*!
    * @brief Get the original title of this event.
    * @return The original title.
    */
-  std::string OriginalTitle() const;
+  const std::string& OriginalTitle() const { return m_strOriginalTitle; }
 
   /*!
    * @brief Get the cast of this event.
    * @return The cast.
    */
-  const std::vector<std::string> Cast() const;
+  const std::vector<std::string>& Cast() const { return m_cast; }
 
   /*!
    * @brief Get the director(s) of this event.
    * @return The director(s).
    */
-  const std::vector<std::string> Directors() const;
+  const std::vector<std::string>& Directors() const { return m_directors; }
 
   /*!
    * @brief Get the writer(s) of this event.
    * @return The writer(s).
    */
-  const std::vector<std::string> Writers() const;
+  const std::vector<std::string>& Writers() const { return m_writers; }
 
   /*!
    * @brief Get the cast of this event as formatted string.
@@ -261,7 +271,7 @@ public:
    * @brief Get the imdbnumber of this event.
    * @return The imdbnumber.
    */
-  std::string IMDBNumber() const;
+  const std::string& IMDBNumber() const { return m_strIMDBNumber; }
 
   /*!
    * @brief Get the genre type ID of this event.
@@ -279,7 +289,7 @@ public:
    * @brief Get the genre description of this event.
    * @return The genre.
    */
-  std::string GenreDescription() const;
+  const std::string& GenreDescription() const { return m_strGenreDescription; }
 
   /*!
    * @brief Get the genre as human readable string.
@@ -297,14 +307,31 @@ public:
    * @brief Get the parental rating of this event.
    * @return The parental rating.
    */
-  int ParentalRating() const;
+  unsigned int ParentalRating() const;
 
   /*!
    * @brief Get the parental rating code of this event.
    * @return The parental rating code.
    */
-  std::string ParentalRatingCode() const;
+  const std::string& ParentalRatingCode() const { return m_parentalRatingCode; }
 
+  /*!
+   * @brief Get the parental rating icon path of this event.
+   * @return Path to the parental rating icon.
+   */
+  const std::string& ParentalRatingIcon() const { return m_parentalRatingIcon.GetLocalImage(); }
+
+  /*!
+   * @brief Get the parental rating icon path of this event as given by the client.
+   * @return The path to the icon
+   */
+  std::string ClientParentalRatingIconPath() const { return m_parentalRatingIcon.GetClientImage(); }
+
+  /*!
+   * @brief Get the parental rating source of this event.
+   * @return The parental rating source.
+   */
+  const std::string& ParentalRatingSource() const { return m_parentalRatingSource; }
   /*!
    * @brief Get the star rating of this event.
    * @return The star rating.
@@ -321,7 +348,7 @@ public:
    * @brief The series link for this event.
    * @return The series link or empty string, if not available.
    */
-  std::string SeriesLink() const;
+  const std::string& SeriesLink() const { return m_strSeriesLink; }
 
   /*!
    * @brief The episode number of this event.
@@ -339,7 +366,7 @@ public:
    * @brief The episode name of this event.
    * @return The episode name.
    */
-  std::string EpisodeName() const;
+  const std::string& EpisodeName() const { return m_strEpisodeName; }
 
   /*!
    * @brief Get the path to the icon for this event used by Kodi.
@@ -391,7 +418,7 @@ public:
    * @brief Retrieve the edit decision list (EDL) of an EPG tag.
    * @return The edit decision list (empty on error)
    */
-  std::vector<PVR_EDL_ENTRY> GetEdl() const;
+  std::vector<EDL::Edit> GetEdl() const;
 
   /*!
    * @brief Check whether this tag has any series attributes.
@@ -464,7 +491,9 @@ public:
   static const std::string DeTokenize(const std::vector<std::string>& tokens);
 
 private:
-  CPVREpgInfoTag(int iEpgID, const std::string& iconPath);
+  CPVREpgInfoTag(int iEpgID,
+                 const std::string& iconPath,
+                 const std::string& parentalRatingIconPath);
 
   CPVREpgInfoTag() = delete;
   CPVREpgInfoTag(const CPVREpgInfoTag& tag) = delete;
@@ -480,14 +509,17 @@ private:
   int m_iGenreType = 0; /*!< genre type */
   int m_iGenreSubType = 0; /*!< genre subtype */
   std::string m_strGenreDescription; /*!< genre description */
-  int m_iParentalRating = 0; /*!< parental rating */
-  std::string m_strParentalRatingCode; /*!< parental rating code */
+  unsigned int m_parentalRating = 0; /*!< parental rating */
+  std::string m_parentalRatingCode; /*!< Parental rating code */
+  CPVRCachedImage m_parentalRatingIcon; /*!< parental rating icon path */
+  std::string m_parentalRatingSource; /*!< parental rating source */
   int m_iStarRating = 0; /*!< star rating */
   int m_iSeriesNumber = -1; /*!< series number */
   int m_iEpisodeNumber = -1; /*!< episode number */
   int m_iEpisodePart = -1; /*!< episode part number */
   unsigned int m_iUniqueBroadcastID = 0; /*!< unique broadcast ID */
   std::string m_strTitle; /*!< title */
+  std::string m_titleExtraInfo; /*!< title extra info */
   std::string m_strPlotOutline; /*!< plot outline */
   std::string m_strPlot; /*!< plot */
   std::string m_strOriginalTitle; /*!< original title */

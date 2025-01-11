@@ -11,7 +11,10 @@
 #include "FileItem.h"
 #include "ServiceBroker.h"
 #include "TextureCache.h"
+#include "utils/ArtUtils.h"
 #include "utils/FileUtils.h"
+
+using namespace KODI;
 
 CThumbLoader::CThumbLoader() :
   CBackgroundInfoLoader()
@@ -111,13 +114,13 @@ std::string CProgramThumbLoader::GetLocalThumb(const CFileItem &item)
   // look for the thumb
   if (item.m_bIsFolder)
   {
-    std::string folderThumb = item.GetFolderThumb();
+    const std::string folderThumb = ART::GetFolderThumb(item);
     if (CFileUtils::Exists(folderThumb))
       return folderThumb;
   }
   else
   {
-    std::string fileThumb(item.GetTBNFile());
+    std::string fileThumb(ART::GetTBNFile(item));
     if (CFileUtils::Exists(fileThumb))
       return fileThumb;
   }

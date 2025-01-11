@@ -8,10 +8,10 @@
 
 #include "VideoSelectActionProcessor.h"
 
+#include "ContextMenuManager.h"
 #include "FileItem.h"
 #include "FileItemList.h"
 #include "ServiceBroker.h"
-#include "dialogs/GUIDialogContextMenu.h"
 #include "dialogs/GUIDialogSelect.h"
 #include "filesystem/Directory.h"
 #include "guilib/GUIComponent.h"
@@ -21,42 +21,34 @@
 #include "settings/SettingsComponent.h"
 #include "utils/StringUtils.h"
 #include "utils/Variant.h"
+#include "utils/guilib/GUIBuiltinsUtils.h"
+#include "utils/guilib/GUIContentUtils.h"
 #include "video/VideoFileItemClassify.h"
-#include "video/VideoInfoTag.h"
 #include "video/guilib/VideoGUIUtils.h"
 
 namespace KODI::VIDEO::GUILIB
 {
 
-Action CVideoSelectActionProcessorBase::GetDefaultSelectAction()
+Action CVideoSelectActionProcessor::GetDefaultSelectAction()
 {
   return static_cast<Action>(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(
       CSettings::SETTING_MYVIDEOS_SELECTACTION));
 }
 
-Action CVideoSelectActionProcessorBase::GetDefaultAction()
+Action CVideoSelectActionProcessor::GetDefaultAction()
 {
   return GetDefaultSelectAction();
 }
 
-bool CVideoSelectActionProcessorBase::Process(Action action)
+bool CVideoSelectActionProcessor::Process(Action action)
 {
-  if (CVideoPlayActionProcessorBase::Process(action))
+  if (CVideoPlayActionProcessor::Process(action))
     return true;
 
   switch (action)
   {
     case ACTION_CHOOSE:
-    {
-      const Action selectedAction = ChooseVideoItemSelectAction();
-      if (selectedAction < 0)
-      {
-        m_userCancelled = true;
-        return true; // User cancelled the select menu. We're done.
-      }
-
-      return Process(selectedAction);
-    }
+      return OnChooseSelected();
 
     case ACTION_PLAYPART:
     {
@@ -73,18 +65,15 @@ bool CVideoSelectActionProcessorBase::Process(Action action)
     case ACTION_INFO:
     {
       if (GetDefaultAction() == ACTION_INFO && !KODI::VIDEO::IsVideoDb(*m_item) &&
-          !m_item->IsPlugin() && !m_item->IsScript() &&
+          !m_item->IsPlugin() && !m_item->IsScript() && !m_item->IsPVR() &&
           !KODI::VIDEO::UTILS::HasItemVideoDbInformation(*m_item))
       {
         // for items without info fall back to default play action
-        return Process(CVideoPlayActionProcessorBase::GetDefaultAction());
+        return Process(CVideoPlayActionProcessor::GetDefaultAction());
       }
 
       return OnInfoSelected();
     }
-
-    case ACTION_MORE:
-      return OnMoreSelected();
 
     default:
       break;
@@ -92,7 +81,31 @@ bool CVideoSelectActionProcessorBase::Process(Action action)
   return false; // We did not handle the action.
 }
 
-unsigned int CVideoSelectActionProcessorBase::ChooseStackItemPartNumber() const
+bool CVideoSelectActionProcessor::OnPlayPartSelected(unsigned int part)
+{
+  //! @todo implement different (not using builtins function)
+  KODI::UTILS::GUILIB::CGUIBuiltinsUtils::ExecutePlayMediaPart(m_item, part);
+  return true;
+}
+
+bool CVideoSelectActionProcessor::OnQueueSelected()
+{
+  VIDEO::UTILS::QueueItem(m_item, VIDEO::UTILS::QueuePosition::POSITION_END);
+  return true;
+}
+
+bool CVideoSelectActionProcessor::OnInfoSelected()
+{
+  return KODI::UTILS::GUILIB::CGUIContentUtils::ShowInfoForItem(*m_item);
+}
+
+bool CVideoSelectActionProcessor::OnChooseSelected()
+{
+  CONTEXTMENU::ShowFor(m_item, CContextMenuManager::MAIN);
+  return true;
+}
+
+unsigned int CVideoSelectActionProcessor::ChooseStackItemPartNumber() const
 {
   CFileItemList parts;
   XFILE::CDirectory::GetDirectory(m_item->GetDynPath(), parts, "", XFILE::DIR_FLAG_DEFAULTS);
@@ -113,28 +126,6 @@ unsigned int CVideoSelectActionProcessorBase::ChooseStackItemPartNumber() const
     return 0; // User cancelled the dialog.
 
   return dialog->GetSelectedItem() + 1; // part numbers are 1-based
-}
-
-Action CVideoSelectActionProcessorBase::ChooseVideoItemSelectAction() const
-{
-  CContextButtons choices;
-
-  const std::string resumeString = UTILS::GetResumeString(*m_item);
-  if (!resumeString.empty())
-  {
-    choices.Add(ACTION_RESUME, resumeString);
-    choices.Add(ACTION_PLAY_FROM_BEGINNING, 12021); // Play from beginning
-  }
-  else
-  {
-    choices.Add(ACTION_PLAY_FROM_BEGINNING, 208); // Play
-  }
-
-  choices.Add(ACTION_INFO, 22081); // Show information
-  choices.Add(ACTION_QUEUE, 13347); // Queue item
-  choices.Add(ACTION_MORE, 22082); // More
-
-  return static_cast<Action>(CGUIDialogContextMenu::ShowAndGetChoice(choices));
 }
 
 } // namespace KODI::VIDEO::GUILIB

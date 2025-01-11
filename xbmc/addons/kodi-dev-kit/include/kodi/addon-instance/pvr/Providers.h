@@ -36,14 +36,14 @@ namespace addon
 /// @copydetails cpp_kodi_addon_pvr_Defs_PVRProvider_Help
 ///
 ///@{
-class PVRProvider : public CStructHdl<PVRProvider, PVR_PROVIDER>
+class PVRProvider : public DynamicCStructHdl<PVRProvider, PVR_PROVIDER>
 {
   friend class CInstancePVRClient;
 
 public:
   /*! \cond PRIVATE */
-  PVRProvider() { memset(m_cStructure, 0, sizeof(PVR_PROVIDER)); }
-  PVRProvider(const PVRProvider& provider) : CStructHdl(provider) {}
+  PVRProvider() = default;
+  PVRProvider(const PVRProvider& provider) : DynamicCStructHdl(provider) {}
   /*! \endcond */
 
   /// @defgroup cpp_kodi_addon_pvr_Defs_PVRProvider_Help Value Help
@@ -74,11 +74,11 @@ public:
   /// Name given to this provider.
   void SetName(const std::string& name)
   {
-    strncpy(m_cStructure->strName, name.c_str(), sizeof(m_cStructure->strName) - 1);
+    ReallocAndCopyString(&m_cStructure->strName, name.c_str());
   }
 
   /// @brief To get with @ref SetName changed values.
-  std::string GetName() const { return m_cStructure->strName; }
+  std::string GetName() const { return m_cStructure->strName ? m_cStructure->strName : ""; }
 
   /// @brief **optional**\n
   /// Provider type.
@@ -103,11 +103,14 @@ public:
   /// Path to the provider icon (if present).
   void SetIconPath(const std::string& iconPath)
   {
-    strncpy(m_cStructure->strIconPath, iconPath.c_str(), sizeof(m_cStructure->strIconPath) - 1);
+    ReallocAndCopyString(&m_cStructure->strIconPath, iconPath.c_str());
   }
 
   /// @brief To get with @ref SetIconPath changed values.
-  std::string GetIconPath() const { return m_cStructure->strIconPath; }
+  std::string GetIconPath() const
+  {
+    return m_cStructure->strIconPath ? m_cStructure->strIconPath : "";
+  }
   ///@}
 
   /// @brief **optional**\n
@@ -116,14 +119,18 @@ public:
   /// @note ISO 3166 country codes required (e.g 'GB,IE,CA').
   void SetCountries(const std::vector<std::string>& countries)
   {
-    const std::string str = tools::StringUtils::Join(countries, PROVIDER_STRING_TOKEN_SEPARATOR);
-    strncpy(m_cStructure->strCountries, str.c_str(), sizeof(m_cStructure->strCountries) - 1);
+    ReallocAndCopyString(
+        &m_cStructure->strCountries,
+        tools::StringUtils::Join(countries, PROVIDER_STRING_TOKEN_SEPARATOR).c_str());
   }
 
   /// @brief To get with @ref SetCountries changed values.
   std::vector<std::string> GetCountries() const
   {
-    return tools::StringUtils::Split(m_cStructure->strCountries, PROVIDER_STRING_TOKEN_SEPARATOR);
+    if (m_cStructure->strCountries)
+      return tools::StringUtils::Split(m_cStructure->strCountries, PROVIDER_STRING_TOKEN_SEPARATOR);
+    else
+      return {};
   }
   ///@}
 
@@ -133,20 +140,40 @@ public:
   /// @note RFC 5646 standard codes required (e.g.: 'en_GB,fr_CA').
   void SetLanguages(const std::vector<std::string>& languages)
   {
-    const std::string str = tools::StringUtils::Join(languages, PROVIDER_STRING_TOKEN_SEPARATOR);
-    strncpy(m_cStructure->strLanguages, str.c_str(), sizeof(m_cStructure->strLanguages) - 1);
+    ReallocAndCopyString(
+        &m_cStructure->strLanguages,
+        tools::StringUtils::Join(languages, PROVIDER_STRING_TOKEN_SEPARATOR).c_str());
   }
 
   /// @brief To get with @ref SetLanguages changed values.
   std::vector<std::string> GetLanguages() const
   {
-    return tools::StringUtils::Split(m_cStructure->strLanguages, PROVIDER_STRING_TOKEN_SEPARATOR);
+    if (m_cStructure->strLanguages)
+      return tools::StringUtils::Split(m_cStructure->strLanguages, PROVIDER_STRING_TOKEN_SEPARATOR);
+    else
+      return {};
   }
   ///@}
 
+  static void AllocResources(const PVR_PROVIDER* source, PVR_PROVIDER* target)
+  {
+    target->strName = AllocAndCopyString(source->strName);
+    target->strIconPath = AllocAndCopyString(source->strIconPath);
+    target->strCountries = AllocAndCopyString(source->strCountries);
+    target->strLanguages = AllocAndCopyString(source->strLanguages);
+  }
+
+  static void FreeResources(PVR_PROVIDER* target)
+  {
+    FreeString(target->strName);
+    FreeString(target->strIconPath);
+    FreeString(target->strCountries);
+    FreeString(target->strLanguages);
+  }
+
 private:
-  PVRProvider(const PVR_PROVIDER* provider) : CStructHdl(provider) {}
-  PVRProvider(PVR_PROVIDER* provider) : CStructHdl(provider) {}
+  PVRProvider(const PVR_PROVIDER* provider) : DynamicCStructHdl(provider) {}
+  PVRProvider(PVR_PROVIDER* provider) : DynamicCStructHdl(provider) {}
 };
 ///@}
 //------------------------------------------------------------------------------

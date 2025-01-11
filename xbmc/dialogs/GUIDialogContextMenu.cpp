@@ -35,6 +35,7 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "storage/MediaManager.h"
+#include "utils/ArtUtils.h"
 #include "utils/FileUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
@@ -254,7 +255,10 @@ void CGUIDialogContextMenu::GetContextButtons(const std::string &type, const CFi
     if (!GetDefaultShareNameByType(type).empty())
       buttons.Add(CONTEXT_BUTTON_CLEAR_DEFAULT, 13403); // Clear Default
   }
-  if (share && LOCK_MODE_EVERYONE != CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetMasterProfile().getLockMode())
+  if (share && LockMode::EVERYONE != CServiceBroker::GetSettingsComponent()
+                                         ->GetProfileManager()
+                                         ->GetMasterProfile()
+                                         .getLockMode())
   {
     if (share->m_iHasLock == LOCK_STATE_NO_LOCK && (CServiceBroker::GetSettingsComponent()
                                                         ->GetProfileManager()
@@ -387,7 +391,7 @@ bool CGUIDialogContextMenu::OnContextButton(const std::string &type, const CFile
         items.Add(current);
       }
       // see if there's a local thumb for this item
-      std::string folderThumb = item->GetFolderThumb();
+      std::string folderThumb = ART::GetFolderThumb(*item);
       if (CFileUtils::Exists(folderThumb))
       {
         CFileItemPtr local(new CFileItem("thumb://Local", false));
@@ -402,7 +406,7 @@ bool CGUIDialogContextMenu::OnContextButton(const std::string &type, const CFile
       items.Add(nothumb);
 
       std::string strThumb;
-      VECSOURCES shares;
+      std::vector<CMediaSource> shares;
       CServiceBroker::GetMediaManager().GetLocalDrives(shares);
       if (!CGUIDialogFileBrowser::ShowAndGetImage(items, shares, g_localizeStrings.Get(1030), strThumb))
         return false;
@@ -445,7 +449,7 @@ bool CGUIDialogContextMenu::OnContextButton(const std::string &type, const CFile
       // password entry and re-entry succeeded, write out the lock data
       share->m_iHasLock = LOCK_STATE_LOCKED;
       CMediaSourceSettings::GetInstance().UpdateSource(type, share->strName, "lockcode", strNewPassword);
-      strNewPassword = std::to_string(share->m_iLockMode);
+      strNewPassword = std::to_string(static_cast<int>(share->m_iLockMode));
       CMediaSourceSettings::GetInstance().UpdateSource(type, share->strName, "lockmode", strNewPassword);
       CMediaSourceSettings::GetInstance().UpdateSource(type, share->strName, "badpwdcount", "0");
       CMediaSourceSettings::GetInstance().Save();
@@ -518,7 +522,7 @@ bool CGUIDialogContextMenu::OnContextButton(const std::string &type, const CFile
       std::string strNewPW;
       std::string strNewLockMode;
       if (CGUIDialogLockSettings::ShowAndGetLock(share->m_iLockMode,strNewPW))
-        strNewLockMode = std::to_string(share->m_iLockMode);
+        strNewLockMode = std::to_string(static_cast<int>(share->m_iLockMode));
       else
         return false;
       // password ReSet and re-entry succeeded, write out the lock data
@@ -543,7 +547,7 @@ bool CGUIDialogContextMenu::OnContextButton(const std::string &type, const CFile
 
 CMediaSource *CGUIDialogContextMenu::GetShare(const std::string &type, const CFileItem *item)
 {
-  VECSOURCES *shares = CMediaSourceSettings::GetInstance().GetSources(type);
+  std::vector<CMediaSource>* shares = CMediaSourceSettings::GetInstance().GetSources(type);
   if (!shares || !item)
     return nullptr;
   for (unsigned int i = 0; i < shares->size(); i++)
@@ -608,7 +612,7 @@ void CGUIDialogContextMenu::OnDeinitWindow(int nextWindowID)
 
 std::string CGUIDialogContextMenu::GetDefaultShareNameByType(const std::string &strType)
 {
-  VECSOURCES *pShares = CMediaSourceSettings::GetInstance().GetSources(strType);
+  std::vector<CMediaSource>* pShares = CMediaSourceSettings::GetInstance().GetSources(strType);
   std::string strDefault = CMediaSourceSettings::GetInstance().GetDefaultSource(strType);
 
   if (!pShares) return "";

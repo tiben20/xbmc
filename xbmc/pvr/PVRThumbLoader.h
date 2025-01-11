@@ -14,7 +14,6 @@
 
 namespace PVR
 {
-
 class CPVRThumbLoader : public CThumbLoader
 {
 public:
@@ -38,4 +37,4 @@ private:
   bool m_bInvalidated = false;
 };
 
-}
+} // namespace PVR

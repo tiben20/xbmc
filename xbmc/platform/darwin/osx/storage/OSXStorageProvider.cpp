@@ -31,7 +31,7 @@ COSXStorageProvider::COSXStorageProvider()
   PumpDriveChangeEvents(NULL);
 }
 
-void COSXStorageProvider::GetLocalDrives(VECSOURCES& localDrives)
+void COSXStorageProvider::GetLocalDrives(std::vector<CMediaSource>& localDrives)
 {
   CMediaSource share;
 
@@ -93,7 +93,7 @@ void COSXStorageProvider::GetLocalDrives(VECSOURCES& localDrives)
   }
 }
 
-void COSXStorageProvider::GetRemovableDrives(VECSOURCES& removableDrives)
+void COSXStorageProvider::GetRemovableDrives(std::vector<CMediaSource>& removableDrives)
 {
   DASessionRef session = DASessionCreate(kCFAllocatorDefault);
   if (session)
@@ -119,7 +119,7 @@ void COSXStorageProvider::GetRemovableDrives(VECSOURCES& removableDrives)
             CMediaSource share;
 
             share.strPath = mountpoint;
-            share.m_iDriveType = CMediaSource::SOURCE_TYPE_REMOVABLE;
+            share.m_iDriveType = SourceType::REMOVABLE;
             Cocoa_GetVolumeNameFromMountPoint(mountpoint, share.strName);
             share.m_ignore = true;
             // detect if its a cd or dvd
@@ -131,7 +131,7 @@ void COSXStorageProvider::GetRemovableDrives(VECSOURCES& removableDrives)
               if (mediaKind != NULL &&
                   (CFStringCompare(mediaKind, CFSTR(kIOCDMediaClass), 0) == kCFCompareEqualTo ||
                   CFStringCompare(mediaKind, CFSTR(kIODVDMediaClass), 0) == kCFCompareEqualTo))
-                share.m_iDriveType = CMediaSource::SOURCE_TYPE_DVD;
+                share.m_iDriveType = SourceType::OPTICAL_DISC;
             }
             removableDrives.push_back(share);
           }

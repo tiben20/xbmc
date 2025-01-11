@@ -19,7 +19,11 @@
 #include "addons/AddonSystemSettings.h"
 #include "dialogs/GUIDialogYesNo.h"
 #include "filesystem/MusicDatabaseDirectory.h"
+#include "filesystem/MusicDatabaseDirectory/DirectoryNode.h"
+#include "filesystem/MusicDatabaseDirectory/QueryParams.h"
 #include "filesystem/VideoDatabaseDirectory.h"
+#include "filesystem/VideoDatabaseDirectory/DirectoryNode.h"
+#include "filesystem/VideoDatabaseDirectory/QueryParams.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIEditControl.h"
 #include "guilib/GUIKeyboardFactory.h"
@@ -394,35 +398,35 @@ bool CGUIWindowMusicNav::GetDirectory(const std::string &strDirectory, CFileItem
   if (StringUtils::StartsWithNoCase(strDirectory, "videodb://") || VIDEO::IsVideoDb(items))
   {
     CVideoDatabaseDirectory dir;
-    VIDEODATABASEDIRECTORY::NODE_TYPE node = dir.GetDirectoryChildType(items.GetPath());
+    const auto node = dir.GetDirectoryChildType(items.GetPath());
     switch (node)
     {
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_TITLE_MUSICVIDEOS:
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_RECENTLY_ADDED_MUSICVIDEOS:
+      case VIDEODATABASEDIRECTORY::NodeType::TITLE_MUSICVIDEOS:
+      case VIDEODATABASEDIRECTORY::NodeType::RECENTLY_ADDED_MUSICVIDEOS:
         items.SetContent("musicvideos");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_GENRE:
+      case VIDEODATABASEDIRECTORY::NodeType::GENRE:
         items.SetContent("genres");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_COUNTRY:
+      case VIDEODATABASEDIRECTORY::NodeType::COUNTRY:
         items.SetContent("countries");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_ACTOR:
+      case VIDEODATABASEDIRECTORY::NodeType::ACTOR:
         items.SetContent("artists");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_DIRECTOR:
+      case VIDEODATABASEDIRECTORY::NodeType::DIRECTOR:
         items.SetContent("directors");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_STUDIO:
+      case VIDEODATABASEDIRECTORY::NodeType::STUDIO:
         items.SetContent("studios");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_YEAR:
+      case VIDEODATABASEDIRECTORY::NodeType::YEAR:
         items.SetContent("years");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_MUSICVIDEOS_ALBUM:
+      case VIDEODATABASEDIRECTORY::NodeType::MUSICVIDEOS_ALBUM:
         items.SetContent("albums");
         break;
-      case VIDEODATABASEDIRECTORY::NODE_TYPE_TAGS:
+      case VIDEODATABASEDIRECTORY::NodeType::TAGS:
         items.SetContent("tags");
         break;
       default:
@@ -433,37 +437,37 @@ bool CGUIWindowMusicNav::GetDirectory(const std::string &strDirectory, CFileItem
   else if (StringUtils::StartsWithNoCase(strDirectory, "musicdb://") || MUSIC::IsMusicDb(items))
   {
     CMusicDatabaseDirectory dir;
-    NODE_TYPE node = dir.GetDirectoryChildType(items.GetPath());
+    NodeType node = dir.GetDirectoryChildType(items.GetPath());
     switch (node)
     {
-      case NODE_TYPE_ALBUM:
-      case NODE_TYPE_ALBUM_RECENTLY_ADDED:
-      case NODE_TYPE_ALBUM_RECENTLY_PLAYED:
-      case NODE_TYPE_ALBUM_TOP100:
-      case NODE_TYPE_DISC: // ! @todo: own content type "discs"??
+      case NodeType::ALBUM:
+      case NodeType::ALBUM_RECENTLY_ADDED:
+      case NodeType::ALBUM_RECENTLY_PLAYED:
+      case NodeType::ALBUM_TOP100:
+      case NodeType::DISC: // ! @todo: own content type "discs"??
         items.SetContent("albums");
         break;
-      case NODE_TYPE_ARTIST:
+      case NodeType::ARTIST:
         items.SetContent("artists");
         break;
-      case NODE_TYPE_SONG:
-      case NODE_TYPE_SONG_TOP100:
-      case NODE_TYPE_SINGLES:
-      case NODE_TYPE_ALBUM_RECENTLY_ADDED_SONGS:
-      case NODE_TYPE_ALBUM_RECENTLY_PLAYED_SONGS:
-      case NODE_TYPE_ALBUM_TOP100_SONGS:
+      case NodeType::SONG:
+      case NodeType::SONG_TOP100:
+      case NodeType::SINGLES:
+      case NodeType::ALBUM_RECENTLY_ADDED_SONGS:
+      case NodeType::ALBUM_RECENTLY_PLAYED_SONGS:
+      case NodeType::ALBUM_TOP100_SONGS:
         items.SetContent("songs");
         break;
-      case NODE_TYPE_GENRE:
+      case NodeType::GENRE:
         items.SetContent("genres");
         break;
-      case NODE_TYPE_SOURCE:
+      case NodeType::SOURCE:
         items.SetContent("sources");
         break;
-      case NODE_TYPE_ROLE:
+      case NodeType::ROLE:
         items.SetContent("roles");
         break;
-      case NODE_TYPE_YEAR:
+      case NodeType::YEAR:
         items.SetContent("years");
         break;
       default:
@@ -642,11 +646,9 @@ void CGUIWindowMusicNav::GetContextButtons(int itemNumber, CContextButtons &butt
             buttons.Add(CONTEXT_BUTTON_INFO_ALL, 21884);
 
           //Set default or clear default
-          NODE_TYPE nodetype = dir.GetDirectoryType(item->GetPath());
-          if (!inPlaylists &&
-             (nodetype == NODE_TYPE_ROOT ||
-              nodetype == NODE_TYPE_OVERVIEW ||
-              nodetype == NODE_TYPE_TOP100))
+          NodeType nodetype = dir.GetDirectoryType(item->GetPath());
+          if (!inPlaylists && (nodetype == NodeType::ROOT || nodetype == NodeType::OVERVIEW ||
+                               nodetype == NodeType::TOP100))
           {
             const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
             if (!item->IsPath(settings->GetString(CSettings::SETTING_MYMUSIC_DEFAULTLIBVIEW)))
@@ -826,9 +828,7 @@ bool CGUIWindowMusicNav::OnContextButton(int itemNumber, CONTEXT_BUTTON button)
     if (PLAYLIST::IsPlayList(*item) || PLAYLIST::IsSmartPlayList(*item))
     {
       item->m_bIsFolder = false;
-      CGUIComponent *gui = CServiceBroker::GetGUI();
-      if (gui && gui->ConfirmDelete(item->GetPath()))
-        CFileUtils::DeleteItem(item);
+      CFileUtils::DeleteItemWithConfirm(item);
     }
     else if (!VIDEO::IsVideoDb(*item))
       OnDeleteItem(itemNumber);
@@ -921,10 +921,10 @@ void CGUIWindowMusicNav::AddSearchFolder()
   if (viewState)
   {
     // add our remove the musicsearch source
-    VECSOURCES &sources = viewState->GetSources();
+    std::vector<CMediaSource>& sources = viewState->GetSources();
     bool haveSearchSource = false;
     bool needSearchSource = !GetProperty("search").empty() || !m_searchWithEdit; // we always need it if we don't have the edit control
-    for (IVECSOURCES it = sources.begin(); it != sources.end(); ++it)
+    for (std::vector<CMediaSource>::iterator it = sources.begin(); it != sources.end(); ++it)
     {
       CMediaSource& share = *it;
       if (share.strPath == "musicsearch://")
@@ -943,7 +943,7 @@ void CGUIWindowMusicNav::AddSearchFolder()
       CMediaSource share;
       share.strName=g_localizeStrings.Get(137); // Search
       share.strPath = "musicsearch://";
-      share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
+      share.m_iDriveType = SourceType::LOCAL;
       sources.push_back(share);
     }
     m_rootDir.SetSources(sources);

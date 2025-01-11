@@ -158,7 +158,7 @@ std::string GetHomePath(const std::string& strTarget, std::string strPath)
   strPath = CUtil::ResolveExecutablePath();
   auto last_sep = strPath.find_last_of(PATH_SEPARATOR_CHAR);
   if (last_sep != std::string::npos)
-      strPath = strPath.substr(0, last_sep);
+    strPath.resize(last_sep);
 
   g_charsetConverter.utf8ToW(strPath, strPathW);
   if (IsDirectoryValidRoot(strPathW))
@@ -1015,13 +1015,13 @@ bool CUtil::CreateDirectoryEx(const std::string& strPath)
   return CDirectory::Exists(strPath);
 }
 
-std::string CUtil::MakeLegalFileName(std::string strFile, int LegalType)
+std::string CUtil::MakeLegalFileName(std::string strFile, LegalPath LegalType)
 {
   StringUtils::Replace(strFile, '/', '_');
   StringUtils::Replace(strFile, '\\', '_');
   StringUtils::Replace(strFile, '?', '_');
 
-  if (LegalType == LEGAL_WIN32_COMPAT)
+  if (LegalType == LegalPath::WIN32_COMPAT)
   {
     // just filter out some illegal characters on windows
     StringUtils::Replace(strFile, ':', '_');
@@ -1037,7 +1037,7 @@ std::string CUtil::MakeLegalFileName(std::string strFile, int LegalType)
 }
 
 // legalize entire path
-std::string CUtil::MakeLegalPath(std::string strPathAndFile, int LegalType)
+std::string CUtil::MakeLegalPath(std::string strPathAndFile, LegalPath LegalType)
 {
   if (URIUtils::IsStack(strPathAndFile))
     return MakeLegalPath(CStackDirectory::GetFirstStackedFile(strPathAndFile));
@@ -1214,7 +1214,9 @@ void CUtil::SplitParams(const std::string &paramString, std::vector<std::string>
     parameters.push_back(parameter);
 }
 
-int CUtil::GetMatchingSource(const std::string& strPath1, VECSOURCES& VECSOURCES, bool& bIsSourceName)
+int CUtil::GetMatchingSource(const std::string& strPath1,
+                             std::vector<CMediaSource>& sources,
+                             bool& bIsSourceName)
 {
   if (strPath1.empty())
     return -1;
@@ -1245,9 +1247,9 @@ int CUtil::GetMatchingSource(const std::string& strPath1, VECSOURCES& VECSOURCES
   int iIndex = -1;
 
   // we first test the NAME of a source
-  for (int i = 0; i < (int)VECSOURCES.size(); ++i)
+  for (int i = 0; i < static_cast<int>(sources.size()); ++i)
   {
-    const CMediaSource &share = VECSOURCES[i];
+    const CMediaSource& share = sources[i];
     std::string strName = share.strName;
 
     // special cases for dvds
@@ -1284,9 +1286,9 @@ int CUtil::GetMatchingSource(const std::string& strPath1, VECSOURCES& VECSOURCES
 
   size_t iLength = 0;
   size_t iLenPath = strDest.size();
-  for (int i = 0; i < (int)VECSOURCES.size(); ++i)
+  for (int i = 0; i < static_cast<int>(sources.size()); ++i)
   {
-    const CMediaSource &share = VECSOURCES[i];
+    const CMediaSource& share = sources[i];
 
     // does it match a source name?
     if (share.strPath.substr(0,8) == "shout://")
@@ -1351,7 +1353,7 @@ int CUtil::GetMatchingSource(const std::string& strPath1, VECSOURCES& VECSOURCES
 
       bIsSourceName = false;
       bool bDummy;
-      return GetMatchingSource(strPath, VECSOURCES, bDummy);
+      return GetMatchingSource(strPath, sources, bDummy);
     }
 
     CLog::Log(LOGDEBUG, "CUtil::GetMatchingSource: no matching source found for [{}]", strPath1);
@@ -2058,7 +2060,7 @@ void CUtil::ScanForExternalSubtitles(const std::string& strMovie, std::vector<st
 
   CFileItem item(strMovie, false);
   if ((NETWORK::IsInternetStream(item) && !URIUtils::IsOnLAN(item.GetDynPath())) ||
-      PLAYLIST::IsPlayList(item) || item.IsLiveTV() || !VIDEO::IsVideo(item))
+      PLAYLIST::IsPlayList(item) || item.IsPVR() || !VIDEO::IsVideo(item))
     return;
 
   CLog::Log(LOGDEBUG, "{}: Searching for subtitles...", __FUNCTION__);
@@ -2198,6 +2200,16 @@ ExternalStreamInfo CUtil::GetExternalStreamDetailsFromFilename(const std::string
       else if (!flag_tmp.compare("forced"))
       {
         info.flag |= StreamFlags::FLAG_FORCED;
+        continue;
+      }
+      else if (!flag_tmp.compare("original"))
+      {
+        info.flag |= StreamFlags::FLAG_ORIGINAL;
+        continue;
+      }
+      else if (!flag_tmp.compare("impaired"))
+      {
+        info.flag |= StreamFlags::FLAG_HEARING_IMPAIRED;
         continue;
       }
 

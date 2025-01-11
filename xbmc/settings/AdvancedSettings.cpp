@@ -129,7 +129,6 @@ void CAdvancedSettings::Initialize()
     return;
 
   m_audioApplyDrc = -1.0f;
-  m_VideoPlayerIgnoreDTSinWAV = false;
 
   //default hold time of 25 ms, this allows a 20 hertz sine to pass undistorted
   m_limiterHold = 0.025f;
@@ -141,7 +140,9 @@ void CAdvancedSettings::Initialize()
   m_audioPlayCountMinimumPercent = 90.0f;
 
   m_videoSubsDelayRange = 60;
+  m_videoSubsDelayStep = 0.1f;
   m_videoAudioDelayRange = 10;
+  m_videoAudioDelayStep = 0.025f;
   m_videoUseTimeSeeking = true;
   m_videoTimeSeekForward = 30;
   m_videoTimeSeekBackward = -30;
@@ -592,7 +593,6 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
       GetCustomRegexps(pAudioExcludes, m_audioExcludeFromScanRegExps);
 
     XMLUtils::GetFloat(pElement, "applydrc", m_audioApplyDrc);
-    XMLUtils::GetBoolean(pElement, "VideoPlayerignoredtsinwav", m_VideoPlayerIgnoreDTSinWAV);
 
     XMLUtils::GetFloat(pElement, "limiterhold", m_limiterHold, 0.0f, 100.0f);
     XMLUtils::GetFloat(pElement, "limiterrelease", m_limiterRelease, 0.001f, 100.0f);
@@ -615,7 +615,9 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetString(pElement, "stereoscopicregexsbs", m_stereoscopicregex_sbs);
     XMLUtils::GetString(pElement, "stereoscopicregextab", m_stereoscopicregex_tab);
     XMLUtils::GetFloat(pElement, "subsdelayrange", m_videoSubsDelayRange, 10, 600);
+    XMLUtils::GetFloat(pElement, "subsdelaystep", m_videoSubsDelayStep, 0, 1.0f);
     XMLUtils::GetFloat(pElement, "audiodelayrange", m_videoAudioDelayRange, 10, 600);
+    XMLUtils::GetFloat(pElement, "audiodelaystep", m_videoAudioDelayStep, 0, 1.0f);
     XMLUtils::GetString(pElement, "defaultplayer", m_videoDefaultPlayer);
     XMLUtils::GetBoolean(pElement, "fullscreenonmoviestart", m_fullScreenOnMovieStart);
     // 101 on purpose - can be used to never automark as watched
@@ -659,6 +661,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetInt(pElement, "useocclusionquery", m_videoCaptureUseOcclusionQuery, -1, 1);
     XMLUtils::GetBoolean(pElement,"vdpauInvTelecine",m_videoVDPAUtelecine);
     XMLUtils::GetBoolean(pElement,"vdpauHDdeintSkipChroma",m_videoVDPAUdeintSkipChromaHD);
+    XMLUtils::GetBoolean(pElement, "bypasscodecprofile", m_videoBypassCodecProfile);
 
     TiXmlElement* pAdjustRefreshrate = pElement->FirstChildElement("adjustrefreshrate");
     if (pAdjustRefreshrate)
@@ -1150,7 +1153,8 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
     XMLUtils::GetInt(pPVR, "infotoggleinterval", m_iPVRInfoToggleInterval, 0, 30000);
     XMLUtils::GetBoolean(pPVR, "channeliconsautoscan", m_bPVRChannelIconsAutoScan);
     XMLUtils::GetBoolean(pPVR, "autoscaniconsuserset", m_bPVRAutoScanIconsUserSet);
-    XMLUtils::GetInt(pPVR, "numericchannelswitchtimeout", m_iPVRNumericChannelSwitchTimeout, 50, 60000);
+    XMLUtils::GetUInt(pPVR, "numericchannelswitchtimeout", m_iPVRNumericChannelSwitchTimeout, 50,
+                      60000);
     XMLUtils::GetInt(pPVR, "timeshiftthreshold", m_iPVRTimeshiftThreshold, 0, 60);
     XMLUtils::GetBoolean(pPVR, "timeshiftsimpleosd", m_bPVRTimeshiftSimpleOSD);
     TiXmlElement* pSortDecription = pPVR->FirstChildElement("pvrrecordings");

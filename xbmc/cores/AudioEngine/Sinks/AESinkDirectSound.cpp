@@ -19,14 +19,12 @@
 #include "utils/log.h"
 
 #include "platform/win32/CharsetConverter.h"
+#include "platform/win32/WIN32Util.h"
 
 #include <algorithm>
-#include <list>
 #include <mutex>
 
-#include <Audioclient.h>
 #include <Mmreg.h>
-#include <Rpc.h>
 #include <initguid.h>
 
 // include order is important here
@@ -35,47 +33,29 @@
 #include <Functiondiscoverykeys_devpkey.h>
 // clang-format on
 
-#pragma comment(lib, "Rpcrt4.lib")
-
 extern HWND g_hWnd;
 
 DEFINE_GUID( _KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, WAVE_FORMAT_IEEE_FLOAT, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 );
 DEFINE_GUID( _KSDATAFORMAT_SUBTYPE_DOLBY_AC3_SPDIF, WAVE_FORMAT_DOLBY_AC3_SPDIF, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 );
 
-extern const char *WASAPIErrToStr(HRESULT err);
 #define EXIT_ON_FAILURE(hr, reason) \
   if (FAILED(hr)) \
   { \
-    CLog::LogF(LOGERROR, reason " - HRESULT = {} ErrorMessage = {}", hr, WASAPIErrToStr(hr)); \
+    CLog::LogF(LOGERROR, reason " - error {}", hr, CWIN32Util::FormatHRESULT(hr)); \
     goto failed; \
   }
 
-#define DS_SPEAKER_COUNT 8
-static const unsigned int DSChannelOrder[] = {SPEAKER_FRONT_LEFT, SPEAKER_FRONT_RIGHT, SPEAKER_FRONT_CENTER, SPEAKER_LOW_FREQUENCY, SPEAKER_BACK_LEFT, SPEAKER_BACK_RIGHT, SPEAKER_SIDE_LEFT, SPEAKER_SIDE_RIGHT};
-static const enum AEChannel AEChannelNamesDS[] = {AE_CH_FL, AE_CH_FR, AE_CH_FC, AE_CH_LFE, AE_CH_BL, AE_CH_BR, AE_CH_SL, AE_CH_SR, AE_CH_NULL};
+namespace
+{
+constexpr unsigned int DS_SPEAKER_COUNT = 8U;
+constexpr unsigned int DSChannelOrder[] = {
+    SPEAKER_FRONT_LEFT, SPEAKER_FRONT_RIGHT, SPEAKER_FRONT_CENTER, SPEAKER_LOW_FREQUENCY,
+    SPEAKER_BACK_LEFT,  SPEAKER_BACK_RIGHT,  SPEAKER_SIDE_LEFT,    SPEAKER_SIDE_RIGHT};
+constexpr enum AEChannel AEChannelNamesDS[] = {AE_CH_FL, AE_CH_FR, AE_CH_FC, AE_CH_LFE, AE_CH_BL,
+                                               AE_CH_BR, AE_CH_SL, AE_CH_SR, AE_CH_NULL};
+} // namespace
 
 using namespace Microsoft::WRL;
-
-struct DSDevice
-{
-  std::string name;
-  LPGUID     lpGuid;
-};
-
-static BOOL CALLBACK DSEnumCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule, LPVOID lpContext)
-{
-  DSDevice dev;
-  std::list<DSDevice> &enumerator = *static_cast<std::list<DSDevice>*>(lpContext);
-
-  dev.name = KODI::PLATFORM::WINDOWS::FromW(lpcstrDescription);
-
-  dev.lpGuid = lpGuid;
-
-  if (lpGuid)
-    enumerator.push_back(dev);
-
-  return TRUE;
-}
 
 CAESinkDirectSound::CAESinkDirectSound() :
   m_pBuffer       (nullptr),
@@ -119,53 +99,57 @@ std::unique_ptr<IAESink> CAESinkDirectSound::Create(std::string& device,
   return {};
 }
 
-bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
+bool CAESinkDirectSound::Initialize(AEAudioFormat& format, std::string& device)
 {
   if (m_initialized)
     return false;
 
-  LPGUID deviceGUID = nullptr;
-  RPC_WSTR wszUuid  = nullptr;
+  bool deviceIsBluetooth = false;
+  GUID deviceGUID = {};
   HRESULT hr = E_FAIL;
   std::string strDeviceGUID = device;
-  std::list<DSDevice> DSDeviceList;
-  std::string deviceFriendlyName;
-  DirectSoundEnumerate(DSEnumCallback, &DSDeviceList);
+  std::string deviceFriendlyName = "unknown";
 
-  if(StringUtils::EndsWithNoCase(device, std::string("default")))
-    strDeviceGUID = GetDefaultDevice();
+  if (StringUtils::EndsWithNoCase(device, "default"))
+    strDeviceGUID = CAESinkFactoryWin::GetDefaultDeviceId();
 
-  for (std::list<DSDevice>::iterator itt = DSDeviceList.begin(); itt != DSDeviceList.end(); ++itt)
+  hr = CLSIDFromString(KODI::PLATFORM::WINDOWS::ToW(strDeviceGUID).c_str(), &deviceGUID);
+  if (FAILED(hr))
+    CLog::LogF(LOGERROR, "Failed to convert the device '{}' to a GUID, with error {}.",
+               strDeviceGUID, CWIN32Util::FormatHRESULT(hr));
+
+  for (const auto& detail : CAESinkFactoryWin::GetRendererDetails())
   {
-    if ((*itt).lpGuid)
+    if (StringUtils::CompareNoCase(detail.strDeviceId, strDeviceGUID) != 0)
+      continue;
+
+    if (detail.strDeviceEnumerator == "BTHENUM")
     {
-      hr = (UuidToString((*itt).lpGuid, &wszUuid));
-      std::string sztmp = KODI::PLATFORM::WINDOWS::FromW(reinterpret_cast<wchar_t*>(wszUuid));
-      std::string szGUID = "{" + std::string(sztmp.begin(), sztmp.end()) + "}";
-      if (StringUtils::CompareNoCase(szGUID, strDeviceGUID) == 0)
-      {
-        deviceGUID = (*itt).lpGuid;
-        deviceFriendlyName = (*itt).name.c_str();
-        break;
-      }
+      deviceIsBluetooth = true;
+      CLog::LogF(LOGDEBUG, "Audio device '{}' is detected as Bluetooth device", deviceFriendlyName);
     }
-    if (hr == RPC_S_OK) RpcStringFree(&wszUuid);
+
+    deviceFriendlyName = detail.strDescription;
+
+    break;
   }
 
-  hr = DirectSoundCreate(deviceGUID, m_pDSound.ReleaseAndGetAddressOf(), nullptr);
+  hr = DirectSoundCreate(&deviceGUID, m_pDSound.ReleaseAndGetAddressOf(), nullptr);
 
   if (FAILED(hr))
   {
     CLog::LogF(
         LOGERROR,
         "Failed to create the DirectSound device {} with error {}, trying the default device.",
-        deviceFriendlyName, dserr2str(hr));
+        deviceFriendlyName, CWIN32Util::FormatHRESULT(hr));
+
+    deviceFriendlyName = "default";
 
     hr = DirectSoundCreate(nullptr, m_pDSound.ReleaseAndGetAddressOf(), nullptr);
     if (FAILED(hr))
     {
       CLog::LogF(LOGERROR, "Failed to create the default DirectSound device with error {}.",
-                 dserr2str(hr));
+                 CWIN32Util::FormatHRESULT(hr));
       return false;
     }
   }
@@ -178,8 +162,8 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
 
   if (FAILED(hr))
   {
-    CLog::LogF(LOGERROR, "Failed to create the DirectSound device cooperative level.");
-    CLog::LogF(LOGERROR, "DSErr: {}", dserr2str(hr));
+    CLog::LogF(LOGERROR, "Failed to create the DirectSound device cooperative level with error {}.",
+               CWIN32Util::FormatHRESULT(hr));
     m_pDSound = nullptr;
     return false;
   }
@@ -218,10 +202,13 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
 
   m_AvgBytesPerSec = wfxex.Format.nAvgBytesPerSec;
 
-  const unsigned int uiFrameCount = static_cast<int>(format.m_sampleRate * 0.050); // 50ms chunks
+  const unsigned int chunkDurationMs = deviceIsBluetooth ? 50 : 20;
+  const unsigned int uiFrameCount = format.m_sampleRate * chunkDurationMs / 1000U;
   m_dwFrameSize = wfxex.Format.nBlockAlign;
   m_dwChunkSize = m_dwFrameSize * uiFrameCount;
-  m_dwBufferLen = m_dwChunkSize * 8; // 400ms total buffer
+
+  // BT: 500ms total buffer (50 * 10); non-BT: 200ms total buffer (20 * 10)
+  m_dwBufferLen = m_dwChunkSize * 10;
 
   // fill in the secondary sound buffer descriptor
   DSBUFFERDESC dsbdesc = {};
@@ -240,7 +227,7 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
     if (dsbdesc.dwFlags & DSBCAPS_LOCHARDWARE)
     {
       CLog::LogF(LOGDEBUG, "Couldn't create secondary buffer ({}). Trying without LOCHARDWARE.",
-                 dserr2str(res));
+                 CWIN32Util::FormatHRESULT(res));
       // Try without DSBCAPS_LOCHARDWARE
       dsbdesc.dwFlags &= ~DSBCAPS_LOCHARDWARE;
       res = m_pDSound->CreateSoundBuffer(&dsbdesc, m_pBuffer.ReleaseAndGetAddressOf(), nullptr);
@@ -248,7 +235,7 @@ bool CAESinkDirectSound::Initialize(AEAudioFormat &format, std::string &device)
     if (res != DS_OK)
     {
       m_pBuffer = nullptr;
-      CLog::LogF(LOGERROR, "cannot create secondary buffer ({})", dserr2str(res));
+      CLog::LogF(LOGERROR, "cannot create secondary buffer ({})", CWIN32Util::FormatHRESULT(res));
       return false;
     }
   }
@@ -432,122 +419,43 @@ double CAESinkDirectSound::GetCacheTotal()
 
 void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bool force)
 {
-  CAEDeviceInfo        deviceInfo;
+  CAEDeviceInfo deviceInfo{};
 
-  ComPtr<IMMDeviceEnumerator> pEnumerator = nullptr;
-  ComPtr<IMMDeviceCollection> pEnumDevices = nullptr;
-  UINT uiCount = 0;
-
-  HRESULT                hr;
-
-  std::string strDD = GetDefaultDevice();
-
-  /* Windows Vista or later - supporting WASAPI device probing */
-  hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(pEnumerator.GetAddressOf()));
-  EXIT_ON_FAILURE(hr, "Could not allocate WASAPI device enumerator.")
-
-  hr = pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, pEnumDevices.GetAddressOf());
-  EXIT_ON_FAILURE(hr, "Retrieval of audio endpoint enumeration failed.")
-
-  hr = pEnumDevices->GetCount(&uiCount);
-  EXIT_ON_FAILURE(hr, "Retrieval of audio endpoint count failed.")
-
-  for (UINT i = 0; i < uiCount; i++)
+  for (RendererDetail& detail : CAESinkFactoryWin::GetRendererDetails())
   {
-    ComPtr<IMMDevice> pDevice = nullptr;
-    ComPtr<IPropertyStore> pProperty = nullptr;
-    PROPVARIANT varName;
-    PropVariantInit(&varName);
-
     deviceInfo.m_channels.Reset();
     deviceInfo.m_dataFormats.clear();
     deviceInfo.m_sampleRates.clear();
+    deviceInfo.m_streamTypes.clear();
 
-    hr = pEnumDevices->Item(i, pDevice.GetAddressOf());
-    if (FAILED(hr))
+    if (detail.nChannels)
+      deviceInfo.m_channels =
+          layoutsByChCount[std::max(std::min(detail.nChannels, DS_SPEAKER_COUNT), 2U)];
+    deviceInfo.m_dataFormats.push_back(AEDataFormat(AE_FMT_FLOAT));
+
+    if (detail.eDeviceType != AE_DEVTYPE_PCM)
     {
-      CLog::LogF(LOGERROR, "Retrieval of DirectSound endpoint failed.");
-      goto failed;
+      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_AC3);
+      // DTS is played with the same infrastructure as AC3
+      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTSHD_CORE);
+      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_1024);
+      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_2048);
+      deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_512);
+      // signal that we can doe AE_FMT_RAW
+      deviceInfo.m_dataFormats.push_back(AE_FMT_RAW);
     }
 
-    hr = pDevice->OpenPropertyStore(STGM_READ, pProperty.GetAddressOf());
-    if (FAILED(hr))
-    {
-      CLog::LogF(LOGERROR, "Retrieval of DirectSound endpoint properties failed.");
-      goto failed;
-    }
-
-    hr = pProperty->GetValue(PKEY_Device_FriendlyName, &varName);
-    if (FAILED(hr))
-    {
-      CLog::LogF(LOGERROR, "Retrieval of DirectSound endpoint device name failed.");
-      goto failed;
-    }
-
-    std::string strFriendlyName = KODI::PLATFORM::WINDOWS::FromW(varName.pwszVal);
-    PropVariantClear(&varName);
-
-    hr = pProperty->GetValue(PKEY_AudioEndpoint_GUID, &varName);
-    if (FAILED(hr))
-    {
-      CLog::LogF(LOGERROR, "Retrieval of DirectSound endpoint GUID failed.");
-      goto failed;
-    }
-
-    std::string strDevName = KODI::PLATFORM::WINDOWS::FromW(varName.pwszVal);
-    PropVariantClear(&varName);
-
-    hr = pProperty->GetValue(PKEY_AudioEndpoint_FormFactor, &varName);
-    if (FAILED(hr))
-    {
-      CLog::LogF(LOGERROR, "Retrieval of DirectSound endpoint form factor failed.");
-      goto failed;
-    }
-    std::string strWinDevType = winEndpoints[(EndpointFormFactor)varName.uiVal].winEndpointType;
-    AEDeviceType aeDeviceType = winEndpoints[(EndpointFormFactor)varName.uiVal].aeDeviceType;
-
-    PropVariantClear(&varName);
-
-    /* In shared mode Windows tells us what format the audio must be in. */
-    ComPtr<IAudioClient> pClient;
-    hr = pDevice->Activate(IID_IAudioClient, CLSCTX_ALL, nullptr, reinterpret_cast<void**>(pClient.GetAddressOf()));
-    EXIT_ON_FAILURE(hr, "Activate device failed.")
-
-    //hr = pClient->GetMixFormat(&pwfxex);
-    hr = pProperty->GetValue(PKEY_AudioEngine_DeviceFormat, &varName);
-    if (SUCCEEDED(hr) && varName.blob.cbSize > 0)
-    {
-      WAVEFORMATEX* smpwfxex = (WAVEFORMATEX*)varName.blob.pBlobData;
-      deviceInfo.m_channels = layoutsByChCount[std::max(std::min(smpwfxex->nChannels, (WORD) DS_SPEAKER_COUNT), (WORD) 2)];
-      deviceInfo.m_dataFormats.push_back(AEDataFormat(AE_FMT_FLOAT));
-      if (aeDeviceType != AE_DEVTYPE_PCM)
-      {
-        deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_AC3);
-        // DTS is played with the same infrastructure as AC3
-        deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTSHD_CORE);
-        deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_1024);
-        deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_2048);
-        deviceInfo.m_streamTypes.push_back(CAEStreamInfo::STREAM_TYPE_DTS_512);
-        // signal that we can doe AE_FMT_RAW
-        deviceInfo.m_dataFormats.push_back(AE_FMT_RAW);
-      }
-      deviceInfo.m_sampleRates.push_back(std::min(smpwfxex->nSamplesPerSec, (DWORD) 192000));
-    }
-    else
-    {
-      CLog::LogF(LOGERROR, "Getting DeviceFormat failed ({})", WASAPIErrToStr(hr));
-    }
-
-    deviceInfo.m_deviceName       = strDevName;
-    deviceInfo.m_displayName      = strWinDevType.append(strFriendlyName);
-    deviceInfo.m_displayNameExtra = std::string("DIRECTSOUND: ").append(strFriendlyName);
-    deviceInfo.m_deviceType       = aeDeviceType;
-
+    if (detail.m_samplesPerSec)
+      deviceInfo.m_sampleRates.push_back(std::min(detail.m_samplesPerSec, 192000UL));
+    deviceInfo.m_deviceName = detail.strDeviceId;
+    deviceInfo.m_displayName = detail.strWinDevType.append(detail.strDescription);
+    deviceInfo.m_displayNameExtra = std::string("DIRECTSOUND: ").append(detail.strDescription);
+    deviceInfo.m_deviceType = detail.eDeviceType;
     deviceInfo.m_wantsIECPassthrough = true;
     deviceInfoList.push_back(deviceInfo);
 
     // add the default device with m_deviceName = default
-    if(strDD == strDevName)
+    if (detail.bDefault)
     {
       deviceInfo.m_deviceName = std::string("default");
       deviceInfo.m_displayName = std::string("default");
@@ -556,13 +464,6 @@ void CAESinkDirectSound::EnumerateDevicesEx(AEDeviceInfoList &deviceInfoList, bo
       deviceInfoList.push_back(deviceInfo);
     }
   }
-
-  return;
-
-failed:
-
-  if (FAILED(hr))
-    CLog::LogF(LOGERROR, "Failed to enumerate WASAPI endpoint devices ({}).", WASAPIErrToStr(hr));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -576,12 +477,14 @@ void CAESinkDirectSound::CheckPlayStatus()
     return;
   }
 
-  if (!(status & DSBSTATUS_PLAYING) && m_CacheLen != 0) // If we have some data, see if we can start playback
+  if (!(status & DSBSTATUS_PLAYING) &&
+      m_CacheLen != 0) // If we have some data, see if we can start playback
   {
     HRESULT hr = m_pBuffer->Play(0, 0, DSBPLAY_LOOPING);
     CLog::LogF(LOGDEBUG, "Resuming Playback");
     if (FAILED(hr))
-      CLog::LogF(LOGERROR, "Failed to play the DirectSound buffer: {}", dserr2str(hr));
+      CLog::LogF(LOGERROR, "Failed to play the DirectSound buffer: {}",
+                 CWIN32Util::FormatHRESULT(hr));
   }
 }
 
@@ -593,9 +496,8 @@ bool CAESinkDirectSound::UpdateCacheStatus()
   HRESULT res = m_pBuffer->GetCurrentPosition(&playCursor, &writeCursor); // Get the current playback and safe write positions
   if (DS_OK != res)
   {
-    CLog::LogF(LOGERROR,
-               "GetCurrentPosition failed. Unable to determine buffer status. HRESULT = {:#08x}",
-               res);
+    CLog::LogF(LOGERROR, "GetCurrentPosition failed. Unable to determine buffer status ({})",
+               CWIN32Util::FormatHRESULT(res));
     m_isDirtyDS = true;
     return false;
   }
@@ -685,74 +587,4 @@ DWORD CAESinkDirectSound::SpeakerMaskFromAEChannels(const CAEChannelInfo &channe
   }
 
   return mask;
-}
-
-const char *CAESinkDirectSound::dserr2str(int err)
-{
-  switch (err)
-  {
-    case DS_OK: return "DS_OK";
-    case DS_NO_VIRTUALIZATION: return "DS_NO_VIRTUALIZATION";
-    case DSERR_ALLOCATED: return "DS_NO_VIRTUALIZATION";
-    case DSERR_CONTROLUNAVAIL: return "DSERR_CONTROLUNAVAIL";
-    case DSERR_INVALIDPARAM: return "DSERR_INVALIDPARAM";
-    case DSERR_INVALIDCALL: return "DSERR_INVALIDCALL";
-    case DSERR_GENERIC: return "DSERR_GENERIC";
-    case DSERR_PRIOLEVELNEEDED: return "DSERR_PRIOLEVELNEEDED";
-    case DSERR_OUTOFMEMORY: return "DSERR_OUTOFMEMORY";
-    case DSERR_BADFORMAT: return "DSERR_BADFORMAT";
-    case DSERR_UNSUPPORTED: return "DSERR_UNSUPPORTED";
-    case DSERR_NODRIVER: return "DSERR_NODRIVER";
-    case DSERR_ALREADYINITIALIZED: return "DSERR_ALREADYINITIALIZED";
-    case DSERR_NOAGGREGATION: return "DSERR_NOAGGREGATION";
-    case DSERR_BUFFERLOST: return "DSERR_BUFFERLOST";
-    case DSERR_OTHERAPPHASPRIO: return "DSERR_OTHERAPPHASPRIO";
-    case DSERR_UNINITIALIZED: return "DSERR_UNINITIALIZED";
-    case DSERR_NOINTERFACE: return "DSERR_NOINTERFACE";
-    case DSERR_ACCESSDENIED: return "DSERR_ACCESSDENIED";
-    case DSERR_BUFFERTOOSMALL: return "DSERR_BUFFERTOOSMALL";
-    case DSERR_DS8_REQUIRED: return "DSERR_DS8_REQUIRED";
-    case DSERR_SENDLOOP: return "DSERR_SENDLOOP";
-    case DSERR_BADSENDBUFFERGUID: return "DSERR_BADSENDBUFFERGUID";
-    case DSERR_OBJECTNOTFOUND: return "DSERR_OBJECTNOTFOUND";
-    case DSERR_FXUNAVAILABLE: return "DSERR_FXUNAVAILABLE";
-    default: return "unknown";
-  }
-}
-
-std::string CAESinkDirectSound::GetDefaultDevice()
-{
-  HRESULT hr;
-  ComPtr<IMMDeviceEnumerator> pEnumerator = nullptr;
-  ComPtr<IMMDevice> pDevice = nullptr;
-  ComPtr<IPropertyStore> pProperty = nullptr;
-  PROPVARIANT varName;
-  std::string strDevName = "default";
-  AEDeviceType aeDeviceType;
-
-  hr = CoCreateInstance(CLSID_MMDeviceEnumerator, nullptr, CLSCTX_ALL, IID_IMMDeviceEnumerator, reinterpret_cast<void**>(pEnumerator.GetAddressOf()));
-  EXIT_ON_FAILURE(hr, "Could not allocate WASAPI device enumerator")
-
-  hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eMultimedia, pDevice.GetAddressOf());
-  EXIT_ON_FAILURE(hr, "Retrieval of audio endpoint enumeration failed.")
-
-  hr = pDevice->OpenPropertyStore(STGM_READ, pProperty.GetAddressOf());
-  EXIT_ON_FAILURE(hr, "Retrieval of DirectSound endpoint properties failed.")
-
-  PropVariantInit(&varName);
-  hr = pProperty->GetValue(PKEY_AudioEndpoint_FormFactor, &varName);
-  EXIT_ON_FAILURE(hr, "Retrieval of DirectSound endpoint form factor failed.")
-
-  aeDeviceType = winEndpoints[(EndpointFormFactor)varName.uiVal].aeDeviceType;
-  PropVariantClear(&varName);
-
-  hr = pProperty->GetValue(PKEY_AudioEndpoint_GUID, &varName);
-  EXIT_ON_FAILURE(hr, "Retrieval of DirectSound endpoint GUID failed")
-
-  strDevName = KODI::PLATFORM::WINDOWS::FromW(varName.pwszVal);
-  PropVariantClear(&varName);
-
-failed:
-
-  return strDevName;
 }

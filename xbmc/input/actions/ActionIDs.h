@@ -367,6 +367,8 @@ constexpr const int ACTION_MENU = 163;
 
 constexpr const int ACTION_SET_RATING = 164;
 
+constexpr const int ACTION_PREV_SUBTITLE = 165;
+
 constexpr const int ACTION_RECORD = 170;
 
 constexpr const int ACTION_PASTE = 180;
@@ -466,6 +468,15 @@ constexpr const int ACTION_KEYBOARD_COMPOSING_KEY_FINISHED = 265;
 //! Tempo change in current file played. global action, can be used anywhere
 constexpr const int ACTION_PLAYER_INCREASE_TEMPO = 266;
 constexpr const int ACTION_PLAYER_DECREASE_TEMPO = 267;
+
+//! Open the dialog window to select a video stream
+constexpr const int ACTION_DIALOG_SELECT_VIDEO = 270;
+
+//! Open the dialog window to select a audio stream
+constexpr const int ACTION_DIALOG_SELECT_AUDIO = 271;
+
+//! Open the dialog window to select a subtitle stream
+constexpr const int ACTION_DIALOG_SELECT_SUBTITLE = 272;
 
 // Voice actions
 constexpr const int ACTION_VOICE_RECOGNIZE = 300;

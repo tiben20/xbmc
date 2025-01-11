@@ -23,15 +23,12 @@
 #include "guilib/LocalizeStrings.h"
 #include "input/actions/Action.h"
 #include "input/actions/ActionIDs.h"
-#include "playlists/PlayListTypes.h"
-#include "utils/ContentUtils.h"
 #include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/log.h"
 #include "video/VideoManagerTypes.h"
 #include "video/VideoThumbLoader.h"
 #include "video/dialogs/GUIDialogVideoInfo.h"
-#include "video/guilib/VideoGUIUtils.h"
 #include "video/guilib/VideoPlayActionProcessor.h"
 
 #include <algorithm>
@@ -258,56 +255,40 @@ void CGUIDialogVideoManager::CloseAll()
     dialog->Close(true);
 }
 
-namespace
-{
-class CVideoPlayActionProcessor : public VIDEO::GUILIB::CVideoPlayActionProcessorBase
-{
-public:
-  explicit CVideoPlayActionProcessor(const std::shared_ptr<CFileItem>& item)
-    : CVideoPlayActionProcessorBase(item)
-  {
-  }
-
-protected:
-  bool OnResumeSelected() override
-  {
-    m_item->SetStartOffset(STARTOFFSET_RESUME);
-    Play();
-    return true;
-  }
-
-  bool OnPlaySelected() override
-  {
-    Play();
-    return true;
-  }
-
-private:
-  void Play()
-  {
-    m_item->SetProperty("playlist_type_hint", static_cast<int>(PLAYLIST::Id::TYPE_VIDEO));
-    const ContentUtils::PlayMode mode{m_item->GetProperty("CheckAutoPlayNextItem").asBoolean()
-                                          ? ContentUtils::PlayMode::CHECK_AUTO_PLAY_NEXT_ITEM
-                                          : ContentUtils::PlayMode::PLAY_ONLY_THIS};
-    VIDEO::UTILS::PlayItem(m_item, "", mode);
-  }
-};
-} // unnamed namespace
-
 void CGUIDialogVideoManager::Play()
 {
   CloseAll();
 
-  CVideoPlayActionProcessor proc{m_selectedVideoAsset};
+  KODI::VIDEO::GUILIB::CVideoPlayActionProcessor proc{m_selectedVideoAsset};
   proc.ProcessDefaultAction();
 }
 
 void CGUIDialogVideoManager::Remove()
 {
-  // confirm to remove
+  const VideoAssetType assetType = GetVideoAssetType();
+  int titleMsgId;
+  int textMsgId;
+
+  switch (assetType)
+  {
+    case VideoAssetType::VERSION:
+      titleMsgId = 40018;
+      textMsgId = 40020;
+      break;
+    case VideoAssetType::EXTRA:
+      titleMsgId = 40039;
+      textMsgId = 40040;
+      break;
+    default:
+      assert(false);
+      CLog::LogF(LOGERROR, "Unknown asset type ({})", static_cast<int>(assetType));
+      return;
+  }
+
+  // confirm the removal
   if (!CGUIDialogYesNo::ShowAndGetInput(
-          CVariant(40018),
-          StringUtils::Format(g_localizeStrings.Get(40020),
+          titleMsgId,
+          StringUtils::Format(g_localizeStrings.Get(textMsgId),
                               m_selectedVideoAsset->GetVideoInfoTag()->GetAssetInfo().GetTitle())))
   {
     return;

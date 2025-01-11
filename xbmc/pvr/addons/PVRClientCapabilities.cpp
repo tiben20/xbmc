@@ -53,14 +53,15 @@ void CPVRClientCapabilities::InitRecordingsLifetimeValues()
   {
     for (unsigned int i = 0; i < m_addonCapabilities->iRecordingsLifetimesSize; ++i)
     {
-      int iValue = m_addonCapabilities->recordingsLifetimeValues[i].iValue;
-      std::string strDescr(m_addonCapabilities->recordingsLifetimeValues[i].strDescription);
-      if (strDescr.empty())
+      const auto& lifetime{m_addonCapabilities->recordingsLifetimeValues[i]};
+      const int iValue{lifetime.iValue};
+      std::string description{lifetime.strDescription ? lifetime.strDescription : ""};
+      if (description.empty())
       {
         // No description given by addon. Create one from value.
-        strDescr = std::to_string(iValue);
+        description = std::to_string(iValue);
       }
-      m_recordingsLifetimeValues.emplace_back(strDescr, iValue);
+      m_recordingsLifetimeValues.emplace_back(description, iValue);
     }
   }
   else if (SupportsRecordingsLifetimeChange())

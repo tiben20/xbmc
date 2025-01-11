@@ -10,6 +10,7 @@
 
 #include "FileItem.h"
 #include "FileItemList.h"
+#include "GUIPassword.h"
 #include "GUIUserMessages.h"
 #include "PartyModeManager.h"
 #include "PlayListPlayer.h"
@@ -17,7 +18,6 @@
 #include "ServiceBroker.h"
 #include "Util.h"
 #include "application/Application.h"
-#include "application/ApplicationComponents.h"
 #include "application/ApplicationPlayer.h"
 #include "application/ApplicationPowerHandling.h"
 #include "guilib/GUIComponent.h"
@@ -277,16 +277,16 @@ static int PlayerControl(const std::vector<std::string>& params)
   {
     std::string strXspPath;
     //empty param=music, "music"=music, "video"=video, else xsp path
-    PartyModeContext context = PARTYMODECONTEXT_MUSIC;
+    PartyModeContext context = PartyModeContext::MUSIC;
     if (params[0].size() > 9)
     {
       if (params[0].size() == 16 && StringUtils::EndsWithNoCase(params[0], "video)"))
-        context = PARTYMODECONTEXT_VIDEO;
+        context = PartyModeContext::VIDEO;
       else if (params[0].size() != 16 || !StringUtils::EndsWithNoCase(params[0], "music)"))
       {
         strXspPath = params[0].substr(10);
         StringUtils::TrimRight(strXspPath, ")");
-        context = PARTYMODECONTEXT_UNKNOWN;
+        context = PartyModeContext::UNKNOWN;
       }
     }
     if (g_partyModeManager.IsEnabled())
@@ -453,7 +453,9 @@ PLAYLIST::Id GetPlayListId(const CFileItem& item)
   return playlistId;
 }
 
-int PlayOrQueueMedia(const std::vector<std::string>& params, bool forcePlay)
+int PlayOrQueueMedia(const std::vector<std::string>& params,
+                     bool forcePlay,
+                     const std::shared_ptr<CGUIListItem>& itemIn)
 {
   // restore to previous window if needed
   if( CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow() == WINDOW_SLIDESHOW ||
@@ -468,11 +470,27 @@ int PlayOrQueueMedia(const std::vector<std::string>& params, bool forcePlay)
   appPower->ResetScreenSaver();
   appPower->WakeUpScreenSaverAndDPMS();
 
-  CFileItem item(params[0], URIUtils::HasSlashAtEnd(params[0], true));
+  CFileItem item;
+  if (itemIn && itemIn->IsFileItem())
+  {
+    item = *std::static_pointer_cast<CFileItem>(itemIn);
+  }
+  else
+  {
+    item = {params[0], URIUtils::HasSlashAtEnd(params[0], true)};
 
-  // at this point the item instance has only the path and the folder flag set. We
-  // need some extended item properties to process resume successfully. Load them.
-  item.LoadDetails();
+    // at this point the item instance has only the path and the folder flag set. We
+    // need some extended item properties to process resume successfully. Load them.
+    item.LoadDetails();
+  }
+
+  if ((VIDEO::IsVideo(item) && !g_passwordManager.IsVideoUnlocked()) ||
+      (MUSIC::IsAudio(item) && !g_passwordManager.IsMusicUnlocked()))
+  {
+    CLog::LogF(LOGERROR, "MasterCode or MediaSource-code is wrong: {} will not be played.",
+               item.GetPath());
+    return false;
+  }
 
   // ask if we need to check guisettings to resume
   bool askToResume = true;
@@ -526,7 +544,7 @@ int PlayOrQueueMedia(const std::vector<std::string>& params, bool forcePlay)
   if (askToResume)
   {
     const VIDEO::GUILIB::Action action =
-        VIDEO::GUILIB::CVideoSelectActionProcessorBase::ChoosePlayOrResume(item);
+        VIDEO::GUILIB::CVideoSelectActionProcessor::ChoosePlayOrResume(item);
     if (action == VIDEO::GUILIB::ACTION_RESUME)
     {
       item.SetStartOffset(STARTOFFSET_RESUME);
@@ -660,7 +678,12 @@ int PlayOrQueueMedia(const std::vector<std::string>& params, bool forcePlay)
  */
 int PlayMedia(const std::vector<std::string>& params)
 {
-  return PlayOrQueueMedia(params, true);
+  return PlayOrQueueMedia(params, true, nullptr);
+}
+
+int PlayMediaEx(const std::vector<std::string>& params, const std::shared_ptr<CGUIListItem>& item)
+{
+  return PlayOrQueueMedia(params, true, item);
 }
 
 /*! \brief Queue media in the video or music playlist, according to type of media items. If both audio and video items are contained, queue to video
@@ -679,7 +702,12 @@ int PlayMedia(const std::vector<std::string>& params)
  */
 int QueueMedia(const std::vector<std::string>& params)
 {
-  return PlayOrQueueMedia(params, false);
+  return PlayOrQueueMedia(params, false, nullptr);
+}
+
+int QueueMediaEx(const std::vector<std::string>& params, const std::shared_ptr<CGUIListItem>& item)
+{
+  return PlayOrQueueMedia(params, false, item);
 }
 
 } // unnamed namespace
@@ -867,8 +895,8 @@ CBuiltins::CommandMap CPlayerBuiltins::GetOperations() const
            {"playlist.clear",      {"Clear the current playlist", 0, ClearPlaylist}},
            {"playlist.playoffset", {"Start playing from a particular offset in the playlist", 1, PlayOffset}},
            {"playercontrol",       {"Control the music or video player", 1, PlayerControl}},
-           {"playmedia",           {"Play the specified media file (or playlist)", 1, PlayMedia}},
-           {"queuemedia",          {"Queue the specified media in video or music playlist", 1, QueueMedia}},
+           {"playmedia",           {"Play the specified media file (or playlist)", 1, PlayMedia, PlayMediaEx}},
+           {"queuemedia",          {"Queue the specified media in video or music playlist", 1, QueueMedia, QueueMediaEx}},
            {"playwith",            {"Play the selected item with the specified core", 1, PlayWith}},
            {"seek",                {"Performs a seek in seconds on the current playing media file", 1, Seek}},
            {"subtitleshiftup",     {"Shift up the subtitle position", 0, SubtitleShiftUp}},

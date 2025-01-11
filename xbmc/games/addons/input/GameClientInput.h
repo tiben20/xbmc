@@ -103,9 +103,12 @@ public:
   bool ReceiveInputEvent(const game_input_event& eventStruct);
 
 private:
-  // Private input helpers
+  // Private topology helpers
   void LoadTopology();
   void SetControllerLayouts(const ControllerVector& controllers);
+  bool DisconnectControllerRecursive(const std::string& portAddress);
+
+  // Private input helpers
   bool OpenJoystick(const std::string& portAddress, const ControllerPtr& controller);
   void CloseJoysticks(const CPortNode& port, PERIPHERALS::EventLockHandlePtr& inputHandlingLock);
   void CloseJoystick(const std::string& portAddress,
@@ -117,6 +120,7 @@ private:
   // Helper functions
   static ControllerVector GetControllers(const CGameClient& gameClient);
   static void ActivateControllers(CControllerHub& hub);
+  void ResetPorts(const PortVec& port);
 
   // Input properties
   IGameInputCallback* m_inputCallback = nullptr;

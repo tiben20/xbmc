@@ -38,6 +38,7 @@
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "tags/VideoInfoTagLoaderFactory.h"
+#include "utils/ArtUtils.h"
 #include "utils/Digest.h"
 #include "utils/FileExtensionProvider.h"
 #include "utils/RegExp.h"
@@ -46,8 +47,10 @@
 #include "utils/Variant.h"
 #include "utils/log.h"
 #include "video/VideoFileItemClassify.h"
+#include "video/VideoInfoTag.h"
 #include "video/VideoManagerTypes.h"
 #include "video/VideoThumbLoader.h"
+#include "video/VideoUtils.h"
 #include "video/dialogs/GUIDialogVideoManagerExtras.h"
 #include "video/dialogs/GUIDialogVideoManagerVersions.h"
 
@@ -58,7 +61,7 @@
 using namespace XFILE;
 using namespace ADDON;
 using namespace KODI::MESSAGING;
-using namespace KODI::VIDEO;
+using namespace KODI;
 
 using KODI::MESSAGING::HELPERS::DialogResponse;
 using KODI::UTILITY::CDigest;
@@ -66,16 +69,17 @@ using KODI::UTILITY::CDigest;
 namespace KODI::VIDEO
 {
 
-  CVideoInfoScanner::CVideoInfoScanner()
-  {
-    m_bStop = false;
-    m_scanAll = false;
+CVideoInfoScanner::CVideoInfoScanner()
+  : m_advancedSettings(CServiceBroker::GetSettingsComponent()->GetAdvancedSettings())
+{
+  m_bStop = false;
+  m_scanAll = false;
 
-    const auto settings = CServiceBroker::GetSettingsComponent()->GetSettings();
+  const auto settings = CServiceBroker::GetSettingsComponent()->GetSettings();
 
-    m_ignoreVideoVersions = settings->GetBool(CSettings::SETTING_VIDEOLIBRARY_IGNOREVIDEOVERSIONS);
-    m_ignoreVideoExtras = settings->GetBool(CSettings::SETTING_VIDEOLIBRARY_IGNOREVIDEOEXTRAS);
-  }
+  m_ignoreVideoVersions = settings->GetBool(CSettings::SETTING_VIDEOLIBRARY_IGNOREVIDEOVERSIONS);
+  m_ignoreVideoExtras = settings->GetBool(CSettings::SETTING_VIDEOLIBRARY_IGNOREVIDEOEXTRAS);
+}
 
   CVideoInfoScanner::~CVideoInfoScanner()
   = default;
@@ -169,6 +173,7 @@ namespace KODI::VIDEO
 
       CServiceBroker::GetGUI()->GetInfoManager().GetInfoProviders().GetLibraryInfoProvider().ResetLibraryBools();
       m_database.Close();
+      m_scraperCache.clear();
 
       auto end = std::chrono::steady_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -221,7 +226,7 @@ namespace KODI::VIDEO
       }
     }
     m_database.Close();
-    m_bClean = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bVideoLibraryCleanOnUpdate;
+    m_bClean = m_advancedSettings->m_bVideoLibraryCleanOnUpdate;
 
     m_bRunning = true;
     Process();
@@ -264,12 +269,14 @@ namespace KODI::VIDEO
     bool bSkip = false;
 
     SScanSettings settings;
-    ScraperPtr info = m_database.GetScraperForPath(strDirectory, settings, foundDirectly);
+    ScraperPtr info =
+        m_database.GetScraperForPath(strDirectory, settings, foundDirectly, &m_scraperCache);
     CONTENT_TYPE content = info ? info->Content() : CONTENT_NONE;
 
     // exclude folders that match our exclude regexps
-    const std::vector<std::string> &regexps = content == CONTENT_TVSHOWS ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_tvshowExcludeFromScanRegExps
-                                                         : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_moviesExcludeFromScanRegExps;
+    const std::vector<std::string>& regexps =
+        content == CONTENT_TVSHOWS ? m_advancedSettings->m_tvshowExcludeFromScanRegExps
+                                   : m_advancedSettings->m_moviesExcludeFromScanRegExps;
 
     if (CUtil::ExcludeFileOrFolder(strDirectory, regexps))
       return true;
@@ -300,7 +307,7 @@ namespace KODI::VIDEO
       }
 
       std::string fastHash;
-      if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bVideoLibraryUseFastHash && !URIUtils::IsPlugin(strDirectory))
+      if (m_advancedSettings->m_bVideoLibraryUseFastHash && !URIUtils::IsPlugin(strDirectory))
         fastHash = GetFastHash(strDirectory, regexps);
 
       if (m_database.GetPathHash(strDirectory, dbHash) && !fastHash.empty() && StringUtils::EqualsNoCase(fastHash, dbHash))
@@ -313,9 +320,8 @@ namespace KODI::VIDEO
                                  DIR_FLAG_DEFAULTS);
         // do not consider inner folders with .nomedia
         items.erase(std::remove_if(items.begin(), items.end(),
-                                   [this](const CFileItemPtr& item) {
-                                     return item->m_bIsFolder && HasNoMedia(item->GetPath());
-                                   }),
+                                   [](const CFileItemPtr& item)
+                                   { return item->m_bIsFolder && HasNoMedia(item->GetPath()); }),
                     items.end());
         items.Stack();
 
@@ -418,7 +424,8 @@ namespace KODI::VIDEO
         break;
 
       // add video extras to library
-      if (foundSomething && !m_ignoreVideoExtras && IsVideoExtrasFolder(*pItem))
+      if (foundSomething && content == CONTENT_MOVIES && settings.parent_name &&
+          !m_ignoreVideoExtras && IsVideoExtrasFolder(*pItem))
       {
         if (AddVideoExtras(items, content, pItem->GetPath()))
         {
@@ -468,7 +475,8 @@ namespace KODI::VIDEO
       CFileItemPtr pItem = items[i];
 
       // we do this since we may have a override per dir
-      ScraperPtr info2 = m_database.GetScraperForPath(pItem->m_bIsFolder ? pItem->GetPath() : items.GetPath());
+      ScraperPtr info2 = m_database.GetScraperForPath(
+          pItem->m_bIsFolder ? pItem->GetPath() : items.GetPath(), &m_scraperCache);
       if (!info2) // skip
         continue;
 
@@ -477,8 +485,10 @@ namespace KODI::VIDEO
         continue;
 
       // Discard all exclude files defined by regExExclude
-      if (CUtil::ExcludeFileOrFolder(pItem->GetPath(), (content == CONTENT_TVSHOWS) ? CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_tvshowExcludeFromScanRegExps
-                                                                    : CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_moviesExcludeFromScanRegExps))
+      if (CUtil::ExcludeFileOrFolder(pItem->GetPath(),
+                                     (content == CONTENT_TVSHOWS)
+                                         ? m_advancedSettings->m_tvshowExcludeFromScanRegExps
+                                         : m_advancedSettings->m_moviesExcludeFromScanRegExps))
         continue;
 
       if (info2->Content() == CONTENT_MOVIES || info2->Content() == CONTENT_MUSICVIDEOS)
@@ -490,7 +500,7 @@ namespace KODI::VIDEO
       // clear our scraper cache
       info2->ClearCache();
 
-      INFO_RET ret = INFO_CANCELLED;
+      InfoRet ret = InfoRet::CANCELLED;
       if (info2->Content() == CONTENT_TVSHOWS)
         ret = RetrieveInfoForTvShow(pItem.get(), bDirNames, info2, useLocal, pURL, fetchEpisodes, pDlgProgress);
       else if (info2->Content() == CONTENT_MOVIES)
@@ -504,18 +514,18 @@ namespace KODI::VIDEO
         FoundSomeInfo = false;
         break;
       }
-      if (ret == INFO_CANCELLED || ret == INFO_ERROR)
+      if (ret == InfoRet::CANCELLED || ret == InfoRet::INFO_ERROR)
       {
         CLog::Log(LOGWARNING,
                   "VideoInfoScanner: Error {} occurred while retrieving"
                   "information for {}.",
-                  ret, CURL::GetRedacted(pItem->GetPath()));
+                  static_cast<int>(ret), CURL::GetRedacted(pItem->GetPath()));
         FoundSomeInfo = false;
         break;
       }
-      if (ret == INFO_ADDED || ret == INFO_HAVE_ALREADY)
+      if (ret == InfoRet::ADDED || ret == InfoRet::HAVE_ALREADY)
         FoundSomeInfo = true;
-      else if (ret == INFO_NOT_FOUND)
+      else if (ret == InfoRet::NOT_FOUND)
       {
         CLog::Log(LOGWARNING,
                   "No information found for item '{}', it won't be added to the library.",
@@ -565,14 +575,13 @@ namespace KODI::VIDEO
     return FoundSomeInfo;
   }
 
-  CInfoScanner::INFO_RET
-  CVideoInfoScanner::RetrieveInfoForTvShow(CFileItem *pItem,
-                                           bool bDirNames,
-                                           ScraperPtr &info2,
-                                           bool useLocal,
-                                           CScraperUrl* pURL,
-                                           bool fetchEpisodes,
-                                           CGUIDialogProgress* pDlgProgress)
+  CInfoScanner::InfoRet CVideoInfoScanner::RetrieveInfoForTvShow(CFileItem* pItem,
+                                                                 bool bDirNames,
+                                                                 ScraperPtr& info2,
+                                                                 bool useLocal,
+                                                                 CScraperUrl* pURL,
+                                                                 bool fetchEpisodes,
+                                                                 CGUIDialogProgress* pDlgProgress)
   {
     const bool isSeason =
         pItem->HasVideoInfoTag() && pItem->GetVideoInfoTag()->m_type == MediaTypeSeason;
@@ -604,8 +613,8 @@ namespace KODI::VIDEO
     }
     if (idTvShow > -1 && (!isSeason || idSeason > -1) && (fetchEpisodes || !pItem->m_bIsFolder))
     {
-      INFO_RET ret = RetrieveInfoForEpisodes(pItem, idTvShow, info2, useLocal, pDlgProgress);
-      if (ret == INFO_ADDED)
+      InfoRet ret = RetrieveInfoForEpisodes(pItem, idTvShow, info2, useLocal, pDlgProgress);
+      if (ret == InfoRet::ADDED)
         m_database.SetPathHash(strPath, pItem->GetProperty("hash").asString());
       return ret;
     }
@@ -613,41 +622,34 @@ namespace KODI::VIDEO
     if (ProgressCancelled(pDlgProgress, pItem->m_bIsFolder ? 20353 : 20361,
                           pItem->m_bIsFolder ? pItem->GetVideoInfoTag()->m_strShowTitle
                                              : pItem->GetVideoInfoTag()->m_strTitle))
-      return INFO_CANCELLED;
+      return InfoRet::CANCELLED;
 
     if (m_handle)
       m_handle->SetText(pItem->GetMovieName(bDirNames));
 
-    CInfoScanner::INFO_TYPE result=CInfoScanner::NO_NFO;
+    InfoType result = InfoType::NONE;
     CScraperUrl scrUrl;
     // handle .nfo files
     std::unique_ptr<IVideoInfoTagLoader> loader;
     if (useLocal)
-    {
-      loader.reset(CVideoInfoTagLoaderFactory::CreateLoader(*pItem, info2, bDirNames));
-      if (loader)
-      {
-        pItem->GetVideoInfoTag()->Reset();
-        result = loader->Load(*pItem->GetVideoInfoTag(), false);
-      }
-    }
+      std::tie(result, loader) = ReadInfoTag(*pItem, info2, bDirNames, true);
 
-    if (result == CInfoScanner::FULL_NFO)
+    if (result == InfoType::FULL)
     {
 
       long lResult = AddVideo(pItem, info2->Content(), bDirNames, useLocal);
       if (lResult < 0)
-        return INFO_ERROR;
+        return InfoRet::INFO_ERROR;
       if (fetchEpisodes)
       {
-        INFO_RET ret = RetrieveInfoForEpisodes(pItem, lResult, info2, useLocal, pDlgProgress);
-        if (ret == INFO_ADDED)
+        InfoRet ret = RetrieveInfoForEpisodes(pItem, lResult, info2, useLocal, pDlgProgress);
+        if (ret == InfoRet::INFO_ERROR)
           m_database.SetPathHash(pItem->GetPath(), pItem->GetProperty("hash").asString());
         return ret;
       }
-      return INFO_ADDED;
+      return InfoRet::ADDED;
     }
-    if (result == CInfoScanner::URL_NFO || result == CInfoScanner::COMBINED_NFO)
+    if (result == InfoType::URL || result == InfoType::COMBINED)
     {
       scrUrl = loader->ScraperUrl();
       pURL = &scrUrl;
@@ -657,7 +659,7 @@ namespace KODI::VIDEO
     int retVal = 0;
     std::string movieTitle = pItem->GetMovieName(bDirNames);
     int movieYear = -1; // hint that movie title was not found
-    if (result == CInfoScanner::TITLE_NFO)
+    if (result == InfoType::TITLE)
     {
       CVideoInfoTag* tag = pItem->GetVideoInfoTag();
       movieTitle = tag->GetTitle();
@@ -671,98 +673,88 @@ namespace KODI::VIDEO
     {
       const std::unordered_map<std::string, std::string> uniqueIDs{{identifierType, identifier}};
       if (GetDetails(pItem, uniqueIDs, url, info2,
-                     (result == CInfoScanner::COMBINED_NFO || result == CInfoScanner::OVERRIDE_NFO)
-                         ? loader.get()
-                         : nullptr,
+                     (result == InfoType::COMBINED || result == InfoType::OVERRIDE) ? loader.get()
+                                                                                    : nullptr,
                      pDlgProgress))
       {
         if ((lResult = AddVideo(pItem, info2->Content(), false, useLocal)) < 0)
-          return INFO_ERROR;
+          return InfoRet::INFO_ERROR;
 
         if (fetchEpisodes)
         {
-          INFO_RET ret = RetrieveInfoForEpisodes(pItem, lResult, info2, useLocal, pDlgProgress);
-          if (ret == INFO_ADDED)
+          InfoRet ret = RetrieveInfoForEpisodes(pItem, lResult, info2, useLocal, pDlgProgress);
+          if (ret == InfoRet::ADDED)
           {
             m_database.SetPathHash(pItem->GetPath(), pItem->GetProperty("hash").asString());
-            return INFO_ADDED;
+            return InfoRet::ADDED;
           }
         }
-        return INFO_ADDED;
+        return InfoRet::ADDED;
       }
     }
 
     if (pURL && pURL->HasUrls())
       url = *pURL;
     else if ((retVal = FindVideo(movieTitle, movieYear, info2, url, pDlgProgress)) <= 0)
-      return retVal < 0 ? INFO_CANCELLED : INFO_NOT_FOUND;
+      return retVal < 0 ? InfoRet::CANCELLED : InfoRet::NOT_FOUND;
 
     CLog::Log(LOGDEBUG, "VideoInfoScanner: Fetching url '{}' using {} scraper (content: '{}')",
               url.GetFirstThumbUrl(), info2->Name(), TranslateContent(info2->Content()));
     const std::unordered_map<std::string, std::string> uniqueIDs{{identifierType, identifier}};
 
     if (GetDetails(pItem, {}, url, info2,
-                   (result == CInfoScanner::COMBINED_NFO || result == CInfoScanner::OVERRIDE_NFO)
-                       ? loader.get()
-                       : nullptr,
+                   (result == InfoType::COMBINED || result == InfoType::OVERRIDE) ? loader.get()
+                                                                                  : nullptr,
                    pDlgProgress))
     {
       if ((lResult = AddVideo(pItem, info2->Content(), false, useLocal)) < 0)
-        return INFO_ERROR;
+        return InfoRet::INFO_ERROR;
     }
     if (fetchEpisodes)
     {
-      INFO_RET ret = RetrieveInfoForEpisodes(pItem, lResult, info2, useLocal, pDlgProgress);
-      if (ret == INFO_ADDED)
+      InfoRet ret = RetrieveInfoForEpisodes(pItem, lResult, info2, useLocal, pDlgProgress);
+      if (ret == InfoRet::ADDED)
         m_database.SetPathHash(pItem->GetPath(), pItem->GetProperty("hash").asString());
     }
-    return INFO_ADDED;
+    return InfoRet::ADDED;
   }
 
-  CInfoScanner::INFO_RET
-  CVideoInfoScanner::RetrieveInfoForMovie(CFileItem *pItem,
-                                          bool bDirNames,
-                                          ScraperPtr &info2,
-                                          bool useLocal,
-                                          CScraperUrl* pURL,
-                                          CGUIDialogProgress* pDlgProgress)
+  CInfoScanner::InfoRet CVideoInfoScanner::RetrieveInfoForMovie(CFileItem* pItem,
+                                                                bool bDirNames,
+                                                                ScraperPtr& info2,
+                                                                bool useLocal,
+                                                                CScraperUrl* pURL,
+                                                                CGUIDialogProgress* pDlgProgress)
   {
     if (pItem->m_bIsFolder || !IsVideo(*pItem) || pItem->IsNFO() ||
         (PLAYLIST::IsPlayList(*pItem) && !URIUtils::HasExtension(pItem->GetPath(), ".strm")))
-      return INFO_NOT_NEEDED;
+      return InfoRet::NOT_NEEDED;
 
     if (ProgressCancelled(pDlgProgress, 198, pItem->GetLabel()))
-      return INFO_CANCELLED;
+      return InfoRet::CANCELLED;
 
     if (m_database.HasMovieInfo(pItem->GetDynPath()))
-      return INFO_HAVE_ALREADY;
+      return InfoRet::HAVE_ALREADY;
 
     if (m_handle)
       m_handle->SetText(pItem->GetMovieName(bDirNames));
 
-    CInfoScanner::INFO_TYPE result = CInfoScanner::NO_NFO;
+    InfoType result = InfoType::NONE;
     CScraperUrl scrUrl;
     // handle .nfo files
     std::unique_ptr<IVideoInfoTagLoader> loader;
     if (useLocal)
-    {
-      loader.reset(CVideoInfoTagLoaderFactory::CreateLoader(*pItem, info2, bDirNames));
-      if (loader)
-      {
-        pItem->GetVideoInfoTag()->Reset();
-        result = loader->Load(*pItem->GetVideoInfoTag(), false);
-      }
-    }
-    if (result == CInfoScanner::FULL_NFO)
+      std::tie(result, loader) = ReadInfoTag(*pItem, info2, bDirNames, true);
+    if (result == InfoType::FULL)
     {
       const int dbId = AddVideo(pItem, info2->Content(), bDirNames, true);
       if (dbId < 0)
-        return INFO_ERROR;
+        return InfoRet::INFO_ERROR;
       if (!m_ignoreVideoVersions && ProcessVideoVersion(VideoDbContentType::MOVIES, dbId))
-        return INFO_HAVE_ALREADY;
-      return INFO_ADDED;
+        return InfoRet::HAVE_ALREADY;
+      return InfoRet::ADDED;
     }
-    if (result == CInfoScanner::URL_NFO || result == CInfoScanner::COMBINED_NFO)
+    if (result == InfoType::URL || result == InfoType::COMBINED)
     {
       scrUrl = loader->ScraperUrl();
       pURL = &scrUrl;
@@ -772,7 +764,7 @@ namespace KODI::VIDEO
     int retVal = 0;
     std::string movieTitle = pItem->GetMovieName(bDirNames);
     int movieYear = -1; // hint that movie title was not found
-    if (result == CInfoScanner::TITLE_NFO)
+    if (result == InfoType::TITLE)
     {
       CVideoInfoTag* tag = pItem->GetVideoInfoTag();
       movieTitle = tag->GetTitle();
@@ -785,86 +777,76 @@ namespace KODI::VIDEO
     {
       const std::unordered_map<std::string, std::string> uniqueIDs{{identifierType, identifier}};
       if (GetDetails(pItem, uniqueIDs, url, info2,
-                     (result == CInfoScanner::COMBINED_NFO || result == CInfoScanner::OVERRIDE_NFO)
-                         ? loader.get()
-                         : nullptr,
+                     (result == InfoType::COMBINED || result == InfoType::OVERRIDE) ? loader.get()
+                                                                                    : nullptr,
                      pDlgProgress))
       {
         const int dbId = AddVideo(pItem, info2->Content(), bDirNames, useLocal);
         if (dbId < 0)
-          return INFO_ERROR;
+          return InfoRet::INFO_ERROR;
         if (!m_ignoreVideoVersions && ProcessVideoVersion(VideoDbContentType::MOVIES, dbId))
-          return INFO_HAVE_ALREADY;
-        return INFO_ADDED;
+          return InfoRet::HAVE_ALREADY;
+        return InfoRet::ADDED;
       }
     }
 
     if (pURL && pURL->HasUrls())
       url = *pURL;
     else if ((retVal = FindVideo(movieTitle, movieYear, info2, url, pDlgProgress)) <= 0)
-      return retVal < 0 ? INFO_CANCELLED : INFO_NOT_FOUND;
+      return retVal < 0 ? InfoRet::CANCELLED : InfoRet::NOT_FOUND;
 
     CLog::Log(LOGDEBUG, "VideoInfoScanner: Fetching url '{}' using {} scraper (content: '{}')",
               url.GetFirstThumbUrl(), info2->Name(), TranslateContent(info2->Content()));
 
     if (GetDetails(pItem, {}, url, info2,
-                   (result == CInfoScanner::COMBINED_NFO || result == CInfoScanner::OVERRIDE_NFO)
-                       ? loader.get()
-                       : nullptr,
+                   (result == InfoType::COMBINED || result == InfoType::OVERRIDE) ? loader.get()
+                                                                                  : nullptr,
                    pDlgProgress))
     {
       const int dbId = AddVideo(pItem, info2->Content(), bDirNames, useLocal);
       if (dbId < 0)
-        return INFO_ERROR;
+        return InfoRet::INFO_ERROR;
       if (!m_ignoreVideoVersions && ProcessVideoVersion(VideoDbContentType::MOVIES, dbId))
-        return INFO_HAVE_ALREADY;
-      return INFO_ADDED;
+        return InfoRet::HAVE_ALREADY;
+      return InfoRet::ADDED;
     }
     //! @todo This is not strictly correct as we could fail to download information here or error, or be cancelled
-    return INFO_NOT_FOUND;
+    return InfoRet::NOT_FOUND;
   }
 
-  CInfoScanner::INFO_RET
-  CVideoInfoScanner::RetrieveInfoForMusicVideo(CFileItem *pItem,
-                                               bool bDirNames,
-                                               ScraperPtr &info2,
-                                               bool useLocal,
-                                               CScraperUrl* pURL,
-                                               CGUIDialogProgress* pDlgProgress)
+  CInfoScanner::InfoRet CVideoInfoScanner::RetrieveInfoForMusicVideo(
+      CFileItem* pItem,
+      bool bDirNames,
+      ScraperPtr& info2,
+      bool useLocal,
+      CScraperUrl* pURL,
+      CGUIDialogProgress* pDlgProgress)
   {
     if (pItem->m_bIsFolder || !IsVideo(*pItem) || pItem->IsNFO() ||
         (PLAYLIST::IsPlayList(*pItem) && !URIUtils::HasExtension(pItem->GetPath(), ".strm")))
-      return INFO_NOT_NEEDED;
+      return InfoRet::NOT_FOUND;
 
     if (ProgressCancelled(pDlgProgress, 20394, pItem->GetLabel()))
-      return INFO_CANCELLED;
+      return InfoRet::CANCELLED;
 
     if (m_database.HasMusicVideoInfo(pItem->GetPath()))
-      return INFO_HAVE_ALREADY;
+      return InfoRet::HAVE_ALREADY;
 
     if (m_handle)
       m_handle->SetText(pItem->GetMovieName(bDirNames));
 
-    CInfoScanner::INFO_TYPE result = CInfoScanner::NO_NFO;
+    InfoType result = InfoType::NONE;
     CScraperUrl scrUrl;
     // handle .nfo files
     std::unique_ptr<IVideoInfoTagLoader> loader;
     if (useLocal)
-    {
-      loader.reset(CVideoInfoTagLoaderFactory::CreateLoader(*pItem, info2, bDirNames));
-      if (loader)
-      {
-        pItem->GetVideoInfoTag()->Reset();
-        result = loader->Load(*pItem->GetVideoInfoTag(), false);
-      }
-    }
-    if (result == CInfoScanner::FULL_NFO)
+      std::tie(result, loader) = ReadInfoTag(*pItem, info2, bDirNames, true);
     {
       if (AddVideo(pItem, info2->Content(), bDirNames, true) < 0)
-        return INFO_ERROR;
-      return INFO_ADDED;
+        return InfoRet::INFO_ERROR;
+      return InfoRet::ADDED;
     }
-    if (result == CInfoScanner::URL_NFO || result == CInfoScanner::COMBINED_NFO)
+    if (result == InfoType::URL || result == InfoType::COMBINED)
     {
       scrUrl = loader->ScraperUrl();
       pURL = &scrUrl;
@@ -874,7 +856,7 @@ namespace KODI::VIDEO
     int retVal = 0;
     std::string movieTitle = pItem->GetMovieName(bDirNames);
     int movieYear = -1; // hint that movie title was not found
-    if (result == CInfoScanner::TITLE_NFO)
+    if (result == InfoType::TITLE)
     {
       CVideoInfoTag* tag = pItem->GetVideoInfoTag();
       movieTitle = tag->GetTitle();
@@ -887,61 +869,58 @@ namespace KODI::VIDEO
     {
       const std::unordered_map<std::string, std::string> uniqueIDs{{identifierType, identifier}};
       if (GetDetails(pItem, uniqueIDs, url, info2,
-                     (result == CInfoScanner::COMBINED_NFO || result == CInfoScanner::OVERRIDE_NFO)
-                         ? loader.get()
-                         : nullptr,
+                     (result == InfoType::COMBINED || result == InfoType::OVERRIDE) ? loader.get()
+                                                                                    : nullptr,
                      pDlgProgress))
       {
         if (AddVideo(pItem, info2->Content(), bDirNames, useLocal) < 0)
-          return INFO_ERROR;
-        return INFO_ADDED;
+          return InfoRet::INFO_ERROR;
+        return InfoRet::ADDED;
       }
     }
 
     if (pURL && pURL->HasUrls())
       url = *pURL;
     else if ((retVal = FindVideo(movieTitle, movieYear, info2, url, pDlgProgress)) <= 0)
-      return retVal < 0 ? INFO_CANCELLED : INFO_NOT_FOUND;
+      return retVal < 0 ? InfoRet::CANCELLED : InfoRet::NOT_FOUND;
 
     CLog::Log(LOGDEBUG, "VideoInfoScanner: Fetching url '{}' using {} scraper (content: '{}')",
               url.GetFirstThumbUrl(), info2->Name(), TranslateContent(info2->Content()));
 
     if (GetDetails(pItem, {}, url, info2,
-                   (result == CInfoScanner::COMBINED_NFO || result == CInfoScanner::OVERRIDE_NFO)
-                       ? loader.get()
-                       : nullptr,
+                   (result == InfoType::COMBINED || result == InfoType::OVERRIDE) ? loader.get()
+                                                                                  : nullptr,
                    pDlgProgress))
     {
       if (AddVideo(pItem, info2->Content(), bDirNames, useLocal) < 0)
-        return INFO_ERROR;
-      return INFO_ADDED;
+        return InfoRet::INFO_ERROR;
+      return InfoRet::ADDED;
     }
     //! @todo This is not strictly correct as we could fail to download information here or error, or be cancelled
-    return INFO_NOT_FOUND;
+    return InfoRet::NOT_FOUND;
   }
 
-  CInfoScanner::INFO_RET
-  CVideoInfoScanner::RetrieveInfoForEpisodes(CFileItem *item,
-                                             long showID,
-                                             const ADDON::ScraperPtr &scraper,
-                                             bool useLocal,
-                                             CGUIDialogProgress *progress)
+  CInfoScanner::InfoRet CVideoInfoScanner::RetrieveInfoForEpisodes(CFileItem* item,
+                                                                   long showID,
+                                                                   const ADDON::ScraperPtr& scraper,
+                                                                   bool useLocal,
+                                                                   CGUIDialogProgress* progress)
   {
     // enumerate episodes
     EPISODELIST files;
     if (!EnumerateSeriesFolder(item, files))
-      return INFO_HAVE_ALREADY;
+      return InfoRet::HAVE_ALREADY;
     if (files.empty()) // no update or no files
-      return INFO_NOT_NEEDED;
+      return InfoRet::NOT_NEEDED;
 
     if (m_bStop || (progress && progress->IsCanceled()))
-      return INFO_CANCELLED;
+      return InfoRet::CANCELLED;
 
     CVideoInfoTag showInfo;
     m_database.GetTvShowInfo("", showInfo, showID);
-    INFO_RET ret = OnProcessSeriesFolder(files, scraper, useLocal, showInfo, progress);
+    InfoRet ret = OnProcessSeriesFolder(files, scraper, useLocal, showInfo, progress);
 
-    if (ret == INFO_ADDED)
+    if (ret == InfoRet::ADDED)
     {
       std::map<int, std::map<std::string, std::string>> seasonArt;
       m_database.GetTvShowSeasonArt(showID, seasonArt);
@@ -977,7 +956,7 @@ namespace KODI::VIDEO
   bool CVideoInfoScanner::EnumerateSeriesFolder(CFileItem* item, EPISODELIST& episodeList)
   {
     CFileItemList items;
-    const std::vector<std::string> &regexps = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_tvshowExcludeFromScanRegExps;
+    const std::vector<std::string>& regexps = m_advancedSettings->m_tvshowExcludeFromScanRegExps;
 
     bool bSkip = false;
 
@@ -1007,7 +986,7 @@ namespace KODI::VIDEO
           allowEmptyHash = true;
         }
       }
-      else if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bVideoLibraryUseFastHash)
+      else if (m_advancedSettings->m_bVideoLibraryUseFastHash)
         hash = GetRecursiveFastHash(item->GetPath(), regexps);
 
       if (m_database.GetPathHash(item->GetPath(), dbHash) && (allowEmptyHash || !hash.empty()) && StringUtils::EqualsNoCase(dbHash, hash))
@@ -1026,8 +1005,7 @@ namespace KODI::VIDEO
         // Listing that ignores files inside and below folders containing .nomedia files.
         CDirectory::EnumerateDirectory(
             item->GetPath(), [&items](const std::shared_ptr<CFileItem>& item) { items.Add(item); },
-            [this](const std::shared_ptr<CFileItem>& folder)
-            { return !HasNoMedia(folder->GetPath()); },
+            [](const std::shared_ptr<CFileItem>& folder) { return !HasNoMedia(folder->GetPath()); },
             true, CServiceBroker::GetFileExtensionProvider().GetVideoExtensions(), flags);
 
         // fast hash failed - compute slow one
@@ -1251,7 +1229,7 @@ namespace KODI::VIDEO
 
   bool CVideoInfoScanner::EnumerateEpisodeItem(const CFileItem *item, EPISODELIST& episodeList)
   {
-    SETTINGS_TVSHOWLIST expression = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_tvshowEnumRegExps;
+    SETTINGS_TVSHOWLIST expression = m_advancedSettings->m_tvshowEnumRegExps;
 
     std::string strLabel;
 
@@ -1351,7 +1329,7 @@ namespace KODI::VIDEO
 
       CRegExp reg2(true, CRegExp::autoUtf8);
       // check the remainder of the string for any further episodes.
-      if (!byDate && reg2.RegComp(CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_tvshowMultiPartEnumRegExp))
+      if (!byDate && reg2.RegComp(m_advancedSettings->m_tvshowMultiPartEnumRegExp))
       {
         int offset = 0;
 
@@ -1366,9 +1344,7 @@ namespace KODI::VIDEO
 
             CLog::Log(LOGDEBUG, "VideoInfoScanner: Adding new season {}, multipart episode {} [{}]",
                       episode.iSeason, episode.iEpisode,
-                      CServiceBroker::GetSettingsComponent()
-                          ->GetAdvancedSettings()
-                          ->m_tvshowMultiPartEnumRegExp);
+                      m_advancedSettings->m_tvshowMultiPartEnumRegExp);
 
             episodeList.push_back(episode);
             remainder = reg.GetMatch(3);
@@ -1379,10 +1355,7 @@ namespace KODI::VIDEO
           {
             episode.iEpisode = atoi(reg2.GetMatch(1).c_str());
             CLog::Log(LOGDEBUG, "VideoInfoScanner: Adding multipart episode {} [{}]",
-                      episode.iEpisode,
-                      CServiceBroker::GetSettingsComponent()
-                          ->GetAdvancedSettings()
-                          ->m_tvshowMultiPartEnumRegExp);
+                      episode.iEpisode, m_advancedSettings->m_tvshowMultiPartEnumRegExp);
             episodeList.push_back(episode);
             offset += regexp2pos + reg2.GetFindLen();
           }
@@ -1526,7 +1499,7 @@ namespace KODI::VIDEO
     if (content == CONTENT_MOVIES)
     {
       // find local trailer first
-      std::string strTrailer = pItem->FindTrailer();
+      std::string strTrailer = UTILS::FindTrailer(*pItem);
       if (!strTrailer.empty())
         movieDetails.m_strTrailer = strTrailer;
 
@@ -1625,12 +1598,11 @@ namespace KODI::VIDEO
 
     if (!pItem->m_bIsFolder)
     {
-      const auto advancedSettings = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings();
-      if ((libraryImport || advancedSettings->m_bVideoLibraryImportWatchedState) &&
+      if ((libraryImport || m_advancedSettings->m_bVideoLibraryImportWatchedState) &&
           (movieDetails.IsPlayCountSet() || movieDetails.m_lastPlayed.IsValid()))
         m_database.SetPlayCount(*pItem, movieDetails.GetPlayCount(), movieDetails.m_lastPlayed);
 
-      if ((libraryImport || advancedSettings->m_bVideoLibraryImportResumePoint) &&
+      if ((libraryImport || m_advancedSettings->m_bVideoLibraryImportResumePoint) &&
           movieDetails.GetResumePoint().IsSet())
         m_database.AddBookMarkToFile(pItem->GetPath(), movieDetails.GetResumePoint(), CBookmark::RESUME);
     }
@@ -1687,6 +1659,31 @@ namespace KODI::VIDEO
     return type;
   }
 
+  std::pair<CVideoInfoScanner::InfoType, std::unique_ptr<IVideoInfoTagLoader>> CVideoInfoScanner::
+      ReadInfoTag(CFileItem& item,
+                  const ADDON::ScraperPtr& scraper,
+                  bool lookInFolder,
+                  bool resetTag)
+  {
+    auto result = InfoType::NONE;
+    std::unique_ptr<IVideoInfoTagLoader> loader(
+        CVideoInfoTagLoaderFactory::CreateLoader(item, scraper, lookInFolder));
+    if (loader)
+    {
+      CVideoInfoTag& infoTag = *item.GetVideoInfoTag();
+      if (resetTag)
+        infoTag.Reset();
+      result = loader->Load(infoTag, false);
+
+      // keep some properties only if advancedsettings.xml says so
+      if (!m_advancedSettings->m_bVideoLibraryImportWatchedState)
+        infoTag.ResetPlayCount();
+      if (!m_advancedSettings->m_bVideoLibraryImportResumePoint)
+        infoTag.SetResumePoint(CBookmark());
+    }
+    return {result, std::move(loader)};
+  }
+
   std::string CVideoInfoScanner::GetMovieSetInfoFolder(const std::string& setTitle)
   {
     if (setTitle.empty())
@@ -1695,7 +1692,8 @@ namespace KODI::VIDEO
         CSettings::SETTING_VIDEOLIBRARY_MOVIESETSFOLDER);
     if (path.empty())
       return "";
-    path = URIUtils::AddFileToFolder(path, CUtil::MakeLegalFileName(setTitle, LEGAL_WIN32_COMPAT));
+    path = URIUtils::AddFileToFolder(path,
+                                     CUtil::MakeLegalFileName(setTitle, LegalPath::WIN32_COMPAT));
     URIUtils::AddSlashAtEnd(path);
     CLog::Log(LOGDEBUG,
         "VideoInfoScanner: Looking for local artwork for movie set '{}' in folder '{}'",
@@ -1792,14 +1790,21 @@ namespace KODI::VIDEO
     {
       if (!pItem->SkipLocalArt())
       {
+        bool useFolder = false;
         if (bApplyToDir && (content == CONTENT_MOVIES || content == CONTENT_MUSICVIDEOS))
         {
-          std::string filename = pItem->GetLocalArtBaseFilename();
+          std::string filename = ART::GetLocalArtBaseFilename(*pItem, useFolder);
           std::string directory = URIUtils::GetDirectory(filename);
           if (filename != directory)
             AddLocalItemArtwork(art, artTypes, directory, addAll, exactName);
         }
-        AddLocalItemArtwork(art, artTypes, pItem->GetLocalArtBaseFilename(), addAll, exactName);
+
+        // Reset useFolder to false as GetLocalArtBaseFilename may modify it in
+        // the previous call.
+        useFolder = false;
+
+        AddLocalItemArtwork(art, artTypes, ART::GetLocalArtBaseFilename(*pItem, useFolder), addAll,
+                            exactName);
       }
 
       if (moviePartOfSet)
@@ -1895,12 +1900,12 @@ namespace KODI::VIDEO
     return thumb;
   }
 
-  CInfoScanner::INFO_RET
-  CVideoInfoScanner::OnProcessSeriesFolder(EPISODELIST& files,
-                                           const ADDON::ScraperPtr &scraper,
-                                           bool useLocal,
-                                           const CVideoInfoTag& showInfo,
-                                           CGUIDialogProgress* pDlgProgress /* = NULL */)
+  CInfoScanner::InfoRet CVideoInfoScanner::OnProcessSeriesFolder(
+      EPISODELIST& files,
+      const ADDON::ScraperPtr& scraper,
+      bool useLocal,
+      const CVideoInfoTag& showInfo,
+      CGUIDialogProgress* pDlgProgress /* = NULL */)
   {
     if (pDlgProgress)
     {
@@ -1931,7 +1936,7 @@ namespace KODI::VIDEO
         m_handle->SetPercentage(100.f*iCurr++/iMax);
 
       if ((pDlgProgress && pDlgProgress->IsCanceled()) || m_bStop)
-        return INFO_CANCELLED;
+        return InfoRet::CANCELLED;
 
       if (m_database.GetEpisodeId(file->strPath, file->iEpisode, file->iSeason) > -1)
       {
@@ -1950,20 +1955,13 @@ namespace KODI::VIDEO
       }
 
       // handle .nfo files
-      CInfoScanner::INFO_TYPE result=CInfoScanner::NO_NFO;
+      InfoType result = InfoType::NONE;
       CScraperUrl scrUrl;
       const ScraperPtr& info(scraper);
       std::unique_ptr<IVideoInfoTagLoader> loader;
       if (useLocal)
-      {
-        loader.reset(CVideoInfoTagLoaderFactory::CreateLoader(item, info, false));
-        if (loader)
-        {
-          // no reset here on purpose
-          result = loader->Load(*item.GetVideoInfoTag(), false);
-        }
-      }
-      if (result == CInfoScanner::FULL_NFO)
+        std::tie(result, loader) = ReadInfoTag(item, info, false, false);
+      if (result == InfoType::FULL)
       {
         // override with episode and season number from file if available
         if (file->iEpisode > -1)
@@ -1972,7 +1970,7 @@ namespace KODI::VIDEO
           item.GetVideoInfoTag()->m_iSeason = file->iSeason;
         }
         if (AddVideo(&item, CONTENT_TVSHOWS, file->isFolder, true, &showInfo) < 0)
-          return INFO_ERROR;
+          return InfoRet::INFO_ERROR;
         continue;
       }
 
@@ -1992,7 +1990,7 @@ namespace KODI::VIDEO
 
           CVideoInfoDownloader imdb(scraper);
           if (!imdb.GetEpisodeList(url, episodes))
-            return INFO_NOT_FOUND;
+            return InfoRet::NOT_FOUND;
 
           hasEpisodeGuide = true;
         }
@@ -2112,7 +2110,7 @@ namespace KODI::VIDEO
         CFileItem item;
         item.SetPath(file->strPath);
         if (!imdb.GetEpisodeDetails(guide->cScraperUrl, *item.GetVideoInfoTag(), pDlgProgress))
-          return INFO_NOT_FOUND; //! @todo should we just skip to the next episode?
+          return InfoRet::NOT_FOUND; //! @todo should we just skip to the next episode?
 
         // Only set season/epnum from filename when it is not already set by a scraper
         if (item.GetVideoInfoTag()->m_iSeason == -1)
@@ -2121,7 +2119,7 @@ namespace KODI::VIDEO
           item.GetVideoInfoTag()->m_iEpisode = guide->iEpisode;
 
         if (AddVideo(&item, CONTENT_TVSHOWS, file->isFolder, useLocal, &showInfo) < 0)
-          return INFO_ERROR;
+          return InfoRet::INFO_ERROR;
       }
       else
       {
@@ -2132,7 +2130,7 @@ namespace KODI::VIDEO
             file->cDate.GetAsLocalizedDate(), file->strTitle);
       }
     }
-    return INFO_ADDED;
+    return InfoRet::ADDED;
   }
 
   bool CVideoInfoScanner::GetDetails(CFileItem* pItem,
@@ -2218,7 +2216,7 @@ namespace KODI::VIDEO
 
   bool CVideoInfoScanner::CanFastHash(const CFileItemList &items, const std::vector<std::string> &excludes) const
   {
-    if (!CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_bVideoLibraryUseFastHash || items.IsPlugin())
+    if (!m_advancedSettings->m_bVideoLibraryUseFastHash || items.IsPlugin())
       return false;
 
     for (int i = 0; i < items.Size(); ++i)
@@ -2453,7 +2451,7 @@ namespace KODI::VIDEO
     // get the library item which was added previously with the specified conent type
     for (const auto& item : items)
     {
-      if (content == CONTENT_MOVIES)
+      if (content == CONTENT_MOVIES && !item->m_bIsFolder)
       {
         dbId = m_database.GetMovieId(item->GetPath());
         if (dbId != -1)
@@ -2470,6 +2468,9 @@ namespace KODI::VIDEO
       return false;
     }
 
+    // No need to check for .nomedia in the current directory, the caller already checked and this
+    // function would not have been called if it existed.
+
     // Add video extras to library
     CDirectory::EnumerateDirectory(
         path,
@@ -2483,20 +2484,28 @@ namespace KODI::VIDEO
                       CURL::GetRedacted(item->GetPath()));
           }
 
-          const std::string typeVideoVersion =
+          const std::string extraTypeName =
               CGUIDialogVideoManagerExtras::GenerateVideoExtra(path, item->GetPath());
 
-          const int idVideoVersion = m_database.AddVideoVersionType(
-              typeVideoVersion, VideoAssetTypeOwner::AUTO, VideoAssetType::EXTRA);
+          const int idVideoAssetType = m_database.AddVideoVersionType(
+              extraTypeName, VideoAssetTypeOwner::AUTO, VideoAssetType::EXTRA);
 
-          m_database.AddVideoAsset(ContentToVideoDbType(content), dbId, idVideoVersion,
-                                   VideoAssetType::EXTRA, *item.get());
+          GetArtwork(item.get(), content, true, true, "");
 
-          CLog::Log(LOGDEBUG, "VideoInfoScanner: Added video extras {}",
-                    CURL::GetRedacted(item->GetPath()));
+          if (m_database.AddVideoAsset(ContentToVideoDbType(content), dbId, idVideoAssetType,
+                                       VideoAssetType::EXTRA, *item.get()))
+          {
+            CLog::Log(LOGDEBUG, "VideoInfoScanner: Added video extra {}",
+                      CURL::GetRedacted(item->GetPath()));
+          }
+          else
+          {
+            CLog::Log(LOGERROR, "VideoInfoScanner: Failed to add video extra {}",
+                      CURL::GetRedacted(item->GetPath()));
+          }
         },
-        [](auto) { return true; }, true,
-        CServiceBroker::GetFileExtensionProvider().GetVideoExtensions(), DIR_FLAG_DEFAULTS);
+        [](const std::shared_ptr<CFileItem>& dirItem) { return !HasNoMedia(dirItem->GetPath()); },
+        true, CServiceBroker::GetFileExtensionProvider().GetVideoExtensions(), DIR_FLAG_DEFAULTS);
 
     return true;
   }

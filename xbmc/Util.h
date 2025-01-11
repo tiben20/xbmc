@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "MediaSource.h" // Definition of VECSOURCES
+#include "MediaSource.h" // Definition of std::vector<CMediaSource>
 #include "utils/Digest.h"
 
 #include <climits>
@@ -17,10 +17,17 @@
 #include <string.h>
 #include <vector>
 
-// A list of filesystem types for LegalPath/FileName
-#define LEGAL_NONE            0
-#define LEGAL_WIN32_COMPAT    1
-#define LEGAL_FATX            2
+//! \brief Enumeration of filesystem types for LegalPath/FileName
+enum class LegalPath
+{
+  NONE,
+  WIN32_COMPAT,
+#ifdef TARGET_WINDOWS
+  DEFAULT = WIN32_COMPAT,
+#else
+  DEFAULT = NONE,
+#endif
+};
 
 class CFileItem;
 class CFileItemList;
@@ -119,13 +126,9 @@ public:
 #endif
   static bool CreateDirectoryEx(const std::string& strPath);
 
-#ifdef TARGET_WINDOWS
-  static std::string MakeLegalFileName(std::string strFile, int LegalType = LEGAL_WIN32_COMPAT);
-  static std::string MakeLegalPath(std::string strPath, int LegalType = LEGAL_WIN32_COMPAT);
-#else
-  static std::string MakeLegalFileName(std::string strFile, int LegalType = LEGAL_NONE);
-  static std::string MakeLegalPath(std::string strPath, int LegalType = LEGAL_NONE);
-#endif
+  static std::string MakeLegalFileName(std::string strFile,
+                                       LegalPath LegalType = LegalPath::DEFAULT);
+  static std::string MakeLegalPath(std::string strPath, LegalPath LegalType = LegalPath::DEFAULT);
   static std::string ValidatePath(
       std::string path,
       bool bFixDoubleSlashes =
@@ -154,7 +157,9 @@ public:
    \param parameters the returned parameters
    */
   static void SplitParams(const std::string& paramString, std::vector<std::string>& parameters);
-  static int GetMatchingSource(const std::string& strPath, VECSOURCES& VECSOURCES, bool& bIsSourceName);
+  static int GetMatchingSource(const std::string& strPath,
+                               std::vector<CMediaSource>& sources,
+                               bool& bIsSourceName);
   static std::string TranslateSpecialSource(const std::string &strSpecial);
   static void DeleteDirectoryCache(const std::string &prefix = "");
   static void DeleteMusicDatabaseDirectoryCache();

@@ -195,7 +195,7 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
 
   // test if seeking is supported
   m_bCanSeek = false;
-  if (m_pInputStream->Seek(0, SEEK_POSSIBLE))
+  if (m_pInputStream->Seek(0, DVDSTREAM_SEEK_POSSIBLE))
   {
     if (Seek(1))
     {
@@ -253,13 +253,8 @@ bool VideoPlayerCodec::Init(const CFileItem &file, unsigned int filecache)
     srcConfig.bits_per_sample = CAEUtil::DataFormatToUsedBits(m_srcFormat.m_dataFormat);
     srcConfig.dither_bits = CAEUtil::DataFormatToDitherBits(m_srcFormat.m_dataFormat);
 
-    m_pResampler->Init(dstConfig, srcConfig,
-                       false,
-                       false,
-                       M_SQRT1_2,
-                       NULL,
-                       AE_QUALITY_UNKNOWN,
-                       false);
+    m_pResampler->Init(dstConfig, srcConfig, false, false, M_SQRT1_2, NULL, AE_QUALITY_UNKNOWN,
+                       false, 0.0f);
 
     m_planes = AE_IS_PLANAR(m_srcFormat.m_dataFormat) ? m_channels : 1;
     m_format = m_srcFormat;
@@ -499,7 +494,8 @@ CAEStreamInfo::DataType VideoPlayerCodec::GetPassthroughStreamType(AVCodecID cod
     case AV_CODEC_ID_DTS:
       if (profile == FF_PROFILE_DTS_HD_HRA)
         format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD;
-      else if (profile == FF_PROFILE_DTS_HD_MA)
+      else if (profile == FF_PROFILE_DTS_HD_MA || profile == FF_PROFILE_DTS_HD_MA_X ||
+               profile == FF_PROFILE_DTS_HD_MA_X_IMAX)
         format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD_MA;
       else
         format.m_streamInfo.m_type = CAEStreamInfo::STREAM_TYPE_DTSHD_CORE;

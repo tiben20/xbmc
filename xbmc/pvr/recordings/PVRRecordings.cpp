@@ -187,6 +187,37 @@ std::shared_ptr<CPVRRecording> CPVRRecordings::GetById(int iClientId,
   return retVal;
 }
 
+namespace
+{
+bool MatchProvider(const std::shared_ptr<CPVRRecording>& recording,
+                   bool isRadio,
+                   int clientId,
+                   int providerId)
+{
+  return recording->IsRadio() == isRadio && recording->ClientID() == clientId &&
+         (providerId == PVR_PROVIDER_INVALID_UID || recording->ClientProviderUid() == providerId);
+}
+} // unnamed namespace
+
+bool CPVRRecordings::HasRecordingForProvider(bool isRadio, int clientId, int providerId) const
+{
+  std::unique_lock<CCriticalSection> lock(m_critSection);
+  return std::any_of(m_recordings.cbegin(), m_recordings.cend(),
+                     [isRadio, clientId, providerId](const auto& entry)
+                     { return MatchProvider(entry.second, isRadio, clientId, providerId); });
+}
+
+unsigned int CPVRRecordings::GetRecordingCountByProvider(bool isRadio,
+                                                         int clientId,
+                                                         int providerId) const
+{
+  std::unique_lock<CCriticalSection> lock(m_critSection);
+  auto recs = std::count_if(m_recordings.cbegin(), m_recordings.cend(),
+                            [isRadio, clientId, providerId](const auto& entry)
+                            { return MatchProvider(entry.second, isRadio, clientId, providerId); });
+  return static_cast<unsigned int>(recs);
+}
+
 void CPVRRecordings::UpdateFromClient(const std::shared_ptr<CPVRRecording>& tag,
                                       const CPVRClient& client)
 {
@@ -325,6 +356,17 @@ bool CPVRRecordings::ResetResumePoint(const std::shared_ptr<CPVRRecording>& reco
   return bResult;
 }
 
+bool CPVRRecordings::DeleteRecording(const std::shared_ptr<CPVRRecording>& recording)
+{
+  CVideoDatabase& db = GetVideoDatabase();
+  if (db.IsOpen() && recording->Delete())
+  {
+    recording->DeleteMetadata(db);
+    return true;
+  }
+  return false;
+}
+
 CVideoDatabase& CPVRRecordings::GetVideoDatabase()
 {
   if (!m_database)
@@ -349,12 +391,14 @@ int CPVRRecordings::CleanupCachedImages()
       urlsToCheck.emplace_back(recording.second->ClientIconPath());
       urlsToCheck.emplace_back(recording.second->ClientThumbnailPath());
       urlsToCheck.emplace_back(recording.second->ClientFanartPath());
+      urlsToCheck.emplace_back(recording.second->ClientParentalRatingIconPath());
       urlsToCheck.emplace_back(recording.second->m_strFileNameAndPath);
     }
   }
 
   static const std::vector<PVRImagePattern> urlPatterns = {
-      {CPVRRecording::IMAGE_OWNER_PATTERN, ""}, // client-supplied icon, thumbnail, fanart
+      {CPVRRecording::IMAGE_OWNER_PATTERN,
+       ""}, // client-supplied icon, thumbnail, fanart, parental rating icon
       {"video", "pvr://recordings/"}, // kodi-generated video thumbnail
   };
   return CPVRCachedImages::Cleanup(urlPatterns, urlsToCheck);

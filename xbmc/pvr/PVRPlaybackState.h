@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_general.h"
+#include "pvr/PVRConstants.h" // PVR_CLIENT_INVALID_UID
 #include "threads/CriticalSection.h"
 #include "utils/ContentUtils.h"
 
@@ -74,9 +76,9 @@ public:
    * @param item containing a channel, a recording or an epg tag.
    * @param mode playback mode.
    */
-  void StartPlayback(
-      CFileItem* item,
-      ContentUtils::PlayMode mode = ContentUtils::PlayMode::CHECK_AUTO_PLAY_NEXT_ITEM) const;
+  void StartPlayback(std::unique_ptr<CFileItem>& item,
+                     ContentUtils::PlayMode mode,
+                     PVR_SOURCE source) const;
 
   /*!
    * @brief Check if a TV channel, radio channel or recording is playing.
@@ -181,7 +183,7 @@ public:
 
   /*!
    * @brief Get the ID of the playing client, if there is one.
-   * @return The ID or -1 if no client is playing.
+   * @return The ID or PVR_CLIENT_INVALID_UID if no client is playing.
    */
   int GetPlayingClientID() const;
 
@@ -289,7 +291,7 @@ private:
   std::shared_ptr<CPVRChannelGroupMember> m_previousToLastPlayedChannelRadio;
   std::string m_strPlayingClientName;
   int m_playingGroupId = -1;
-  int m_playingClientId = -1;
+  int m_playingClientId = PVR_CLIENT_INVALID_UID;
   int m_playingChannelUniqueId = -1;
   std::string m_strPlayingRecordingUniqueId;
   int m_playingEpgTagChannelUniqueId = -1;

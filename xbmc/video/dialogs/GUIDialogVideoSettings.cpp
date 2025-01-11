@@ -306,7 +306,7 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
     }
 
     // launch calibration window
-    if (profileManager->GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE &&
+    if (profileManager->GetMasterProfile().getLockMode() != LockMode::EVERYONE &&
         g_passwordManager.CheckSettingLevelLock(calibsetting->GetLevel()))
       return;
 
@@ -382,7 +382,7 @@ bool CGUIDialogVideoSettings::Save()
 {
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
-  if (profileManager->GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE &&
+  if (profileManager->GetMasterProfile().getLockMode() != LockMode::EVERYONE &&
       !g_passwordManager.CheckSettingLevelLock(::SettingLevel::Expert))
     return true;
 

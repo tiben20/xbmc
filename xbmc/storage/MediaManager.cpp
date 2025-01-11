@@ -146,20 +146,20 @@ bool CMediaManager::SaveSources()
   return doc.SaveFile(MEDIA_SOURCES_XML);
 }
 
-void CMediaManager::GetLocalDrives(VECSOURCES &localDrives, bool includeQ)
+void CMediaManager::GetLocalDrives(std::vector<CMediaSource>& localDrives, bool includeQ)
 {
   std::unique_lock<CCriticalSection> lock(m_CritSecStorageProvider);
   m_platformStorage->GetLocalDrives(localDrives);
 }
 
-void CMediaManager::GetRemovableDrives(VECSOURCES &removableDrives)
+void CMediaManager::GetRemovableDrives(std::vector<CMediaSource>& removableDrives)
 {
   std::unique_lock<CCriticalSection> lock(m_CritSecStorageProvider);
   if (m_platformStorage)
     m_platformStorage->GetRemovableDrives(removableDrives);
 }
 
-void CMediaManager::GetNetworkLocations(VECSOURCES &locations, bool autolocations)
+void CMediaManager::GetNetworkLocations(std::vector<CMediaSource>& locations, bool autolocations)
 {
   for (unsigned int i = 0; i < m_locations.size(); i++)
   {
@@ -322,7 +322,7 @@ CMediaSource CMediaManager::ComputeRootAddonTypeSource(const std::string& type,
   source.strPath = "addons://sources/" + type + "/";
   source.strName = label;
   source.m_strThumbnailImage = thumb;
-  source.m_iDriveType = CMediaSource::SOURCE_TYPE_VPATH;
+  source.m_iDriveType = SourceType::VPATH;
   source.m_ignore = true;
   return source;
 }
@@ -609,11 +609,11 @@ std::string CMediaManager::GetDiscPath()
 #else
 
   std::unique_lock<CCriticalSection> lock(m_CritSecStorageProvider);
-  VECSOURCES drives;
+  std::vector<CMediaSource> drives;
   m_platformStorage->GetRemovableDrives(drives);
   for(unsigned i = 0; i < drives.size(); ++i)
   {
-    if(drives[i].m_iDriveType == CMediaSource::SOURCE_TYPE_DVD && !drives[i].strPath.empty())
+    if (drives[i].m_iDriveType == SourceType::OPTICAL_DISC && !drives[i].strPath.empty())
       return drives[i].strPath;
   }
 
@@ -699,9 +699,12 @@ void CMediaManager::OnStorageAdded(const MEDIA_DETECT::STORAGE::StorageDevice& d
 {
 #ifdef HAS_OPTICAL_DRIVE
   const std::shared_ptr<CSettings> settings = CServiceBroker::GetSettingsComponent()->GetSettings();
-  if (settings->GetInt(CSettings::SETTING_AUDIOCDS_AUTOACTION) != AUTOCD_NONE || settings->GetBool(CSettings::SETTING_DVDS_AUTORUN))
+  if (settings->GetInt(CSettings::SETTING_AUDIOCDS_AUTOACTION) !=
+          static_cast<int>(AutoCDAction::NONE) ||
+      settings->GetBool(CSettings::SETTING_DVDS_AUTORUN))
   {
-    if (settings->GetInt(CSettings::SETTING_AUDIOCDS_AUTOACTION) == AUTOCD_RIP)
+    if (settings->GetInt(CSettings::SETTING_AUDIOCDS_AUTOACTION) ==
+        static_cast<int>(AutoCDAction::RIP))
     {
       CServiceBroker::GetJobManager()->AddJob(new CAutorunMediaJob(device.label, device.path), this,
                                               CJob::PRIORITY_LOW);

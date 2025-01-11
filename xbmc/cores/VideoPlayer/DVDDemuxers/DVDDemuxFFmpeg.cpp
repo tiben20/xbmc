@@ -349,7 +349,7 @@ bool CDVDDemuxFFmpeg::Open(const std::shared_ptr<CDVDInputStream>& pInput, bool 
   else
   {
     bool seekable = true;
-    if (m_pInput->Seek(0, SEEK_POSSIBLE) == 0)
+    if (m_pInput->Seek(0, DVDSTREAM_SEEK_POSSIBLE) == 0)
     {
       seekable = false;
     }
@@ -376,74 +376,7 @@ bool CDVDDemuxFFmpeg::Open(const std::shared_ptr<CDVDInputStream>& pInput, bool 
     if (iformat == nullptr)
     {
       // let ffmpeg decide which demuxer we have to open
-      bool trySPDIFonly = (m_pInput->GetContent() == "audio/x-spdif-compressed");
-
-      if (!trySPDIFonly)
-        av_probe_input_buffer(m_ioContext, &iformat, strFile.c_str(), NULL, 0, 0);
-
-      // Use the more low-level code in case we have been built against an old
-      // FFmpeg without the above av_probe_input_buffer(), or in case we only
-      // want to probe for spdif (DTS or IEC 61937) compressed audio
-      // specifically, or in case the file is a wav which may contain DTS or
-      // IEC 61937 (e.g. ac3-in-wav) and we want to check for those formats.
-      if (trySPDIFonly || (iformat && strcmp(iformat->name, "wav") == 0))
-      {
-        AVProbeData pd;
-        int probeBufferSize = 32768;
-        std::unique_ptr<uint8_t[]> probe_buffer (new uint8_t[probeBufferSize + AVPROBE_PADDING_SIZE]);
-
-        // init probe data
-        pd.buf = probe_buffer.get();
-        pd.filename = strFile.c_str();
-
-        // read data using avformat's buffers
-        pd.buf_size = avio_read(m_ioContext, pd.buf, probeBufferSize);
-        if (pd.buf_size <= 0)
-        {
-          CLog::Log(LOGERROR, "{} - error reading from input stream, {}", __FUNCTION__,
-                    CURL::GetRedacted(strFile));
-          return false;
-        }
-        memset(pd.buf + pd.buf_size, 0, AVPROBE_PADDING_SIZE);
-
-        // restore position again
-        avio_seek(m_ioContext , 0, SEEK_SET);
-
-        // the advancedsetting is for allowing the user to force outputting the
-        // 44.1 kHz DTS wav file as PCM, so that an A/V receiver can decode
-        // it (this is temporary until we handle 44.1 kHz passthrough properly)
-        if (trySPDIFonly || (iformat && strcmp(iformat->name, "wav") == 0 && !CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_VideoPlayerIgnoreDTSinWAV))
-        {
-          // check for spdif and dts
-          // This is used with wav files and audio CDs that may contain
-          // a DTS or AC3 track padded for S/PDIF playback. If neither of those
-          // is present, we assume it is PCM audio.
-          // AC3 is always wrapped in iec61937 (ffmpeg "spdif"), while DTS
-          // may be just padded.
-          const AVInputFormat* iformat2 = av_find_input_format("spdif");
-          if (iformat2 && iformat2->read_probe(&pd) > AVPROBE_SCORE_MAX / 4)
-          {
-            iformat = iformat2;
-          }
-          else
-          {
-            // not spdif or no spdif demuxer, try dts
-            iformat2 = av_find_input_format("dts");
-
-            if (iformat2 && iformat2->read_probe(&pd) > AVPROBE_SCORE_MAX / 4)
-            {
-              iformat = iformat2;
-            }
-            else if (trySPDIFonly)
-            {
-              // not dts either, return false in case we were explicitly
-              // requested to only check for S/PDIF padded compressed audio
-              CLog::Log(LOGDEBUG, "{} - not spdif or dts file, falling back", __FUNCTION__);
-              return false;
-            }
-          }
-        }
-      }
+      av_probe_input_buffer(m_ioContext, &iformat, strFile.c_str(), NULL, 0, 0);
 
       if (!iformat)
       {
@@ -1282,8 +1215,7 @@ bool CDVDDemuxFFmpeg::SeekTime(double time, bool backwards, double* startpts)
     return true;
   }
 
-  if (!m_pInput->Seek(0, SEEK_POSSIBLE) &&
-      !m_pInput->IsStreamType(DVDSTREAM_TYPE_FFMPEG))
+  if (!m_pInput->Seek(0, DVDSTREAM_SEEK_POSSIBLE) && !m_pInput->IsStreamType(DVDSTREAM_TYPE_FFMPEG))
   {
     CLog::Log(LOGDEBUG, "{} - input stream reports it is not seekable", __FUNCTION__);
     return false;
@@ -1353,7 +1285,7 @@ bool CDVDDemuxFFmpeg::SeekTime(double time, bool backwards, double* startpts)
 
     if (ret >= 0)
     {
-      if (m_pFormatContext->iformat->read_seek)
+      if (!(m_pFormatContext->iformat->flags & AVFMT_NOTIMESTAMPS))
         m_seekToKeyFrame = true;
       m_currentPts = DVD_NOPTS_VALUE;
     }
@@ -1637,10 +1569,7 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
         st->iBitsPerSample = pStream->codecpar->bits_per_raw_sample;
         char buf[32] = {};
         // https://github.com/FFmpeg/FFmpeg/blob/6ccc3989d15/doc/APIchanges#L50-L53
-        AVChannelLayout layout = {};
-        av_channel_layout_from_mask(&layout, st->iChannelLayout);
-        av_channel_layout_describe(&layout, buf, sizeof(buf));
-        av_channel_layout_uninit(&layout);
+        av_channel_layout_describe(&pStream->codecpar->ch_layout, buf, sizeof(buf));
         st->m_channelLayoutName = buf;
         if (st->iBitsPerSample == 0)
           st->iBitsPerSample = pStream->codecpar->bits_per_coded_sample;
@@ -1717,42 +1646,49 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
         st->colorRange = pStream->codecpar->color_range;
         st->hdr_type = DetermineHdrType(pStream);
 
-        // https://github.com/FFmpeg/FFmpeg/blob/release/5.0/doc/APIchanges
-        size_t size = 0;
-        uint8_t* side_data = nullptr;
+        // https://github.com/FFmpeg/FFmpeg/blob/release/7.0/doc/APIchanges
+        const AVPacketSideData* sideData = nullptr;
 
         if (st->hdr_type == StreamHdrType::HDR_TYPE_DOLBYVISION)
         {
-          side_data = av_stream_get_side_data(pStream, AV_PKT_DATA_DOVI_CONF, &size);
-          if (side_data && size)
+
+          sideData =
+              av_packet_side_data_get(pStream->codecpar->coded_side_data,
+                                      pStream->codecpar->nb_coded_side_data, AV_PKT_DATA_DOVI_CONF);
+          if (sideData && sideData->size)
           {
-            st->dovi = *reinterpret_cast<AVDOVIDecoderConfigurationRecord*>(side_data);
+            st->dovi = *reinterpret_cast<const AVDOVIDecoderConfigurationRecord*>(sideData->data);
           }
         }
 
-        side_data = av_stream_get_side_data(pStream, AV_PKT_DATA_MASTERING_DISPLAY_METADATA, &size);
-        if (side_data && size)
+        sideData = av_packet_side_data_get(pStream->codecpar->coded_side_data,
+                                           pStream->codecpar->nb_coded_side_data,
+                                           AV_PKT_DATA_MASTERING_DISPLAY_METADATA);
+        if (sideData && sideData->size)
         {
           st->masteringMetaData = std::make_shared<AVMasteringDisplayMetadata>(
-              *reinterpret_cast<AVMasteringDisplayMetadata*>(side_data));
+              *reinterpret_cast<const AVMasteringDisplayMetadata*>(sideData->data));
         }
 
-        side_data = av_stream_get_side_data(pStream, AV_PKT_DATA_CONTENT_LIGHT_LEVEL, &size);
-        if (side_data && size)
+        sideData = av_packet_side_data_get(pStream->codecpar->coded_side_data,
+                                           pStream->codecpar->nb_coded_side_data,
+                                           AV_PKT_DATA_CONTENT_LIGHT_LEVEL);
+        if (sideData && sideData->size)
         {
           st->contentLightMetaData = std::make_shared<AVContentLightMetadata>(
-              *reinterpret_cast<AVContentLightMetadata*>(side_data));
+              *reinterpret_cast<const AVContentLightMetadata*>(sideData->data));
         }
 
-        uint8_t* displayMatrixSideData =
-            av_stream_get_side_data(pStream, AV_PKT_DATA_DISPLAYMATRIX, nullptr);
-        if (displayMatrixSideData)
+        sideData = av_packet_side_data_get(pStream->codecpar->coded_side_data,
+                                           pStream->codecpar->nb_coded_side_data,
+                                           AV_PKT_DATA_DISPLAYMATRIX);
+        if (sideData)
         {
-          const double tetha =
-              av_display_rotation_get(reinterpret_cast<int32_t*>(displayMatrixSideData));
-          if (!std::isnan(tetha))
+          const double theta =
+              av_display_rotation_get(reinterpret_cast<const int32_t*>(sideData->data));
+          if (!std::isnan(theta))
           {
-            st->iOrientation = ((static_cast<int>(-tetha) % 360) + 360) % 360;
+            st->iOrientation = ((static_cast<int>(-theta) % 360) + 360) % 360;
           }
         }
 
@@ -1830,7 +1766,7 @@ CDemuxStream* CDVDDemuxFFmpeg::AddStream(int streamIdx)
           AVDictionaryEntry* nameTag = av_dict_get(pStream->metadata, "filename", NULL, 0);
           if (nameTag)
           {
-            filePath += CUtil::MakeLegalFileName(nameTag->value, LEGAL_WIN32_COMPAT);
+            filePath += CUtil::MakeLegalFileName(nameTag->value, LegalPath::WIN32_COMPAT);
             XFILE::CFile file;
             if (pStream->codecpar->extradata && file.OpenForWrite(filePath))
             {
@@ -2135,6 +2071,10 @@ std::string CDVDDemuxFFmpeg::GetStreamCodecName(int iStreamId)
     {
       if (stream->profile == FF_PROFILE_DTS_HD_MA)
         strName = "dtshd_ma";
+      else if (stream->profile == FF_PROFILE_DTS_HD_MA_X)
+        strName = "dtshd_ma_x";
+      else if (stream->profile == FF_PROFILE_DTS_HD_MA_X_IMAX)
+        strName = "dtshd_ma_x_imax";
       else if (stream->profile == FF_PROFILE_DTS_HD_HRA)
         strName = "dtshd_hra";
       else
@@ -2142,6 +2082,12 @@ std::string CDVDDemuxFFmpeg::GetStreamCodecName(int iStreamId)
 
       return strName;
     }
+
+    if (stream->codec == AV_CODEC_ID_EAC3 && stream->profile == AV_PROFILE_EAC3_DDP_ATMOS)
+      return "eac3_ddp_atmos";
+
+    if (stream->codec == AV_CODEC_ID_TRUEHD && stream->profile == AV_PROFILE_TRUEHD_ATMOS)
+      return "truehd_atmos";
 
     const AVCodec* codec = avcodec_find_decoder(stream->codec);
     if (codec)
@@ -2575,7 +2521,9 @@ StreamHdrType CDVDDemuxFFmpeg::DetermineHdrType(AVStream* pStream)
 {
   StreamHdrType hdrType = StreamHdrType::HDR_TYPE_NONE;
 
-  if (av_stream_get_side_data(pStream, AV_PKT_DATA_DOVI_CONF, nullptr)) // DoVi
+  if (av_packet_side_data_get(pStream->codecpar->coded_side_data,
+                              pStream->codecpar->nb_coded_side_data,
+                              AV_PKT_DATA_DOVI_CONF)) // DoVi
     hdrType = StreamHdrType::HDR_TYPE_DOLBYVISION;
   else if (pStream->codecpar->color_trc == AVCOL_TRC_SMPTE2084) // HDR10
     hdrType = StreamHdrType::HDR_TYPE_HDR10;
@@ -2583,7 +2531,9 @@ StreamHdrType CDVDDemuxFFmpeg::DetermineHdrType(AVStream* pStream)
     hdrType = StreamHdrType::HDR_TYPE_HLG;
   // file could be SMPTE2086 which FFmpeg currently returns as unknown
   // so use the presence of static metadata to detect it
-  else if (av_stream_get_side_data(pStream, AV_PKT_DATA_MASTERING_DISPLAY_METADATA, nullptr))
+  else if (av_packet_side_data_get(pStream->codecpar->coded_side_data,
+                                   pStream->codecpar->nb_coded_side_data,
+                                   AV_PKT_DATA_MASTERING_DISPLAY_METADATA))
     hdrType = StreamHdrType::HDR_TYPE_HDR10;
 
   return hdrType;

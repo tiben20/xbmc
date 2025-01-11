@@ -36,7 +36,7 @@
 #if defined(TARGET_ANDROID)
 #include "utils/FileUtils.h"
 
-#include "platform/android/activity/XBMCApp.h"
+#include "platform/android/storage/AndroidStorageProvider.h"
 #endif
 
 #ifdef TARGET_WINDOWS_STORE
@@ -152,7 +152,7 @@ bool CGUIDialogMediaSource::ShowAndAddMediaSource(const std::string &type)
 
 bool CGUIDialogMediaSource::ShowAndEditMediaSource(const std::string &type, const std::string&share)
 {
-  VECSOURCES* pShares = CMediaSourceSettings::GetInstance().GetSources(type);
+  std::vector<CMediaSource>* pShares = CMediaSourceSettings::GetInstance().GetSources(type);
   if (pShares)
   {
     for (unsigned int i = 0;i<pShares->size();++i)
@@ -197,7 +197,7 @@ std::string CGUIDialogMediaSource::GetUniqueMediaSourceName()
   // Get unique source name for this media type
   unsigned int i, j = 2;
   bool bConfirmed = false;
-  VECSOURCES* pShares = CMediaSourceSettings::GetInstance().GetSources(m_type);
+  std::vector<CMediaSource>* pShares = CMediaSourceSettings::GetInstance().GetSources(m_type);
   std::string strName = m_name;
   while (!bConfirmed)
   {
@@ -237,7 +237,7 @@ void CGUIDialogMediaSource::OnPathBrowse(int item)
   // Ignore current path is best at this stage??
   std::string path = m_paths->Get(item)->GetPath();
   bool allowNetworkShares(m_type != "programs");
-  VECSOURCES extraShares;
+  std::vector<CMediaSource> extraShares;
 
   if (m_name != CUtil::GetTitleFromPath(path))
     m_bNameChanged = true;
@@ -249,7 +249,8 @@ void CGUIDialogMediaSource::OnPathBrowse(int item)
 #if defined(TARGET_ANDROID)
     // add the default android music directory
     std::string path;
-    if (CXBMCApp::GetExternalStorage(path, "music") && !path.empty() && CDirectory::Exists(path))
+    if (CAndroidStorageProvider::GetExternalStorage(path, "music") && !path.empty() &&
+        CDirectory::Exists(path))
     {
       share1.strPath = path;
       share1.strName = g_localizeStrings.Get(20240);
@@ -303,7 +304,8 @@ void CGUIDialogMediaSource::OnPathBrowse(int item)
 #if defined(TARGET_ANDROID)
     // add the default android video directory
     std::string path;
-    if (CXBMCApp::GetExternalStorage(path, "videos") && !path.empty() && CFileUtils::Exists(path))
+    if (CAndroidStorageProvider::GetExternalStorage(path, "videos") && !path.empty() &&
+        CFileUtils::Exists(path))
     {
       share1.strPath = path;
       share1.strName = g_localizeStrings.Get(20241);
@@ -349,7 +351,8 @@ void CGUIDialogMediaSource::OnPathBrowse(int item)
 #if defined(TARGET_ANDROID)
     // add the default android music directory
     std::string path;
-    if (CXBMCApp::GetExternalStorage(path, "pictures") && !path.empty() && CFileUtils::Exists(path))
+    if (CAndroidStorageProvider::GetExternalStorage(path, "pictures") && !path.empty() &&
+        CFileUtils::Exists(path))
     {
       share1.strPath = path;
       share1.strName = g_localizeStrings.Get(20242);
@@ -358,7 +361,8 @@ void CGUIDialogMediaSource::OnPathBrowse(int item)
     }
 
     path.clear();
-    if (CXBMCApp::GetExternalStorage(path, "photos") && !path.empty() && CFileUtils::Exists(path))
+    if (CAndroidStorageProvider::GetExternalStorage(path, "photos") && !path.empty() &&
+        CFileUtils::Exists(path))
     {
       share1.strPath = path;
       share1.strName = g_localizeStrings.Get(20243);

@@ -63,14 +63,6 @@ bool CPVRChannelGroup::operator!=(const CPVRChannelGroup& right) const
   return !(*this == right);
 }
 
-void CPVRChannelGroup::FillAddonData(PVR_CHANNEL_GROUP& group) const
-{
-  group = {};
-  group.bIsRadio = IsRadio();
-  strncpy(group.strGroupName, ClientGroupName().c_str(), sizeof(group.strGroupName) - 1);
-  group.iPosition = GetClientPosition();
-}
-
 CCriticalSection CPVRChannelGroup::m_settingsSingletonCritSection;
 std::weak_ptr<CPVRChannelGroupSettings> CPVRChannelGroup::m_settingsSingleton;
 
@@ -315,6 +307,33 @@ std::shared_ptr<CPVRChannel> CPVRChannelGroup::GetByChannelID(int iChannelID) co
   return it != m_members.cend() ? (*it).second->Channel() : std::shared_ptr<CPVRChannel>();
 }
 
+namespace
+{
+bool MatchProvider(const std::shared_ptr<CPVRChannel>& channel, int clientId, int providerId)
+{
+  return channel->ClientID() == clientId &&
+         (providerId == PVR_PROVIDER_INVALID_UID || channel->ClientProviderUid() == providerId);
+}
+} // unnamed namespace
+
+bool CPVRChannelGroup::HasChannelForProvider(int clientId, int providerId) const
+{
+  std::unique_lock<CCriticalSection> lock(m_critSection);
+  return std::any_of(m_members.cbegin(), m_members.cend(),
+                     [clientId, providerId](const auto& member)
+                     { return MatchProvider(member.second->Channel(), clientId, providerId); });
+}
+
+unsigned int CPVRChannelGroup::GetChannelCountByProvider(int clientId, int providerId) const
+{
+  std::unique_lock<CCriticalSection> lock(m_critSection);
+  auto channels =
+      std::count_if(m_members.cbegin(), m_members.cend(),
+                    [clientId, providerId](const auto& member)
+                    { return MatchProvider(member.second->Channel(), clientId, providerId); });
+  return static_cast<unsigned int>(channels);
+}
+
 std::shared_ptr<CPVRChannelGroupMember> CPVRChannelGroup::GetLastPlayedChannelGroupMember(
     int iCurrentChannel /* = -1 */) const
 {
@@ -548,7 +567,7 @@ int CPVRChannelGroup::LoadFromDatabase(const std::vector<std::shared_ptr<CPVRCli
 
   DeleteGroupMembersFromDb(membersToDelete);
 
-  return results.size() - membersToDelete.size();
+  return static_cast<int>(results.size() - membersToDelete.size());
 }
 
 void CPVRChannelGroup::DeleteGroupMembersFromDb(
@@ -570,7 +589,7 @@ void CPVRChannelGroup::DeleteGroupMembersFromDb(
 
     for (const auto& member : membersToDelete)
     {
-      commitPending |= member->QueueDelete();
+      commitPending |= database->QueueDeleteQuery(*member);
 
       size_t queryCount = database->GetDeleteQueriesCount();
       if (queryCount > CHANNEL_COMMIT_QUERY_COUNT_LIMIT)
@@ -791,9 +810,12 @@ bool CPVRChannelGroup::RemoveFromGroup(
     }
   }
 
-  // no need to renumber if nothing was removed
+  // no need to delete and renumber if nothing was removed
   if (bReturn)
+  {
+    DeleteGroupMembersFromDb({std::make_shared<CPVRChannelGroupMember>(*groupMember)});
     Renumber();
+  }
 
   return bReturn;
 }
@@ -884,11 +906,6 @@ void CPVRChannelGroup::Delete()
     if (database->Delete(*this))
       m_bDeleted = true;
   }
-}
-
-void CPVRChannelGroup::DeleteGroupMember(const std::shared_ptr<CPVRChannelGroupMember>& member)
-{
-  DeleteGroupMembersFromDb({member});
 }
 
 bool CPVRChannelGroup::Renumber(RenumberMode mode /* = NORMAL */)

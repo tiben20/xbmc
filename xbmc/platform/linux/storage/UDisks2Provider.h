@@ -104,7 +104,7 @@ class CUDisks2Provider : public IStorageProvider
     /*! \brief Get the device mount point
      * @return the device mount point
     */
-    std::string GetMountPoint() const;
+    const std::string& GetMountPoint() const { return m_mountPoint; }
 
     /*! \brief Reset the device mount point
     */
@@ -118,7 +118,7 @@ class CUDisks2Provider : public IStorageProvider
     /*! \brief Get the device dbus object
      * @return the device dbus object
     */
-    std::string GetObject() const;
+    const std::string& GetObject() const { return m_object; }
 
     /*! \brief Get a representation of the device as a readable string
      * @return device as a string
@@ -159,10 +159,10 @@ public:
 
   std::vector<std::string> GetDiskUsage() override;
 
-  void GetLocalDrives(VECSOURCES &localDrives) override
+  void GetLocalDrives(std::vector<CMediaSource>& localDrives) override
   { GetDisks(localDrives, false); }
 
-  void GetRemovableDrives(VECSOURCES &removableDrives) override
+  void GetRemovableDrives(std::vector<CMediaSource>& removableDrives) override
   { GetDisks(removableDrives, true); }
 
   void Stop() override
@@ -177,7 +177,7 @@ private:
 
   std::string m_daemonVersion;
 
-  void GetDisks(VECSOURCES &devices, bool enumerateRemovable);
+  void GetDisks(std::vector<CMediaSource>& devices, bool enumerateRemovable);
 
   void DriveAdded(Drive *drive);
   bool DriveRemoved(const std::string& object);

@@ -1508,6 +1508,7 @@ msgid "(0=auto)"
 msgstr ""
 
 #. generic "cleaning database" label used in different places
+#: xbmc/TextureCache.cpp
 #: xbmc/music/MusicDatabase.cpp
 #: xbmc/pvr/guilib/PVRGUIActionsDatabase.cpp
 #: xbmc/settings/MediaSettings.cpp
@@ -2195,6 +2196,10 @@ msgctxt "#459"
 msgid "Subs"
 msgstr ""
 
+#: xbmc/video/PlayerController.cpp
+#: xbmc/video/dialogs/GUIDialogAudioSettings.cpp
+#: addons/skin.estuary/xml/DialogPlayerProcessInfo.xml
+#: xbmc/video/guilib/VideoStreamSelectHelper.cpp
 msgctxt "#460"
 msgid "Audio stream"
 msgstr ""
@@ -2203,8 +2208,10 @@ msgctxt "#461"
 msgid "[active]"
 msgstr ""
 
+#: xbmc/video/dialogs/GUIDialogSubtitleSettings.cpp
+#: xbmc/video/guilib/VideoStreamSelectHelper.cpp
 msgctxt "#462"
-msgid "Subtitle"
+msgid "Subtitle stream"
 msgstr ""
 
 msgctxt "#463"
@@ -3247,7 +3254,43 @@ msgctxt "#687"
 msgid "From metadata"
 msgstr ""
 
-#empty strings from id 688 to 699
+#. Description of setting with label #39159 "Border size"
+#: system/settings/settings.xml
+msgctxt "#688"
+msgid "Set the border size."
+msgstr ""
+
+#. Description of setting with label #39160 "Border colour"
+#: system/settings/settings.xml
+msgctxt "#689"
+msgid "Set the border colour."
+msgstr ""
+
+#. Description of setting with label #39173 "Blur"
+#: system/settings/settings.xml
+msgctxt "#690"
+msgid "Set the blur."
+msgstr ""
+
+#. Description of setting with label #39171 "Shadow colour"
+#: system/settings/settings.xml
+msgctxt "#691"
+msgid "Set the shadow colour."
+msgstr ""
+
+#. Description of setting with label #39172 "Shadow opacity"
+#: system/settings/settings.xml
+msgctxt "#692"
+msgid "Set the shadow opacity."
+msgstr ""
+
+#. Description of setting with label #39170 "Shadow size"
+#: system/settings/settings.xml
+msgctxt "#693"
+msgid "Set the shadow size."
+msgstr ""
+
+#empty strings from id 694 to 699
 
 #: xbmc/interfaces/builtins/LibraryBuiltins.cpp
 #: xbmc/music/MusicLibraryQueue.cpp
@@ -3667,6 +3710,7 @@ msgid "Any channel"
 msgstr ""
 
 #. Label of "Start any time" radio button in PVR timer settings dialog
+#: addons/skin.estuary/xml/DialogPVRGuideSearch.xml
 #: xbmc/pvr/dialogs/GUIDialogPVRTimerSettings.cpp
 msgctxt "#810"
 msgid "Start any time"
@@ -3713,6 +3757,7 @@ msgid "Record only new episodes"
 msgstr ""
 
 #. Label of "End any time" radio button in PVR timer settings dialog
+#: addons/skin.estuary/xml/DialogPVRGuideSearch.xml
 #: xbmc/pvr/dialogs/GUIDialogPVRTimerSettings.cpp
 msgctxt "#817"
 msgid "End any time"
@@ -3942,7 +3987,75 @@ msgctxt "#855"
 msgid "Recently added channels"
 msgstr ""
 
-#empty strings from id 856 to 996
+#. Label for the origin of a channel group (provided by a PVR client add-on).
+#: xbmc/pvr/guilib/guiinfo/PVRGUIInfo.cpp
+msgctxt "#856"
+msgid "Client"
+msgstr ""
+
+#. Label for the origin of a channel group (automatically created by Kodi).
+#: xbmc/pvr/guilib/guiinfo/PVRGUIInfo.cpp
+msgctxt "#857"
+msgid "System"
+msgstr ""
+
+#. Label for the origin of a channel group (manually created by the user).
+#: xbmc/pvr/guilib/guiinfo/PVRGUIInfo.cpp
+msgctxt "#858"
+msgid "User"
+msgstr ""
+
+#. Label postfix for channel groups containing content from all channels (e.g. "PVR Client 1 [All channels]")
+#: xbmc/pvr/channels/PVRChannelGroupAllChannelsSingleClient.cpp
+#: xbmc/pvr/channels/PVRChannelGroupMergedByName.cpp
+msgctxt "#859"
+msgid "{0:s} [All channels]"
+msgstr ""
+
+#. Label for setting 'Delete after watching' and delete confirmation dialog box.
+#: system/settings/settings.xml
+#: xbmc/pvr/guilib/PVRGUIActionsRecordings..cpp
+msgctxt "#860"
+msgid "Delete after watching"
+msgstr ""
+
+#. Help text for setting 'Delete after watching'.
+#: system/settings/settings.xml
+msgctxt "#861"
+msgid "Configure whether recordings should be deleted after watching."
+msgstr ""
+
+#. Value for setting 'Delete after watching'. Keep after watching.
+#: system/settings/settings.xml
+msgctxt "#862"
+msgid "No"
+msgstr ""
+
+#. Value for setting 'Delete after watching'. Confirm delete.
+#: system/settings/settings.xml
+msgctxt "#863"
+msgid "Ask"
+msgstr ""
+
+#. Value for setting 'Delete after watching'. Delete after watching.
+#: system/settings/settings.xml
+msgctxt "#864"
+msgid "Yes"
+msgstr ""
+
+#. Text for delete after watch confirmation dialog box.
+#: xbmc/pvr/guilib/PVRGUIActionsRecordings..cpp
+msgctxt "#865"
+msgid "Do you want to delete this recording?"
+msgstr ""
+
+#. Text for auto delete after watch toast message.
+#: xbmc/pvr/guilib/PVRGUIActionsRecordings..cpp
+msgctxt "#866"
+msgid "Recording deleted: '{0:s}'"
+msgstr ""
+
+#empty strings from id 867 to 996
 
 #: xbmc/windows/GUIMediaWindow.cpp
 msgctxt "#997"
@@ -5316,6 +5429,7 @@ msgid "File browser"
 msgstr ""
 
 #. Audio Channel count
+#: xbmc/cores/VideoPlayer/DVDInputStreams/DVDInputStreamNavigator.cpp
 #: xbmc/video/dialogs/GUIDialogAudioSettings.cpp
 msgctxt "#10127"
 msgid "channels"
@@ -6176,7 +6290,25 @@ msgctxt "#12395"
 msgid "Battery level"
 msgstr ""
 
-#empty strings from id 12396 to 12599
+#. Label of button in the System Info screen asking for donations. "Thank you!" is used to convey gratitude to the users of our beloved software.
+#: addons/skin.estuary/xml/SettingsSystemInfo.xml
+msgctxt "#12396"
+msgid "Thank you!"
+msgstr ""
+
+#. Label of text box asking for donations
+#: addons/skin.estuary/xml/SettingsSystemInfo.xml
+msgctxt "#12397"
+msgid "Kodi is brought to you with love from the Kodi Foundation, a 501(c)(3) nonprofit organization. Thank you for using our software!"
+msgstr ""
+
+#. URL for donations. Do not translate.
+#: addons/skin.estuary/xml/SettingsSystemInfo.xml
+msgctxt "#12398"
+msgid "kodi.tv/donate"
+msgstr ""
+
+#empty strings from id 12399 to 12599
 
 #: xbmc/guilib/WindowIDs.h
 msgctxt "#12600"
@@ -6614,6 +6746,7 @@ msgstr ""
 #: xbmc/GUIInfoManager.cpp
 #: xbmc/LangInfo.cpp
 #: xbmc/addons/gui/GUIDialogAddonSettings.cpp
+#: xbmc/cores/VideoPlayer/DVDInputStreams/DVDInputStreamNavigator.cpp
 #: xbmc/music/MusicDatabase.cpp
 #: xbmc/peripherals/bus/PeripheralBus.cpp
 #: xbmc/peripherals/devices/Peripheral.cpp
@@ -7157,7 +7290,11 @@ msgctxt "#13391"
 msgid "Eject / Load"
 msgstr ""
 
-#empty string with id 13392
+#: addons/skin.estuary/xml/Variables.xml
+#: addons/skin.estuary/xml/VideoOSD.xml
+msgctxt "#13392"
+msgid "Stream selection"
+msgstr ""
 
 #: xbmc/windows/GUIWindowFileManager.cpp
 msgctxt "#13393"
@@ -7337,10 +7474,7 @@ msgctxt "#13427"
 msgid "Allow hardware acceleration - DXVA2"
 msgstr ""
 
-#: system/settings/settings.xml
-msgctxt "#13428"
-msgid "Allow hardware acceleration - CrystalHD"
-msgstr ""
+#empty string with id 13428
 
 #: system/settings/settings.xml
 msgctxt "#13429"
@@ -7498,7 +7632,17 @@ msgctxt "#13457"
 msgid "Prefer VAAPI render method"
 msgstr ""
 
-#empty strings from id 13458 to 13459
+#. This filter disables certain Android software decoders, leaving only hardware decoders available for video playback.
+#: system/settings/settings.xml
+msgctxt "#13458"
+msgid "Use Decoder filter"
+msgstr ""
+
+#. Description of setting with label #13458 "Use Decoder filter"
+#: system/settings/settings.xml
+msgctxt "#13459"
+msgid "Enable/Disable the filter that blocks certain Android software decoders. This filter is configurable via the [userdata]/decoderfilter.xml file."
+msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#13460"
@@ -8708,7 +8852,25 @@ msgctxt "#14277"
 msgid "Allow remote control from applications on other systems"
 msgstr ""
 
-#empty strings from id 14278 to 14300
+#empty strings from id 14278 to 14279
+
+#: system/settings/settings.xml
+msgctxt "#14280"
+msgid "Maintenance"
+msgstr ""
+
+#: system/settings/settings.xml
+#: xbmc/TextureCache.cpp
+msgctxt "#14281"
+msgid "Clean image cache"
+msgstr ""
+
+#: system/settings/settings.xml
+msgctxt "#14282"
+msgid "Immediately remove unused images from the cache - images not associated with an item in the media library nor viewed recently. Kodi does this over time in the background."
+msgstr ""
+
+#empty strings from id 14283 to 14300
 
 #. pvr "channels" settings group label
 #: system/settings/settings.xml
@@ -11271,23 +11433,27 @@ msgstr ""
 
 #. Label for a select option or list item, representing an icon graphic (like a TV channel icon)
 #: xbmc/pvr/dialogs/GUIDialogPVRChannelManager.cpp
+#: xbmc/pvr/guilib/PVRGUIActionsEPG.cpp
 msgctxt "#19282"
 msgid "Current icon"
 msgstr ""
 
 #. Label for a select option or list item, representing an icon graphic (like a TV channel icon)
 #: xbmc/pvr/dialogs/GUIDialogPVRChannelManager.cpp
+#: xbmc/pvr/guilib/PVRGUIActionsEPG.cpp
 msgctxt "#19283"
 msgid "No icon"
 msgstr ""
 
-#. used by several skins
+#. used by several skins and PVR
+#: xbmc/pvr/PVRContextMenus.cpp
 msgctxt "#19284"
 msgid "Choose icon"
 msgstr ""
 
 #. Label for a select/menu option to select an icon graphic
 #: xbmc/pvr/dialogs/GUIDialogPVRChannelManager.cpp
+#: xbmc/pvr/guilib/PVRGUIActionsEPG.cpp
 msgctxt "#19285"
 msgid "Browse for icon"
 msgstr ""
@@ -11592,7 +11758,10 @@ msgctxt "#19333"
 msgid "Switched to channel for auto-closed PVR reminder for channel '{0:s}' at '{1:s}'"
 msgstr ""
 
-#. label for PVR backend number of channel providers in system information's PVR section
+#. generic label for pvr providers used in different places
+#: addons/skin.estuary/xml/DialogPVRInfo.xml
+#: addons/skin.estuary/xml/Includes_PVR.xml
+#: xbmc/pvr/filesystem/PVRGUIDirectory.cpp
 #: xbmc/pvr/guilib/PVRGUIActionsDatabase.cpp
 #: xbmc/windows/GUIWindowSystemInfo.cpp
 msgctxt "#19334"
@@ -11677,7 +11846,7 @@ msgctxt "#19347"
 msgid "None of the active PVR clients provide client-specific settings."
 msgstr ""
 
-#. label for 'by provider' sort method
+#. generic label for a pvr provider used in different places
 #: xbmc/pvr/windows/GUIViewStatePVR.cpp
 #: xbmc/utils/SortUtils.cpp
 msgctxt "#19348"
@@ -11720,7 +11889,19 @@ msgctxt "#19354"
 msgid "Play only this programme"
 msgstr ""
 
-#empty strings from id 19355 to 19498
+#. Label of a context menu entry to create a copy of an EPG saved saerch
+#: xbmc/pvr/PVRContextMenus.cpp
+msgctxt "#19355"
+msgid "Duplicate"
+msgstr ""
+
+#. Initial title of a duplicated EPG saved search.
+#: xbmc/pvr/PVRContextMenus.cpp
+msgctxt "#19356"
+msgid "Copy of '{0:s}'"
+msgstr ""
+
+#empty strings from id 19357 to 19498
 
 #. label for epg genre value
 #: xbmc/pvr/epg/Epg.cpp
@@ -15592,7 +15773,6 @@ msgstr ""
 #. Label to denote that there is something 'more'
 #. xbmc/favourites/ContextMenus.h
 #: xbmc/guilib/listproviders/DirectoryProvider.cpp
-#: xbmc/video/guilib/VideoSelectActionProcessor.cpp
 #: system/settings/settings.xml
 msgctxt "#22082"
 msgid "More..."
@@ -16918,6 +17098,7 @@ msgstr ""
 
 #. Other informations, in list selector (if present)
 #: xbmc/pvr/dialogs/GUIDialogPVRRadioRDSInfo.cpp
+#: xbmc/cores/VideoPlayer/DVDInputStreams/DVDInputStreamNavigator.cpp
 msgctxt "#29921"
 msgid "Other"
 msgstr ""
@@ -17832,8 +18013,39 @@ msgctxt "#34113"
 msgid "To keep certain AVRs powered we send an inaudible random noise signal. You can disable this setting if you are using headphone or analog output."
 msgstr ""
 
+#. Indicates if Audio Engine should include lfe when downmixing
+#: system/settings/settings.xml
+msgctxt "#34114"
+msgid "Include LFE when downmixing"
+msgstr ""
+
+#. Description of setting with label #34114 "Include LFE when downmixing"
+#: system/settings/settings.xml
+msgctxt "#34115"
+msgid "If enabled, this setting will include lfe channel into the mixing when there is no dedicated LFE output channel available. This only makes sense for full range speakers."
+msgstr ""
+
+#. Description of setting with label #34114 "Include LFE when downmixing"
+#: system/settings/settings.xml
+msgctxt "#34116"
+msgid "Off"
+msgstr ""
+
+#. Description of setting with label #34114 "Include LFE when downmixing"
+#: system/settings/settings.xml
+msgctxt "#34117"
+msgid "50%"
+msgstr ""
+
+#. Description of setting with label #34114 "Include LFE when downmixing"
+#: system/settings/settings.xml
+msgctxt "#34118"
+msgid "100%"
+msgstr ""
+
+
 #empty strings from id 34114 to 34119
-#34114-34119 reserved for future use
+#34119 reserved for future use
 
 #: system/settings/settings.xml
 msgctxt "#34120"
@@ -18842,11 +19054,7 @@ msgctxt "#35254"
 msgid "Save the game automatically during game play, if supported. Resume playing where you left off."
 msgstr ""
 
-#. Label for showing which emulator the game was saved with
-#: system/settings/settings.xml
-msgctxt "#35255"
-msgid "Saved with:"
-msgstr ""
+#empty string with id 35255
 
 #. Error message when a game client fails to install when a game is being launched
 #: xbmc/games/dialogs/GUIDialogSelectGameClient.cpp
@@ -18941,7 +19149,13 @@ msgctxt "#35270"
 msgid "Your account is not verified. Please check your email to complete your sign up."
 msgstr ""
 
-#empty strings from id 35271 to 35504
+#. Error message shown when an OpenGL game is played, as OpenGL is not currently supported
+#: xbmc/games/addons/GameClient.cpp
+msgctxt "#35271"
+msgid "This game requires OpenGL support for 3D rendering. OpenGL support is still under development."
+msgstr ""
+
+#empty strings from id 35272 to 35504
 
 #. connection state "host unreachable"
 #: xbmc/pvr/addons/PVRClients.cpp
@@ -19623,11 +19837,7 @@ msgctxt "#36158"
 msgid "Enable DXVA2 hardware decoding of video files."
 msgstr ""
 
-#. Description of setting with label #13428 "Allow hardware acceleration (CrystalHD)"
-#: system/settings/settings.xml
-msgctxt "#36159"
-msgid "Enable CrystalHD decoding of video files."
-msgstr ""
+#empty string with id 36159
 
 #. Description of setting with label #13429 "Allow hardware acceleration (VDADecoder)"
 #: system/settings/settings.xml
@@ -22164,7 +22374,19 @@ msgctxt "#37002"
 msgid "(Director's comments 2)"
 msgstr ""
 
-#empty strings from id 37003 to 37013
+#. DVD short name for 1.0 channel layout
+#: xbmc/cores/VideoPlayer/DVDInputStreams/DVDInputStreamNavigator.cpp
+msgctxt "#37003"
+msgid "mono"
+msgstr ""
+
+#. DVD short name for 2.0 channel layout
+#: xbmc/cores/VideoPlayer/DVDInputStreams/DVDInputStreamNavigator.cpp
+msgctxt "#37004"
+msgid "stereo"
+msgstr ""
+
+#empty strings from id 37005 to 37013
 
 #: xbmc/GUIInfoManager.cpp
 msgctxt "#37014"
@@ -22650,6 +22872,7 @@ msgstr ""
 #. Label for an option to select the video stream to play if current video has more than one video stream
 #: xbmc/video/dialogs/GUIDialogVideoSettings.cpp
 #: xbmc/video/PlayerController.cpp
+#: xbmc/video/guilib/VideoStreamSelectHelper.cpp
 msgctxt "#38031"
 msgid "Video stream"
 msgstr ""
@@ -23992,7 +24215,31 @@ msgctxt "#39201"
 msgid "HDR10+"
 msgstr ""
 
-#empty strings from id 39202 to 39999
+#. Subtitle line spacing setting
+#: system/settings/settings.xml
+msgctxt "#39202"
+msgid "Line spacing"
+msgstr ""
+
+#. Subtitle line spacing setting help
+#: system/settings/settings.xml
+msgctxt "#39203"
+msgid "Adjust the space between lines of text. Setting a value too low may cause boxes to overlap when the \"Background type\" setting is used."
+msgstr ""
+
+#. Setting to make CC subtitles for hearing impaired only
+#: system/settings/settings.xml
+msgctxt "#39204"
+msgid "Set CC subtitles only for the hearing impaired"
+msgstr ""
+
+#. Help text for setting of label #39204
+#: system/settings/settings.xml
+msgctxt "#39205"
+msgid "By enabling it, CC subtitles will be labeled for the hearing impaired; this will affect the automatic selection of subtitles, which unless otherwise specified will not be displayed by default."
+msgstr ""
+
+#empty strings from id 39206 to 39999
 
 # 40000 to 40800 are reserved for Video Versions feature
 
@@ -24233,7 +24480,19 @@ msgctxt "#40038"
 msgid "The default version of a movie with multiple versions cannot be added to another movie. Please move or remove the other versions first."
 msgstr ""
 
-#empty strings with id 40039 to 40199
+#. Remove video extra dialog title
+#: xbmc/video/dialogs/GUIDialogVideoManager.cpp
+msgctxt "#40039"
+msgid "Remove video extra"
+msgstr ""
+
+#. Remove video extra dialog text
+#: xbmc/video/dialogs/GUIDialogVideoManager.cpp
+msgctxt "#40040"
+msgid "Are you sure to remove the extra \"{0:s}\"?"
+msgstr ""
+
+#empty strings with id 40041 to 40199
 
 #. Select default video version setting
 #: system/settings/settings.xml
@@ -24516,6 +24775,18 @@ msgid "50th Anniversary Edition"
 msgstr ""
 
 # 40000 to 40800 are reserved for Video Versions feature
+
+#. Confirm file deletion
+#: system/settings/settings.xml
+msgctxt "#40801"
+msgid "Confirm file deletion"
+msgstr ""
+
+#. Description of setting with label #40801 "Confirm file deletion"
+#: system/settings/settings.xml
+msgctxt "#40802"
+msgid "If enabled, a confirmation dialog will be displayed when files shall be deleted. If disabled, files will be deleted without user confirmation."
+msgstr ""
 
 #. 55000-55100 reserved for DSPlayer
 msgctxt "#55000"

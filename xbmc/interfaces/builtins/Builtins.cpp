@@ -79,8 +79,8 @@ bool CBuiltins::HasCommand(const std::string& execString)
   if (!exec.IsValid())
     return false;
 
-  const std::string function = exec.GetFunction();
-  const std::vector<std::string> parameters = exec.GetParams();
+  const std::string& function = exec.GetFunction();
+  const std::vector<std::string>& parameters = exec.GetParams();
 
   if (CServiceBroker::GetInputManager().HasBuiltin(function))
     return true;
@@ -101,7 +101,7 @@ bool CBuiltins::IsSystemPowerdownCommand(const std::string& execString)
   if (!exec.IsValid())
     return false;
 
-  const std::string execute = exec.GetFunction();
+  const std::string& execute = exec.GetFunction();
 
   // Check if action is resulting in system powerdown.
   if (execute == "reboot"    ||
@@ -142,20 +142,26 @@ void CBuiltins::GetHelp(std::string &help)
   }
 }
 
-int CBuiltins::Execute(const std::string& execString)
+int CBuiltins::Execute(const std::string& execString,
+                       const std::shared_ptr<CGUIListItem>& item /*= nullptr*/)
 {
   const CExecString exec(execString);
   if (!exec.IsValid())
     return -1;
 
-  const std::string execute = exec.GetFunction();
-  const std::vector<std::string> params = exec.GetParams();
+  const std::string& execute = exec.GetFunction();
+  const std::vector<std::string>& params = exec.GetParams();
 
   const auto& it = m_command.find(execute);
   if (it != m_command.end())
   {
     if (it->second.parameters == 0 || params.size() >= it->second.parameters)
-      return it->second.Execute(params);
+    {
+      if (item && it->second.ExecuteEx)
+        return it->second.ExecuteEx(params, item);
+      else
+        return it->second.Execute(params);
+    }
     else
     {
       CLog::Log(LOGERROR, "{0} called with invalid number of parameters (should be: {1}, is {2})",

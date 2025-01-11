@@ -9,6 +9,7 @@
 #include "PVRTimers.h"
 
 #include "ServiceBroker.h"
+#include "pvr/PVRConstants.h" // PVR_CLIENT_INVALID_UID
 #include "pvr/PVRDatabase.h"
 #include "pvr/PVREventLogJob.h"
 #include "pvr/PVRManager.h"
@@ -550,6 +551,29 @@ bool CPVRTimers::UpdateEntries(int iMaxNotificationDelay)
                   timer->Persist();
                 }
               }
+
+              // check for epg tag uids that were re-used for a different event (which is actually
+              // an add-on/a backend bug)
+              if (!timer->IsTimerRule() && (epgTag->Title() != timer->Title()))
+              {
+                const std::shared_ptr<CPVRTimerInfoTag> parent{GetTimerRule(timer)};
+                if (parent)
+                {
+                  const CPVRTimerRuleMatcher matcher{parent, now};
+                  if (!matcher.Matches(epgTag))
+                  {
+                    // epg event no longer matches the rule. delete the timer
+                    bDeleteTimer = true;
+                    timer->DeleteFromDatabase();
+                  }
+                }
+              }
+            }
+            else if (!timer->IsTimerRule())
+            {
+              // epg event no longer present. delete the timer
+              bDeleteTimer = true;
+              timer->DeleteFromDatabase();
             }
           }
         }
@@ -611,8 +635,8 @@ bool CPVRTimers::UpdateEntries(int iMaxNotificationDelay)
               {
                 const CDateTimeSpan duration = timer->EndAsUTC() - timer->StartAsUTC();
                 const std::shared_ptr<CPVRTimerInfoTag> childTimer =
-                    CPVRTimerInfoTag::CreateReminderFromDate(
-                        nextStart, duration.GetSecondsTotal() / 60, timer);
+                    CPVRTimerInfoTag::CreateReminderFromDate(nextStart, duration.GetSecondsTotal(),
+                                                             timer);
                 if (childTimer)
                 {
                   bChanged = true;
@@ -645,6 +669,13 @@ bool CPVRTimers::UpdateEntries(int iMaxNotificationDelay)
       ++it;
   }
 
+  // reinsert timers with changed timer start
+  for (const auto& timer : timersToReinsert)
+  {
+    InsertEntry(timer);
+    timer->Persist();
+  }
+
   // create new children of local epg-based reminder timer rules
   for (const auto& epgMapEntry : epgMap)
   {
@@ -671,14 +702,7 @@ bool CPVRTimers::UpdateEntries(int iMaxNotificationDelay)
     }
   }
 
-  // reinsert timers with changed timer start
-  for (const auto& timer : timersToReinsert)
-  {
-    InsertEntry(timer);
-    timer->Persist();
-  }
-
-  // insert new children of time-based local timer rules
+  // persist and insert/update new children of local time-based and epg-based reminder timer rules
   for (const auto& timerPair : childTimersToInsert)
   {
     PersistAndUpdateLocalTimer(timerPair.second, timerPair.first);
@@ -1038,7 +1062,7 @@ bool CPVRTimers::AddLocalTimer(const std::shared_ptr<CPVRTimerInfoTag>& tag, boo
       {
         const CDateTimeSpan duration = persistedTimer->EndAsUTC() - persistedTimer->StartAsUTC();
         const std::shared_ptr<CPVRTimerInfoTag> childTimer =
-            CPVRTimerInfoTag::CreateReminderFromDate(nextStart, duration.GetSecondsTotal() / 60,
+            CPVRTimerInfoTag::CreateReminderFromDate(nextStart, duration.GetSecondsTotal(),
                                                      persistedTimer);
         if (childTimer)
         {
@@ -1220,7 +1244,7 @@ std::shared_ptr<CPVRTimerInfoTag> CPVRTimers::GetTimerRule(
         const auto it = std::find_if(tagsEntry.second.cbegin(), tagsEntry.second.cend(),
                                      [iClientId, iParentClientIndex](const auto& timersEntry)
                                      {
-                                       return (timersEntry->ClientID() == PVR_ANY_CLIENT_ID ||
+                                       return (timersEntry->ClientID() == PVR_CLIENT_INVALID_UID ||
                                                timersEntry->ClientID() == iClientId) &&
                                               timersEntry->ClientIndex() == iParentClientIndex;
                                      });

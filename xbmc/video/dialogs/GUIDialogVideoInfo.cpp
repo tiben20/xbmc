@@ -36,7 +36,6 @@
 #include "messaging/helpers/DialogOKHelper.h"
 #include "music/MusicDatabase.h"
 #include "music/dialogs/GUIDialogMusicInfo.h"
-#include "playlists/PlayListTypes.h"
 #include "profiles/ProfileManager.h"
 #include "settings/AdvancedSettings.h"
 #include "settings/MediaSourceSettings.h"
@@ -46,7 +45,6 @@
 #include "settings/lib/Setting.h"
 #include "storage/MediaManager.h"
 #include "threads/IRunnable.h"
-#include "utils/ContentUtils.h"
 #include "utils/FileUtils.h"
 #include "utils/SortUtils.h"
 #include "utils/StringUtils.h"
@@ -59,9 +57,9 @@
 #include "video/VideoItemArtworkHandler.h"
 #include "video/VideoLibraryQueue.h"
 #include "video/VideoThumbLoader.h"
+#include "video/VideoUtils.h"
 #include "video/dialogs/GUIDialogVideoManagerExtras.h"
 #include "video/dialogs/GUIDialogVideoManagerVersions.h"
-#include "video/guilib/VideoGUIUtils.h"
 #include "video/guilib/VideoPlayActionProcessor.h"
 #include "video/guilib/VideoVersionHelper.h"
 #include "video/windows/GUIWindowVideoNav.h"
@@ -453,7 +451,7 @@ void CGUIDialogVideoInfo::SetMovie(const CFileItem *item)
     if (m_movieItem->GetVideoInfoTag()->m_strTrailer.empty() ||
         URIUtils::IsInternetStream(m_movieItem->GetVideoInfoTag()->m_strTrailer))
     {
-      std::string localTrailer = m_movieItem->FindTrailer();
+      std::string localTrailer = VIDEO::UTILS::FindTrailer(*m_movieItem);
       if (!localTrailer.empty())
       {
         m_movieItem->GetVideoInfoTag()->m_strTrailer = localTrailer;
@@ -731,50 +729,6 @@ void CGUIDialogVideoInfo::ClearCastList()
   m_castList->Clear();
 }
 
-namespace
-{
-class CVideoPlayActionProcessor : public VIDEO::GUILIB::CVideoPlayActionProcessorBase
-{
-public:
-  explicit CVideoPlayActionProcessor(const std::shared_ptr<CFileItem>& item)
-    : CVideoPlayActionProcessorBase(item)
-  {
-  }
-
-protected:
-  bool OnResumeSelected() override
-  {
-    m_item->SetStartOffset(STARTOFFSET_RESUME);
-    Play();
-    return true;
-  }
-
-  bool OnPlaySelected() override
-  {
-    Play();
-    return true;
-  }
-
-private:
-  void Play()
-  {
-    auto item{m_item};
-    if (item->m_bIsFolder && item->HasVideoVersions())
-    {
-      //! @todo get rid of "videos with versions as folder" hack!
-      item = std::make_shared<CFileItem>(*item);
-      item->m_bIsFolder = false;
-    }
-
-    item->SetProperty("playlist_type_hint", static_cast<int>(PLAYLIST::Id::TYPE_VIDEO));
-    const ContentUtils::PlayMode mode{item->GetProperty("CheckAutoPlayNextItem").asBoolean()
-                                          ? ContentUtils::PlayMode::CHECK_AUTO_PLAY_NEXT_ITEM
-                                          : ContentUtils::PlayMode::PLAY_ONLY_THIS};
-    VIDEO::UTILS::PlayItem(item, "", mode);
-  }
-};
-} // unnamed namespace
-
 void CGUIDialogVideoInfo::Play(bool resume)
 {
   std::string strPath;
@@ -822,7 +776,7 @@ void CGUIDialogVideoInfo::Play(bool resume)
 
   if (resume)
   {
-    CVideoPlayActionProcessor proc{m_movieItem};
+    KODI::VIDEO::GUILIB::CVideoPlayActionProcessor proc{m_movieItem};
     proc.ProcessAction(VIDEO::GUILIB::ACTION_RESUME);
   }
   else
@@ -830,13 +784,13 @@ void CGUIDialogVideoInfo::Play(bool resume)
     if (GetControl(CONTROL_BTN_RESUME))
     {
       // if dialog has a resume button, play button has always the purpose to start from beginning
-      CVideoPlayActionProcessor proc{m_movieItem};
+      KODI::VIDEO::GUILIB::CVideoPlayActionProcessor proc{m_movieItem};
       proc.ProcessAction(VIDEO::GUILIB::ACTION_PLAY_FROM_BEGINNING);
     }
     else
     {
       // play button acts according to default play action setting
-      CVideoPlayActionProcessor proc{m_movieItem};
+      KODI::VIDEO::GUILIB::CVideoPlayActionProcessor proc{m_movieItem};
       proc.ProcessDefaultAction();
       if (proc.UserCancelled())
       {
@@ -863,8 +817,9 @@ void AddHardCodedAndExtendedArtTypes(std::vector<std::string>& artTypes, const C
 }
 
 // Add art types currently assigned to the media item
-void AddCurrentArtTypes(std::vector<std::string>& artTypes, const CVideoInfoTag& tag,
-  CVideoDatabase& db)
+void AddCurrentArtTypes(std::vector<std::string>& artTypes,
+                        const CVideoInfoTag& tag,
+                        CVideoDatabase& db)
 {
   std::map<std::string, std::string> currentArt;
 
@@ -882,8 +837,9 @@ void AddCurrentArtTypes(std::vector<std::string>& artTypes, const CVideoInfoTag&
 }
 
 // Add art types that exist for other media items of the same type
-void AddMediaTypeArtTypes(std::vector<std::string>& artTypes, const CVideoInfoTag& tag,
-  CVideoDatabase& db)
+void AddMediaTypeArtTypes(std::vector<std::string>& artTypes,
+                          const CVideoInfoTag& tag,
+                          CVideoDatabase& db)
 {
   std::vector<std::string> dbArtTypes;
   db.GetArtTypes(tag.m_type, dbArtTypes);
@@ -895,8 +851,9 @@ void AddMediaTypeArtTypes(std::vector<std::string>& artTypes, const CVideoInfoTa
 }
 
 // Add art types from available but unassigned artwork for this media item
-void AddAvailableArtTypes(std::vector<std::string>& artTypes, const CVideoInfoTag& tag,
-  CVideoDatabase& db)
+void AddAvailableArtTypes(std::vector<std::string>& artTypes,
+                          const CVideoInfoTag& tag,
+                          CVideoDatabase& db)
 {
   for (const auto& artType : db.GetAvailableArtTypesForItem(tag.m_iDbId, tag.m_type))
   {
@@ -929,6 +886,7 @@ public:
 
   bool ChooseArtType();
   const std::string& GetArtType() const { return m_artType; }
+  void UpdateArtType(const std::string& type, const std::string& art) const;
 
 private:
   std::shared_ptr<CFileItem> m_item;
@@ -936,6 +894,15 @@ private:
   int m_selectedItem{0};
   std::string m_artType;
 };
+
+void CArtTypeChooser::UpdateArtType(const std::string& type, const std::string& art) const
+{
+  m_item->SetArt(type, art);
+  if (!m_items.IsEmpty())
+    for (auto& item : m_items)
+      if (item->GetProperty("type") == type)
+        item->SetArt("thumb", art);
+}
 
 bool CArtTypeChooser::ChooseArtType()
 {
@@ -1407,7 +1374,8 @@ bool CGUIDialogVideoInfo::DeleteVideoItemFromDatabase(const std::shared_ptr<CFil
   switch (type)
   {
     case VideoDbContentType::MOVIES:
-      database.DeleteMovie(item->GetVideoInfoTag()->m_iDbId);
+      if (!database.DeleteMovie(item->GetVideoInfoTag()->m_iDbId))
+        return false;
       break;
     case VideoDbContentType::EPISODES:
       database.DeleteEpisode(item->GetVideoInfoTag()->m_iDbId);
@@ -1440,8 +1408,9 @@ bool CGUIDialogVideoInfo::DeleteVideoItem(const std::shared_ptr<CFileItem>& item
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
   // check if the user is allowed to delete the actual file as well
-  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_FILELISTS_ALLOWFILEDELETION) &&
-      (profileManager->GetCurrentProfile().getLockMode() == LOCK_MODE_EVERYONE ||
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(
+          CSettings::SETTING_FILELISTS_ALLOWFILEDELETION) &&
+      (profileManager->GetCurrentProfile().getLockMode() == LockMode::EVERYONE ||
        !profileManager->GetCurrentProfile().filesLocked() ||
        g_passwordManager.IsMasterLockUnlocked(true)))
   {
@@ -1468,9 +1437,7 @@ bool CGUIDialogVideoInfo::DeleteVideoItem(const std::shared_ptr<CFileItem>& item
       if (item->IsStack())
         item->m_bIsFolder = true;
 
-      CGUIComponent *gui = CServiceBroker::GetGUI();
-      if (gui && gui->ConfirmDelete(item->GetPath()))
-        CFileUtils::DeleteItem(item);
+      CFileUtils::DeleteItemWithConfirm(item);
     }
   }
 
@@ -1831,7 +1798,10 @@ bool CGUIDialogVideoInfo::ChooseAndManageVideoItemArtwork(const std::shared_ptr<
     if (!chooser.ChooseArtType())
       break;
 
-    result = ManageVideoItemArtwork(item, item->GetVideoInfoTag()->m_type, chooser.GetArtType());
+    const std::string chosenArtType{chooser.GetArtType()};
+    result = ManageVideoItemArtwork(item, item->GetVideoInfoTag()->m_type, chosenArtType);
+    if (result)
+      chooser.UpdateArtType(chosenArtType, item->GetArt(chosenArtType));
 
   } while (true);
 

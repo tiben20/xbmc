@@ -8,11 +8,10 @@
 
 #pragma once
 
-#include "LockType.h"
+#include "LockMode.h"
 #include "SettingsLock.h"
 
 #include <string>
-#include <vector>
 
 class TiXmlNode;
 
@@ -24,13 +23,13 @@ public:
   class CLock
   {
   public:
-    CLock(LockType type = LOCK_MODE_EVERYONE, const std::string &password = "");
+    CLock(LockMode type = LockMode::EVERYONE, const std::string& password = "");
     void Validate();
 
-    LockType mode;
+    LockMode mode;
     std::string code;
     bool addonManager;
-    LOCK_LEVEL::SETTINGS_LOCK settings;
+    SettingsLock settings;
     bool music;
     bool video;
     bool files;
@@ -51,7 +50,7 @@ public:
   const std::string& getDirectory() const { return m_directory;}
   const std::string& getThumb() const { return m_thumb;}
   const std::string& getLockCode() const { return m_locks.code;}
-  LockType getLockMode() const { return m_locks.mode; }
+  LockMode getLockMode() const { return m_locks.mode; }
 
   bool hasDatabases() const { return m_bDatabases; }
   bool canWriteDatabases() const { return m_bCanWrite; }
@@ -62,7 +61,7 @@ public:
    \brief Returns which settings levels are locked for the current profile
    \sa LOCK_LEVEL::SETTINGS_LOCK
    */
-  LOCK_LEVEL::SETTINGS_LOCK settingsLockLevel() const { return m_locks.settings; }
+  SettingsLock settingsLockLevel() const { return m_locks.settings; }
   bool addonmanagerLocked() const { return m_locks.addonManager; }
   bool musicLocked() const { return m_locks.music; }
   bool videoLocked() const { return m_locks.video; }

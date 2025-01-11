@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "XBDateTime.h"
 #include "addons/binary-addons/AddonInstanceHandler.h"
 #include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr.h"
 #include "pvr/addons/PVRClientCapabilities.h"
@@ -23,6 +24,11 @@
 
 struct DemuxPacket;
 
+namespace EDL
+{
+struct Edit;
+}
+
 namespace PVR
 {
 class CPVRChannel;
@@ -33,17 +39,16 @@ class CPVRProvider;
 class CPVRProvidersContainer;
 class CPVRClientMenuHook;
 class CPVRClientMenuHooks;
+class CPVRDescrambleInfo;
 class CPVREpg;
 class CPVREpgInfoTag;
 class CPVRRecording;
 class CPVRRecordings;
+class CPVRSignalStatus;
 class CPVRStreamProperties;
 class CPVRTimerInfoTag;
 class CPVRTimerType;
 class CPVRTimersContainer;
-
-static constexpr int PVR_ANY_CLIENT_ID = -1;
-static constexpr int PVR_INVALID_CLIENT_ID = -2;
 
 /*!
  * Interface from Kodi to a PVR add-on.
@@ -143,6 +148,12 @@ public:
    * @return PVR_ERROR_NO_ERROR if the properties have been fetched successfully.
    */
   PVR_ERROR GetStreamProperties(PVR_STREAM_PROPERTIES* pProperties) const;
+
+  /*!
+   * @brief A stream was closed or has ended
+   * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
+   */
+  PVR_ERROR StreamClosed() const;
 
   /*!
    * @return The name reported by the backend.
@@ -445,7 +456,7 @@ public:
    * @param edls The edit decision list (empty on error).
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR GetRecordingEdl(const CPVRRecording& recording, std::vector<PVR_EDL_ENTRY>& edls) const;
+  PVR_ERROR GetRecordingEdl(const CPVRRecording& recording, std::vector<EDL::Edit>& edls) const;
 
   /*!
    * @brief Retrieve the size of a recording on the backend.
@@ -462,7 +473,7 @@ public:
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
   PVR_ERROR GetEpgTagEdl(const std::shared_ptr<const CPVREpgInfoTag>& epgTag,
-                         std::vector<PVR_EDL_ENTRY>& edls) const;
+                         std::vector<EDL::Edit>& edls) const;
 
   //@}
   /** @name PVR timer methods */
@@ -571,7 +582,7 @@ public:
    * @param qualityinfo The signal quality.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR SignalQuality(int channelUid, PVR_SIGNAL_STATUS& qualityinfo) const;
+  PVR_ERROR SignalQuality(int channelUid, CPVRSignalStatus& qualityinfo) const;
 
   /*!
    * @brief Get the descramble information of the stream that's currently open.
@@ -579,15 +590,17 @@ public:
    * @param descrambleinfo The descramble information.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR GetDescrambleInfo(int channelUid, PVR_DESCRAMBLE_INFO& descrambleinfo) const;
+  PVR_ERROR GetDescrambleInfo(int channelUid, CPVRDescrambleInfo& descrambleinfo) const;
 
   /*!
    * @brief Fill the given container with the properties required for playback of the given channel. Values are obtained from the PVR backend.
    * @param channel The channel.
+   * @param source PVR_SOURCE_EPG_AS_LIVE if this call resulted from PVR_STREAM_PROPERTY_EPGPLAYBACKASLIVE being set from GetEPGTagStreamProperties(), DEFAULT otherwise.
    * @param props The container to be filled with the stream properties.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
   PVR_ERROR GetChannelStreamProperties(const std::shared_ptr<const CPVRChannel>& channel,
+                                       PVR_SOURCE source,
                                        CPVRStreamProperties& props) const;
 
   /*!
@@ -637,40 +650,73 @@ public:
   /*!
    * @brief Open a recording on the server.
    * @param recording The recording to open.
+   * @param streamId The id of the stream opened.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR OpenRecordedStream(const std::shared_ptr<const CPVRRecording>& recording);
+  PVR_ERROR OpenRecordedStream(const std::shared_ptr<const CPVRRecording>& recording,
+                               int64_t& streamId);
 
   /*!
    * @brief Close an open recording stream.
+   * @param streamId The id of the stream to close, as returned by OpenRecordedStream.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR CloseRecordedStream();
+  PVR_ERROR CloseRecordedStream(int64_t streamId);
 
   /*!
    * @brief Read from an open recording stream.
+   * @param streamId The id of the stream to read, as returned by OpenRecordedStream.
    * @param lpBuf The buffer to store the data in.
    * @param uiBufSize The amount of bytes to read.
    * @param iRead The amount of bytes that were actually read from the stream.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR ReadRecordedStream(void* lpBuf, int64_t uiBufSize, int& iRead);
+  PVR_ERROR ReadRecordedStream(int64_t streamId, void* lpBuf, int64_t uiBufSize, int& iRead);
 
   /*!
    * @brief Seek in a recording stream on a backend.
+   * @param streamId The id of the stream to seek, as returned by OpenRecordedStream.
    * @param iFilePosition The position to seek to.
    * @param iWhence ?
    * @param iPosition The new position or -1 on error.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR SeekRecordedStream(int64_t iFilePosition, int iWhence, int64_t& iPosition);
+  PVR_ERROR SeekRecordedStream(int64_t streamId,
+                               int64_t iFilePosition,
+                               int iWhence,
+                               int64_t& iPosition);
 
   /*!
-   * @brief Get the length of the currently playing recording stream, if any.
+   * @brief Get the length of the given stream.
+   * @param streamId The id of the stream to get the length for, as returned by OpenRecordedStream.
    * @param iLength The total length of the stream that's currently being read or -1 on error.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
-  PVR_ERROR GetRecordedStreamLength(int64_t& iLength) const;
+  PVR_ERROR GetRecordedStreamLength(int64_t streamId, int64_t& iLength) const;
+
+  /*!
+   * @brief Check whether the given stream is a real-time stream.
+   * @param streamId The id of the stream to check, as returned by OpenRecordedStream.
+   * @param isRealTime True if real-time, false otherwise.
+   * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
+   */
+  PVR_ERROR IsRecordedStreamRealTime(int64_t streamId, bool& isRealTime) const;
+
+  /*!
+   * @brief (Un)Pause a stream.
+   * @param streamId The id of the stream to (un)pause, as returned by OpenRecordedStream.
+   * @param paused True to pause the stream, false to unpause.
+   * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
+   */
+  PVR_ERROR PauseRecordedStream(int64_t streamId, bool paused);
+
+  /*!
+   * @brief Get stream times for the given stream.
+   * @param streamId The id of the stream to get times for, as returned by OpenRecordedStream.
+   * @param times The stream times.
+   * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
+   */
+  PVR_ERROR GetRecordedStreamTimes(int64_t streamId, PVR_STREAM_TIMES* times) const;
 
   /*!
    * @brief Fill the given container with the properties required for playback of the given recording. Values are obtained from the PVR backend.
@@ -799,17 +845,23 @@ public:
   void SetPriority(int iPriority);
 
   /*!
+   * @brief Get the date and time first channels were added for this client.
+   * @return The date and time first channels were added.
+   */
+  const CDateTime& GetDateTimeFirstChannelsAdded() const;
+
+  /*!
+   * @brief Set the date and time first channels were added for this client.
+   * @param dateTime The date and time first channels were added.
+   */
+  void SetDateTimeFirstChannelsAdded(const CDateTime& dateTime);
+
+  /*!
    * @brief Obtain the chunk size to use when reading streams.
    * @param iChunkSize the chunk size in bytes.
    * @return PVR_ERROR_NO_ERROR on success, respective error code otherwise.
    */
   PVR_ERROR GetStreamReadChunkSize(int& iChunkSize) const;
-
-  /*!
-   * @brief Get the interface table used between addon and Kodi.
-   * @todo This function will be removed after old callback library system is removed.
-   */
-  AddonInstance_PVR* GetInstanceInterface() { return m_ifc.pvr; }
 
 private:
   /*!
@@ -831,11 +883,11 @@ private:
 
   /*!
    * @brief Write the given addon properties to the given properties container.
-   * @param properties Pointer to an array of addon properties.
+   * @param properties Pointer to an array of addon properties pointers.
    * @param iPropertyCount The number of properties contained in the addon properties array.
    * @param props The container the addon properties shall be written to.
    */
-  static void WriteStreamProperties(const PVR_NAMED_VALUE* properties,
+  static void WriteStreamProperties(PVR_NAMED_VALUE** properties,
                                     unsigned int iPropertyCount,
                                     CPVRStreamProperties& props);
 
@@ -1065,6 +1117,8 @@ private:
   std::vector<std::shared_ptr<CPVRTimerType>>
       m_timertypes; /*!< timer types supported by this backend */
   mutable std::optional<int> m_priority; /*!< priority of the client */
+  mutable std::optional<CDateTime>
+      m_firstChannelsAdded; /*!< date and time the first channels were added for this client */
 
   /* cached data */
   std::string m_strBackendName; /*!< the cached backend version */

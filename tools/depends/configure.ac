@@ -70,15 +70,16 @@ AC_ARG_WITH([cpu],
   [use_cpu=$withval],
   [use_cpu=auto])
 
-AC_ARG_WITH([ndk-path],
-  [AS_HELP_STRING([--with-ndk-path],
-  [specify path to ndk (required for android only)])],
-  [use_ndk_path=$withval])
-
 AC_ARG_WITH([sdk-path],
   [AS_HELP_STRING([--with-sdk-path],
   [specify path to sdk (required for android only)])],
   [use_sdk_path=$withval])
+
+AC_ARG_WITH([ndk-path],
+  [AS_HELP_STRING([--with-ndk-path],
+  [specify path to ndk (optional for android), default is sdk_path/ndk/27.2.12479018])],
+  [use_ndk_path=$withval],
+  [use_ndk_path=$use_sdk_path/ndk/27.2.12479018])
 
 AC_ARG_WITH([sdk],
   [AS_HELP_STRING([--with-sdk],
@@ -335,6 +336,7 @@ case $host in
         if test "x$use_cpu" = "xarm64-v8a"; then
           platform_cflags="${platform_cflags} -mtune=cortex-a53"
         fi
+        platform_ldflags="${platform_ldflags} -Wl,-z,max-page-size=16384"
         meson_cpu="aarch64"
       ;;
       i*86*-linux-android*)
@@ -402,9 +404,11 @@ case $host in
     case $host in
       *i686*-linux-gnu*|i*86*-*-linux-uclibc*)
         meson_cpu="x86"
+        ffmpeg_cpu="i686"
       ;;
       x86_64*-linux-gnu*|x86_64-*-linux-uclibc*)
         meson_cpu="x86_64"
+        ffmpeg_cpu="x86-64"
       ;;
     esac
     use_cpu=$host_cpu
@@ -414,7 +418,7 @@ case $host in
     platform_cxxflags="$platform_cflags"
     platform_os="linux"
     meson_system="linux"
-    ffmpeg_options_default="--enable-vaapi --enable-vdpau --cpu=$use_cpu"
+    ffmpeg_options_default="--enable-vaapi --enable-vdpau --cpu=$ffmpeg_cpu"
     target_platform="x11 wayland gbm"
   ;;
   *darwin*)
@@ -573,13 +577,15 @@ if test "$platform_os" = "android"; then
     AC_MSG_ERROR("SDK path is required for android")
   fi
 
-  if [ ! test -f $use_sdk_path/tools/bin/sdkmanager ] && [ ! test -f $use_sdk_path/cmdline-tools/bin/sdkmanager ]; then
+  if [ ! test -f $use_sdk_path/tools/bin/sdkmanager ] && [ ! test -f $use_sdk_path/cmdline-tools/bin/sdkmanager ] && [ ! test -f $use_sdk_path/cmdline-tools/latest/bin/sdkmanager ]; then
     AC_MSG_ERROR(verify sdk path)
   fi
 
   if [ ! test -f $use_ndk_path/sources/android/native_app_glue/android_native_app_glue.h ]; then
     AC_MSG_ERROR(verify ndk path)
   fi
+
+  use_ndk_version=[`cat $use_ndk_path/source.properties | grep "Pkg.Revision" | cut -d'=' -f2 | awk '{print $1}'`]
 
   #not all sort versions support -V - probe it...
   SORT_PARAMS=""
@@ -677,14 +683,27 @@ if test "$ffmpeg_options" = "default"; then
   ffmpeg_options="$ffmpeg_options_default"
 fi
 
+# Read python major.minor version from native PYTHON-VERSION file
+m4_define([NATIVE_PYTHON_FILE_INPUT],m4_quote(m4_include([native/python3/PYTHON3-VERSION])))
+m4_define([NATIVE_PYTHON_MAJOR_MINOR],m4_bregexp(NATIVE_PYTHON_FILE_INPUT,[VERSION=\([0-9]+\.[0-9]+\)\.[0-9]+\s*?],[\1]))
+native_py_version=m4_defn([NATIVE_PYTHON_MAJOR_MINOR])
+
+# Read python major.minor version from target PYTHON-VERSION file
+m4_define([TARGET_PYTHON_FILE_INPUT],m4_quote(m4_include([target/python3/PYTHON3-VERSION])))
+m4_define([TARGET_PYTHON_MAJOR_MINOR],m4_bregexp(TARGET_PYTHON_FILE_INPUT,[VERSION=\([0-9]+\.[0-9]+\)\.[0-9]+\s*?],[\1]))
+target_py_version=m4_defn([TARGET_PYTHON_MAJOR_MINOR])
+
 if test "$platform_os" = "android"; then
 echo -e
   AC_SUBST(use_sdk_path)
   AC_SUBST(use_ndk_path)
+  AC_SUBST(use_ndk_version)
   AC_SUBST(use_ndk_api)
   AC_SUBST(build_tools_path)
 fi
 
+AC_SUBST(native_py_version)
+AC_SUBST(target_py_version)
 AC_SUBST(meson_system)
 AC_SUBST(meson_cpu)
 AC_SUBST(use_debug)
@@ -797,6 +816,7 @@ cpp = $MESON_CXX
 ar = '$AR'
 strip = '$STRIP'
 pkgconfig = '$prefix/$tool_dir/bin/pkg-config'
+pkg-config = '$prefix/$tool_dir/bin/pkg-config'
 
 [host_machine]
 system = '$meson_system'

@@ -97,7 +97,7 @@ bool CTextureCacheJob::CacheTexture(std::unique_ptr<CTexture>* out_texture)
 {
   IMAGE_FILES::CImageFileURL imageURL{m_url};
 
-  auto image = imageURL.GetTargetFile();
+  const auto& image = imageURL.GetTargetFile();
   m_details.updateable = ShouldCheckForChanges(imageURL.GetSpecialType(), image);
 
   if (m_details.updateable)
@@ -151,7 +151,7 @@ bool CTextureCacheJob::ResizeTexture(const std::string& url,
   result_size = 0;
 
   const IMAGE_FILES::CImageFileURL imageURL{url};
-  const auto image = imageURL.GetTargetFile();
+  const auto& image = imageURL.GetTargetFile();
   if (image.empty())
     return false;
 
@@ -186,7 +186,8 @@ std::unique_ptr<CTexture> CTextureCacheJob::LoadImage(const IMAGE_FILES::CImageF
     return {};
   }
 
-  auto texture = CTexture::LoadFromFile(imageURL.GetTargetFile(), 0, 0, true, file.GetMimeType());
+  auto texture = CTexture::LoadFromFile(imageURL.GetTargetFile(), 0, 0, CAspectRatio::CENTER,
+                                        file.GetMimeType());
   if (!texture)
     return {};
 

@@ -8,7 +8,7 @@
 #   ${APP_NAME_LC}::HarfBuzz   - The HarfBuzz library
 
 if(NOT TARGET ${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME})
-  find_package(PkgConfig)
+  find_package(PkgConfig QUIET)
   if(PKG_CONFIG_FOUND AND NOT (WIN32 OR WINDOWS_STORE))
     pkg_check_modules(PC_HARFBUZZ harfbuzz QUIET)
   endif()
@@ -34,6 +34,10 @@ if(NOT TARGET ${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME})
     set_target_properties(${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME} PROPERTIES
                                                                      IMPORTED_LOCATION "${HARFBUZZ_LIBRARY}"
                                                                      INTERFACE_INCLUDE_DIRECTORIES "${HARFBUZZ_INCLUDE_DIR}")
+
+    if(NOT TARGET harfbuzz::harfbuzz)
+      add_library(harfbuzz::harfbuzz ALIAS ${APP_NAME_LC}::${CMAKE_FIND_PACKAGE_NAME})
+    endif()
   else()
     if(HarfBuzz_FIND_REQUIRED)
       message(FATAL_ERROR "Harfbuzz libraries were not found.")

@@ -49,7 +49,7 @@
 #define ADDON_GLOBAL_VERSION_GENERAL_XML_ID           "kodi.binary.global.general"
 #define ADDON_GLOBAL_VERSION_GENERAL_DEPENDS          "General.h"
 
-#define ADDON_GLOBAL_VERSION_GUI                      "5.15.0"
+#define ADDON_GLOBAL_VERSION_GUI                      "5.15.1"
 #define ADDON_GLOBAL_VERSION_GUI_MIN                  "5.15.0"
 #define ADDON_GLOBAL_VERSION_GUI_XML_ID               "kodi.binary.global.gui"
 #define ADDON_GLOBAL_VERSION_GUI_DEPENDS              "c-api/gui/input/action_ids.h" \
@@ -62,7 +62,7 @@
 #define ADDON_GLOBAL_VERSION_AUDIOENGINE_DEPENDS      "AudioEngine.h" \
                                                       "c-api/audio_engine.h"
 
-#define ADDON_GLOBAL_VERSION_FILESYSTEM               "1.1.8"
+#define ADDON_GLOBAL_VERSION_FILESYSTEM               "1.1.9"
 #define ADDON_GLOBAL_VERSION_FILESYSTEM_MIN           "1.1.7"
 #define ADDON_GLOBAL_VERSION_FILESYSTEM_XML_ID        "kodi.binary.global.filesystem"
 #define ADDON_GLOBAL_VERSION_FILESYSTEM_DEPENDS       "Filesystem.h" \
@@ -97,8 +97,8 @@
 #define ADDON_INSTANCE_VERSION_AUDIOENCODER_DEPENDS   "c-api/addon-instance/audioencoder.h" \
                                                       "addon-instance/AudioEncoder.h"
 
-#define ADDON_INSTANCE_VERSION_GAME                   "3.0.2"
-#define ADDON_INSTANCE_VERSION_GAME_MIN               "3.0.0"
+#define ADDON_INSTANCE_VERSION_GAME                   "4.0.0"
+#define ADDON_INSTANCE_VERSION_GAME_MIN               "4.0.0"
 #define ADDON_INSTANCE_VERSION_GAME_XML_ID            "kodi.binary.instance.game"
 #define ADDON_INSTANCE_VERSION_GAME_DEPENDS           "addon-instance/Game.h"
 
@@ -130,11 +130,10 @@
 #define ADDON_INSTANCE_VERSION_PERIPHERAL_DEPENDS     "addon-instance/Peripheral.h" \
                                                       "addon-instance/PeripheralUtils.h"
 
-#define ADDON_INSTANCE_VERSION_PVR                    "8.3.0"
-#define ADDON_INSTANCE_VERSION_PVR_MIN                "8.2.0"
+#define ADDON_INSTANCE_VERSION_PVR                    "9.2.0"
+#define ADDON_INSTANCE_VERSION_PVR_MIN                "9.2.0"
 #define ADDON_INSTANCE_VERSION_PVR_XML_ID             "kodi.binary.instance.pvr"
 #define ADDON_INSTANCE_VERSION_PVR_DEPENDS            "c-api/addon-instance/pvr.h" \
-                                                      "c-api/addon-instance/pvr/pvr_providers.h" \
                                                       "c-api/addon-instance/pvr/pvr_channel_groups.h" \
                                                       "c-api/addon-instance/pvr/pvr_channels.h" \
                                                       "c-api/addon-instance/pvr/pvr_defines.h" \
@@ -142,6 +141,7 @@
                                                       "c-api/addon-instance/pvr/pvr_epg.h" \
                                                       "c-api/addon-instance/pvr/pvr_general.h" \
                                                       "c-api/addon-instance/pvr/pvr_menu_hook.h" \
+                                                      "c-api/addon-instance/pvr/pvr_providers.h" \
                                                       "c-api/addon-instance/pvr/pvr_recordings.h" \
                                                       "c-api/addon-instance/pvr/pvr_stream.h" \
                                                       "c-api/addon-instance/pvr/pvr_timers.h" \
@@ -152,6 +152,7 @@
                                                       "addon-instance/pvr/EPG.h" \
                                                       "addon-instance/pvr/General.h" \
                                                       "addon-instance/pvr/MenuHook.h" \
+                                                      "addon-instance/pvr/Providers.h" \
                                                       "addon-instance/pvr/Recordings.h" \
                                                       "addon-instance/pvr/Stream.h" \
                                                       "addon-instance/pvr/Timers.h"

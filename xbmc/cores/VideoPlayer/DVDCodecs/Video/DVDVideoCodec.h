@@ -36,11 +36,12 @@ class CSetting;
 struct VideoPicture
 {
 public:
-  VideoPicture();
+  VideoPicture() = default;
   ~VideoPicture();
   VideoPicture& CopyRef(const VideoPicture &pic);
   VideoPicture& SetParams(const VideoPicture &pic);
   void Reset(); // reinitialize members, videoBuffer will be released if set!
+  bool IsSameParams(const VideoPicture& pic) const;
 
   CVideoBuffer *videoBuffer = nullptr;
 
@@ -79,8 +80,11 @@ public:
   unsigned int iDisplayHeight;          //< height of the picture without black bars
 
 private:
-  VideoPicture(VideoPicture const&);
-  VideoPicture& operator=(VideoPicture const&);
+  VideoPicture(VideoPicture const&) = default;
+  VideoPicture& operator=(VideoPicture const&) = default;
+
+  bool CompareDisplayMetadata(const VideoPicture& pic) const;
+  bool CompareLightMetadata(const VideoPicture& pic) const;
 };
 
 #define DVP_FLAG_TOP_FIELD_FIRST    0x00000001

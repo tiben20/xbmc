@@ -36,11 +36,13 @@ const CWindowTranslator::WindowMapByName CWindowTranslator::WindowMappingByName 
     {"tvguide", WINDOW_TV_GUIDE},
     {"tvtimers", WINDOW_TV_TIMERS},
     {"tvsearch", WINDOW_TV_SEARCH},
+    {"tvproviders", WINDOW_TV_PROVIDERS},
     {"radiochannels", WINDOW_RADIO_CHANNELS},
     {"radiorecordings", WINDOW_RADIO_RECORDINGS},
     {"radioguide", WINDOW_RADIO_GUIDE},
     {"radiotimers", WINDOW_RADIO_TIMERS},
     {"radiosearch", WINDOW_RADIO_SEARCH},
+    {"radioproviders", WINDOW_RADIO_PROVIDERS},
     {"gamecontrollers", WINDOW_DIALOG_GAME_CONTROLLERS},
     {"gameports", WINDOW_DIALOG_GAME_PORTS},
     {"games", WINDOW_GAMES},
@@ -186,6 +188,9 @@ const CWindowTranslator::WindowMapByName CWindowTranslator::WindowMappingByName 
     {"ingamesaves", WINDOW_DIALOG_IN_GAME_SAVES},
     {"gamesaves", WINDOW_DIALOG_GAME_SAVES},
     {"gameagents", WINDOW_DIALOG_GAME_AGENTS},
+    {"dialogselectvideo", WINDOW_DIALOG_SELECT_VIDEO_STREAM},
+    {"dialogselectaudio", WINDOW_DIALOG_SELECT_AUDIO_STREAM},
+    {"dialogselectsubtitle", WINDOW_DIALOG_SELECT_SUBTITLE_STREAM},
 };
 
 namespace

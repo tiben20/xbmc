@@ -8,8 +8,9 @@
 
 #pragma once
 
-#include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_channels.h"
 #include "guilib/guiinfo/GUIInfoProvider.h"
+#include "pvr/PVRDescrambleInfo.h"
+#include "pvr/PVRSignalStatus.h"
 #include "pvr/addons/PVRClients.h"
 #include "pvr/guilib/guiinfo/PVRGUITimerInfo.h"
 #include "pvr/guilib/guiinfo/PVRGUITimesInfo.h"
@@ -89,8 +90,8 @@ public:
 
 private:
   void ResetProperties();
-  void ClearQualityInfo(PVR_SIGNAL_STATUS& qualityInfo);
-  void ClearDescrambleInfo(PVR_DESCRAMBLE_INFO& descrambleInfo);
+  void ClearQualityInfo(CPVRSignalStatus& qualityInfo);
+  void ClearDescrambleInfo(CPVRDescrambleInfo& descrambleInfo);
 
   void Process() override;
 
@@ -141,6 +142,8 @@ private:
   void CharInfoUNC(std::string& strValue) const;
   void CharInfoFrontendName(std::string& strValue) const;
   void CharInfoFrontendStatus(std::string& strValue) const;
+  void CharInfoClientName(std::string& strValue) const;
+  void CharInfoInstanceName(std::string& strValue) const;
   void CharInfoBackendName(std::string& strValue) const;
   void CharInfoBackendVersion(std::string& strValue) const;
   void CharInfoBackendHost(std::string& strValue) const;
@@ -169,6 +172,8 @@ private:
   bool m_bHasRadioRecordings;
   unsigned int m_iCurrentActiveClient;
   std::string m_strPlayingClientName;
+  std::string m_strClientName;
+  std::string m_strInstanceName;
   std::string m_strBackendName;
   std::string m_strBackendVersion;
   std::string m_strBackendHost;
@@ -195,8 +200,8 @@ private:
 
   //@}
 
-  PVR_SIGNAL_STATUS m_qualityInfo; /*!< stream quality information */
-  PVR_DESCRAMBLE_INFO m_descrambleInfo; /*!< stream descramble information */
+  CPVRSignalStatus m_qualityInfo; /*!< stream quality information */
+  CPVRDescrambleInfo m_descrambleInfo; /*!< stream descramble information */
   std::vector<SBackend> m_backendProperties;
 
   std::string m_channelNumberInput;

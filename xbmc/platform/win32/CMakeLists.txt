@@ -1,5 +1,6 @@
 set(SOURCES CharsetConverter.cpp
             CPUInfoWin32.cpp
+            DisplayUtilsWin32.cpp
             Environment.cpp
             GPUInfoWin32.cpp
             MemUtils.cpp
@@ -10,12 +11,12 @@ set(SOURCES CharsetConverter.cpp
             PlatformWin32.cpp
             WIN32Util.cpp
             WindowHelper.cpp
-            WinRtUtil.cpp
             XTimeUtils.cpp)
 
 set(HEADERS CharsetConverter.h
             CPUInfoWin32.h
             dirent.h
+            DisplayUtilsWin32.h
             dxerr.h
             GPUInfoWin32.h
             IMMNotificationClient.h
@@ -28,7 +29,6 @@ set(HEADERS CharsetConverter.h
             resource.h
             unistd.h
             WIN32Util.h
-            WindowHelper.h
-            WinRtUtil.h)
+            WindowHelper.h)
 
 core_add_library(platform_win32)

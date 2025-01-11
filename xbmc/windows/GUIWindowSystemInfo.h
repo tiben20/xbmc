@@ -24,9 +24,11 @@ private:
   int  m_section;
   void ResetLabels();
   void SetControlLabel(int id, const char *format, int label, int info);
+  void LoadPrivacyPolicy();
 #if HAS_DS_PLAYER
   void SetControlLabel(int id, const char *format, int label, const std::string &info);
 #endif
   std::vector<std::string> m_diskUsage;
+  bool m_privacyPolicyLoaded{false};
 };
 

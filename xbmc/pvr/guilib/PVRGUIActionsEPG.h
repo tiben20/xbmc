@@ -10,10 +10,15 @@
 
 #include "pvr/IPVRComponent.h"
 
+#include <memory>
+#include <string>
+
 class CFileItem;
 
 namespace PVR
 {
+class CPVREpgInfoTag;
+
 class CPVRGUIActionsEPG : public IPVRComponent
 {
 public:
@@ -64,11 +69,35 @@ public:
   bool RenameSavedSearch(const CFileItem& item);
 
   /*!
+   * @brief Choose an icon for a saved search. Opens an art chooser dialog.
+   * @param item The item containing a search filter.
+   * @return True on success, false otherwise.
+   */
+  bool ChooseIconForSavedSearch(const CFileItem& item);
+
+  /*!
+   * @brief Duplicate a saved search.
+   * @param item The item containing a search filter.
+   * @return True on success, false otherwise.
+   */
+  bool DuplicateSavedSearch(const CFileItem& item);
+
+  /*!
    * @brief Delete a saved search. Opens confirmation dialog before deleting.
    * @param item The item containing a search filter.
    * @return True on success, false otherwise.
    */
   bool DeleteSavedSearch(const CFileItem& item);
+
+  /*!
+   * @brief Get the title for the given EPG tag, taking settings and parental controls into account.
+   * @param item The EPG tag.
+   * @return "Parental locked" in case the access to the information is restricted by parental
+   * controls, "No information avilable" if the real EPG event title is empty and
+   * SETTING_EPG_HIDENOINFOAVAILABLE is false or tag is nullptr, the real EPG event title as given
+   * by the EPG data provider otherwise.
+   */
+  std::string GetTitleForEpgTag(const std::shared_ptr<const CPVREpgInfoTag>& tag);
 
 private:
   CPVRGUIActionsEPG(const CPVRGUIActionsEPG&) = delete;

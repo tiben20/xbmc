@@ -16,8 +16,12 @@
 #include "Util.h"
 #include "filesystem/Directory.h"
 #include "filesystem/MusicDatabaseDirectory.h"
+#include "filesystem/MusicDatabaseDirectory/DirectoryNode.h"
+#include "filesystem/MusicDatabaseDirectory/QueryParams.h"
 #include "filesystem/SpecialProtocol.h"
 #include "filesystem/VideoDatabaseDirectory.h"
+#include "filesystem/VideoDatabaseDirectory/DirectoryNode.h"
+#include "filesystem/VideoDatabaseDirectory/QueryParams.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "guilib/LocalizeStrings.h"
@@ -130,7 +134,8 @@ NPT_Result CUPnPServer::SetupServices()
   OnScanCompleted(VideoLibrary);
 
   // now safe to start passing on new notifications
-  CServiceBroker::GetAnnouncementManager()->AddAnnouncer(this);
+  CServiceBroker::GetAnnouncementManager()->AddAnnouncer(this, ANNOUNCEMENT::VideoLibrary |
+                                                                   ANNOUNCEMENT::AudioLibrary);
 
   return result;
 }
@@ -329,7 +334,7 @@ PLT_MediaObject* CUPnPServer::Build(const std::shared_ptr<CFileItem>& item,
         if (!item->HasMusicInfoTag())
         {
           MUSICDATABASEDIRECTORY::CQueryParams params;
-          MUSICDATABASEDIRECTORY::CDirectoryNode::GetDatabaseInfo((const char*)path, params);
+          XFILE::MUSICDATABASEDIRECTORY::CDirectoryNode::GetDatabaseInfo((const char*)path, params);
 
           CMusicDatabase db;
           if (!db.Open())

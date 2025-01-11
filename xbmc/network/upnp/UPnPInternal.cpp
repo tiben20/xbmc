@@ -15,8 +15,10 @@
 #include "URL.h"
 #include "Util.h"
 #include "filesystem/MusicDatabaseDirectory.h"
+#include "filesystem/MusicDatabaseDirectory/DirectoryNode.h"
 #include "filesystem/StackDirectory.h"
 #include "filesystem/VideoDatabaseDirectory.h"
+#include "filesystem/VideoDatabaseDirectory/DirectoryNode.h"
 #include "imagefiles/ImageFileURL.h"
 #include "music/MusicFileItemClassify.h"
 #include "music/tags/MusicInfoTag.h"
@@ -621,11 +623,10 @@ PLT_MediaObject* BuildObject(CFileItem& item,
     /* this might be overkill, but hey */
     if (MUSIC::IsMusicDb(item))
     {
-      MUSICDATABASEDIRECTORY::NODE_TYPE node =
-          CMusicDatabaseDirectory::GetDirectoryType(item.GetPath());
+      const auto node = CMusicDatabaseDirectory::GetDirectoryType(item.GetPath());
       switch (node)
       {
-        case MUSICDATABASEDIRECTORY::NODE_TYPE_ARTIST:
+        case MUSICDATABASEDIRECTORY::NodeType::ARTIST:
         {
           container->m_ObjectClass.type += ".person.musicArtist";
           CMusicInfoTag* tag = item.GetMusicInfoTag();
@@ -646,8 +647,8 @@ PLT_MediaObject* BuildObject(CFileItem& item,
 #endif
         }
         break;
-        case MUSICDATABASEDIRECTORY::NODE_TYPE_ALBUM:
-        case MUSICDATABASEDIRECTORY::NODE_TYPE_ALBUM_RECENTLY_ADDED:
+        case MUSICDATABASEDIRECTORY::NodeType::ALBUM:
+        case MUSICDATABASEDIRECTORY::NodeType::ALBUM_RECENTLY_ADDED:
         {
           container->m_ObjectClass.type += ".album.musicAlbum";
           // for Sonos to be happy
@@ -670,7 +671,7 @@ PLT_MediaObject* BuildObject(CFileItem& item,
 #endif
         }
         break;
-        case MUSICDATABASEDIRECTORY::NODE_TYPE_GENRE:
+        case MUSICDATABASEDIRECTORY::NodeType::GENRE:
           container->m_ObjectClass.type += ".genre.musicGenre";
           break;
         default:
@@ -679,15 +680,14 @@ PLT_MediaObject* BuildObject(CFileItem& item,
     }
     else if (VIDEO::IsVideoDb(item))
     {
-      VIDEODATABASEDIRECTORY::NODE_TYPE node =
-          CVideoDatabaseDirectory::GetDirectoryType(item.GetPath());
+      const auto node = CVideoDatabaseDirectory::GetDirectoryType(item.GetPath());
       CVideoInfoTag& tag = *item.GetVideoInfoTag();
       switch (node)
       {
-        case VIDEODATABASEDIRECTORY::NODE_TYPE_GENRE:
+        case VIDEODATABASEDIRECTORY::NodeType::GENRE:
           container->m_ObjectClass.type += ".genre.movieGenre";
           break;
-        case VIDEODATABASEDIRECTORY::NODE_TYPE_ACTOR:
+        case VIDEODATABASEDIRECTORY::NodeType::ACTOR:
           container->m_ObjectClass.type += ".person.videoArtist";
           container->m_Creator =
               StringUtils::Join(tag.m_artist,
@@ -695,7 +695,7 @@ PLT_MediaObject* BuildObject(CFileItem& item,
                   .c_str();
           container->m_Title = tag.m_strTitle.c_str();
           break;
-        case VIDEODATABASEDIRECTORY::NODE_TYPE_SEASONS:
+        case VIDEODATABASEDIRECTORY::NodeType::SEASONS:
           container->m_ObjectClass.type += ".album.videoAlbum.videoBroadcastSeason";
           if (item.HasVideoInfoTag())
           {
@@ -703,7 +703,7 @@ PLT_MediaObject* BuildObject(CFileItem& item,
             PopulateObjectFromTag(*tag, *container, &file_path, &resource, quirks);
           }
           break;
-        case VIDEODATABASEDIRECTORY::NODE_TYPE_TITLE_TVSHOWS:
+        case VIDEODATABASEDIRECTORY::NodeType::TITLE_TVSHOWS:
           container->m_ObjectClass.type += ".album.videoAlbum.videoBroadcastShow";
           if (item.HasVideoInfoTag())
           {

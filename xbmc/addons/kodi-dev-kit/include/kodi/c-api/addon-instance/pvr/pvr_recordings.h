@@ -61,12 +61,13 @@ extern "C"
   //============================================================================
   /// @ingroup cpp_kodi_addon_pvr_Defs_Recording_PVRRecording
   /// @brief Special @ref kodi::addon::PVRRecording::SetSeriesNumber() and
-  /// @ref kodi::addon::PVRRecording::SetEpisodeNumber() value to indicate it is
-  /// not to be used.
+  /// @ref kodi::addon::PVRRecording::SetEpisodeNumber() and
+  /// @ref kodi::addon::PVRRecording::SetEpisodePartNumber() value to indicate
+  /// it is not to be used.
   ///
   /// Used if recording has no valid season and/or episode info.
   ///
-#define PVR_RECORDING_INVALID_SERIES_EPISODE EPG_TAG_INVALID_SERIES_EPISODE
+#define PVR_RECORDING_INVALID_SERIES_EPISODE -1
   //----------------------------------------------------------------------------
 
   //============================================================================
@@ -108,20 +109,22 @@ extern "C"
    */
   typedef struct PVR_RECORDING
   {
-    char strRecordingId[PVR_ADDON_NAME_STRING_LENGTH];
-    char strTitle[PVR_ADDON_NAME_STRING_LENGTH];
-    char strEpisodeName[PVR_ADDON_NAME_STRING_LENGTH];
+    const char* strRecordingId;
+    const char* strTitle;
+    const char* strTitleExtraInfo;
     int iSeriesNumber;
     int iEpisodeNumber;
+    int iEpisodePartNumber;
+    const char* strEpisodeName;
     int iYear;
-    char strDirectory[PVR_ADDON_URL_STRING_LENGTH];
-    char strPlotOutline[PVR_ADDON_DESC_STRING_LENGTH];
-    char strPlot[PVR_ADDON_DESC_STRING_LENGTH];
-    char strGenreDescription[PVR_ADDON_DESC_STRING_LENGTH];
-    char strChannelName[PVR_ADDON_NAME_STRING_LENGTH];
-    char strIconPath[PVR_ADDON_URL_STRING_LENGTH];
-    char strThumbnailPath[PVR_ADDON_URL_STRING_LENGTH];
-    char strFanartPath[PVR_ADDON_URL_STRING_LENGTH];
+    const char* strDirectory;
+    const char* strPlotOutline;
+    const char* strPlot;
+    const char* strGenreDescription;
+    const char* strChannelName;
+    const char* strIconPath;
+    const char* strThumbnailPath;
+    const char* strFanartPath;
     time_t recordingTime;
     int iDuration;
     int iPriority;
@@ -134,11 +137,15 @@ extern "C"
     unsigned int iEpgEventId;
     int iChannelUid;
     enum PVR_RECORDING_CHANNEL_TYPE channelType;
-    char strFirstAired[PVR_ADDON_DATE_STRING_LENGTH];
+    const char* strFirstAired;
     unsigned int iFlags;
     int64_t sizeInBytes;
     int iClientProviderUid;
-    char strProviderName[PVR_ADDON_NAME_STRING_LENGTH];
+    const char* strProviderName;
+    unsigned int iParentalRating;
+    const char* strParentalRatingCode;
+    const char* strParentalRatingIcon;
+    const char* strParentalRatingSource;
   } PVR_RECORDING;
 
 #ifdef __cplusplus

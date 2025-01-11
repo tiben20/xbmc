@@ -24,17 +24,17 @@ namespace XFILE
   class CCurlFile : public IFile
   {
     private:
-      typedef enum
-      {
-        PROXY_HTTP = 0,
-        PROXY_SOCKS4,
-        PROXY_SOCKS4A,
-        PROXY_SOCKS5,
-        PROXY_SOCKS5_REMOTE,
-        PROXY_HTTPS,
-      } ProxyType;
-
     public:
+      enum class ProxyType
+      {
+        HTTP = 0,
+        SOCKS4,
+        SOCKS4A,
+        SOCKS5,
+        SOCKS5_REMOTE,
+        HTTPS,
+      };
+
       CCurlFile();
       ~CCurlFile() override;
       bool Open(const CURL& url) override;
@@ -46,12 +46,15 @@ namespace XFILE
       int64_t GetLength() override;
       int Stat(const CURL& url, struct __stat64* buffer) override;
       void Close() override;
-      bool ReadString(char *szLine, int iLineLength) override { return m_state->ReadString(szLine, iLineLength); }
+      ReadLineResult ReadLine(char* buffer, std::size_t bufferSize) override
+      {
+        return m_state->ReadLine(buffer, bufferSize);
+      }
       ssize_t Read(void* lpBuf, size_t uiBufSize) override { return m_state->Read(lpBuf, uiBufSize); }
       ssize_t Write(const void* lpBuf, size_t uiBufSize) override;
       const std::string GetProperty(XFILE::FileProperty type, const std::string &name = "") const override;
       const std::vector<std::string> GetPropertyValues(XFILE::FileProperty type, const std::string &name = "") const override;
-      int IoControl(EIoControl request, void* param) override;
+      int IoControl(IOControl request, void* param) override;
       double GetDownloadSpeed() override;
 
       bool Post(const std::string& strURL, const std::string& strPostData, std::string& strHTML);
@@ -80,7 +83,7 @@ namespace XFILE
       void SetBufferSize(unsigned int size);
 
       const CHttpHeader& GetHttpHeader() const { return m_state->m_httpheader; }
-      std::string GetURL(void);
+      const std::string& GetURL() const { return m_url; }
       std::string GetRedirectURL();
 
       /* static function that will get content type of a file */
@@ -129,7 +132,7 @@ namespace XFILE
 
           bool Seek(int64_t pos);
           ssize_t Read(void* lpBuf, size_t uiBufSize);
-          bool ReadString(char *szLine, int iLineLength);
+          ReadLineResult ReadLine(char* buffer, std::size_t bufferSize);
           int8_t FillBuffer(unsigned int want);
           void SetReadBuffer(const void* lpBuf, int64_t uiBufSize);
 
@@ -154,7 +157,7 @@ namespace XFILE
 
       std::string m_url;
       std::string m_userAgent;
-      ProxyType m_proxytype = PROXY_HTTP;
+      ProxyType m_proxytype = ProxyType::HTTP;
       std::string m_proxyhost;
       uint16_t m_proxyport = 3128;
       std::string m_proxyuser;

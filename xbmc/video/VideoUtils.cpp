@@ -13,17 +13,21 @@
 #include "ServiceBroker.h"
 #include "Util.h"
 #include "filesystem/Directory.h"
-#include "filesystem/VideoDatabaseDirectory/QueryParams.h"
+#include "filesystem/StackDirectory.h"
+#include "network/NetworkFileItemClassify.h"
 #include "playlists/PlayListFileItemClassify.h"
+#include "settings/AdvancedSettings.h"
 #include "settings/SettingUtils.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "settings/lib/Setting.h"
+#include "utils/ArtUtils.h"
+#include "utils/FileExtensionProvider.h"
 #include "utils/FileUtils.h"
+#include "utils/StringUtils.h"
 #include "utils/URIUtils.h"
 #include "utils/log.h"
 #include "video/VideoDatabase.h"
-#include "video/VideoFileItemClassify.h"
 #include "video/VideoInfoTag.h"
 
 #include <algorithm>
@@ -31,160 +35,88 @@
 #include <cstdint>
 #include <vector>
 
-using namespace KODI;
-
-namespace
-{
-KODI::VIDEO::UTILS::ResumeInformation GetFolderItemResumeInformation(const CFileItem& item)
-{
-  if (!item.m_bIsFolder)
-    return {};
-
-  CFileItem folderItem(item);
-  if ((!folderItem.HasProperty("inprogressepisodes") || // season/show
-       (folderItem.GetProperty("inprogressepisodes").asInteger() == 0)) &&
-      (!folderItem.HasProperty("inprogress") || // movie set
-       (folderItem.GetProperty("inprogress").asInteger() == 0)))
-  {
-    CVideoDatabase db;
-    if (db.Open())
-    {
-      if (!folderItem.HasProperty("inprogressepisodes") && !folderItem.HasProperty("inprogress"))
-      {
-        XFILE::VIDEODATABASEDIRECTORY::CQueryParams params;
-        XFILE::VIDEODATABASEDIRECTORY::CDirectoryNode::GetDatabaseInfo(item.GetPath(), params);
-
-        if (params.GetTvShowId() >= 0)
-        {
-          if (params.GetSeason() >= 0)
-          {
-            const int idSeason = db.GetSeasonId(static_cast<int>(params.GetTvShowId()),
-                                                static_cast<int>(params.GetSeason()));
-            if (idSeason >= 0)
-            {
-              CVideoInfoTag details;
-              db.GetSeasonInfo(idSeason, details, &folderItem);
-            }
-          }
-          else
-          {
-            CVideoInfoTag details;
-            db.GetTvShowInfo(item.GetPath(), details, static_cast<int>(params.GetTvShowId()),
-                             &folderItem);
-          }
-        }
-        else if (params.GetSetId() >= 0)
-        {
-          CVideoInfoTag details;
-          db.GetSetInfo(static_cast<int>(params.GetSetId()), details, &folderItem);
-        }
-      }
-      db.Close();
-    }
-  }
-
-  if (folderItem.IsResumable())
-  {
-    KODI::VIDEO::UTILS::ResumeInformation resumeInfo;
-    resumeInfo.isResumable = true;
-    return resumeInfo;
-  }
-
-  return {};
-}
-
-KODI::VIDEO::UTILS::ResumeInformation GetNonFolderItemResumeInformation(const CFileItem& item)
-{
-  // do not resume nfo files
-  if (item.IsNFO())
-    return {};
-
-  // do not resume playlists, except strm files
-  if (!item.IsType(".strm") && PLAYLIST::IsPlayList(item))
-    return {};
-
-  // do not resume Live TV and 'deleted' items (e.g. trashed pvr recordings)
-  if (item.IsLiveTV() || item.IsDeleted())
-    return {};
-
-  KODI::VIDEO::UTILS::ResumeInformation resumeInfo;
-
-  if (item.GetCurrentResumeTimeAndPartNumber(resumeInfo.startOffset, resumeInfo.partNumber))
-  {
-    if (resumeInfo.startOffset > 0)
-    {
-      resumeInfo.startOffset = CUtil::ConvertSecsToMilliSecs(resumeInfo.startOffset);
-      resumeInfo.isResumable = true;
-    }
-  }
-  else
-  {
-    // Obtain the resume bookmark from video db...
-
-    CVideoDatabase db;
-    if (!db.Open())
-    {
-      CLog::LogF(LOGERROR, "Cannot open VideoDatabase");
-      return {};
-    }
-
-    std::string path = item.GetPath();
-    if (VIDEO::IsVideoDb(item) || item.IsDVD())
-    {
-      if (item.HasVideoInfoTag())
-      {
-        path = item.GetVideoInfoTag()->m_strFileNameAndPath;
-      }
-      else if (VIDEO::IsVideoDb(item))
-      {
-        // Obtain path+filename from video db
-        XFILE::VIDEODATABASEDIRECTORY::CQueryParams params;
-        XFILE::VIDEODATABASEDIRECTORY::CDirectoryNode::GetDatabaseInfo(item.GetPath(), params);
-
-        long id = -1;
-        VideoDbContentType content_type;
-        if ((id = params.GetMovieId()) >= 0)
-          content_type = VideoDbContentType::MOVIES;
-        else if ((id = params.GetEpisodeId()) >= 0)
-          content_type = VideoDbContentType::EPISODES;
-        else if ((id = params.GetMVideoId()) >= 0)
-          content_type = VideoDbContentType::MUSICVIDEOS;
-        else
-        {
-          CLog::LogF(LOGERROR, "Cannot obtain video content type");
-          db.Close();
-          return {};
-        }
-
-        db.GetFilePathById(static_cast<int>(id), path, content_type);
-      }
-      else
-      {
-        // DVD
-        CLog::LogF(LOGERROR, "Cannot obtain bookmark for DVD");
-        db.Close();
-        return {};
-      }
-    }
-
-    CBookmark bookmark;
-    db.GetResumeBookMark(path, bookmark);
-    db.Close();
-
-    if (bookmark.IsSet())
-    {
-      resumeInfo.isResumable = bookmark.IsPartWay();
-      resumeInfo.startOffset = CUtil::ConvertSecsToMilliSecs(bookmark.timeInSeconds);
-      resumeInfo.partNumber = static_cast<int>(bookmark.partNumber);
-    }
-  }
-  return resumeInfo;
-}
-
-} // unnamed namespace
-
 namespace KODI::VIDEO::UTILS
 {
+
+std::string FindTrailer(const CFileItem& item)
+{
+  std::string strFile2;
+  std::string strFile = item.GetPath();
+  if (item.IsStack())
+  {
+    std::string strPath;
+    URIUtils::GetParentPath(item.GetPath(), strPath);
+    XFILE::CStackDirectory dir;
+    std::string strPath2;
+    strPath2 = dir.GetStackedTitlePath(strFile);
+    strFile = URIUtils::AddFileToFolder(strPath, URIUtils::GetFileName(strPath2));
+    CFileItem sitem(dir.GetFirstStackedFile(item.GetPath()), false);
+    std::string strTBNFile(URIUtils::ReplaceExtension(ART::GetTBNFile(sitem), "-trailer"));
+    strFile2 = URIUtils::AddFileToFolder(strPath, URIUtils::GetFileName(strTBNFile));
+  }
+  if (URIUtils::IsInRAR(strFile) || URIUtils::IsInZIP(strFile))
+  {
+    std::string strPath = URIUtils::GetDirectory(strFile);
+    std::string strParent;
+    URIUtils::GetParentPath(strPath, strParent);
+    strFile = URIUtils::AddFileToFolder(strParent, URIUtils::GetFileName(item.GetPath()));
+  }
+
+  // no local trailer available for these
+  if (NETWORK::IsInternetStream(item) || URIUtils::IsUPnP(strFile) || URIUtils::IsBluray(strFile) ||
+      item.IsLiveTV() || item.IsPlugin() || item.IsDVD())
+    return "";
+
+  std::string strDir = URIUtils::GetDirectory(strFile);
+  CFileItemList items;
+  XFILE::CDirectory::GetDirectory(
+      strDir, items, CServiceBroker::GetFileExtensionProvider().GetVideoExtensions(),
+      XFILE::DIR_FLAG_READ_CACHE | XFILE::DIR_FLAG_NO_FILE_INFO | XFILE::DIR_FLAG_NO_FILE_DIRS);
+  URIUtils::RemoveExtension(strFile);
+  strFile += "-trailer";
+  std::string strFile3 = URIUtils::AddFileToFolder(strDir, "movie-trailer");
+
+  // Precompile our REs
+  VECCREGEXP matchRegExps;
+  CRegExp tmpRegExp(true, CRegExp::autoUtf8);
+  const std::vector<std::string>& strMatchRegExps =
+      CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_trailerMatchRegExps;
+
+  for (const auto& strRegExp : strMatchRegExps)
+  {
+    if (tmpRegExp.RegComp(strRegExp))
+      matchRegExps.push_back(tmpRegExp);
+  }
+
+  std::string strTrailer;
+  for (int i = 0; i < items.Size(); i++)
+  {
+    std::string strCandidate = items[i]->GetPath();
+    URIUtils::RemoveExtension(strCandidate);
+    if (StringUtils::EqualsNoCase(strCandidate, strFile) ||
+        StringUtils::EqualsNoCase(strCandidate, strFile2) ||
+        StringUtils::EqualsNoCase(strCandidate, strFile3))
+    {
+      strTrailer = items[i]->GetPath();
+      break;
+    }
+    else
+    {
+      for (auto& expr : matchRegExps)
+      {
+        if (expr.RegFind(strCandidate) != -1)
+        {
+          strTrailer = items[i]->GetPath();
+          i = items.Size();
+          break;
+        }
+      }
+    }
+  }
+
+  return strTrailer;
+}
+
 std::string GetOpticalMediaPath(const CFileItem& item)
 {
   auto exists = [&item](const std::string& file)
@@ -237,11 +169,36 @@ bool IsAutoPlayNextItem(const std::string& content)
 
 ResumeInformation GetItemResumeInformation(const CFileItem& item)
 {
-  ResumeInformation info = GetNonFolderItemResumeInformation(item);
-  if (info.isResumable)
-    return info;
+  // do not resume nfo files
+  if (item.IsNFO())
+    return {};
 
-  return GetFolderItemResumeInformation(item);
+  // do not resume playlists, except strm files
+  if (!item.IsType(".strm") && PLAYLIST::IsPlayList(item))
+    return {};
+
+  // do not resume Live TV and 'deleted' items (e.g. trashed pvr recordings)
+  if (item.IsLiveTV() || item.IsDeleted())
+    return {};
+
+  int64_t startOffset{0};
+  int partNumber{0};
+  if (item.GetCurrentResumeTimeAndPartNumber(startOffset, partNumber) && startOffset > 0)
+  {
+    ResumeInformation resumeInfo;
+    resumeInfo.startOffset = CUtil::ConvertSecsToMilliSecs(startOffset);
+    resumeInfo.isResumable = true;
+    return resumeInfo;
+  }
+
+  if (item.m_bIsFolder && item.IsResumable())
+  {
+    ResumeInformation resumeInfo;
+    resumeInfo.isResumable = true;
+    return resumeInfo;
+  }
+
+  return {};
 }
 
 ResumeInformation GetStackPartResumeInformation(const CFileItem& item, unsigned int partNumber)
@@ -282,4 +239,45 @@ ResumeInformation GetStackPartResumeInformation(const CFileItem& item, unsigned 
   return resumeInfo;
 }
 
+std::shared_ptr<CFileItem> LoadVideoFilesFolderInfo(const CFileItem& folder)
+{
+  CVideoDatabase db;
+  if (!db.Open())
+  {
+    CLog::LogF(LOGERROR, "Cannot open VideoDatabase");
+    return {};
+  }
+
+  CFileItemList items;
+  XFILE::CDirectory::GetDirectory(folder.GetDynPath(), items, "", XFILE::DIR_FLAG_DEFAULTS);
+
+  db.GetPlayCounts(items.GetPath(), items);
+
+  std::shared_ptr<CFileItem> loadedItem{std::make_shared<CFileItem>(folder)};
+  loadedItem->SetProperty("total", 0);
+  loadedItem->SetProperty("watched", 0);
+  loadedItem->SetProperty("unwatched", 0);
+  loadedItem->SetProperty("inprogress", 0);
+
+  for (const auto& item : items)
+  {
+    if (item->HasVideoInfoTag())
+    {
+      loadedItem->IncrementProperty("total", 1);
+      if (item->GetVideoInfoTag()->GetPlayCount() == 0)
+      {
+        loadedItem->IncrementProperty("unwatched", 1);
+      }
+      else
+      {
+        loadedItem->IncrementProperty("watched", 1);
+      }
+      if (item->GetVideoInfoTag()->GetResumePoint().IsPartWay())
+      {
+        loadedItem->IncrementProperty("inprogress", 1);
+      }
+    }
+  }
+  return loadedItem;
+}
 } // namespace KODI::VIDEO::UTILS

@@ -108,16 +108,6 @@ MEDIA_DETECT::STORAGE::Type CUDisks2Provider::Filesystem::GetStorageType() const
   return MEDIA_DETECT::STORAGE::Type::UNKNOWN;
 }
 
-std::string CUDisks2Provider::Filesystem::GetMountPoint() const
-{
-  return m_mountPoint;
-}
-
-std::string CUDisks2Provider::Filesystem::GetObject() const
-{
-  return m_object;
-}
-
 void CUDisks2Provider::Filesystem::ResetMountPoint()
 {
   m_mountPoint.clear();
@@ -194,11 +184,11 @@ CMediaSource CUDisks2Provider::Filesystem::ToMediaShare() const
   source.strPath = m_mountPoint;
   source.strName = GetDisplayName();
   if (IsOptical())
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_DVD;
+    source.m_iDriveType = SourceType::OPTICAL_DISC;
   else if (m_block->m_isSystem)
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
+    source.m_iDriveType = SourceType::LOCAL;
   else
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_REMOVABLE;
+    source.m_iDriveType = SourceType::REMOVABLE;
   source.m_ignore = true;
   return source;
 }
@@ -328,7 +318,7 @@ std::vector<std::string> CUDisks2Provider::GetDiskUsage()
   return legacy.GetDiskUsage();
 }
 
-void CUDisks2Provider::GetDisks(VECSOURCES &devices, bool enumerateRemovable)
+void CUDisks2Provider::GetDisks(std::vector<CMediaSource>& devices, bool enumerateRemovable)
 {
   for (const auto &elt: m_filesystems)
   {

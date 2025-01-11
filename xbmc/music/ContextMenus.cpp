@@ -14,6 +14,7 @@
 #include "cores/playercorefactory/PlayerCoreFactory.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
+#include "music/MusicFileItemClassify.h"
 #include "music/MusicUtils.h"
 #include "music/dialogs/GUIDialogMusicInfo.h"
 #include "playlists/PlayListTypes.h"
@@ -26,12 +27,12 @@
 using namespace CONTEXTMENU;
 using namespace KODI;
 
-CMusicInfo::CMusicInfo(MediaType mediaType)
+CMusicInfoBase::CMusicInfoBase(MediaType mediaType)
   : CStaticContextMenuAction(19033), m_mediaType(std::move(mediaType))
 {
 }
 
-bool CMusicInfo::IsVisible(const CFileItem& item) const
+bool CMusicInfoBase::IsVisible(const CFileItem& item) const
 {
   return (item.HasMusicInfoTag() && item.GetMusicInfoTag()->GetType() == m_mediaType) ||
          (m_mediaType == MediaTypeArtist && VIDEO::IsVideoDb(item) &&
@@ -40,23 +41,35 @@ bool CMusicInfo::IsVisible(const CFileItem& item) const
           item.HasProperty("album_musicid"));
 }
 
-bool CMusicInfo::Execute(const std::shared_ptr<CFileItem>& item) const
+bool CMusicInfoBase::Execute(const std::shared_ptr<CFileItem>& item) const
 {
   CGUIDialogMusicInfo::ShowFor(item.get());
   return true;
 }
 
+bool CMusicInfo::IsVisible(const CFileItem& item) const
+{
+  if (CMusicInfoBase::IsVisible(item))
+    return true;
+
+  if (item.m_bIsFolder)
+    return false;
+
+  const auto* tag{item.GetMusicInfoTag()};
+  return tag && tag->GetType() == MediaTypeNone && !tag->GetTitle().empty() && MUSIC::IsAudio(item);
+}
+
 bool CMusicBrowse::IsVisible(const CFileItem& item) const
 {
-  return ((item.m_bIsFolder || item.IsFileFolder(EFILEFOLDER_MASK_ONBROWSE)) &&
+  return ((item.m_bIsFolder || item.IsFileFolder(FileFolderType::MASK_ONBROWSE)) &&
           MUSIC_UTILS::IsItemPlayable(item));
 }
 
 bool CMusicBrowse::Execute(const std::shared_ptr<CFileItem>& item) const
 {
   // For file directory browsing, we need item's dyn path, for everything else the path.
-  const std::string path{item->IsFileFolder(EFILEFOLDER_MASK_ONBROWSE) ? item->GetDynPath()
-                                                                       : item->GetPath()};
+  const std::string path{item->IsFileFolder(FileFolderType::MASK_ONBROWSE) ? item->GetDynPath()
+                                                                           : item->GetPath()};
 
   auto& windowMgr = CServiceBroker::GetGUI()->GetWindowManager();
   if (windowMgr.GetActiveWindow() == WINDOW_MUSIC_NAV)

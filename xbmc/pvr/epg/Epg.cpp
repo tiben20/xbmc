@@ -223,7 +223,8 @@ bool CPVREpg::UpdateEntry(const std::shared_ptr<CPVREpgInfoTag>& tag, EPG_EVENT_
     }
     else
     {
-      if (IsTagExpired(existingTag))
+      // Delete future events and past events if they are older than epg linger time setting
+      if ((existingTag->StartAsUTC() > CDateTime::GetUTCDateTime()) || IsTagExpired(existingTag))
       {
         m_tags.DeleteEntry(existingTag);
       }
@@ -533,7 +534,8 @@ bool CPVREpg::IsValid() const
 {
   std::unique_lock<CCriticalSection> lock(m_critSection);
   if (ScraperName() == "client")
-    return m_channelData->ClientId() != -1 && m_channelData->UniqueClientChannelId() != PVR_CHANNEL_INVALID_UID;
+    return m_channelData->ClientId() != PVR_CLIENT_INVALID_UID &&
+           m_channelData->UniqueClientChannelId() != PVR_CHANNEL_INVALID_UID;
 
   return true;
 }
@@ -545,7 +547,9 @@ void CPVREpg::RemovedFromContainer()
 
 int CPVREpg::CleanupCachedImages(const std::shared_ptr<const CPVREpgDatabase>& database)
 {
-  const std::vector<std::string> urlsToCheck = database->GetAllIconPaths(EpgID());
+  std::vector<std::string> urlsToCheck;
+  database->GetAllIconPaths(EpgID(), urlsToCheck);
+  database->GetAllParentalRatingIconPaths(EpgID(), urlsToCheck);
   const std::string owner = StringUtils::Format(CPVREpgInfoTag::IMAGE_OWNER_PATTERN, EpgID());
 
   return CPVRCachedImages::Cleanup({{owner, ""}}, urlsToCheck);

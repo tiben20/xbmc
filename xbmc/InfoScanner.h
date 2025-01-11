@@ -10,7 +10,6 @@
 
 #include <set>
 #include <string>
-#include <vector>
 
 class CGUIDialogProgressBarHandle;
 
@@ -20,29 +19,29 @@ public:
   /*!
     \brief Return values from the information lookup functions.
    */
-  enum INFO_RET
+  enum class InfoRet
   {
-    INFO_CANCELLED,
-    INFO_ERROR,
-    INFO_NOT_NEEDED,
-    INFO_HAVE_ALREADY,
-    INFO_NOT_FOUND,
-    INFO_ADDED
+    CANCELLED,
+    INFO_ERROR, // ERROR clashes with windows macro
+    NOT_NEEDED,
+    HAVE_ALREADY,
+    NOT_FOUND,
+    ADDED
   };
 
   /*
    \brief Type of information returned from tag readers.
   */
 
-  enum INFO_TYPE
+  enum class InfoType
   {
-    NO_NFO       = 0, //!< No info found
-    FULL_NFO     = 1, //!< Full info specified
-    URL_NFO      = 2, //!< A URL to grab info from was found
-    OVERRIDE_NFO = 3, //!< Override info was found
-    COMBINED_NFO = 4, //!< A URL to grab info from + override info was found
-    ERROR_NFO    = 5, //!< Error processing info
-    TITLE_NFO    = 6  //!< At least Title was read (and optionally the Year)
+    NONE = 0, //!< No info found
+    FULL = 1, //!< Full info specified
+    URL = 2, //!< A URL to grab info from was found
+    OVERRIDE = 3, //!< Override info was found
+    COMBINED = 4, //!< A URL to grab info from + override info was found
+    ERROR_NFO = 5, //!< Error processing info
+    TITLE = 6, //!< At least Title was read (and optionally the Year)
   };
 
   //! \brief Empty destructor.
@@ -54,7 +53,7 @@ public:
    \param strDirectory Directory to scan
    \return true if there is a .nomedia file
    */
-  bool HasNoMedia(const std::string& strDirectory) const;
+  static bool HasNoMedia(const std::string& strDirectory);
 
   //! \brief Set whether or not to show a progress dialog.
   void ShowDialog(bool show) { m_showDialog = show; }

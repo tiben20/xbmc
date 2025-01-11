@@ -64,7 +64,7 @@ set(package_files strings.xml
                   src/interfaces/XBMCMediaDrmOnEventListener.java
                   src/interfaces/XBMCDisplayManagerDisplayListener.java
                   src/interfaces/XBMCSpeechRecognitionListener.java
-		  src/interfaces/XBMCConnectivityManagerNetworkCallback.java
+                  src/interfaces/XBMCConnectivityManagerNetworkCallback.java
                   src/model/TVEpisode.java
                   src/model/Movie.java
                   src/model/TVShow.java
@@ -74,9 +74,11 @@ set(package_files strings.xml
                   src/model/MusicVideo.java
                   src/model/Media.java
                   src/content/XBMCFileContentProvider.java
+                  src/content/XBMCFileProvider.java
                   src/content/XBMCMediaContentProvider.java
                   src/content/XBMCContentProvider.java
                   src/content/XBMCYTDLContentProvider.java
+                  src/util/Storage.java
                   )
 foreach(file IN LISTS package_files)
   configure_file(${CMAKE_SOURCE_DIR}/tools/android/packaging/xbmc/${file}.in
@@ -149,9 +151,12 @@ endif()
 if(CPU MATCHES i686)
   set(CPU x86)
 endif()
+
+find_program(MAKE_EXECUTABLE make REQUIRED)
+
 foreach(target apk apk-clean)
   add_custom_target(${target}
-      COMMAND env PATH=${NATIVEPREFIX}/bin:$ENV{PATH} ${CMAKE_MAKE_PROGRAM} -j1
+      COMMAND env PATH=${NATIVEPREFIX}/bin:$ENV{PATH} ${MAKE_EXECUTABLE} -j1
               -C ${CMAKE_BINARY_DIR}/tools/android/packaging
               CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
               CC=${CMAKE_C_COMPILER}

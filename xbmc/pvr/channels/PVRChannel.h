@@ -12,6 +12,7 @@
 #include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_channels.h"
 #include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_providers.h"
 #include "pvr/PVRCachedImage.h"
+#include "pvr/PVRConstants.h" // PVR_CLIENT_INVALID_UID
 #include "pvr/channels/PVRChannelNumber.h"
 #include "threads/CriticalSection.h"
 #include "utils/ISerializable.h"
@@ -48,12 +49,6 @@ public:
 
   bool operator==(const CPVRChannel& right) const;
   bool operator!=(const CPVRChannel& right) const;
-
-  /*!
-   * @brief Copy over data to the given PVR_CHANNEL instance.
-   * @param channel The channel instance to fill.
-   */
-  void FillAddonData(PVR_CHANNEL& channel) const;
 
   void Serialize(CVariant& value) const override;
 
@@ -451,8 +446,8 @@ public:
   int ClientOrder() const { return m_iClientOrder; }
 
   /*!
-   * @brief Get the client provider Uid for this channel
-   * @return m_iClientProviderUid The provider Uid for this channel
+   * @brief Get the uid of the provider on the client which this channel is from
+   * @return the client uid of the provider or PVR_PROVIDER_INVALID_UID
    */
   int ClientProviderUid() const { return m_iClientProviderUid; }
 
@@ -550,7 +545,8 @@ private:
    */
   //@{
   int m_iUniqueId = -1; /*!< the unique identifier for this channel */
-  int m_iClientId = -1; /*!< the identifier of the client that serves this channel */
+  int m_iClientId =
+      PVR_CLIENT_INVALID_UID; /*!< the identifier of the client that serves this channel */
   CPVRChannelNumber m_clientChannelNumber; /*!< the channel number on the client */
   std::string m_strClientChannelName; /*!< the name of this channel on the client */
   std::string

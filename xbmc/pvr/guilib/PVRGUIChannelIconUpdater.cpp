@@ -65,7 +65,7 @@ void CPVRGUIChannelIconUpdater::SearchAndUpdateMissingChannelIcons() const
   for (const auto& group : m_groups)
   {
     const std::vector<std::shared_ptr<CPVRChannelGroupMember>> members = group->GetMembers();
-    int channelIndex = 0;
+    size_t channelIndex = 0;
     for (const auto& member : members)
     {
       const std::shared_ptr<CPVRChannel> channel = member->Channel();

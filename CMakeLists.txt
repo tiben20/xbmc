@@ -10,6 +10,13 @@ if(POLICY CMP0069)
   cmake_policy(SET CMP0069 NEW)
 endif()
 
+# https://cmake.org/cmake/help/latest/policy/CMP0074.html
+# find_package() uses <PackageName>_ROOT variables
+if(POLICY CMP0074)
+  set(CMAKE_POLICY_DEFAULT_CMP0074 NEW)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 if(POLICY CMP0079)
   set(CMAKE_POLICY_DEFAULT_CMP0079 NEW)
   cmake_policy(SET CMP0079 NEW)
@@ -18,6 +25,13 @@ endif()
 if(POLICY CMP0135)
   set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
   cmake_policy(SET CMP0135 NEW)
+endif()
+
+# https://cmake.org/cmake/help/latest/policy/CMP0144.html
+# find_package() uses upper-case <PACKAGENAME>_ROOT variables
+if(POLICY CMP0144)
+  set(CMAKE_POLICY_DEFAULT_CMP0144 NEW)
+  cmake_policy(SET CMP0144 NEW)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
@@ -93,6 +107,7 @@ option(ENABLE_INTERNAL_CROSSGUID "Enable internal crossguid?" ON)
 option(ENABLE_INTERNAL_FFMPEG "Enable internal ffmpeg?" OFF)
 
 # These are built for all platforms not using system libs or disabled by user
+dependent_option(ENABLE_INTERNAL_ASS "Enable internal libass?")
 dependent_option(ENABLE_INTERNAL_CEC "Enable internal libcec?")
 dependent_option(ENABLE_INTERNAL_CURL "Enable internal libcurl?")
 dependent_option(ENABLE_INTERNAL_EXIV2 "Enable internal exiv2?")
@@ -167,7 +182,7 @@ if (NOT PLATFORMDEFS_DIR STREQUAL "")
   list(APPEND INCLUDES ${CMAKE_SOURCE_DIR}/xbmc/${PLATFORMDEFS_DIR})
 endif()
 
-find_package(PkgConfig)
+find_package(PkgConfig QUIET)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED QUIET)
 list(APPEND DEPLIBS ${CMAKE_THREAD_LIBS_INIT})
@@ -506,6 +521,8 @@ add_custom_target(gen_skin_pack DEPENDS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/${
 # Packaging target. This generates system addon, xbt creation, copy files to build tree
 add_custom_target(generate-packaging ALL
                   DEPENDS TexturePacker::TexturePacker::Executable export-files gen_skin_pack gen_system_addons)
+
+core_target_add_dependencies(export-files)
 
 # Add to lib${APP_NAME_LC} solely for Win UWP. msix building doesnt seem to pick up the
 # generated buildtree if we do it later. Other platforms dont care when this happens.

@@ -175,6 +175,15 @@
           </updates>
           <control type="toggle" />
         </setting>
+        <setting id="videoplayer.usedecoderfilter" type="boolean" label="13458" help="13459">
+          <requirement>HAS_MEDIACODEC</requirement>
+          <level>3</level>
+          <default>true</default>
+          <updates>
+            <update type="change" />
+          </updates>
+          <control type="toggle" />
+        </setting>
         <setting id="videoplayer.usedxva2" type="boolean" label="13427" help="36158">
           <requirement>HasDXVA2</requirement>
           <level>2</level>
@@ -580,6 +589,13 @@
           <control type="toggle" />
         </setting>
       </group>
+      <group id="4" label="39187">
+        <setting id="subtitles.captionsimpaired" type="boolean" label="39204" help="39205">
+          <level>2</level>
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
+      </group>
     </category>
     <category id="subtitles" label="287" help="37033">
       <group id="1" label="39186">
@@ -606,7 +622,7 @@
           <control type="list" format="string" />
         </setting>
         <setting id="subtitles.fontsize" type="integer" label="289" help="36186">
-          <level>3</level>
+          <level>2</level>
           <default>42</default> <!-- in pixels -->
           <constraints>
             <minimum>12</minimum>
@@ -619,7 +635,7 @@
           <control type="list" format="string" />
         </setting>
         <setting id="subtitles.style" type="integer" label="736" help="36187">
-          <level>3</level>
+          <level>2</level>
           <default>0</default> <!-- FontStyle::NORMAL -->
           <constraints>
             <options>
@@ -632,34 +648,39 @@
           <control type="list" format="string" />
         </setting>
         <setting id="subtitles.colorpick" type="string" label="737" help="36188">
-          <level>3</level>
+          <level>2</level>
           <default>FFFFFFFF</default> <!-- White -->
           <control type="colorbutton" />
         </setting>
         <setting id="subtitles.opacity" type="integer" label="752" help="36295">
-          <level>3</level>
+          <level>2</level>
           <default>100</default>
           <control type="slider" format="percentage" range="0,100" />
         </setting>
-        <setting id="subtitles.bordersize" type="integer" label="39159">
-          <level>3</level>
+        <setting id="subtitles.bordersize" type="integer" label="39159" help="688">
+          <level>2</level>
           <default>25</default>
           <dependencies>
             <dependency type="enable" setting="subtitles.backgroundtype" operator="!is">2</dependency>
           </dependencies>
           <control type="slider" format="percentage" range="0,100" />
         </setting>
-        <setting id="subtitles.bordercolorpick" type="string" label="39160">
-          <level>3</level>
+        <setting id="subtitles.bordercolorpick" type="string" label="39160" help="689">
+          <level>2</level>
           <default>FF000000</default> <!-- Black -->
           <dependencies>
             <dependency type="enable" setting="subtitles.backgroundtype" operator="!is">2</dependency>
           </dependencies>
           <control type="colorbutton" />
         </setting>
-        <setting id="subtitles.blur" type="integer" label="39173">
+        <setting id="subtitles.blur" type="integer" label="39173" help="690">
           <level>3</level>
           <default>0</default>
+          <control type="slider" format="percentage" range="0,100" />
+        </setting>
+        <setting id="subtitles.linespacing" type="integer" label="39202" help="39203">
+          <level>3</level>
+          <default>12</default>
           <control type="slider" format="percentage" range="0,100" />
         </setting>
         <setting id="subtitles.backgroundtype" type="integer" label="39165" help="39169">
@@ -701,7 +722,7 @@
           </dependencies>
           <control type="slider" format="percentage" range="0,100" />
         </setting>
-        <setting id="subtitles.shadowcolor" type="string" parent="subtitles.backgroundtype" label="39171">
+        <setting id="subtitles.shadowcolor" type="string" parent="subtitles.backgroundtype" label="39171" help="691">
           <level>3</level>
           <default>FF000000</default> <!-- Black -->
           <dependencies>
@@ -714,7 +735,7 @@
           </dependencies>
           <control type="colorbutton" />
         </setting>
-        <setting id="subtitles.shadowopacity" type="integer" parent="subtitles.backgroundtype" label="39172">
+        <setting id="subtitles.shadowopacity" type="integer" parent="subtitles.backgroundtype" label="39172" help="692">
           <level>3</level>
           <default>100</default>
           <dependencies>
@@ -727,7 +748,7 @@
           </dependencies>
           <control type="slider" format="percentage" range="0,100" />
         </setting>
-        <setting id="subtitles.shadowsize" type="integer" parent="subtitles.backgroundtype" label="39170">
+        <setting id="subtitles.shadowsize" type="integer" parent="subtitles.backgroundtype" label="39170" help="693">
           <level>3</level>
           <default>15</default>
           <dependencies>
@@ -1530,6 +1551,12 @@
           <control type="button" format="action" />
         </setting>
       </group>
+      <group id="4" label="14280">
+        <setting id="maintenance.cleanimagecache" type="action" label="14281" help="14282">
+          <level>3</level>
+          <control type="button" format="action" />
+        </setting>
+      </group>
     </category>
     <category id="filelists" label="16000" help="36121">
       <group id="1" label="593">
@@ -1581,20 +1608,30 @@
           </dependencies>
           <control type="toggle" />
         </setting>
+        <setting id="filelists.confirmfiledeletion" type="boolean" label="40801" help="40802">
+          <level>2</level>
+          <default>true</default>
+          <dependencies>
+            <dependency type="enable">
+              <condition setting="filelists.allowfiledeletion" operator="is">true</condition>
+            </dependency>
+          </dependencies>
+          <control type="toggle" />
+        </setting>
       </group>
     </category>
     <category id="video" label="14215" help="38107">
       <group id="1" label="593">
         <setting id="myvideos.selectaction" type="integer" label="22079" help="36177">
           <level>0</level>
-          <default>1</default> <!-- SELECT_ACTION_PLAY_OR_RESUME -->
+          <default>1</default> <!-- ACTION_PLAY_OR_RESUME -->
           <constraints>
             <options>
-              <option label="22080">0</option> <!-- SELECT_ACTION_CHOOSE -->
-              <option label="208">1</option> <!-- SELECT_ACTION_PLAY_OR_RESUME -->
-              <option label="13404">2</option> <!-- SELECT_ACTION_RESUME -->
-              <option label="22081">3</option> <!-- SELECT_ACTION_INFO -->
-              <option label="13347">7</option> <!-- SELECT_ACTION_QUEUE -->
+              <option label="22080">0</option> <!-- ACTION_CHOOSE -->
+              <option label="208">1</option> <!-- ACTION_PLAY_OR_RESUME -->
+              <option label="13404">2</option> <!-- ACTION_RESUME -->
+              <option label="22081">3</option> <!-- ACTION_INFO -->
+              <option label="13347">7</option> <!-- ACTION_QUEUE -->
             </options>
           </constraints>
           <control type="list" format="string" />
@@ -1606,11 +1643,11 @@
         </setting>
         <setting id="myvideos.playaction" type="integer" label="22076" help="36204">
           <level>0</level>
-          <default>1</default> <!-- PLAY_ACTION_PLAY_OR_RESUME -->
+          <default>1</default> <!-- ACTION_PLAY_OR_RESUME -->
           <constraints>
             <options>
-              <option label="22077">1</option> <!-- PLAY_ACTION_PLAY_OR_RESUME -->
-              <option label="22078">2</option> <!-- PLAY_ACTION_RESUME -->
+              <option label="22077">1</option> <!-- ACTION_PLAY_OR_RESUME -->
+              <option label="22078">2</option> <!-- ACTION_RESUME -->
             </options>
           </constraints>
           <control type="list" format="string" />
@@ -2521,6 +2558,18 @@
           <default>true</default>
           <control type="toggle" />
         </setting>
+        <setting id="pvrrecord.deleteafterwatch" type="integer" label="860" help="861">
+          <level>2</level>
+          <default>0</default>
+          <constraints>
+            <options>
+              <option label="862">0</option>   <!-- No delete -->
+              <option label="863">1</option>   <!-- Ask to delete -->
+              <option label="864">2</option>   <!-- Delete -->
+            </options>
+          </constraints>
+          <control type="list" format="string" />
+        </setting>
         <setting id="pvrrecord.grouprecordings" type="boolean" label="" help="">
           <default>true</default>
           <level>4</level>
@@ -3173,7 +3222,7 @@
           <control type="toggle" />
         </setting>
         <setting id="gamesgeneral.rewindtime" type="integer" label="35205" help="35206">
-          <level>2</level>
+          <level>0</level>
           <default>60</default>
           <constraints>
             <minimum>10</minimum>
@@ -3765,6 +3814,18 @@
           <default>true</default>
           <control type="toggle" />
         </setting>
+        <setting id="audiooutput.mixsublevel" type="integer" label="34114" help="34115">
+          <level>2</level>
+          <default>0</default>
+          <constraints>
+            <options>
+              <option label="34116">0</option>
+              <option label="34117">50</option>
+              <option label="34118">100</option>
+            </options>
+          </constraints>
+          <control type="list" format="string" />
+        </setting>
       </group>
       <group id="2" label="15108">
         <setting id="audiooutput.guisoundmode" type="integer" label="34120" help="36373">
@@ -4109,11 +4170,11 @@
           <level>2</level>
           <default>0</default>
           <constraints>
-            <minimum label="351">0</minimum>
-            <step>5</step>
-            <maximum>120</maximum>
+            <minimum>0</minimum>
+            <step>15</step>
+            <maximum>1440</maximum>
           </constraints>
-          <control type="spinner" format="string">
+          <control type="slider" format="integer">
             <formatlabel>14044</formatlabel>
           </control>
         </setting>

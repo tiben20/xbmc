@@ -56,6 +56,7 @@ public:
   static constexpr auto SETTING_FILELISTS_SHOWEXTENSIONS = "filelists.showextensions";
   static constexpr auto SETTING_FILELISTS_IGNORETHEWHENSORTING = "filelists.ignorethewhensorting";
   static constexpr auto SETTING_FILELISTS_ALLOWFILEDELETION = "filelists.allowfiledeletion";
+  static constexpr auto SETTING_FILELISTS_CONFIRMFILEDELETION = "filelists.confirmfiledeletion";
   static constexpr auto SETTING_FILELISTS_SHOWADDSOURCEBUTTONS = "filelists.showaddsourcebuttons";
   static constexpr auto SETTING_FILELISTS_SHOWHIDDEN = "filelists.showhidden";
   static constexpr auto SETTING_SCREENSAVER_MODE = "screensaver.mode";
@@ -123,6 +124,7 @@ public:
   static constexpr auto SETTING_VIDEOPLAYER_USEMEDIACODEC = "videoplayer.usemediacodec";
   static constexpr auto SETTING_VIDEOPLAYER_USEMEDIACODECSURFACE =
       "videoplayer.usemediacodecsurface";
+  static constexpr auto SETTING_VIDEOPLAYER_USEDECODERFILTER = "videoplayer.usedecoderfilter";
   static constexpr auto SETTING_VIDEOPLAYER_USEVDPAU = "videoplayer.usevdpau";
   static constexpr auto SETTING_VIDEOPLAYER_USEVDPAUMIXER = "videoplayer.usevdpaumixer";
   static constexpr auto SETTING_VIDEOPLAYER_USEVDPAUMPEG2 = "videoplayer.usevdpaumpeg2";
@@ -150,6 +152,7 @@ public:
   static constexpr auto SETTING_LOCALE_SUBTITLELANGUAGE = "locale.subtitlelanguage";
   static constexpr auto SETTING_SUBTITLES_PARSECAPTIONS = "subtitles.parsecaptions";
   static constexpr auto SETTING_SUBTITLES_CAPTIONSALIGN = "subtitles.captionsalign";
+  static constexpr auto SETTING_SUBTITLES_CAPTIONSIMPAIRED = "subtitles.captionsimpaired";
   static constexpr auto SETTING_SUBTITLES_ALIGN = "subtitles.align";
   static constexpr auto SETTING_SUBTITLES_STEREOSCOPICDEPTH = "subtitles.stereoscopicdepth";
   static constexpr auto SETTING_SUBTITLES_FONTNAME = "subtitles.fontname";
@@ -161,6 +164,7 @@ public:
   static constexpr auto SETTING_SUBTITLES_BORDERCOLOR = "subtitles.bordercolorpick";
   static constexpr auto SETTING_SUBTITLES_OPACITY = "subtitles.opacity";
   static constexpr auto SETTING_SUBTITLES_BLUR = "subtitles.blur";
+  static constexpr auto SETTING_SUBTITLES_LINE_SPACING = "subtitles.linespacing";
   static constexpr auto SETTING_SUBTITLES_BACKGROUNDTYPE = "subtitles.backgroundtype";
   static constexpr auto SETTING_SUBTITLES_SHADOWCOLOR = "subtitles.shadowcolor";
   static constexpr auto SETTING_SUBTITLES_SHADOWOPACITY = "subtitles.shadowopacity";
@@ -234,6 +238,7 @@ public:
   static constexpr auto SETTING_PVRRECORD_MARGINSTART = "pvrrecord.marginstart";
   static constexpr auto SETTING_PVRRECORD_MARGINEND = "pvrrecord.marginend";
   static constexpr auto SETTING_PVRRECORD_TIMERNOTIFICATIONS = "pvrrecord.timernotifications";
+  static constexpr auto SETTING_PVRRECORD_DELETEAFTERWATCH = "pvrrecord.deleteafterwatch";
   static constexpr auto SETTING_PVRRECORD_GROUPRECORDINGS = "pvrrecord.grouprecordings";
   static constexpr auto SETTING_PVRREMINDERS_AUTOCLOSEDELAY = "pvrreminders.autoclosedelay";
   static constexpr auto SETTING_PVRREMINDERS_AUTORECORD = "pvrreminders.autorecord";
@@ -283,6 +288,7 @@ public:
   static constexpr auto SETTING_MUSICLIBRARY_EXPORT_ARTWORK = "musiclibrary.exportartwork";
   static constexpr auto SETTING_MUSICLIBRARY_EXPORT_SKIPNFO = "musiclibrary.exportskipnfo";
   static constexpr auto SETTING_MUSICLIBRARY_IMPORT = "musiclibrary.import";
+  static constexpr auto SETTING_MAINTENANCE_CLEANIMAGECACHE = "maintenance.cleanimagecache";
   static constexpr auto SETTING_MUSICPLAYER_AUTOPLAYNEXTITEM = "musicplayer.autoplaynextitem";
   static constexpr auto SETTING_MUSICPLAYER_QUEUEBYDEFAULT = "musicplayer.queuebydefault";
   static constexpr auto SETTING_MUSICPLAYER_SEEKSTEPS = "musicplayer.seeksteps";
@@ -397,6 +403,7 @@ public:
   static constexpr auto SETTING_AUDIOOUTPUT_ATEMPOTHRESHOLD = "audiooutput.atempothreshold";
   static constexpr auto SETTING_AUDIOOUTPUT_STREAMSILENCE = "audiooutput.streamsilence";
   static constexpr auto SETTING_AUDIOOUTPUT_STREAMNOISE = "audiooutput.streamnoise";
+  static constexpr auto SETTING_AUDIOOUTPUT_MIXSUBLEVEL = "audiooutput.mixsublevel";
   static constexpr auto SETTING_AUDIOOUTPUT_GUISOUNDMODE = "audiooutput.guisoundmode";
   static constexpr auto SETTING_AUDIOOUTPUT_GUISOUNDVOLUME = "audiooutput.guisoundvolume";
   static constexpr auto SETTING_AUDIOOUTPUT_PASSTHROUGH = "audiooutput.passthrough";

@@ -12,8 +12,6 @@
 #include "URL.h"
 #include "utils/Geometry.h"
 
-#include <vector>
-
 #include <dxgi1_5.h>
 
 #define BONJOUR_EVENT             ( WM_USER + 0x100 )	// Message sent to the Window when a Bonjour event occurs.
@@ -43,10 +41,8 @@ public:
   static int GetDriveStatus(const std::string &strPath, bool bStatusEx=false);
   static bool XBMCShellExecute(const std::string &strPath, bool bWaitForScriptExit=false);
   static std::string GetResInfoString();
-  static int GetDesktopColorDepth();
   static size_t GetSystemMemorySize();
 
-  static std::string GetSystemPath();
   static std::string GetProfilePath(const bool platformDirectories);
   static std::string UncToSmb(const std::string &strPath);
   static std::string SmbToUnc(const std::string &strPath);
@@ -68,7 +64,7 @@ public:
   static BOOL IsCurrentUserLocalAdministrator();
 
 #ifdef TARGET_WINDOWS_DESKTOP
-  static std::string GetSpecialFolder(int csidl);
+  static std::string GetAppDataFolder();
   static LONG UtilRegGetValue( const HKEY hKey, const char *const pcKey, DWORD *const pdwType, char **const ppcBuffer, DWORD *const pdwSizeBuff, const DWORD dwSizeAdd );
   static bool UtilRegOpenKeyEx( const HKEY hKeyParent, const char *const pcKey, const REGSAM rsAccessRights, HKEY *hKey, const bool bReadX64= false );
   static bool GetFocussedProcess(std::string &strProcessFile);
@@ -79,7 +75,7 @@ public:
   static bool SetThreadLocalLocale(bool enable = true);
 
   // HDR display support
-  static HDR_STATUS ToggleWindowsHDR(DXGI_MODE_DESC& modeDesc);
+  static HDR_STATUS ToggleWindowsHDR();
   static HDR_STATUS GetWindowsHDRStatus();
   static bool GetSystemSdrWhiteLevel(const std::wstring& gdiDeviceName, float* sdrWhiteLevel);
 
@@ -105,7 +101,10 @@ public:
    * Undefined results when the strings are not formatted properly.
   */
   static bool IsDriverVersionAtLeast(const std::string& version1, const std::string& version2);
-
-private:
-  static HDR_STATUS GetWindowsHDRStatusWin32();
+  /*!
+   * \brief Format a Windows HRESULT value into a string for logging
+   * \param hr The error code
+   * \return Formatted string
+   */
+  static std::string FormatHRESULT(HRESULT hr);
 };

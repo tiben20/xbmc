@@ -47,6 +47,8 @@
 #include "input/actions/ActionIDs.h"
 #include "interfaces/generic/ScriptInvocationManager.h"
 #include "messaging/helpers/DialogOKHelper.h"
+#include "music/MusicFileItemClassify.h"
+#include "music/tags/MusicInfoTag.h"
 #include "network/Network.h"
 #include "playlists/PlayList.h"
 #include "profiles/ProfileManager.h"
@@ -769,6 +771,12 @@ bool CGUIMediaWindow::GetDirectory(const std::string &strDirectory, CFileItemLis
       m_history.RemoveParentPath();
   }
 
+  // Store parent path along with item as parent path cannot safely be calculated from item's path.
+  for (const auto& item : items)
+  {
+    item->SetProperty("ParentPath", m_vecItems->GetPath());
+  }
+
   // update the view state's reference to the current items
   m_guiState.reset(CGUIViewState::GetViewState(GetID(), items));
 
@@ -858,7 +866,7 @@ bool CGUIMediaWindow::Update(const std::string &strDirectory, bool updateFilterP
   if (m_vecItems->GetLabel().empty())
   {
     // Removable sources
-    VECSOURCES removables;
+    std::vector<CMediaSource> removables;
     CServiceBroker::GetMediaManager().GetRemovableDrives(removables);
     for (const auto& s : removables)
     {
@@ -1040,7 +1048,7 @@ bool CGUIMediaWindow::OnClick(int iItem, const std::string &player)
     return true;
   }
 
-  if (!pItem->m_bIsFolder && pItem->IsFileFolder(EFILEFOLDER_MASK_ONCLICK))
+  if (!pItem->m_bIsFolder && pItem->IsFileFolder(FileFolderType::MASK_ONCLICK))
   {
     XFILE::IFileDirectory *pFileDirectory = nullptr;
     pFileDirectory = XFILE::CFileDirectoryFactory::Create(pItem->GetURL(), pItem.get(), "");
@@ -1073,7 +1081,7 @@ bool CGUIMediaWindow::OnClick(int iItem, const std::string &player)
     if ( pItem->m_bIsShareOrDrive )
     {
       const std::string& strLockType=m_guiState->GetLockType();
-      if (profileManager->GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE)
+      if (profileManager->GetMasterProfile().getLockMode() != LockMode::EVERYONE)
         if (!strLockType.empty() && !g_passwordManager.IsItemUnlocked(pItem.get(), strLockType))
             return true;
 
@@ -1196,9 +1204,9 @@ bool CGUIMediaWindow::OnSelect(int item)
  * Checks if there is a disc in the dvd drive and whether the
  * network is connected or not.
  */
-bool CGUIMediaWindow::HaveDiscOrConnection(const std::string& strPath, int iDriveType)
+bool CGUIMediaWindow::HaveDiscOrConnection(const std::string& strPath, SourceType iDriveType)
 {
-  if (iDriveType==CMediaSource::SOURCE_TYPE_DVD)
+  if (iDriveType == SourceType::OPTICAL_DISC)
   {
     if (!CServiceBroker::GetMediaManager().IsDiscInDrive(strPath))
     {
@@ -1206,7 +1214,7 @@ bool CGUIMediaWindow::HaveDiscOrConnection(const std::string& strPath, int iDriv
       return false;
     }
   }
-  else if (iDriveType==CMediaSource::SOURCE_TYPE_REMOTE)
+  else if (iDriveType == SourceType::REMOTE)
   {
     //! @todo Handle not connected to a remote share
     if (!CServiceBroker::GetNetwork().IsConnected())
@@ -1232,7 +1240,7 @@ void CGUIMediaWindow::ShowShareErrorMessage(CFileItem* pItem) const
 
   if (url.IsProtocol("smb") && url.GetHostName().empty()) //  smb workgroup
     idMessageText = 15303; // Workgroup not found
-  else if (pItem->m_iDriveType == CMediaSource::SOURCE_TYPE_REMOTE || URIUtils::IsRemote(pItem->GetPath()))
+  else if (pItem->m_iDriveType == SourceType::REMOTE || URIUtils::IsRemote(pItem->GetPath()))
     idMessageText = 15301; // Could not connect to network server
   else
     idMessageText = 15300; // Path not found or invalid
@@ -1363,7 +1371,7 @@ void CGUIMediaWindow::GetDirectoryHistoryString(const CFileItem* pItem, std::str
 
     // History string of the DVD drive
     // must be handled separately
-    if (pItem->m_iDriveType == CMediaSource::SOURCE_TYPE_DVD)
+    if (pItem->m_iDriveType == SourceType::OPTICAL_DISC)
     {
       // Remove disc label from item label
       // and use as history string, m_strPath
@@ -1540,6 +1548,19 @@ bool CGUIMediaWindow::OnPlayAndQueueMedia(const CFileItemPtr& item, const std::s
         std::distance(playlist.begin(), std::find_if(playlist.begin(), playlist.end(),
                                                      [&item](const std::shared_ptr<CFileItem>& i)
                                                      { return i->GetPath() == item->GetPath(); }));
+    /* For .mka albums, all tracks are in the same file so using path as above will always play the
+     * first track.  Use the track and disk number to ensure we start playback on the correct track.
+     * This only applies to mka or m4b items played back via files view. Music library takes
+     * a different play path.
+     */
+    if (MUSIC::IsAudioBook(*item))
+      mediaToPlay = std::distance(
+          playlist.begin(), std::find_if(playlist.begin(), playlist.end(),
+                                         [&item](const std::shared_ptr<CFileItem>& i)
+                                         {
+                                           return i->GetMusicInfoTag()->GetTrackAndDiscNumber() ==
+                                                  item->GetMusicInfoTag()->GetTrackAndDiscNumber();
+                                         }));
 
     // Add to playlist
     CServiceBroker::GetPlaylistPlayer().ClearPlaylist(playlistId);
@@ -1625,19 +1646,14 @@ void CGUIMediaWindow::OnDeleteItem(int iItem)
 
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
-  if (profileManager->GetCurrentProfile().getLockMode() != LOCK_MODE_EVERYONE && profileManager->GetCurrentProfile().filesLocked())
+  if (profileManager->GetCurrentProfile().getLockMode() != LockMode::EVERYONE &&
+      profileManager->GetCurrentProfile().filesLocked())
   {
     if (!g_passwordManager.IsMasterLockUnlocked(true))
       return;
   }
 
-  CGUIComponent *gui = CServiceBroker::GetGUI();
-  if (gui && gui->ConfirmDelete(item->GetPath()))
-  {
-    if (!CFileUtils::DeleteItem(item))
-      return;
-  }
-  else
+  if (!CFileUtils::DeleteItemWithConfirm(item))
     return;
 
   Refresh(true);
@@ -1651,7 +1667,8 @@ void CGUIMediaWindow::OnRenameItem(int iItem)
 
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
-  if (profileManager->GetCurrentProfile().getLockMode() != LOCK_MODE_EVERYONE && profileManager->GetCurrentProfile().filesLocked())
+  if (profileManager->GetCurrentProfile().getLockMode() != LockMode::EVERYONE &&
+      profileManager->GetCurrentProfile().filesLocked())
   {
     if (!g_passwordManager.IsMasterLockUnlocked(true))
       return;
@@ -1742,8 +1759,6 @@ bool CGUIMediaWindow::OnPopupMenu(int itemIdx)
   auto item = m_vecItems->Get(itemIdx);
   if (!item)
     return false;
-
-  item->SetProperty("ParentPath", m_vecItems->GetPath());
 
   CContextButtons buttons;
 

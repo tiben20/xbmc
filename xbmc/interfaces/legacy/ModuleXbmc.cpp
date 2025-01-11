@@ -100,8 +100,8 @@ namespace XBMCAddon
       if (!exec.IsValid())
         return;
 
-      const std::string execute = exec.GetFunction();
-      const std::vector<std::string> params = exec.GetParams();
+      const std::string& execute = exec.GetFunction();
+      const std::vector<std::string>& params = exec.GetParams();
 
       if (StringUtils::EqualsNoCase(execute, "activatewindow") ||
           StringUtils::EqualsNoCase(execute, "closedialog"))
@@ -457,8 +457,8 @@ namespace XBMCAddon
       }
       else if (StringUtils::CompareNoCase(id, "meridiem") == 0)
       {
-        result = StringUtils::Format("{}/{}", g_langInfo.GetMeridiemSymbol(MeridiemSymbolAM),
-                                     g_langInfo.GetMeridiemSymbol(MeridiemSymbolPM));
+        result = StringUtils::Format("{}/{}", g_langInfo.GetMeridiemSymbol(MeridiemSymbol::AM),
+                                     g_langInfo.GetMeridiemSymbol(MeridiemSymbol::PM));
       }
 #ifdef TARGET_WINDOWS
       StringUtils::Replace(result, "%-", "%#"); //Convert to Windows format if required.

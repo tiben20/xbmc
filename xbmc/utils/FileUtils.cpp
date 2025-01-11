@@ -19,6 +19,7 @@
 #include "filesystem/MultiPathDirectory.h"
 #include "filesystem/SpecialProtocol.h"
 #include "filesystem/StackDirectory.h"
+#include "guilib/GUIComponent.h"
 #include "guilib/GUIKeyboardFactory.h"
 #include "guilib/LocalizeStrings.h"
 #include "imagefiles/ImageFileURL.h"
@@ -145,7 +146,7 @@ bool CFileUtils::RemoteAccessAllowed(const std::string &strPath)
   // Check manually added sources (held in sources.xml)
   for (const std::string& sourceName : SourceNames)
   {
-    VECSOURCES* sources = CMediaSourceSettings::GetInstance().GetSources(sourceName);
+    std::vector<CMediaSource>* sources = CMediaSourceSettings::GetInstance().GetSources(sourceName);
     int sourceIndex = CUtil::GetMatchingSource(realPath, *sources, isSource);
     if (sourceIndex >= 0 && sourceIndex < static_cast<int>(sources->size()) &&
         sources->at(sourceIndex).m_iHasLock != LOCK_STATE_LOCKED &&
@@ -153,7 +154,7 @@ bool CFileUtils::RemoteAccessAllowed(const std::string &strPath)
       return true;
   }
   // Check auto-mounted sources
-  VECSOURCES sources;
+  std::vector<CMediaSource> sources;
   CServiceBroker::GetMediaManager().GetRemovableDrives(
       sources); // Sources returned always have m_allowsharing = true
   //! @todo Make sharing of auto-mounted sources user configurable
@@ -352,4 +353,18 @@ bool CFileUtils::CheckFileAccessAllowed(const std::string &filePath)
 bool CFileUtils::Exists(const std::string& strFileName, bool bUseCache)
 {
   return CFile::Exists(strFileName, bUseCache);
+}
+
+bool CFileUtils::DeleteItemWithConfirm(const std::shared_ptr<CFileItem>& item)
+{
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(
+          CSettings::SETTING_FILELISTS_CONFIRMFILEDELETION))
+  {
+    CGUIComponent* gui = CServiceBroker::GetGUI();
+
+    if (!gui || !gui->ConfirmDelete(item->GetPath()))
+      return false;
+  }
+
+  return CFileUtils::DeleteItem(item);
 }

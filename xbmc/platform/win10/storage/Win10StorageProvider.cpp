@@ -44,7 +44,7 @@ CStorageProvider::~CStorageProvider()
 void CStorageProvider::Initialize()
 {
   m_changed = false;
-  VECSOURCES vShare;
+  std::vector<CMediaSource> vShare;
   GetDrivesByType(vShare, DVD_DRIVES);
   if (!vShare.empty())
     CServiceBroker::GetMediaManager().SetHasOpticalDrive(true);
@@ -67,19 +67,19 @@ void CStorageProvider::Initialize()
   m_watcher.Start();
 }
 
-void CStorageProvider::GetLocalDrives(VECSOURCES &localDrives)
+void CStorageProvider::GetLocalDrives(std::vector<CMediaSource>& localDrives)
 {
   CMediaSource share;
   share.strPath = CSpecialProtocol::TranslatePath("special://home");
   share.strName = g_localizeStrings.Get(21440);
   share.m_ignore = true;
-  share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
+  share.m_iDriveType = SourceType::LOCAL;
   localDrives.push_back(share);
 
   GetDrivesByType(localDrives, LOCAL_DRIVES, true);
 }
 
-void CStorageProvider::GetRemovableDrives(VECSOURCES &removableDrives)
+void CStorageProvider::GetRemovableDrives(std::vector<CMediaSource>& removableDrives)
 {
   using KODI::PLATFORM::WINDOWS::FromW;
 
@@ -107,12 +107,11 @@ void CStorageProvider::GetRemovableDrives(VECSOURCES &removableDrives)
 
       UINT uDriveType = GetDriveTypeA(driveLetter.c_str());
       source.strPath = "win-lib://removable/" + driveLetter + "/";
-      source.m_iDriveType = (
-        (uDriveType == DRIVE_FIXED) ? CMediaSource::SOURCE_TYPE_LOCAL :
-        (uDriveType == DRIVE_REMOTE) ? CMediaSource::SOURCE_TYPE_REMOTE :
-        (uDriveType == DRIVE_CDROM) ? CMediaSource::SOURCE_TYPE_DVD :
-        (uDriveType == DRIVE_REMOVABLE) ? CMediaSource::SOURCE_TYPE_REMOVABLE :
-        CMediaSource::SOURCE_TYPE_UNKNOWN);
+      source.m_iDriveType = ((uDriveType == DRIVE_FIXED)       ? SourceType::LOCAL
+                             : (uDriveType == DRIVE_REMOTE)    ? SourceType::REMOTE
+                             : (uDriveType == DRIVE_CDROM)     ? SourceType::OPTICAL_DISC
+                             : (uDriveType == DRIVE_REMOVABLE) ? SourceType::REMOVABLE
+                                                               : SourceType::UNKNOWN);
 
       removableDrives.push_back(source);
     }
@@ -124,7 +123,7 @@ void CStorageProvider::GetRemovableDrives(VECSOURCES &removableDrives)
 
 std::string CStorageProvider::GetFirstOpticalDeviceFileName()
 {
-  VECSOURCES vShare;
+  std::vector<CMediaSource> vShare;
   std::string strdevice = "\\\\.\\";
   GetDrivesByType(vShare, DVD_DRIVES);
 
@@ -187,7 +186,9 @@ bool CStorageProvider::PumpDriveChangeEvents(IStorageEventsCallback *callback)
   return res;
 }
 
-void CStorageProvider::GetDrivesByType(VECSOURCES & localDrives, Drive_Types eDriveType, bool bonlywithmedia)
+void CStorageProvider::GetDrivesByType(std::vector<CMediaSource>& localDrives,
+                                       Drive_Types eDriveType,
+                                       bool bonlywithmedia)
 {
   DWORD drivesBits = GetLogicalDrives();
   if (drivesBits == 0)
@@ -233,7 +234,7 @@ void CStorageProvider::GetDrivesByType(VECSOURCES & localDrives, Drive_Types eDr
       // Has to be the same as auto mounted devices
       share.strStatus = share.strName;
       share.strName = share.strPath;
-      share.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
+      share.m_iDriveType = SourceType::LOCAL;
       bUseDCD = true;
     }
     else
@@ -262,12 +263,11 @@ void CStorageProvider::GetDrivesByType(VECSOURCES & localDrives, Drive_Types eDr
     share.m_ignore = true;
     if (!bUseDCD)
     {
-      share.m_iDriveType = (
-        (uDriveType == DRIVE_FIXED) ? CMediaSource::SOURCE_TYPE_LOCAL :
-        (uDriveType == DRIVE_REMOTE) ? CMediaSource::SOURCE_TYPE_REMOTE :
-        (uDriveType == DRIVE_CDROM) ? CMediaSource::SOURCE_TYPE_DVD :
-        (uDriveType == DRIVE_REMOVABLE) ? CMediaSource::SOURCE_TYPE_REMOVABLE :
-        CMediaSource::SOURCE_TYPE_UNKNOWN);
+      share.m_iDriveType = ((uDriveType == DRIVE_FIXED)       ? SourceType::LOCAL
+                            : (uDriveType == DRIVE_REMOTE)    ? SourceType::REMOTE
+                            : (uDriveType == DRIVE_CDROM)     ? SourceType::OPTICAL_DISC
+                            : (uDriveType == DRIVE_REMOVABLE) ? SourceType::REMOVABLE
+                                                              : SourceType::UNKNOWN);
     }
 
     AddOrReplace(localDrives, share);

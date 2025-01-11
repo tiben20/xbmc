@@ -378,13 +378,13 @@ void CGUIWindowVideoPlaylist::UpdateButtons()
 
 namespace
 {
-class CVideoPlayActionProcessor : public VIDEO::GUILIB::CVideoPlayActionProcessorBase
+class CVideoPlayActionProcessor : public VIDEO::GUILIB::CVideoPlayActionProcessor
 {
 public:
   CVideoPlayActionProcessor(const std::shared_ptr<CFileItem>& item,
                             int itemIndex,
                             const std::string& player)
-    : CVideoPlayActionProcessorBase(item), m_itemIndex(itemIndex), m_player(player)
+    : VIDEO::GUILIB::CVideoPlayActionProcessor(item), m_itemIndex(itemIndex), m_player(player)
   {
   }
 
@@ -555,7 +555,7 @@ bool CGUIWindowVideoPlaylist::OnContextButton(int itemNumber, CONTEXT_BUTTON but
       {
         // apply new rules
         g_partyModeManager.Disable();
-        g_partyModeManager.Enable(PARTYMODECONTEXT_VIDEO);
+        g_partyModeManager.Enable(PartyModeContext::VIDEO);
       }
       return true;
     }

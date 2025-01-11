@@ -40,7 +40,7 @@ namespace PVR
 class CEpgUpdateRequest
 {
 public:
-  CEpgUpdateRequest() : CEpgUpdateRequest(-1, PVR_CHANNEL_INVALID_UID) {}
+  CEpgUpdateRequest() : CEpgUpdateRequest(PVR_CLIENT_INVALID_UID, PVR_CHANNEL_INVALID_UID) {}
   CEpgUpdateRequest(int iClientID, int iUniqueChannelID) : m_iClientID(iClientID), m_iUniqueChannelID(iUniqueChannelID) {}
 
   void Deliver(const std::shared_ptr<CPVREpg>& epg);
@@ -733,7 +733,6 @@ bool CPVREpgContainer::UpdateEPG(bool bOnlyPending /* = false */)
 
   std::vector<std::shared_ptr<CPVREpg>> invalidTables;
 
-  unsigned int iCounter = 0;
   const std::shared_ptr<CPVREpgDatabase> database = GetEpgDatabase();
 
   m_critSection.lock();
@@ -745,6 +744,7 @@ bool CPVREpgContainer::UpdateEPG(bool bOnlyPending /* = false */)
     progressHandler = std::make_unique<CPVRGUIProgressHandler>(
         g_localizeStrings.Get(19004)); // Loading programme guide
 
+  size_t counter = 0;
   for (const auto& epgEntry : epgsToUpdate)
   {
     if (InterruptUpdate())
@@ -758,7 +758,7 @@ bool CPVREpgContainer::UpdateEPG(bool bOnlyPending /* = false */)
       continue;
 
     if (progressHandler)
-      progressHandler->UpdateProgress(epg->GetChannelData()->ChannelName(), ++iCounter,
+      progressHandler->UpdateProgress(epg->GetChannelData()->ChannelName(), ++counter,
                                       epgsToUpdate.size());
 
     if ((!bOnlyPending || epg->UpdatePending()) &&
@@ -953,7 +953,8 @@ int CPVREpgContainer::CleanupCachedImages()
                          });
 }
 
-std::vector<std::shared_ptr<CPVREpgSearchFilter>> CPVREpgContainer::GetSavedSearches(bool bRadio)
+std::vector<std::shared_ptr<CPVREpgSearchFilter>> CPVREpgContainer::GetSavedSearches(
+    bool bRadio) const
 {
   const std::shared_ptr<const CPVREpgDatabase> database = GetEpgDatabase();
   if (!database)
@@ -965,7 +966,8 @@ std::vector<std::shared_ptr<CPVREpgSearchFilter>> CPVREpgContainer::GetSavedSear
   return database->GetSavedSearches(bRadio);
 }
 
-std::shared_ptr<CPVREpgSearchFilter> CPVREpgContainer::GetSavedSearchById(bool bRadio, int iId)
+std::shared_ptr<CPVREpgSearchFilter> CPVREpgContainer::GetSavedSearchById(bool bRadio,
+                                                                          int iId) const
 {
   const std::shared_ptr<const CPVREpgDatabase> database = GetEpgDatabase();
   if (!database)

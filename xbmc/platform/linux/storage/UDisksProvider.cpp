@@ -135,11 +135,11 @@ CMediaSource CUDiskDevice::ToMediaShare() const
   else
     source.strName = m_Label;
   if (m_isOptical)
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_DVD;
+    source.m_iDriveType = SourceType::OPTICAL_DISC;
   else if (m_isSystemInternal)
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
+    source.m_iDriveType = SourceType::LOCAL;
   else
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_REMOVABLE;
+    source.m_iDriveType = SourceType::REMOVABLE;
   source.m_ignore = true;
   return source;
 }
@@ -166,16 +166,6 @@ MEDIA_DETECT::STORAGE::Type CUDiskDevice::GetStorageType() const
 bool CUDiskDevice::IsMounted() const
 {
   return m_isMounted;
-}
-
-std::string CUDiskDevice::GetDisplayName() const
-{
-  return m_Label;
-}
-
-std::string CUDiskDevice::GetMountPoint() const
-{
-  return m_MountPath;
 }
 
 bool CUDiskDevice::IsSystemInternal() const
@@ -401,7 +391,7 @@ std::vector<std::string> CUDisksProvider::EnumerateDisks()
   return devices;
 }
 
-void CUDisksProvider::GetDisks(VECSOURCES& devices, bool EnumerateRemovable)
+void CUDisksProvider::GetDisks(std::vector<CMediaSource>& devices, bool EnumerateRemovable)
 {
   for (auto& itr : m_AvailableDevices)
   {

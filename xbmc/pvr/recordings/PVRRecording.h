@@ -10,6 +10,7 @@
 
 #include "XBDateTime.h"
 #include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_providers.h"
+#include "addons/kodi-dev-kit/include/kodi/c-api/addon-instance/pvr/pvr_recordings.h"
 #include "pvr/PVRCachedImage.h"
 #include "threads/CriticalSection.h"
 #include "threads/SystemClock.h"
@@ -22,7 +23,11 @@
 
 class CVideoDatabase;
 
-struct PVR_EDL_ENTRY;
+namespace EDL
+{
+struct Edit;
+}
+
 struct PVR_RECORDING;
 
 namespace PVR
@@ -59,12 +64,6 @@ public:
 
   bool operator==(const CPVRRecording& right) const;
   bool operator!=(const CPVRRecording& right) const;
-
-  /*!
-   * @brief Copy over data to the given PVR_RECORDING instance.
-   * @param recording The recording instance to fill.
-   */
-  void FillAddonData(PVR_RECORDING& recording) const;
 
   void Serialize(CVariant& value) const override;
 
@@ -161,15 +160,21 @@ public:
    * @brief Retrieve the edit decision list (EDL) of a recording on the backend.
    * @return The edit decision list (empty on error)
    */
-  std::vector<PVR_EDL_ENTRY> GetEdl() const;
+  std::vector<EDL::Edit> GetEdl() const;
 
   /*!
-   * @brief Get the resume point and play count from the database if the
+   * @brief Get metadata like the resume point and play count from the database if the
    * client doesn't handle it itself.
    * @param db The database to read the data from.
    * @param client The client this recording belongs to.
    */
   void UpdateMetadata(CVideoDatabase& db, const CPVRClient& client);
+
+  /*!
+   * @brief Delete metadata like the resume point and play count from the database.
+   * @param db The database to delete the data from.
+   */
+  void DeleteMetadata(CVideoDatabase& db);
 
   /*!
    * @brief Update this tag with the contents of the given tag.
@@ -266,7 +271,7 @@ public:
    * @brief Get the recording ID as upplied by the client
    * @return the recording identifier
    */
-  std::string ClientRecordingID() const { return m_strRecordingId; }
+  const std::string& ClientRecordingID() const { return m_strRecordingId; }
 
   /*!
    * @brief Get the recording ID as upplied by the client
@@ -284,7 +289,7 @@ public:
    * @brief Get the directory for this recording
    * @return the directory
    */
-  std::string Directory() const { return m_strDirectory; }
+  const std::string& Directory() const { return m_strDirectory; }
 
   /*!
    * @brief Get the priority for this recording
@@ -308,7 +313,7 @@ public:
    * @brief Get the channel name for this recording
    * @return the channel name
    */
-  std::string ChannelName() const { return m_strChannelName; }
+  const std::string& ChannelName() const { return m_strChannelName; }
 
   /*!
    * @brief Return the icon path as given by the client.
@@ -327,6 +332,15 @@ public:
    * @return The path.
    */
   const std::string& ClientFanartPath() const { return m_fanartPath.GetClientImage(); }
+
+  /*!
+   * @brief Return the parental rating icon path as given by the client.
+   * @return The path.
+   */
+  const std::string& ClientParentalRatingIconPath() const
+  {
+    return m_parentalRatingIcon.GetClientImage();
+  }
 
   /*!
    * @brief Return the icon path used by Kodi.
@@ -350,7 +364,7 @@ public:
    * @brief Retrieve the recording Episode Name
    * @note Returns an empty string if no Episode Name was provided by the PVR client
    */
-  std::string EpisodeName() const { return m_strShowTitle; }
+  const std::string& EpisodeName() const { return m_strShowTitle; }
 
   /*!
    * @brief check whether this recording is currently in progress
@@ -388,7 +402,7 @@ public:
    * @brief Get the genre as human readable string.
    * @return The genre.
    */
-  const std::vector<std::string> Genre() const { return m_genre; }
+  const std::vector<std::string>& Genre() const { return m_genre; }
 
   /*!
    * @brief Get the genre(s) of this recording as formatted string.
@@ -472,7 +486,7 @@ public:
    * @brief Get the uid of the provider on the client which this recording is from
    * @return the client uid of the provider or PVR_PROVIDER_INVALID_UID
    */
-  int ClientProviderUniqueId() const;
+  int ClientProviderUid() const;
 
   /*!
    * @brief Get the client provider name for this recording
@@ -500,6 +514,42 @@ public:
    * @return The provider of this recording
    */
   std::shared_ptr<CPVRProvider> GetProvider() const;
+
+  /*!
+   * @brief Get the parental rating of this recording.
+   * @return The parental rating.
+   */
+  unsigned int GetParentalRating() const;
+
+  /*!
+   * @brief Get the parental rating code of this recording.
+   * @return The parental rating code.
+   */
+  const std::string& GetParentalRatingCode() const;
+
+  /*!
+   * @brief Get the parental rating icon path of this recording.
+   * @return The parental rating icon path.
+   */
+  const std::string& GetParentalRatingIcon() const;
+
+  /*!
+   * @brief Get the parental rating source of this recording.
+   * @return The parental rating source.
+   */
+  const std::string& GetParentalRatingSource() const;
+
+  /*!
+   * @brief Get the episode part number of this recording.
+   * @return The episode part number.
+   */
+  int EpisodePart() const;
+
+  /*!
+  * @brief Get the title extra information of this recording.
+  * @return The title extra info.
+  */
+  const std::string& TitleExtraInfo() const;
 
 private:
   CPVRRecording(const CPVRRecording& tag) = delete;
@@ -533,8 +583,14 @@ private:
   int64_t m_sizeInBytes = 0; /*!< the size of the recording in bytes */
   bool m_bDirty = false;
   std::string m_strProviderName; /*!< name of the provider this recording is from */
-  int m_iClientProviderUniqueId =
+  int m_iClientProviderUid =
       PVR_PROVIDER_INVALID_UID; /*!< provider uid associated with this recording on the client */
+  unsigned int m_parentalRating{0}; /*!< parental rating */
+  std::string m_parentalRatingCode; /*!< Parental rating code */
+  CPVRCachedImage m_parentalRatingIcon; /*!< parental rating icon path */
+  std::string m_parentalRatingSource; /*!< parental rating source */
+  int m_episodePartNumber{PVR_RECORDING_INVALID_SERIES_EPISODE}; /*!< episode part number */
+  std::string m_titleExtraInfo; /*!< title extra info */
 
   mutable CCriticalSection m_critSection;
 };

@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+class CAdvancedSettings;
 class CRegExp;
 class CFileItem;
 class CFileItemList;
@@ -109,10 +110,30 @@ namespace KODI::VIDEO
     virtual void Process();
     bool DoScan(const std::string& strDirectory) override;
 
-    INFO_RET RetrieveInfoForTvShow(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, bool fetchEpisodes, CGUIDialogProgress* pDlgProgress);
-    INFO_RET RetrieveInfoForMovie(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress);
-    INFO_RET RetrieveInfoForMusicVideo(CFileItem *pItem, bool bDirNames, ADDON::ScraperPtr &scraper, bool useLocal, CScraperUrl* pURL, CGUIDialogProgress* pDlgProgress);
-    INFO_RET RetrieveInfoForEpisodes(CFileItem *item, long showID, const ADDON::ScraperPtr &scraper, bool useLocal, CGUIDialogProgress *progress = NULL);
+    InfoRet RetrieveInfoForTvShow(CFileItem* pItem,
+                                  bool bDirNames,
+                                  ADDON::ScraperPtr& scraper,
+                                  bool useLocal,
+                                  CScraperUrl* pURL,
+                                  bool fetchEpisodes,
+                                  CGUIDialogProgress* pDlgProgress);
+    InfoRet RetrieveInfoForMovie(CFileItem* pItem,
+                                 bool bDirNames,
+                                 ADDON::ScraperPtr& scraper,
+                                 bool useLocal,
+                                 CScraperUrl* pURL,
+                                 CGUIDialogProgress* pDlgProgress);
+    InfoRet RetrieveInfoForMusicVideo(CFileItem* pItem,
+                                      bool bDirNames,
+                                      ADDON::ScraperPtr& scraper,
+                                      bool useLocal,
+                                      CScraperUrl* pURL,
+                                      CGUIDialogProgress* pDlgProgress);
+    InfoRet RetrieveInfoForEpisodes(CFileItem* item,
+                                    long showID,
+                                    const ADDON::ScraperPtr& scraper,
+                                    bool useLocal,
+                                    CGUIDialogProgress* progress = nullptr);
 
     /*! \brief Update the progress bar with the heading and line and check for cancellation
      \param progress CGUIDialogProgress bar
@@ -224,23 +245,30 @@ namespace KODI::VIDEO
     bool CanFastHash(const CFileItemList &items, const std::vector<std::string> &excludes) const;
 
     /*! \brief Process a series folder, filling in episode details and adding them to the database.
-     @todo Ideally we would return INFO_HAVE_ALREADY if we don't have to update any episodes
-     and we should return INFO_NOT_FOUND only if no information is found for any of
-     the episodes. INFO_ADDED then indicates we've added one or more episodes.
+     @todo Ideally we would return InfoRet:HAVE_ALREADY if we don't have to update any episodes
+     and we should return InfoRet::NOT_FOUND only if no information is found for any of
+     the episodes. InfoRet::ADDED then indicates we've added one or more episodes.
      \param files the episode files to process.
      \param scraper scraper to use for finding online info
      \param showInfo information for the show.
      \param pDlgProcess progress dialog to update during processing.  Defaults to NULL.
-     \return INFO_ERROR on failure, INFO_CANCELLED on cancellation,
-     INFO_NOT_FOUND if an episode isn't found, or INFO_ADDED if all episodes are added.
+     \return InfoRet::ERROR on failure, InfoRet::CANCELLED on cancellation,
+     InfoRet::NOT_FOUND if an episode isn't found, or InfoRet::ADDED if all episodes are added.
      */
-    INFO_RET OnProcessSeriesFolder(EPISODELIST& files, const ADDON::ScraperPtr &scraper, bool useLocal, const CVideoInfoTag& showInfo, CGUIDialogProgress* pDlgProgress = NULL);
+    InfoRet OnProcessSeriesFolder(EPISODELIST& files,
+                                  const ADDON::ScraperPtr& scraper,
+                                  bool useLocal,
+                                  const CVideoInfoTag& showInfo,
+                                  CGUIDialogProgress* pDlgProgress = nullptr);
 
     bool EnumerateSeriesFolder(CFileItem* item, EPISODELIST& episodeList);
     bool ProcessItemByVideoInfoTag(const CFileItem *item, EPISODELIST &episodeList);
 
     bool AddVideoExtras(CFileItemList& items, const CONTENT_TYPE& content, const std::string& path);
     bool ProcessVideoVersion(VideoDbContentType itemType, int dbId);
+
+    std::pair<InfoType, std::unique_ptr<IVideoInfoTagLoader>> ReadInfoTag(
+        CFileItem& item, const ADDON::ScraperPtr& scraper, bool lookInFolder, bool resetTag);
 
     bool m_bStop;
     bool m_scanAll;
@@ -250,6 +278,8 @@ namespace KODI::VIDEO
     CVideoDatabase m_database;
     std::set<std::string> m_pathsToCount;
     std::set<int> m_pathsToClean;
+    std::shared_ptr<CAdvancedSettings> m_advancedSettings;
+    CVideoDatabase::ScraperCache m_scraperCache;
 
   private:
     static void AddLocalItemArtwork(CGUIListItem::ArtMap& itemArt,

@@ -89,8 +89,8 @@ protected:
     source.strPath = sourcePath;
     source.vecPaths.push_back(sourcePath);
     source.m_allowSharing = true;
-    source.m_iDriveType = CMediaSource::SOURCE_TYPE_LOCAL;
-    source.m_iLockMode = LOCK_MODE_EVERYONE;
+    source.m_iDriveType = SourceType::LOCAL;
+    source.m_iLockMode = LockMode::EVERYONE;
     source.m_ignore = true;
 
     CMediaSourceSettings::GetInstance().AddShare("videos", source);
@@ -180,7 +180,7 @@ protected:
 
     // check the protocol line for the expected HTTP status
     std::string httpStatusString = StringUtils::Format(" {} ", httpStatus);
-    std::string protocolLine = httpHeader.GetProtoLine();
+    const std::string& protocolLine = httpHeader.GetProtoLine();
     ASSERT_TRUE(protocolLine.find(httpStatusString) != std::string::npos);
 
     // Content-Type must be "text/html"
@@ -215,7 +215,7 @@ protected:
 
     // check the protocol line for the expected HTTP status
     std::string httpStatusString = StringUtils::Format(" {} ", MHD_HTTP_PARTIAL_CONTENT);
-    std::string protocolLine = httpHeader.GetProtoLine();
+    const std::string& protocolLine = httpHeader.GetProtoLine();
     ASSERT_TRUE(protocolLine.find(httpStatusString) != std::string::npos);
 
     // Accept-Ranges must be "bytes"

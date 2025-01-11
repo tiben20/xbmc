@@ -135,7 +135,7 @@ install(FILES ${CMAKE_SOURCE_DIR}/tools/Linux/packaging/media/icon256x256.png
         DESTINATION ${datarootdir}/icons/hicolor/256x256/apps
         COMPONENT kodi)
 install(FILES ${CMAKE_SOURCE_DIR}/tools/Linux/packaging/media/iconScalable.svg
-        RENAME ${APP_NAME_LC}.png
+        RENAME ${APP_NAME_LC}.svg
         DESTINATION ${datarootdir}/icons/hicolor/scalable/apps
         COMPONENT kodi)
 
@@ -199,7 +199,7 @@ install(FILES ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/scripts/${APP_NAME}Config.cm
 
 if(ENABLE_EVENTCLIENTS)
   find_package(PythonInterpreter REQUIRED)
-  execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from sysconfig import get_path; print(get_path('platlib', scheme='posix_prefix'))"
+  execute_process(COMMAND ${PYTHON_EXECUTABLE} -c "from sysconfig import get_path; print(get_path('platlib', scheme='posix_prefix', vars={'platbase':'${CMAKE_INSTALL_PREFIX}'}))"
                   OUTPUT_VARIABLE PYTHON_LIB_PATH OUTPUT_STRIP_TRAILING_WHITESPACE)
   # Install kodi-eventclients-common BT python files
   install(PROGRAMS ${CMAKE_SOURCE_DIR}/tools/EventClients/lib/python/bt/__init__.py
@@ -275,7 +275,7 @@ if(ENABLE_EVENTCLIENTS)
           DESTINATION ${bindir}
           COMPONENT kodi-eventclients-ps3)
 
-  if(TARGET ${APP_NAME_LC}::Bluetooth AND ${APP_NAME_LC}::CWiid AND GLU_FOUND)
+  if(TARGET ${APP_NAME_LC}::Bluetooth AND TARGET ${APP_NAME_LC}::CWiid AND TARGET ${APP_NAME_LC}::GLU)
     # Install kodi-eventclients-wiiremote
     install(PROGRAMS ${CMAKE_BINARY_DIR}/${CORE_BUILD_DIR}/WiiRemote/${APP_NAME_LC}-wiiremote
             DESTINATION ${bindir}

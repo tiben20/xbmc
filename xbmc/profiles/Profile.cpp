@@ -11,26 +11,24 @@
 #include "XBDateTime.h"
 #include "utils/XMLUtils.h"
 
-CProfile::CLock::CLock(LockType type, const std::string &password):
-  code(password)
+CProfile::CLock::CLock(LockMode type, const std::string& password)
+  : mode(type), code(password), settings(SettingsLock::NONE)
 {
   programs = false;
   pictures = false;
   files = false;
   video = false;
   music = false;
-  settings = LOCK_LEVEL::NONE;
   addonManager = false;
   games = false;
-  mode = type;
 }
 
 void CProfile::CLock::Validate()
 {
-  if (mode != LOCK_MODE_EVERYONE && (code == "-" || code.empty()))
-    mode = LOCK_MODE_EVERYONE;
+  if (mode != LockMode::EVERYONE && (code == "-" || code.empty()))
+    mode = LockMode::EVERYONE;
 
-  if (code.empty() || mode == LOCK_MODE_EVERYONE)
+  if (code.empty() || mode == LockMode::EVERYONE)
     code = "-";
 }
 
@@ -72,9 +70,9 @@ void CProfile::Load(const TiXmlNode *node, int nextIdProfile)
   XMLUtils::GetBoolean(node, "hassources", m_bSources);
   XMLUtils::GetBoolean(node, "canwritesources", m_bCanWriteSources);
   XMLUtils::GetBoolean(node, "lockaddonmanager", m_locks.addonManager);
-  int settings = m_locks.settings;
+  int settings = static_cast<int>(m_locks.settings);
   XMLUtils::GetInt(node, "locksettings", settings);
-  m_locks.settings = (LOCK_LEVEL::SETTINGS_LOCK)settings;
+  m_locks.settings = static_cast<SettingsLock>(settings);
   XMLUtils::GetBoolean(node, "lockfiles", m_locks.files);
   XMLUtils::GetBoolean(node, "lockmusic", m_locks.music);
   XMLUtils::GetBoolean(node, "lockvideo", m_locks.video);
@@ -82,11 +80,11 @@ void CProfile::Load(const TiXmlNode *node, int nextIdProfile)
   XMLUtils::GetBoolean(node, "lockprograms", m_locks.programs);
   XMLUtils::GetBoolean(node, "lockgames", m_locks.games);
 
-  int lockMode = m_locks.mode;
+  int lockMode = static_cast<int>(m_locks.mode);
   XMLUtils::GetInt(node, "lockmode", lockMode);
-  m_locks.mode = (LockType)lockMode;
-  if (m_locks.mode > LOCK_MODE_QWERTY || m_locks.mode < LOCK_MODE_EVERYONE)
-    m_locks.mode = LOCK_MODE_EVERYONE;
+  m_locks.mode = static_cast<LockMode>(lockMode);
+  if (m_locks.mode > LockMode::QWERTY || m_locks.mode < LockMode::EVERYONE)
+    m_locks.mode = LockMode::EVERYONE;
 
   XMLUtils::GetString(node, "lockcode", m_locks.code);
   XMLUtils::GetString(node, "lastdate", m_date);
@@ -106,7 +104,7 @@ void CProfile::Save(TiXmlNode *root) const
   XMLUtils::SetBoolean(node, "hassources", m_bSources);
   XMLUtils::SetBoolean(node, "canwritesources", m_bCanWriteSources);
   XMLUtils::SetBoolean(node, "lockaddonmanager", m_locks.addonManager);
-  XMLUtils::SetInt(node, "locksettings", m_locks.settings);
+  XMLUtils::SetInt(node, "locksettings", static_cast<int>(m_locks.settings));
   XMLUtils::SetBoolean(node, "lockfiles", m_locks.files);
   XMLUtils::SetBoolean(node, "lockmusic", m_locks.music);
   XMLUtils::SetBoolean(node, "lockvideo", m_locks.video);
@@ -114,7 +112,7 @@ void CProfile::Save(TiXmlNode *root) const
   XMLUtils::SetBoolean(node, "lockprograms", m_locks.programs);
   XMLUtils::SetBoolean(node, "lockgames", m_locks.games);
 
-  XMLUtils::SetInt(node, "lockmode", m_locks.mode);
+  XMLUtils::SetInt(node, "lockmode", static_cast<int>(m_locks.mode));
   XMLUtils::SetString(node,"lockcode", m_locks.code);
   XMLUtils::SetString(node, "lastdate", m_date);
 }

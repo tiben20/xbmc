@@ -19,6 +19,7 @@
 #include "input/actions/ActionIDs.h"
 #include "messaging/ApplicationMessenger.h"
 #include "messaging/helpers/DialogOKHelper.h"
+#include "pvr/PVRConstants.h" // PVR_CLIENT_INVALID_UID
 #include "pvr/PVRItem.h"
 #include "pvr/PVRManager.h"
 #include "pvr/PVRPlaybackState.h"
@@ -30,7 +31,6 @@
 #include "pvr/channels/PVRChannelGroups.h"
 #include "pvr/channels/PVRChannelGroupsContainer.h"
 #include "pvr/epg/EpgInfoTag.h"
-#include "pvr/windows/GUIWindowPVRBase.h"
 #include "settings/Settings.h"
 #include "utils/Variant.h"
 #include "utils/log.h"
@@ -125,8 +125,8 @@ void CPVRChannelSwitchingInputHandler::SwitchToChannel(const CPVRChannelNumber& 
         if (!groupMember)
         {
           // channel number present in any group?
-          const CPVRChannelGroups* groupAccess =
-              CServiceBroker::GetPVRManager().ChannelGroups()->Get(bRadio);
+          const std::shared_ptr<const CPVRChannelGroups> groupAccess{
+              CServiceBroker::GetPVRManager().ChannelGroups()->Get(bRadio)};
           const std::vector<std::shared_ptr<CPVRChannelGroup>> groups =
               groupAccess->GetMembers(true);
           for (const auto& currentGroup : groups)
@@ -220,20 +220,12 @@ bool CPVRGUIActionsChannels::HideChannel(const CFileItem& item) const
            ->RemoveFromGroup(groups->GetGroupAll(channel->IsRadio()), groupMember))
     return false;
 
-  CGUIWindowPVRBase* pvrWindow =
-      dynamic_cast<CGUIWindowPVRBase*>(CServiceBroker::GetGUI()->GetWindowManager().GetWindow(
-          CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow()));
-  if (pvrWindow)
-    pvrWindow->DoRefresh();
-  else
-    CLog::LogF(LOGERROR, "Called on non-pvr window. No refresh possible.");
-
   return true;
 }
 
 bool CPVRGUIActionsChannels::StartChannelScan()
 {
-  return StartChannelScan(PVR_INVALID_CLIENT_ID);
+  return StartChannelScan(PVR_CLIENT_INVALID_UID);
 }
 
 bool CPVRGUIActionsChannels::StartChannelScan(int clientId)
@@ -246,7 +238,7 @@ bool CPVRGUIActionsChannels::StartChannelScan(int clientId)
       CServiceBroker::GetPVRManager().Clients()->GetClientsSupportingChannelScan();
   m_bChannelScanRunning = true;
 
-  if (clientId != PVR_INVALID_CLIENT_ID)
+  if (clientId != PVR_CLIENT_INVALID_UID)
   {
     const auto it =
         std::find_if(possibleScanClients.cbegin(), possibleScanClients.cend(),

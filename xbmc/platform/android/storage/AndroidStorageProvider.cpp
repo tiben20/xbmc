@@ -27,6 +27,8 @@
 
 #include <androidjni/Context.h>
 #include <androidjni/Environment.h>
+#include <androidjni/File.h>
+#include <androidjni/StatFs.h>
 #include <androidjni/StorageManager.h>
 #include <androidjni/StorageVolume.h>
 
@@ -123,13 +125,13 @@ std::string CAndroidStorageProvider::unescape(const std::string& str)
   return retString;
 }
 
-void CAndroidStorageProvider::GetLocalDrives(VECSOURCES &localDrives)
+void CAndroidStorageProvider::GetLocalDrives(std::vector<CMediaSource>& localDrives)
 {
   CMediaSource share;
 
   // external directory
   std::string path;
-  if (CXBMCApp::GetExternalStorage(path) && !path.empty()  && XFILE::CDirectory::Exists(path))
+  if (GetExternalStorage(path) && !path.empty() && XFILE::CDirectory::Exists(path))
   {
     share.strPath = path;
     share.strName = g_localizeStrings.Get(21456);
@@ -143,7 +145,7 @@ void CAndroidStorageProvider::GetLocalDrives(VECSOURCES &localDrives)
   localDrives.push_back(share);
 }
 
-void CAndroidStorageProvider::GetRemovableDrives(VECSOURCES& removableDrives)
+void CAndroidStorageProvider::GetRemovableDrives(std::vector<CMediaSource>& removableDrives)
 {
   bool inError = false;
 
@@ -167,7 +169,7 @@ void CAndroidStorageProvider::GetRemovableDrives(VECSOURCES& removableDrives)
 
     if (!inError)
     {
-      VECSOURCES droidDrives;
+      std::vector<CMediaSource> droidDrives;
 
       for (int i = 0; i < vols.size(); ++i)
       {
@@ -378,28 +380,27 @@ std::vector<std::string> CAndroidStorageProvider::GetDiskUsage()
 
   std::string usage;
   // add header
-  CXBMCApp::GetStorageUsage("", usage);
+  GetStorageUsage("", usage);
   result.push_back(usage);
 
   usage.clear();
   // add rootfs
-  if (CXBMCApp::GetStorageUsage("/", usage) && !usage.empty())
+  if (GetStorageUsage("/", usage) && !usage.empty())
     result.push_back(usage);
 
   usage.clear();
   // add external storage if available
   std::string path;
-  if (CXBMCApp::GetExternalStorage(path) && !path.empty() &&
-      CXBMCApp::GetStorageUsage(path, usage) && !usage.empty())
+  if (GetExternalStorage(path) && !path.empty() && GetStorageUsage(path, usage) && !usage.empty())
     result.push_back(usage);
 
   // add removable storage
-  VECSOURCES drives;
+  std::vector<CMediaSource> drives;
   GetRemovableDrives(drives);
   for (unsigned int i = 0; i < drives.size(); i++)
   {
     usage.clear();
-    if (CXBMCApp::GetStorageUsage(drives[i].strPath, usage) && !usage.empty())
+    if (GetStorageUsage(drives[i].strPath, usage) && !usage.empty())
       result.push_back(usage);
   }
 
@@ -408,9 +409,88 @@ std::vector<std::string> CAndroidStorageProvider::GetDiskUsage()
 
 bool CAndroidStorageProvider::PumpDriveChangeEvents(IStorageEventsCallback *callback)
 {
-  VECSOURCES drives;
+  std::vector<CMediaSource> drives;
   GetRemovableDrives(drives);
   bool changed = m_removableDrives != drives;
   m_removableDrives = std::move(drives);
   return changed;
+}
+
+namespace
+{
+constexpr float GIGABYTES = 1073741824;
+constexpr int PATH_MAXLEN = 38;
+} // namespace
+
+bool CAndroidStorageProvider::GetStorageUsage(const std::string& path, std::string& usage)
+{
+  if (path.empty())
+  {
+    usage = StringUtils::Format("{:<{}}{:>12}{:>12}{:>12}{:>12}", "Filesystem", PATH_MAXLEN, "Size",
+                                "Used", "Avail", "Use %");
+    return false;
+  }
+
+  CJNIStatFs fileStat(path);
+  const int blockSize = fileStat.getBlockSize();
+  const int blockCount = fileStat.getBlockCount();
+  const int freeBlocks = fileStat.getFreeBlocks();
+
+  if (blockSize <= 0 || blockCount <= 0 || freeBlocks < 0)
+    return false;
+
+  const float totalSize = static_cast<float>(blockSize) * blockCount / GIGABYTES;
+  const float freeSize = static_cast<float>(blockSize) * freeBlocks / GIGABYTES;
+  const float usedSize = totalSize - freeSize;
+  const float usedPercentage = usedSize / totalSize * 100;
+
+  usage = StringUtils::Format(
+      "{:<{}}{:>11.1f}{}{:>11.1f}{}{:>11.1f}{}{:>11.0f}{}",
+      path.size() < PATH_MAXLEN - 1 ? path : StringUtils::Left(path, PATH_MAXLEN - 4) + "...",
+      PATH_MAXLEN, totalSize, "G", usedSize, "G", freeSize, "G", usedPercentage, "%");
+  return true;
+}
+
+bool CAndroidStorageProvider::GetExternalStorage(std::string& path,
+                                                 const std::string& type /* = "" */)
+{
+  std::string sType;
+  std::string mountedState;
+  bool mounted = false;
+
+  if (CJNIBase::GetSDKVersion() <= 29)
+  {
+    CJNIFile external = CJNIEnvironment::getExternalStorageDirectory();
+    if (external)
+      path = external.getAbsolutePath();
+  }
+  else
+  {
+    CJNIStorageManager manager =
+        (CJNIStorageManager)CXBMCApp::Get().getSystemService(CJNIContext::STORAGE_SERVICE);
+    CJNIStorageVolume volume = manager.getPrimaryStorageVolume();
+    path = volume.getDirectory().getAbsolutePath();
+  }
+
+  if (type == "music")
+    sType = CJNIEnvironment::DIRECTORY_MUSIC;
+  else if (type == "videos")
+    sType = CJNIEnvironment::DIRECTORY_MOVIES;
+  else if (type == "pictures")
+    sType = CJNIEnvironment::DIRECTORY_PICTURES;
+  else if (type == "photos")
+    sType = CJNIEnvironment::DIRECTORY_DCIM;
+  else if (type == "downloads")
+    sType = CJNIEnvironment::DIRECTORY_DOWNLOADS;
+
+  if (!sType.empty())
+  {
+    path.append("/");
+    path.append(sType);
+  }
+
+  mountedState = CJNIEnvironment::getExternalStorageState();
+  mounted = (mountedState == CJNIEnvironment::MEDIA_MOUNTED ||
+             mountedState == CJNIEnvironment::MEDIA_MOUNTED_READ_ONLY);
+  return mounted && !path.empty();
 }

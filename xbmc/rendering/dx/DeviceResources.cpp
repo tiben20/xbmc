@@ -14,7 +14,6 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIWindowManager.h"
 #include "messaging/ApplicationMessenger.h"
-#include "rendering/dx/DirectXHelper.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/SystemInfo.h"
@@ -56,7 +55,7 @@ namespace winrt
 #endif
 #define LOG_HR(hr) \
   CLog::LogF(LOGERROR, "function call at line {} ends with error: {}", __LINE__, \
-             DX::GetErrorDescription(hr));
+             CWIN32Util::FormatHRESULT(hr));
 #define CHECK_ERR() if (FAILED(hr)) { LOG_HR(hr); breakOnDebug; return; }
 #define RETURN_ERR(ret) if (FAILED(hr)) { LOG_HR(hr); breakOnDebug; return (##ret); }
 
@@ -401,7 +400,7 @@ void DX::DeviceResources::CreateDeviceResources()
   if (FAILED(hr))
   {
     CLog::LogF(LOGERROR, "unable to create hardware device with video support, error {}",
-               DX::GetErrorDescription(hr));
+               CWIN32Util::FormatHRESULT(hr));
     CLog::LogF(LOGERROR, "trying to create hardware device without video support.");
 
     creationFlags &= ~D3D11_CREATE_DEVICE_VIDEO_SUPPORT;
@@ -413,7 +412,7 @@ void DX::DeviceResources::CreateDeviceResources()
     if (FAILED(hr))
     {
       CLog::LogF(LOGERROR, "unable to create hardware device, error {}",
-                 DX::GetErrorDescription(hr));
+                 CWIN32Util::FormatHRESULT(hr));
       CLog::LogF(LOGERROR, "trying to create WARP device.");
 
       hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, creationFlags,
@@ -423,7 +422,7 @@ void DX::DeviceResources::CreateDeviceResources()
       if (FAILED(hr))
       {
         CLog::LogF(LOGFATAL, "unable to create WARP device. Rendering is not possible. Error {}",
-                   DX::GetErrorDescription(hr));
+                   CWIN32Util::FormatHRESULT(hr));
         CHECK_ERR();
       }
     }
@@ -1374,9 +1373,6 @@ void DX::DeviceResources::SetHdrColorSpace(const DXGI_COLOR_SPACE_TYPE colorSpac
 
 HDR_STATUS DX::DeviceResources::ToggleHDR()
 {
-  DXGI_MODE_DESC md = {};
-  GetDisplayMode(&md);
-
   // Xbox uses only full screen windowed mode and not needs recreate swapchain.
   // Recreate swapchain causes native 4K resolution is lost and quality obtained
   // is equivalent to 1080p upscaled to 4K (TO DO: investigate root cause).
@@ -1386,7 +1382,7 @@ HDR_STATUS DX::DeviceResources::ToggleHDR()
   DX::Windowing()->SetAlteringWindow(true);
 
   // Toggle display HDR
-  HDR_STATUS hdrStatus = CWIN32Util::ToggleWindowsHDR(md);
+  HDR_STATUS hdrStatus = CWIN32Util::ToggleWindowsHDR();
 
   // Kill swapchain
   if (!isXbox && m_swapChain && hdrStatus != HDR_STATUS::HDR_TOGGLE_FAILED)
@@ -1492,7 +1488,8 @@ std::vector<DXGI_COLOR_SPACE_TYPE> DX::DeviceResources::GetSwapChainColorSpaces(
   }
   else
   {
-    CLog::LogF(LOGDEBUG, "IDXGISwapChain3 is not available. Error {}", DX::GetErrorDescription(hr));
+    CLog::LogF(LOGDEBUG, "IDXGISwapChain3 is not available. Error {}",
+               CWIN32Util::FormatHRESULT(hr));
   }
   return result;
 }

@@ -342,7 +342,7 @@
 								<top>6</top>
 								<width>218</width>
 								<height>280</height>
-								<texture border="8" colordiffuse="button_focus">buttons/thumbnail_focused.png</texture>
+								<texture border="4" infill="false" colordiffuse="button_focus">colors/white.png</texture>
 								<animation effect="fade" start="100" end="0" time="200">Unfocus</animation>
 							</control>
 						</control>
@@ -530,8 +530,8 @@
 		<control type="group">
 			<centerleft>50%</centerleft>
 			<width>1920</width>
-			<bottom>0</bottom>
-			<height>70</height>
+			<bottom>10</bottom>
+			<height>40</height>
 			<include>MediaFlags</include>
 		</control>
 		<include condition="Skin.HasSetting(touchmode)">TouchBackButton</include>

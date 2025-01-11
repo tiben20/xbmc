@@ -499,8 +499,10 @@ bool CLangInfo::Load(const std::string& strLanguage)
       if (pTime && !pTime->NoChildren())
       {
         region.m_strTimeFormat=pTime->FirstChild()->Value();
-        region.m_strMeridiemSymbols[MeridiemSymbolAM] = XMLUtils::GetAttribute(pTime, "symbolAM");
-        region.m_strMeridiemSymbols[MeridiemSymbolPM] = XMLUtils::GetAttribute(pTime, "symbolPM");
+        region.m_strMeridiemSymbols[static_cast<int>(MeridiemSymbol::AM)] =
+            XMLUtils::GetAttribute(pTime, "symbolAM");
+        region.m_strMeridiemSymbols[static_cast<int>(MeridiemSymbol::PM)] =
+            XMLUtils::GetAttribute(pTime, "symbolPM");
       }
 
       const TiXmlNode *pTempUnit=pRegion->FirstChild("tempunit");
@@ -799,41 +801,73 @@ bool CLangInfo::SetLanguage(std::string language /* = "" */, bool reloadServices
   return true;
 }
 
-// three char language code (not win32 specific)
-const std::string& CLangInfo::GetAudioLanguage() const
+const std::string& CLangInfo::GetAudioLanguage(bool allowFallback) const
 {
-  if (!m_audioLanguage.empty())
-    return m_audioLanguage;
+  if (allowFallback && m_audioLanguage.empty())
+    return m_languageCodeGeneral;
 
-  return m_languageCodeGeneral;
+  return m_audioLanguage;
 }
 
-void CLangInfo::SetAudioLanguage(const std::string& language)
+void CLangInfo::SetAudioLanguage(const std::string& language, bool isIso6392 /* = false */)
 {
-  if (language.empty()
-    || StringUtils::EqualsNoCase(language, "default")
-    || StringUtils::EqualsNoCase(language, "original")
-    || StringUtils::EqualsNoCase(language, "mediadefault")
-    || !g_LangCodeExpander.ConvertToISO6392B(language, m_audioLanguage))
+  if (language.empty() || StringUtils::EqualsNoCase(language, "default") ||
+      StringUtils::EqualsNoCase(language, "original") ||
+      StringUtils::EqualsNoCase(language, "mediadefault"))
+  {
     m_audioLanguage.clear();
+    return;
+  }
+
+  std::string langISO6392;
+  if (isIso6392)
+  {
+    g_LangCodeExpander.ConvertToISO6392B(language, langISO6392);
+  }
+  else
+  {
+    if (g_LangCodeExpander.ConvertToISO6391(language, langISO6392))
+    {
+      // if following conversion (to ISO 639-2) fails it should be because
+      // the language code has been defined by the user, so ignore it
+      g_LangCodeExpander.ConvertISO6391ToISO6392B(langISO6392, langISO6392);
+    }
+  }
+  m_audioLanguage = langISO6392; // empty value for error cases
 }
 
-// three char language code (not win32 specific)
-const std::string& CLangInfo::GetSubtitleLanguage() const
+const std::string& CLangInfo::GetSubtitleLanguage(bool allowFallback) const
 {
-  if (!m_subtitleLanguage.empty())
-    return m_subtitleLanguage;
+  if (allowFallback && m_subtitleLanguage.empty())
+    return m_languageCodeGeneral;
 
-  return m_languageCodeGeneral;
+  return m_subtitleLanguage;
 }
 
-void CLangInfo::SetSubtitleLanguage(const std::string& language)
+void CLangInfo::SetSubtitleLanguage(const std::string& language, bool isIso6392 /* = false */)
 {
-  if (language.empty()
-    || StringUtils::EqualsNoCase(language, "default")
-    || StringUtils::EqualsNoCase(language, "original")
-    || !g_LangCodeExpander.ConvertToISO6392B(language, m_subtitleLanguage))
+  if (language.empty() || StringUtils::EqualsNoCase(language, "default") ||
+      StringUtils::EqualsNoCase(language, "original"))
+  {
     m_subtitleLanguage.clear();
+    return;
+  }
+
+  std::string langISO6392;
+  if (isIso6392)
+  {
+    g_LangCodeExpander.ConvertToISO6392B(language, langISO6392);
+  }
+  else
+  {
+    if (g_LangCodeExpander.ConvertToISO6391(language, langISO6392))
+    {
+      // if following conversion (to ISO 639-2) fails it should be because
+      // the language code has been defined by the user, so ignore it
+      g_LangCodeExpander.ConvertISO6391ToISO6392B(langISO6392, langISO6392);
+    }
+  }
+  m_subtitleLanguage = langISO6392; // empty value for error cases
 }
 
 // two character codes as defined in ISO639
@@ -995,14 +1029,14 @@ const std::string& CLangInfo::MeridiemSymbolToString(MeridiemSymbol symbol)
 {
   switch (symbol)
   {
-  case MeridiemSymbolAM:
-    return g_localizeStrings.Get(378);
+    case MeridiemSymbol::AM:
+      return g_localizeStrings.Get(378);
 
-  case MeridiemSymbolPM:
-    return g_localizeStrings.Get(379);
+    case MeridiemSymbol::PM:
+      return g_localizeStrings.Get(379);
 
-  default:
-    break;
+    default:
+      break;
   }
 
   return StringUtils::Empty;

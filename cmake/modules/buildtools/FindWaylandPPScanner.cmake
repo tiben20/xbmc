@@ -8,14 +8,15 @@
 
 if(NOT wayland::waylandppscanner)
 
-  find_package(PkgConfig)
+  find_package(PkgConfig QUIET)
   pkg_check_modules(PC_WAYLANDPP_SCANNER wayland-scanner++ QUIET)
 
   if(PC_WAYLANDPP_SCANNER_FOUND)
     pkg_get_variable(PC_WAYLANDPP_SCANNER wayland-scanner++ wayland_scannerpp)
+    get_filename_component(PC_WAYLANDPP_SCANNER_DIR ${PC_WAYLANDPP_SCANNER} DIRECTORY)
   endif()
 
-  find_program(WAYLANDPP_SCANNER wayland-scanner++ HINTS ${PC_WAYLANDPP_SCANNER})
+  find_program(WAYLANDPP_SCANNER wayland-scanner++ HINTS ${PC_WAYLANDPP_SCANNER_DIR})
 
   if(WAYLANDPP_SCANNER)
 

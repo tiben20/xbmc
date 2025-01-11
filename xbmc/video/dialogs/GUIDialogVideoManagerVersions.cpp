@@ -479,7 +479,7 @@ bool CGUIDialogVideoManagerVersions::AddVideoVersionFilePicker()
   const MediaType mediaType{m_videoAsset->GetVideoInfoTag()->m_type};
 
   // prompt to choose a video file
-  VECSOURCES sources{*CMediaSourceSettings::GetInstance().GetSources("files")};
+  std::vector<CMediaSource> sources{*CMediaSourceSettings::GetInstance().GetSources("files")};
 
   CServiceBroker::GetMediaManager().GetLocalDrives(sources);
   CServiceBroker::GetMediaManager().GetNetworkLocations(sources);
@@ -498,9 +498,9 @@ bool CGUIDialogVideoManagerVersions::AddVideoVersionFilePicker()
     // @todo look only for a version identified by idFile instead of retrieving all versions
     if (newAsset.m_idFile != -1 && newAsset.m_assetTypeId != -1)
     {
-      // The video already is an asset of the movie
-      if (newAsset.m_idMedia == dbId &&
-          newAsset.m_mediaType == m_videoAsset->GetVideoInfoTag()->m_type)
+      // The video already is a version of the movie
+      if (newAsset.m_idMedia == dbId && newAsset.m_mediaType == mediaType &&
+          newAsset.m_assetType == VideoAssetType::VERSION)
       {
         unsigned int msgid{};
 
@@ -520,9 +520,9 @@ bool CGUIDialogVideoManagerVersions::AddVideoVersionFilePicker()
         return false;
       }
 
-      // The video is an asset of another movie
+      // The video is an asset of another movie or different asset type of same movie
 
-      // The video is an extra, ask for confirmation
+      // The video is an extra, ask for confirmation of the asset type change
       if (newAsset.m_assetType == VideoAssetType::EXTRA &&
           !CGUIDialogYesNo::ShowAndGetInput(CVariant{40014},
                                             StringUtils::Format(g_localizeStrings.Get(40035))))
@@ -538,6 +538,7 @@ bool CGUIDialogVideoManagerVersions::AddVideoVersionFilePicker()
       else
         return false;
 
+      if (newAsset.m_idMedia != dbId && newAsset.m_mediaType == mediaType)
       {
         unsigned int msgid{};
 
@@ -588,8 +589,10 @@ bool CGUIDialogVideoManagerVersions::AddVideoVersionFilePicker()
 
     CFileItem item{path, false};
 
-    if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(
-            CSettings::SETTING_MYVIDEOS_EXTRACTFLAGS))
+    // Imperfect test of the existence of stream details but comes at no extra cost.
+    // File is already a video asset implies stream details were extracted => skip extraction
+    if (newAsset.m_idFile <= 0 && CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(
+                                      CSettings::SETTING_MYVIDEOS_EXTRACTFLAGS))
     {
       CDVDFileInfo::GetFileStreamDetails(&item);
       CLog::LogF(LOGDEBUG, "Extracted filestream details from video file {}",

@@ -176,7 +176,7 @@ bool CGUIDialogAudioSettings::Save()
   const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
 
   if (!g_passwordManager.CheckSettingLevelLock(SettingLevel::Expert) &&
-      profileManager->GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE)
+      profileManager->GetMasterProfile().getLockMode() != LockMode::EVERYONE)
     return true;
 
   // prompt user if they are sure
@@ -281,7 +281,7 @@ void CGUIDialogAudioSettings::InitializeSettings()
   std::static_pointer_cast<CSettingControlSlider>(settingAudioVolume->GetControl())->SetFormatter(SettingFormatterPercentAsDecibel);
 
   // audio volume amplification setting
-  if (SupportsAudioFeature(IPC_AUD_AMP))
+  if (SupportsAudioFeature(IPlayerAudioCaps::VOLUME_AMP))
   {
     std::shared_ptr<CSettingNumber> settingAudioVolumeAmplification = AddSlider(groupAudio, SETTING_AUDIO_VOLUME_AMPLIFICATION, 660, SettingLevel::Basic, videoSettings.m_VolumeAmplification, 14054, VOLUME_DRC_MINIMUM * 0.01f, (VOLUME_DRC_MAXIMUM - VOLUME_DRC_MINIMUM) / 6000.0f, VOLUME_DRC_MAXIMUM * 0.01f);
     settingAudioVolumeAmplification->SetDependencies(depsAudioOutputPassthroughDisabled);
@@ -295,23 +295,23 @@ void CGUIDialogAudioSettings::InitializeSettings()
   }
 
   // audio delay setting
-  if (SupportsAudioFeature(IPC_AUD_OFFSET))
+  if (SupportsAudioFeature(IPlayerAudioCaps::OFFSET))
   {
     std::shared_ptr<CSettingNumber> settingAudioDelay = AddSlider(
         groupAudio, SETTING_AUDIO_DELAY, 297, SettingLevel::Basic, videoSettings.m_AudioDelay, 0,
         -CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoAudioDelayRange,
-        AUDIO_DELAY_STEP,
+        CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoAudioDelayStep,
         CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoAudioDelayRange, 297,
         usePopup);
     std::static_pointer_cast<CSettingControlSlider>(settingAudioDelay->GetControl())->SetFormatter(SettingFormatterDelay);
   }
 
   // audio stream setting
-  if (SupportsAudioFeature(IPC_AUD_SELECT_STREAM))
+  if (SupportsAudioFeature(IPlayerAudioCaps::SELECT_STREAM))
     AddAudioStreams(groupAudio, SETTING_AUDIO_STREAM);
 
   // audio digital/analog setting
-  if (SupportsAudioFeature(IPC_AUD_SELECT_OUTPUT))
+  if (SupportsAudioFeature(IPlayerAudioCaps::SELECT_OUTPUT))
   {
     m_passthrough = CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_AUDIOOUTPUT_PASSTHROUGH);
     AddToggle(groupAudio, SETTING_AUDIO_PASSTHROUGH, 348, SettingLevel::Basic, m_passthrough);
@@ -321,11 +321,11 @@ void CGUIDialogAudioSettings::InitializeSettings()
   AddButton(groupSaveAsDefault, SETTING_AUDIO_MAKE_DEFAULT, 12376, SettingLevel::Basic);
 }
 
-bool CGUIDialogAudioSettings::SupportsAudioFeature(int feature)
+bool CGUIDialogAudioSettings::SupportsAudioFeature(IPlayerAudioCaps feature)
 {
-  for (Features::iterator itr = m_audioCaps.begin(); itr != m_audioCaps.end(); ++itr)
+  for (IPlayerAudioCaps cap : m_audioCaps)
   {
-    if (*itr == feature || *itr == IPC_AUD_ALL)
+    if (cap == feature || cap == IPlayerAudioCaps::ALL)
       return true;
   }
 
@@ -364,15 +364,14 @@ void CGUIDialogAudioSettings::AudioStreamsOptionFiller(const SettingConstPtr& se
 {
   const auto& components = CServiceBroker::GetAppComponents();
   const auto appPlayer = components.GetComponent<CApplicationPlayer>();
-  int audioStreamCount = appPlayer->GetAudioStreamCount();
+  const int audioStreamCount = appPlayer->GetAudioStreamCount();
 
-  std::string strFormat = "{:s} - {:s} - {:d} " + g_localizeStrings.Get(10127);
+  std::string channelsLabel = g_localizeStrings.Get(10127);
   std::string strUnknown = "[" + g_localizeStrings.Get(13205) + "]";
 
   // cycle through each audio stream and add it to our list control
   for (int i = 0; i < audioStreamCount; ++i)
   {
-    std::string strItem;
     std::string strLanguage;
 
     AudioStreamInfo info;
@@ -381,12 +380,20 @@ void CGUIDialogAudioSettings::AudioStreamsOptionFiller(const SettingConstPtr& se
     if (!g_LangCodeExpander.Lookup(info.language, strLanguage))
       strLanguage = strUnknown;
 
-    if (info.name.length() == 0)
-      info.name = strUnknown;
+    std::string textInfo = strLanguage;
+    if (!info.name.empty())
+      textInfo += " - " + info.name;
 
-    strItem = StringUtils::Format(strFormat, strLanguage, info.name, info.channels);
+    textInfo += " (";
+    if (!info.codecDesc.empty())
+      textInfo += info.codecDesc + ", ";
 
+    textInfo += std::to_string(info.channels) + " " + channelsLabel + ")";
     strItem += FormatFlags(info.flags);
+
+    textInfo += FormatFlags(info.flags);
+    textInfo += StringUtils::Format(" ({}/{})", i + 1, audioStreamCount);
+    list.emplace_back(textInfo, i);
 	
 #if HAS_DS_PLAYER
     if (CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->GetCurrentPlayer() == "DSPlayer")

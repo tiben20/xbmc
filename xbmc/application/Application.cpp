@@ -55,6 +55,7 @@
 #include "dialogs/GUIDialogSimpleMenu.h"
 #include "events/EventLog.h"
 #include "events/NotificationEvent.h"
+#include "favourites/FavouritesService.h"
 #include "filesystem/Directory.h"
 #include "filesystem/DirectoryCache.h"
 #include "filesystem/DirectoryFactory.h"
@@ -709,7 +710,7 @@ bool CApplication::Initialize()
     CServiceBroker::GetGUI()->GetWindowManager().ActivateWindow(WINDOW_SPLASH);
 
     if (settings->GetBool(CSettings::SETTING_MASTERLOCK_STARTUPLOCK) &&
-        profileManager->GetMasterProfile().getLockMode() != LOCK_MODE_EVERYONE &&
+        profileManager->GetMasterProfile().getLockMode() != LockMode::EVERYONE &&
         !profileManager->GetMasterProfile().getLockCode().empty())
     {
       g_passwordManager.CheckStartUpLock();
@@ -1509,6 +1510,14 @@ void CApplication::OnApplicationMessage(ThreadMessage* pMsg)
     *static_cast<bool*>(pMsg->lpVoid) = CServiceBroker::GetWinSystem()->DestroyWindow();
     GetComponent<CApplicationPowerHandling>()->SetRenderGUI(false);
     break;
+
+  case TMSG_RESUMEAPP:
+  {
+    CGUIComponent* gui = CServiceBroker::GetGUI();
+    if (gui)
+      gui->GetWindowManager().MarkDirty();
+    break;
+  }
 #endif
 
   case TMSG_START_ANDROID_ACTIVITY:
@@ -1550,8 +1559,9 @@ void CApplication::OnApplicationMessage(ThreadMessage* pMsg)
   {
     XBMC_Event newEvent = {};
     newEvent.type = XBMC_VIDEORESIZE;
-    newEvent.resize.w = pMsg->param1;
-    newEvent.resize.h = pMsg->param2;
+    newEvent.resize.width = pMsg->param1;
+    newEvent.resize.height = pMsg->param2;
+    newEvent.resize.scale = 1.0;
     m_pAppPort->OnEvent(newEvent);
     CServiceBroker::GetGUI()->GetWindowManager().MarkDirty();
   }
@@ -2393,7 +2403,7 @@ bool CApplication::PlayFile(CFileItem item,
 
       std::string path = item.GetPath();
       std::string videoInfoTagPath(item.GetVideoInfoTag()->m_strFileNameAndPath);
-      if (videoInfoTagPath.find("removable://") == 0 || VIDEO::IsVideoDb(item))
+      if (videoInfoTagPath.starts_with("removable://") || VIDEO::IsVideoDb(item))
         path = videoInfoTagPath;
 
       // Note that we need to load the tag from database also if the item already has a tag,
@@ -2896,6 +2906,7 @@ bool CApplication::OnMessage(CGUIMessage& message)
   case GUI_MSG_PLAYBACK_STOPPED:
   {
     CServiceBroker::GetPVRManager().OnPlaybackStopped(*m_itemCurrentFile);
+    CServiceBroker::GetFavouritesService().OnPlaybackStopped(*m_itemCurrentFile);
 
     CVariant data(CVariant::VariantTypeObject);
     data["end"] = false;
@@ -2914,6 +2925,7 @@ bool CApplication::OnMessage(CGUIMessage& message)
   case GUI_MSG_PLAYBACK_ENDED:
   {
     CServiceBroker::GetPVRManager().OnPlaybackEnded(*m_itemCurrentFile);
+    CServiceBroker::GetFavouritesService().OnPlaybackEnded(*m_itemCurrentFile);
 
     CVariant data(CVariant::VariantTypeObject);
     data["end"] = true;
@@ -3087,7 +3099,7 @@ bool CApplication::ExecuteXBMCAction(std::string actionStr,
   {
     if (!CBuiltins::GetInstance().IsSystemPowerdownCommand(actionStr) ||
         CServiceBroker::GetPVRManager().Get<PVR::GUI::PowerManagement>().CanSystemPowerdown())
-      CBuiltins::GetInstance().Execute(actionStr);
+      CBuiltins::GetInstance().Execute(actionStr, item);
   }
   else
   {

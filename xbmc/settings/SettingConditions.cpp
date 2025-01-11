@@ -8,14 +8,14 @@
 
 #include "SettingConditions.h"
 
-#include "LockType.h"
+#include "GUIPassword.h"
+#include "LockMode.h"
+#include "ServiceBroker.h"
 #include "addons/AddonManager.h"
 #include "addons/Skin.h"
 #include "addons/addoninfo/AddonType.h"
 #include "application/AppParams.h"
 #include "cores/AudioEngine/Engines/ActiveAE/ActiveAESettings.h"
-#include "ServiceBroker.h"
-#include "GUIPassword.h"
 #if defined(HAS_WEB_SERVER)
 #include "network/WebServer.h"
 #endif
@@ -247,15 +247,15 @@ bool ProfileHasSettingsLocked(const std::string& condition,
                               const SettingConstPtr& setting,
                               void* data)
 {
-  LOCK_LEVEL::SETTINGS_LOCK slValue=LOCK_LEVEL::ALL;
+  SettingsLock slValue = SettingsLock::ALL;
   if (StringUtils::EqualsNoCase(value, "none"))
-    slValue = LOCK_LEVEL::NONE;
+    slValue = SettingsLock::NONE;
   else if (StringUtils::EqualsNoCase(value, "standard"))
-    slValue = LOCK_LEVEL::STANDARD;
+    slValue = SettingsLock::STANDARD;
   else if (StringUtils::EqualsNoCase(value, "advanced"))
-    slValue = LOCK_LEVEL::ADVANCED;
+    slValue = SettingsLock::ADVANCED;
   else if (StringUtils::EqualsNoCase(value, "expert"))
-    slValue = LOCK_LEVEL::EXPERT;
+    slValue = SettingsLock::EXPERT;
   return slValue <= CSettingConditions::GetCurrentProfile().settingsLockLevel();
 }
 
@@ -273,8 +273,8 @@ bool ProfileLockMode(const std::string& condition,
                      void* data)
 {
   char* tmp = nullptr;
-  LockType lock = (LockType)strtol(value.c_str(), &tmp, 0);
-  if (tmp != NULL && *tmp != '\0')
+  LockMode lock = static_cast<LockMode>(strtol(value.c_str(), &tmp, 0));
+  if (tmp != nullptr && *tmp != '\0')
     return false;
 
   return CSettingConditions::GetCurrentProfile().getLockMode() == lock;

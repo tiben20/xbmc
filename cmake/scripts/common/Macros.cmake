@@ -438,6 +438,10 @@ function(core_optional_dep)
         if (NOT ${depspec} IN_LIST optional_deps)
           set(optional_deps  ${optional_deps} ${depspec} PARENT_SCOPE)
         endif()
+      else()
+        # Propagate _FOUND variable for build tool optional deps. We dont use targets
+        # for build tools in general, and still rely on variables
+        set(${depup}_FOUND ${${depup}_FOUND} PARENT_SCOPE)
       endif()
 
     elseif(_required)
@@ -794,6 +798,24 @@ function(core_target_link_libraries core_lib)
     split_dependency_specification(${_depspec} dep version)
     if(TARGET ${APP_NAME_LC}::${dep})
       target_link_libraries(${core_lib} PUBLIC ${APP_NAME_LC}::${dep})
+    endif()
+  endforeach()
+endfunction()
+
+# Iterate over optional/required dep lists and create dependency
+# to the target supplied as first argument
+function(core_target_add_dependencies core_target)
+  foreach(_depspec ${required_deps})
+    split_dependency_specification(${_depspec} dep version)
+    if(TARGET ${APP_NAME_LC}::${dep})
+      add_dependencies(${core_target} ${APP_NAME_LC}::${dep})
+    endif()
+  endforeach()
+
+  foreach(_depspec ${optional_deps})
+    split_dependency_specification(${_depspec} dep version)
+    if(TARGET ${APP_NAME_LC}::${dep})
+      add_dependencies(${core_target} ${APP_NAME_LC}::${dep})
     endif()
   endforeach()
 endfunction()

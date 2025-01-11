@@ -22,6 +22,7 @@
 #include "dialogs/GUIDialogSelect.h"
 #include "filesystem/Directory.h"
 #include "filesystem/MusicDatabaseDirectory.h"
+#include "filesystem/MusicDatabaseDirectory/DirectoryNode.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIKeyboardFactory.h"
 #include "guilib/GUIWindowManager.h"
@@ -871,6 +872,13 @@ bool IsNonExistingUserPartyModePlaylist(const CFileItem& item)
   const auto profileManager{CServiceBroker::GetSettingsComponent()->GetProfileManager()};
   return ((profileManager->GetUserDataItem("PartyMode.xsp") == path) && !CFileUtils::Exists(path));
 }
+
+bool IsEmptyMusicItem(const CFileItem& item)
+{
+  //! @todo Poor man's way to detect empty music info tags (inspired by CVideoInfoTag::IsEmpty())
+  return item.HasMusicInfoTag() && item.GetMusicInfoTag()->GetTitle().empty();
+}
+
 } // unnamed namespace
 
 bool IsItemPlayable(const CFileItem& item)
@@ -884,7 +892,7 @@ bool IsItemPlayable(const CFileItem& item)
     return false;
 
   // Exclude other components
-  if (item.IsPVR() || item.IsPlugin() || item.IsScript() || item.IsAddonsPath())
+  if (item.IsPVR() || item.IsAddonsPath())
     return false;
 
   // Exclude special items
@@ -923,19 +931,27 @@ bool IsItemPlayable(const CFileItem& item)
       (MUSIC::IsMusicDb(item) || StringUtils::StartsWithNoCase(item.GetPath(), "library://music/")))
   {
     // Exclude top level nodes - eg can't play 'genres' just a specific genre etc
-    const XFILE::MUSICDATABASEDIRECTORY::NODE_TYPE node =
-        XFILE::CMusicDatabaseDirectory::GetDirectoryParentType(item.GetPath());
-    if (node == XFILE::MUSICDATABASEDIRECTORY::NODE_TYPE_OVERVIEW)
+    const auto node = XFILE::CMusicDatabaseDirectory::GetDirectoryParentType(item.GetPath());
+    if (node == XFILE::MUSICDATABASEDIRECTORY::NodeType::OVERVIEW)
       return false;
 
     return true;
   }
 
-  if (item.HasMusicInfoTag() && item.CanQueue())
+  if (item.IsPlugin() && MUSIC::IsAudio(item) && !IsEmptyMusicItem(item) &&
+      item.GetProperty("isplayable").asBoolean(false))
+  {
     return true;
-  else if (!item.m_bIsFolder && MUSIC::IsAudio(item))
+  }
+  else if (item.HasMusicInfoTag() && item.CanQueue() && !item.IsPlugin() && !item.IsScript())
+  {
     return true;
-  else if (item.m_bIsFolder)
+  }
+  else if (!item.m_bIsFolder && MUSIC::IsAudio(item) && !IsEmptyMusicItem(item))
+  {
+    return true;
+  }
+  else if (item.m_bIsFolder && !item.IsPlugin() && !item.IsScript())
   {
     // Not a music-specific folder (just file:// or nfs://). Allow play if context is Music window.
     if (CServiceBroker::GetGUI()->GetWindowManager().GetActiveWindow() == WINDOW_MUSIC_NAV &&

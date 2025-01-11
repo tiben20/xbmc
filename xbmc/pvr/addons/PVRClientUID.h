@@ -26,9 +26,15 @@ public:
 
   /*!
    * @brief Return the numeric UID.
-   * @return The numeric UID.
+   * @return The numeric UID, or PVR_CLIENT_INVALID_UID on error.
    */
   int GetUID() const;
+
+  /*!
+   * @brief Return the numeric legacy UID (compatibility/migration purposes only).
+   * @return The numeric legacy UID.
+   */
+  int GetLegacyUID() const;
 
 private:
   CPVRClientUID() = delete;

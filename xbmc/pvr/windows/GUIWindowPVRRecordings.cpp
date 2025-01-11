@@ -11,6 +11,7 @@
 #include "FileItemList.h"
 #include "GUIInfoManager.h"
 #include "ServiceBroker.h"
+#include "URL.h"
 #include "guilib/GUIComponent.h"
 #include "guilib/GUIMessage.h"
 #include "guilib/GUIRadioButtonControl.h"
@@ -19,17 +20,16 @@
 #include "input/actions/Action.h"
 #include "input/actions/ActionIDs.h"
 #include "pvr/PVRManager.h"
-#include "pvr/guilib/PVRGUIActionsPlayback.h"
 #include "pvr/guilib/PVRGUIActionsRecordings.h"
 #include "pvr/recordings/PVRRecording.h"
 #include "pvr/recordings/PVRRecordings.h"
 #include "pvr/recordings/PVRRecordingsPath.h"
+#include "pvr/utils/PVRPathUtils.h"
 #include "settings/MediaSettings.h"
 #include "settings/Settings.h"
 #include "settings/SettingsComponent.h"
 #include "utils/URIUtils.h"
 #include "video/VideoLibraryQueue.h"
-#include "video/guilib/VideoGUIUtils.h"
 #include "video/guilib/VideoPlayActionProcessor.h"
 #include "video/guilib/VideoSelectActionProcessor.h"
 #include "video/windows/GUIWindowVideoBase.h"
@@ -54,6 +54,22 @@ CGUIWindowPVRRecordingsBase::~CGUIWindowPVRRecordingsBase() = default;
 void CGUIWindowPVRRecordingsBase::OnWindowLoaded()
 {
   CONTROL_SELECT(CONTROL_BTNGROUPITEMS);
+}
+
+void CGUIWindowPVRRecordingsBase::OnDeinitWindow(int nextWindowID)
+{
+  if (UTILS::HasClientAndProvider(m_vecItems->GetPath()))
+    m_vecItems->SetPath(""); // Open default listing next time.
+
+  CGUIWindowPVRBase::OnDeinitWindow(nextWindowID);
+}
+
+std::string CGUIWindowPVRRecordingsBase::GetRootPath() const
+{
+  const CURL url{m_vecItems->GetPath()};
+  std::string rootPath{CPVRRecordingsPath(m_bShowDeletedRecordings, m_bRadio)};
+  rootPath += url.GetOptions();
+  return rootPath;
 }
 
 std::string CGUIWindowPVRRecordingsBase::GetDirectoryPath()
@@ -214,9 +230,9 @@ void CGUIWindowPVRRecordingsBase::UpdateButtons()
   }
 
   CGUIWindowPVRBase::UpdateButtons();
-  SET_CONTROL_LABEL(CONTROL_LABEL_HEADER1, m_bShowDeletedRecordings
-                                               ? g_localizeStrings.Get(19179)
-                                               : ""); /* Deleted recordings trash */
+
+  // If we are filtering by client id / provider id, expose provider's name.
+  SET_CONTROL_LABEL(CONTROL_LABEL_HEADER1, UTILS::GetProviderNameFromPath(m_vecItems->GetPath()));
 
   const CPVRRecordingsPath path(m_vecItems->GetPath());
   SET_CONTROL_LABEL(CONTROL_LABEL_HEADER2,
@@ -225,13 +241,13 @@ void CGUIWindowPVRRecordingsBase::UpdateButtons()
 
 namespace
 {
-class CVideoSelectActionProcessor : public VIDEO::GUILIB::CVideoSelectActionProcessorBase
+class CVideoSelectActionProcessor : public VIDEO::GUILIB::CVideoSelectActionProcessor
 {
 public:
   CVideoSelectActionProcessor(CGUIWindowPVRRecordingsBase& window,
                               const std::shared_ptr<CFileItem>& item,
                               int itemIndex)
-    : CVideoSelectActionProcessorBase(item), m_window(window), m_itemIndex(itemIndex)
+    : VIDEO::GUILIB::CVideoSelectActionProcessor(item), m_window(window), m_itemIndex(itemIndex)
   {
   }
 
@@ -242,33 +258,7 @@ protected:
     return false;
   }
 
-  bool OnResumeSelected() override
-  {
-    CServiceBroker::GetPVRManager().Get<PVR::GUI::Playback>().ResumePlayRecording(
-        *m_item, true /* fall back to play if no resume possible */);
-    return true;
-  }
-
-  bool OnPlaySelected() override
-  {
-    CServiceBroker::GetPVRManager().Get<PVR::GUI::Playback>().PlayRecording(
-        *m_item, false /* no resume check */);
-    return true;
-  }
-
-  bool OnQueueSelected() override
-  {
-    VIDEO::UTILS::QueueItem(m_item, VIDEO::UTILS::QueuePosition::POSITION_END);
-    return true;
-  }
-
-  bool OnInfoSelected() override
-  {
-    CServiceBroker::GetPVRManager().Get<PVR::GUI::Recordings>().ShowRecordingInfo(*m_item);
-    return true;
-  }
-
-  bool OnMoreSelected() override
+  bool OnChooseSelected() override
   {
     m_window.OnPopupMenu(m_itemIndex);
     return true;
@@ -277,48 +267,6 @@ protected:
 private:
   CGUIWindowPVRRecordingsBase& m_window;
   const int m_itemIndex{-1};
-};
-
-class CVideoPlayActionProcessor : public VIDEO::GUILIB::CVideoPlayActionProcessorBase
-{
-public:
-  explicit CVideoPlayActionProcessor(const std::shared_ptr<CFileItem>& item)
-    : CVideoPlayActionProcessorBase(item)
-  {
-  }
-
-protected:
-  bool OnResumeSelected() override
-  {
-    if (m_item->m_bIsFolder)
-    {
-      m_item->SetStartOffset(STARTOFFSET_RESUME);
-      CServiceBroker::GetPVRManager().Get<PVR::GUI::Playback>().PlayRecordingFolder(
-          *m_item, false /* no resume check */);
-    }
-    else
-    {
-      CServiceBroker::GetPVRManager().Get<PVR::GUI::Playback>().ResumePlayRecording(
-          *m_item, true /* fall back to play if no resume possible */);
-    }
-    return true;
-  }
-
-  bool OnPlaySelected() override
-  {
-    if (m_item->m_bIsFolder)
-    {
-      m_item->SetStartOffset(0);
-      CServiceBroker::GetPVRManager().Get<PVR::GUI::Playback>().PlayRecordingFolder(
-          *m_item, false /* no resume check */);
-    }
-    else
-    {
-      CServiceBroker::GetPVRManager().Get<PVR::GUI::Playback>().PlayRecording(
-          *m_item, false /* no resume check */);
-    }
-    return true;
-  }
 };
 } // namespace
 
@@ -351,7 +299,7 @@ bool CGUIWindowPVRRecordingsBase::OnMessage(CGUIMessage& message)
 
               if (!item->IsParentFolder() && message.GetParam1() == ACTION_PLAYER_PLAY)
               {
-                CVideoPlayActionProcessor proc{item};
+                KODI::VIDEO::GUILIB::CVideoPlayActionProcessor proc{item};
                 bReturn = proc.ProcessDefaultAction();
               }
               else if (item->m_bIsFolder)
@@ -508,14 +456,4 @@ bool CGUIWindowPVRRecordingsBase::GetFilteredItems(const std::string& filter, CF
     items.Remove(0);
 
   return listchanged;
-}
-
-std::string CGUIWindowPVRTVRecordings::GetRootPath() const
-{
-  return CPVRRecordingsPath(m_bShowDeletedRecordings, false);
-}
-
-std::string CGUIWindowPVRRadioRecordings::GetRootPath() const
-{
-  return CPVRRecordingsPath(m_bShowDeletedRecordings, true);
 }
