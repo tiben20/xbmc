@@ -1160,10 +1160,10 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		frameIn.planes[0].component_mapping[2] = 2;
 		frameIn.planes[0].component_mapping[3] = -1;
 		frameIn.planes[0].flipped = false;
-		repr.bits.color_depth = 10;
+		repr.bits.color_depth = 8;
 		frameIn.repr = repr;
 		frameIn.color = csp;
-	}
+	}  
 	CD3DTexture outputTarget = CMPCVRRenderer::Get()->GetIntermediateTarget();
 	outputParams.w = outputTarget.GetWidth();
 	outputParams.h = outputTarget.GetHeight();
@@ -1174,9 +1174,9 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameOut.num_planes = 1;
 	frameOut.planes[0].texture = interTexture;
 	frameOut.planes[0].components = 3;
-	frameOut.planes[0].component_mapping[0] = 0;
-	frameOut.planes[0].component_mapping[1] = 1;
-	frameOut.planes[0].component_mapping[2] = 2;
+	frameOut.planes[0].component_mapping[0] = PL_CHANNEL_R;
+	frameOut.planes[0].component_mapping[1] = PL_CHANNEL_G;
+	frameOut.planes[0].component_mapping[2] = PL_CHANNEL_B;
 	frameOut.planes[0].component_mapping[3] = -1;
 	frameOut.planes[0].flipped = false;
 	frameIn.crop.x1 = m_srcWidth;
@@ -1185,7 +1185,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameOut.crop.y1 = m_srcHeight;
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
-
+	frameOut.repr.sys = PL_COLOR_SYSTEM_RGB;
 	pl_chroma_location loc = PL_CHROMA_UNKNOWN;
 	//todo fix when not left
 	switch (m_srcExFmt.VideoChromaSubsampling) {
@@ -1354,7 +1354,7 @@ BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 	const auto& FmtParams = GetFmtConvParams(pmt);
 	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
 	{
-		if (FmtParams.cformat == CF_YV12)
+		if (FmtParams.cformat == CF_NV12)
 			return TRUE;
 		else
 			return FALSE;
