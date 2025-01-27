@@ -1121,7 +1121,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		}
 		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
 		{
-			frameIn = pHelper->CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight);
+			
+			frameIn = CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight, m_srcParams);
 		}
 		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
 		{
@@ -1242,6 +1243,144 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	return S_OK;
 }
 
+pl_frame CDX11VideoProcessor::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSample, int width, int height, FmtConvParams_t srcParams)
+{
+	pl_frame outFrame{};
+	struct pl_plane_data data[4] = {};
+
+	pl_chroma_location loc;
+	switch (pFormat.VideoChromaSubsampling) {
+		//case AVCHROMA_LOC_UNSPECIFIED:  return PL_CHROMA_UNKNOWN;
+	case DXVA2_VideoChromaSubsampling_MPEG2:
+		loc = PL_CHROMA_LEFT;
+		break;
+	case DXVA2_VideoChromaSubsampling_MPEG1:
+		loc = PL_CHROMA_CENTER;
+		break;
+	case DXVA2_VideoChromaSubsampling_Cosited:
+		loc = PL_CHROMA_TOP_LEFT;
+		break;
+	default:
+		loc = PL_CHROMA_CENTER;
+		//case AVCHROMA_LOC_TOP:          return PL_CHROMA_TOP_CENTER;
+		//case AVCHROMA_LOC_BOTTOMLEFT:   return PL_CHROMA_BOTTOM_LEFT;
+		//case AVCHROMA_LOC_BOTTOM:       return PL_CHROMA_BOTTOM_CENTER;
+		//case AVCHROMA_LOC_NB:           return PL_CHROMA_COUNT;
+	}
+
+	pl_plane pl_planes[3]{};
+	pl_tex pltex[3]{};
+	pl_frame img{};
+	BYTE* pD;
+	bool res;
+	pSample->GetPointer(&pD);
+	int previouswidth = 0;
+	int previousheight = 0;
+	for (int x = 0; x < 4; x++)
+	{
+		if (m_srcParamsLibplacebo.planes[x])
+		{
+			data[x].type = PL_FMT_UNORM;
+
+			data[x].component_size[0] = m_srcParamsLibplacebo.planes[x]->component_size[0];
+			data[x].component_size[1] = m_srcParamsLibplacebo.planes[x]->component_size[1];
+			data[x].component_size[2] = m_srcParamsLibplacebo.planes[x]->component_size[2];
+			data[0].component_size[3] = m_srcParamsLibplacebo.planes[x]->component_size[3];
+
+			data[x].component_map[0] = m_srcParamsLibplacebo.planes[x]->component_map[0];
+			data[x].component_map[1] = m_srcParamsLibplacebo.planes[x]->component_map[1];
+			data[x].component_map[2] = m_srcParamsLibplacebo.planes[x]->component_map[2];
+			data[x].component_map[3] = m_srcParamsLibplacebo.planes[x]->component_map[3];
+
+			data[x].pixel_stride = m_srcParamsLibplacebo.planes[x]->pixel_stride;
+			data[x].pixels = pD + previouswidth * previousheight;
+			data[x].width =  width* m_srcParamsLibplacebo.planes[x]->width;
+			data[x].height = height* m_srcParamsLibplacebo.planes[x]->height;
+			previouswidth = data[x].width;
+		  previousheight = data[x].height;
+			res = pl_upload_plane(CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu, &pl_planes[x], &pltex[x], &data[x]);
+			if (!res)
+				assert(0);
+			else
+			img.planes[x] = pl_planes[x];
+			img.num_planes = x+1;
+		}
+	}
+
+
+	
+	
+	//offset { 0, 1, 3, 0 }
+	//data[0].row_stride = width/4;
+	 
+	
+	int outmap[4];
+
+	
+	
+	
+	/*pl_gpu gp = CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu;
+	for (int x = 0; x < gp->num_formats; x++)
+	{
+		const pl_fmt fm = gp->formats[x];
+		CLog::Log(LOGINFO, "format start: {}", fm->name);
+		
+		CLog::Log(LOGINFO, "num_components: {} num planes: {}", fm->num_components, fm->num_planes);
+		CLog::Log(LOGINFO, "internal size: {}", fm->internal_size);
+		CLog::Log(LOGINFO, "texel size: {} texel align: {}", fm->texel_size, fm->texel_align);
+		CLog::Log(LOGINFO, "component_depth: {} {} {} {}", fm->component_depth[0], fm->component_depth[1], fm->component_depth[2], fm->component_depth[3]);
+		CLog::Log(LOGINFO, "host_bits: {} {} {} {}", fm->host_bits[0], fm->host_bits[1], fm->host_bits[2], fm->host_bits[3]);
+		CLog::Log(LOGINFO, "sample_order: {} {} {} {}", fm->sample_order[0], fm->sample_order[1], fm->sample_order[2], fm->sample_order[3]);
+		CLog::Log(LOGINFO, "format end: {}", fm->name);
+	}*/
+
+	if (res && srcParams.pDX11Planes->FmtPlane2 && 0)
+	{
+		img.num_planes = 2;
+		data[1].type = PL_FMT_UNORM;
+		data[1].component_size[0] = srcParams.CDepth;
+		//data[1].component_size[1] = srcParams.CDepth;
+		data[1].component_map[0] = 2;
+		//data[1].component_map[1] = 2;
+		data[1].pixel_stride = 1;
+		data[1].row_stride = width / 2;
+
+		data[1].pixels = pD + width * height;
+		data[1].width = width / srcParams.pDX11Planes->div_chroma_w;
+		data[1].height = height / srcParams.pDX11Planes->div_chroma_h;
+		
+		res = pl_upload_plane(CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu, &pl_planes[1], &pltex[1], &data[1]);
+		img.planes[1] = pl_planes[1];
+		if (res && srcParams.pDX11Planes->FmtPlane3)
+		{
+			img.num_planes = 3;
+			data[2].type = PL_FMT_UNORM;
+			data[2].component_size[0] = srcParams.CDepth;
+			//data[2].component_size[1] = srcParams.CDepth;
+			data[2].component_map[0] = 1;
+			data[2].pixel_stride = 1;
+			data[2].row_stride = width/2;
+
+			data[2].pixels = pD + +width * height + (data[1].width * data[1].height);// ((width / 2) * (height / 2));
+			data[2].width = width / srcParams.pDX11Planes->div_chroma_w;
+			data[2].height = height / srcParams.pDX11Planes->div_chroma_h;
+			res = pl_upload_plane(CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu, &pl_planes[2], &pltex[2], &data[2]);
+			img.planes[2] = pl_planes[2];
+		}
+	}
+	//todo
+
+
+
+
+
+	img.repr = CMPCVRRenderer::Get()->GetPlHelper()->GetPlColorRepresentation(pFormat);
+	img.color = CMPCVRRenderer::Get()->GetPlHelper()->GetPlColorSpace(pFormat);
+
+	pl_frame_set_chroma_location(&img, loc);
+	return img;
+}
+
 HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice)
 {
 	HRESULT hr = S_OK;
@@ -1354,7 +1493,7 @@ BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 	const auto& FmtParams = GetFmtConvParams(pmt);
 	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
 	{
-		if (FmtParams.cformat == CF_NV12)
+		if (FmtParams.cformat == CF_NV12 || FmtParams.cformat == CF_YV12 || FmtParams.cformat == CF_P010)
 			return TRUE;
 		else
 			return FALSE;
@@ -1570,7 +1709,9 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	ReleaseVP();
 
 	auto FmtParams = GetFmtConvParams(pmt);
-
+	
+	m_srcParamsLibplacebo = GetFmtConvParamsLibplacebo(FmtParams.cformat);
+	
 	const BITMAPINFOHEADER* pBIH = nullptr;
 	m_decExFmt.value = 0;
 

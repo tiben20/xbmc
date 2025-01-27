@@ -36,6 +36,15 @@
 /*kodi*/
 #include "guilib/D3DResource.h"
 #include "../IDSPlayer.h"
+
+#include "libplacebo/log.h"
+#include "libplacebo/renderer.h"
+#include "libplacebo/d3d11.h"
+#include <libplacebo/options.h>
+#include "libplacebo/utils/frame_queue.h"
+#include "libplacebo/utils/upload.h"
+#include "libplacebo/colorspace.h"
+
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
@@ -187,6 +196,8 @@ private:
 
 	/*added for kodi*/
 	std::vector<CD3DPixelShader> m_pPixelShaders;
+
+	pl_frame CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSample, int width, int height, FmtConvParams_t srcParams);
 
 public:
 	//temporary used because i cant make planes copy work

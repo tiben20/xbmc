@@ -131,15 +131,6 @@ void ShaderGetPixels(
 				planes = 2;
 			}
 		}
-	} else {
-		if (fmtParams.pDX9Planes) {
-			if (fmtParams.pDX9Planes->FmtPlane3) {
-				planes = 3;
-			}
-			else if (fmtParams.pDX9Planes->FmtPlane2) {
-				planes = 2;
-			}
-		}
 	}
 	DLog("ConvertColorShader: frame consists of {} planes", planes);
 

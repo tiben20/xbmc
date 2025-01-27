@@ -49,6 +49,7 @@ protected:
 
 	// Input parameters
 	FmtConvParams_t m_srcParams = GetFmtConvParams(CF_NONE);
+	FmtConvParamsLibplacebo_t m_srcParamsLibplacebo;
 	UINT  m_srcWidth        = 0;
 	UINT  m_srcHeight       = 0;
 	UINT  m_srcRectWidth    = 0;

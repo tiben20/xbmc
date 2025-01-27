@@ -80,7 +80,7 @@ namespace PL
 
     const pl_hook* SetupShader();
 
-    pl_frame CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSample, int width, int height);
+    
 
     pl_color_repr GetPlColorRepresentation(DXVA2_ExtendedFormat pFormat);
     pl_color_space GetPlColorSpace(DXVA2_ExtendedFormat pFormat);

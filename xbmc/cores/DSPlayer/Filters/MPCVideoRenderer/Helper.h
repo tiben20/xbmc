@@ -133,12 +133,31 @@ struct DX11PlaneConfig_t {
 	UINT        div_chroma_h;
 };
 
+enum libplacebo_format_t {
+	PL_UNKNOWN = 0, // also used for inconsistent multi-component formats
+	PL_UNORM,       // unsigned, normalized integer format (sampled as float)
+	PL_SNORM,       // signed, normalized integer format (sampled as float)
+	PL_UINT,        // unsigned integer format (sampled as integer)
+	PL_SINT,        // signed integer format (sampled as integer)
+	PL_FLOAT,       // (signed) float formats, any bit size
+	PL_TYPE_COUNT,
+};
+
+struct libplacebo_plane_t {
+	libplacebo_format_t type;
+	float width, height;      // dimensions of the plane
+	int component_size[4];  // size in bits of each coordinate
+	int component_pad[4];   // ignored bits preceding each component
+	int component_map[4];   // semantic meaning of each component (pixel order)
+	size_t pixel_stride;    // offset in bytes between pixels (required)
+	size_t row_stride;      // offset in bytes between rows (optional)
+	bool swapped;           // pixel data is endian-swapped (non-native)
+};
+
+
 struct FmtConvParams_t {
 	ColorFormat_t      cformat;
 	const wchar_t*     str;
-	D3DFORMAT          DXVA2Format;
-	D3DFORMAT          D3DFormat;
-	DX9PlaneConfig*    pDX9Planes;
 	DXGI_FORMAT        VP11Format;
 	DXGI_FORMAT        DX11Format;
 	DX11PlaneConfig_t* pDX11Planes;
@@ -149,10 +168,17 @@ struct FmtConvParams_t {
 	int                CDepth;
 	CopyFrameDataFn    Func;
 	CopyFrameDataFn    FuncSSSE3;
+	bool               SupportLibplacebo;
 };
 
+/*libplacebo*/
+struct FmtConvParamsLibplacebo_t {
+	ColorFormat_t       cformat;
+	libplacebo_plane_t  *planes[4];
+};
 ColorFormat_t GetColorFormat(const CMediaType* pmt);
 const FmtConvParams_t& GetFmtConvParams(const ColorFormat_t fmt);
+const FmtConvParamsLibplacebo_t& GetFmtConvParamsLibplacebo(const ColorFormat_t fmt);
 const FmtConvParams_t& GetFmtConvParams(const CMediaType* pmt);
 CopyFrameDataFn GetCopyFunction(const FmtConvParams_t& params);
 
