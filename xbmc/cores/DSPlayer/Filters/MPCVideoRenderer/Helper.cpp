@@ -332,13 +332,45 @@ static const FmtConvParams_t s_FmtConvMapping[] = {
 //                                                format   |width |height|size     |padding  |mapping     |pixel stride |row stride | swapped
 static libplacebo_plane_t PlaceboPlanesNV12_0 = { PL_UNORM ,1     ,1     ,{8,0,0,0},{0,0,0,0},{0,-1,-1,-1},1            ,0          ,false};
 static libplacebo_plane_t PlaceboPlanesNV12_1 = { PL_UNORM ,.5    ,.5    ,{8,8,0,0},{0,0,0,0},{1,2,-1,-1} ,2            ,0          ,false};
-
+static libplacebo_plane_t PlaceboPlanesP010_0 = { PL_UNORM ,1     ,1     ,{16,0,0,0},{0,0,0,0},{0,-1,-1,-1},2            ,0          ,false };
+static libplacebo_plane_t PlaceboPlanesP010_1 = { PL_UNORM ,.5    ,.5    ,{16,16,0,0},{0,0,0,0},{1,2,-1,-1} ,4            ,0          ,false };
 
 
 
 static const FmtConvParamsLibplacebo_t s_FmtConvMappingLibplacebo[] = {
 	{CF_NONE, {nullptr,nullptr,nullptr,nullptr}},
-	{CF_NV12,      {&PlaceboPlanesNV12_0,&PlaceboPlanesNV12_1,nullptr,nullptr}}
+	{CF_NV12, {&PlaceboPlanesNV12_0,&PlaceboPlanesNV12_1,nullptr,nullptr}},
+	{CF_P010, {&PlaceboPlanesP010_0,&PlaceboPlanesP010_1,nullptr,nullptr}},
+	{CF_P016, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUY2, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_P210, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_P216, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_Y210, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_Y216, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_AYUV, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_Y410, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_Y416, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YV12, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YV16, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YV24, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUV420P8, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUV422P8, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUV444P8, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUV420P16, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUV422P16, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_YUV444P16, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_GBRP8, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_GBRP16, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_RGB24, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_XRGB32, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_ARGB32, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_r210, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_RGB48, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_BGR48, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_BGRA64, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_B64A, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_Y8, {nullptr,nullptr,nullptr,nullptr}},
+	{CF_Y16, {nullptr,nullptr,nullptr,nullptr}},
 };
 // Remarks:
 // 1. The table lists all possible formats. The real situation depends on the capabilities of the graphics card and drivers.
