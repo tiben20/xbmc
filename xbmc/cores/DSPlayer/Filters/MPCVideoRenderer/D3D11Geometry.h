@@ -21,7 +21,6 @@
 #pragma once
 
 #include "windowing/windows/WinSystemWin32DX.h"
-#include <d3d9types.h>
 
 struct POINTVERTEX11 {
 	DirectX::XMFLOAT3 Pos;
@@ -51,7 +50,7 @@ public:
 	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
 	
 
-	HRESULT Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const D3DCOLOR color);
+	HRESULT Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, KODI::UTILS::COLOR::Color color);
 	HRESULT Draw(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize);
 };
 
@@ -63,7 +62,7 @@ private:
 	using CD3D11Quadrilateral::Set;
 
 public:
-	HRESULT Set(const RECT& rect, const SIZE& rtSize, const D3DCOLOR color);
+	HRESULT Set(const RECT& rect, const SIZE& rtSize, const KODI::UTILS::COLOR::Color color);
 };
 
 // CD3D11Stripe
@@ -74,7 +73,7 @@ private:
 	using CD3D11Quadrilateral::Set;
 
 public:
-	HRESULT Set(const int x1, const int y1, const int x2, const int y2, const int thickness, const D3DCOLOR color);
+	HRESULT Set(const int x1, const int y1, const int x2, const int y2, const int thickness, const KODI::UTILS::COLOR::Color color);
 };
 
 // CD3D11Dots
@@ -110,12 +109,12 @@ public:
 	void InvalidateDeviceObjects();
 
 	void ClearPoints(SIZE& newRTSize);
-	bool AddPoints(POINT* poins, const UINT size, const D3DCOLOR color);
+	bool AddPoints(POINT* poins, const UINT size, const KODI::UTILS::COLOR::Color color);
 	bool AddGFPoints(
 		int Xstart, int Xstep,
 		int Yaxis, int Yscale,
 		int* Ydata, UINT Yoffset,
-		const UINT size, const D3DCOLOR color);
+		const UINT size, const KODI::UTILS::COLOR::Color color);
 
 	HRESULT UpdateVertexBuffer();
 	void Draw();

@@ -310,7 +310,7 @@ HRESULT CD3D11Font::GetTextExtent(const WCHAR* strText, SIZE* pSize)
 	return S_OK;
 }
 
-HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize, float sx, float sy, D3DCOLOR color, const WCHAR* strText)
+HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize, float sx, float sy, KODI::UTILS::COLOR::Color color, const WCHAR* strText)
 {
 	if (!DX::DeviceResources::Get()->GetD3DDevice() || !m_pDeviceContext) {
 		return E_ABORT;

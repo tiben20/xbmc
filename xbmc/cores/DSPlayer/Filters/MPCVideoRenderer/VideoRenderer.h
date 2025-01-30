@@ -116,8 +116,6 @@ private:
 
 	Com::SmartRect m_windowRect, m_videoRect;
 
-	bool m_bForceRedrawing = true;
-
 	bool m_bEnableFullscreenControl = false;
 
 	Com::SmartSize m_videoSize, m_videoAspectRatio;
@@ -264,6 +262,5 @@ public:
 	bool m_bIsD3DFullscreen = false;
 
 private:
-	HRESULT Redraw();
 	void DoAfterChangingDevice();
 };

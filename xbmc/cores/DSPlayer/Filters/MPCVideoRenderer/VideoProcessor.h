@@ -118,9 +118,7 @@ protected:
 
 	// Graph of a function
 	CMovingAverage<int> m_Syncs = CMovingAverage<int>(120);
-#if SYNC_OFFSET_EX
-	CMovingAverage<int> m_SyncDevs = CMovingAverage<int>(m_Syncs.Size()-1);
-#endif
+
 	int m_Xstep  = 4;
 	int m_Yscale = 2;
 	RECT m_GraphRect = {};
@@ -144,7 +142,6 @@ public:
 	virtual BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) = 0;
 
 	virtual HRESULT ProcessSample(IMediaSample* pSample) = 0;
-	virtual HRESULT Render(int field, const REFERENCE_TIME frameStartTime) = 0;
 
 	void Start() { m_rtStart = 0; }
 	virtual void Flush() = 0;

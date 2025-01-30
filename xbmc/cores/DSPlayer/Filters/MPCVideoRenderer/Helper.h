@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include <d3d9types.h>/*needed for dxva2api.h*/
 #include <dxva2api.h>
 #include <mfobjects.h>
 #include "Util2.h"
@@ -66,7 +67,6 @@ CStdStringA GetNameAndVersion();
 
 CStdStringW MediaType2Str(const CMediaType *pmt);
 
-const wchar_t* D3DFormatToString(const D3DFORMAT format);
 const wchar_t* DXGIFormatToString(const DXGI_FORMAT format);
 CStdStringW DXVA2VPDeviceToString(const GUID& guid);
 void SetDefaultDXVA2ProcAmpRanges(DXVA2_ValueRange(&DXVA2ProcAmpRanges)[4]);
@@ -115,14 +115,6 @@ enum ColorSystem_t {
 	CS_YUV,
 	CS_RGB,
 	CS_GRAY
-};
-
-struct DX9PlaneConfig {
-	D3DFORMAT   FmtPlane1;
-	D3DFORMAT   FmtPlane2;
-	D3DFORMAT   FmtPlane3;
-	UINT        div_chroma_w;
-	UINT        div_chroma_h;
 };
 
 struct DX11PlaneConfig_t {

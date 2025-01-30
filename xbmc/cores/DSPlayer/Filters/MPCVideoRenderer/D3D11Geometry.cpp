@@ -82,7 +82,7 @@ HRESULT CD3D11Quadrilateral::InitDeviceObjects(ID3D11DeviceContext* pDeviceConte
 	return hr;
 }
 
-HRESULT CD3D11Quadrilateral::Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const D3DCOLOR color)
+HRESULT CD3D11Quadrilateral::Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, const KODI::UTILS::COLOR::Color color)
 {
 	HRESULT hr = S_OK;
 
@@ -145,7 +145,7 @@ HRESULT CD3D11Quadrilateral::Draw(ID3D11RenderTargetView* pRenderTargetView, con
 // CD3D11Rectangle
 //
 
-HRESULT CD3D11Rectangle::Set(const RECT& rect, const SIZE& rtSize, const D3DCOLOR color)
+HRESULT CD3D11Rectangle::Set(const RECT& rect, const SIZE& rtSize, const KODI::UTILS::COLOR::Color color)
 {
 	const float left   = (float)(rect.left*2)    / rtSize.cx - 1;
 	const float top    = (float)(-rect.top*2)    / rtSize.cy + 1;
@@ -159,7 +159,7 @@ HRESULT CD3D11Rectangle::Set(const RECT& rect, const SIZE& rtSize, const D3DCOLO
 // CD3D11Stripe
 //
 
-HRESULT CD3D11Stripe::Set(const int x1, const int y1, const int x2, const int y2, const int thickness, const D3DCOLOR color)
+HRESULT CD3D11Stripe::Set(const int x1, const int y1, const int x2, const int y2, const int thickness, const KODI::UTILS::COLOR::Color color)
 {
 	const float a = x2 - x1;
 	const float b = y1 - y2;
@@ -228,7 +228,7 @@ void CD3D11Dots::ClearPoints(SIZE& newRTSize)
 	m_RTSize = newRTSize;
 }
 
-bool CD3D11Dots::AddPoints(POINT* poins, const UINT size, const D3DCOLOR color)
+bool CD3D11Dots::AddPoints(POINT* poins, const UINT size, const KODI::UTILS::COLOR::Color color)
 {
 	if (!CheckNumPoints(size)) {
 		return false;
@@ -255,7 +255,7 @@ bool CD3D11Dots::AddGFPoints(
 	int Xstart, int Xstep,
 	int Yaxis, int Yscale,
 	int* Ydata, UINT Yoffset,
-	const UINT size, const D3DCOLOR color)
+	const UINT size, const KODI::UTILS::COLOR::Color color)
 {
 	if (!CheckNumPoints(size)) {
 		return false;

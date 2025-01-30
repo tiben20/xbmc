@@ -29,7 +29,11 @@ struct DS_VERTEX {
 };
 
 
-
+// maps unsigned 8 bits/channel to D3DCOLOR
+#define COLOR_ARGB(a,r,g,b) \
+    ((KODI::UTILS::COLOR::Color)((((a)&0xff)<<24)|(((r)&0xff)<<16)|(((g)&0xff)<<8)|((b)&0xff)))
+#define COLOR_RGBA(r,g,b,a) COLOR_ARGB(a,r,g,b)
+#define COLOR_XRGB(r,g,b)   COLOR_ARGB(0xff,r,g,b)
 
 /*
 static pl_color_repr GetPlaceboColorRepr(DXVA_VideoPrimaries primaries, DXVA_NominalRange range)
@@ -201,7 +205,7 @@ protected:
   int m_Yaxis = 0;
   CStdStringW m_statsText;
   const POINT m_StatsTextPoint = { 10 + 5, 10 + 5 };
-  D3DCOLOR m_dwStatsTextColor = D3DCOLOR_XRGB(255, 255, 255);
+  KODI::UTILS::COLOR::Color m_dwStatsTextColor = COLOR_XRGB(255, 255, 255);
   CRect m_screenRect;
 
 

@@ -23,6 +23,7 @@
 #include <d3d11.h>
 #include "D3DCommon.h"
 #include "Utils/StdString.h"
+#include "utils/ColorUtils.h"
 
 class CD3D11Font
 {
@@ -34,8 +35,8 @@ class CD3D11Font
 	WCHAR m_Characters[128];
 	FloatRect m_fTexCoords[128] = {};
 	SIZE m_MaxCharMetric = {};
-
-	D3DCOLOR m_Color = D3DCOLOR_XRGB(255, 255, 255);
+	
+	KODI::UTILS::COLOR::Color m_Color = KODI::UTILS::COLOR::ConvertIntToRGB(255, 255, 255);
 
 	ID3D11DeviceContext* m_pDeviceContext = nullptr;
 
@@ -70,5 +71,5 @@ public:
 	HRESULT GetTextExtent(const WCHAR* strText, SIZE* pSize);
 
 	// 2D text drawing function
-	HRESULT Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize, float sx, float sy, D3DCOLOR color, const WCHAR* strText);
+	HRESULT Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize, float sx, float sy, KODI::UTILS::COLOR::Color color, const WCHAR* strText);
 };

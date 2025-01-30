@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "d3d9types.h"
 #include <DXGI1_2.h>
+#include <d3d9types.h>
 #include <dxva2api.h>
 #include <dxgi1_5.h>
 #include <strmif.h>
@@ -229,17 +229,14 @@ public:
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
 
 	HRESULT ProcessSample(IMediaSample* pSample) override;
-	HRESULT CopySample(IMediaSample* pSample);
-	// Render: 1 - render first fied or progressive frame, 2 - render second fied, 0 or other - forced repeat of render.
-	HRESULT Render(int field, const REFERENCE_TIME frameStartTime) override;
 
 	void SetVideoRect(const Com::SmartRect& videoRect)      override;
 	HRESULT SetWindowRect(const Com::SmartRect& windowRect) override;
 	HRESULT Reset() override;
 	bool IsInit() const override { return m_bHdrDisplaySwitching; }
 
-	HRESULT GetCurentImage(long *pDIBImage) override;
-	HRESULT GetDisplayedImage(BYTE **ppDib, unsigned* pSize) override;
+	HRESULT GetCurentImage(long* pDIBImage) override { return E_FAIL; };
+	HRESULT GetDisplayedImage(BYTE **ppDib, unsigned* pSize) override { return E_FAIL; };
 
 	void SetRotation(int value) override;
 	void SetStereo3dTransform(int value) override;

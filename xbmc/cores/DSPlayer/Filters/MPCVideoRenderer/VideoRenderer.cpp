@@ -721,10 +721,6 @@ STDMETHODIMP CMpcVideoRenderer::SetDestinationPosition(long Left, long Top, long
 		m_VideoProcessor->SetVideoRect(videoRect);
 	}
 
-	if (m_bForceRedrawing) {
-		Redraw();
-	}
-
 	return S_OK;
 }
 
@@ -799,9 +795,7 @@ STDMETHODIMP CMpcVideoRenderer::GetCurrentImage(long *pBufferSize, long *pDIBIma
 		return E_OUTOFMEMORY;
 	}
 
-	hr = m_VideoProcessor->GetCurentImage(pDIBImage);
-
-	return hr;
+	return E_FAIL;
 }
 
 // IBasicVideo2
@@ -817,7 +811,6 @@ void CMpcVideoRenderer::SwitchFullScreen()
 
 	if (m_hWnd) {
 		Init(true);
-		Redraw();
 
 		if (m_hWndParentMain) {
 			PostMessageW(m_hWndParentMain, WM_SWITCH_FULLSCREEN, 1, 0);
@@ -1046,18 +1039,6 @@ STDMETHODIMP CMpcVideoRenderer::GetD3DFullscreen(bool* pbEnabled)
 	return S_OK;
 }
 
-HRESULT CMpcVideoRenderer::Redraw()
-{
-	CAutoLock cRendererLock(&m_RendererLock);
-	const auto bDrawFrame = m_bValidBuffer && m_filterState != State_Stopped;
-
-	HRESULT hr = S_OK;
-	if (bDrawFrame)
-		hr = m_VideoProcessor->Render(0, INVALID_TIME);
-	
-
-	return hr;
-}
 
 void CMpcVideoRenderer::DoAfterChangingDevice()
 {

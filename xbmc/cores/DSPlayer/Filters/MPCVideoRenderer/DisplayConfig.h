@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "d3d9types.h"
+
 #include <Utils/StdString.h>
 
 struct DisplayConfig_t {
