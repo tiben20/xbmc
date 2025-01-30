@@ -176,6 +176,8 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
   m_plRenderer = pl_renderer_create(m_plLog, m_plD3d11->gpu);
   if (!m_plRenderer)
     return false;
+
+  m_pQueue = pl_queue_create(m_plD3d11->gpu);
   return false;
 }
 

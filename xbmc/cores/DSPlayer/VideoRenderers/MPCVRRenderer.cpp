@@ -188,7 +188,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
 
   D3D11_VIEWPORT VP;
   VP.TopLeftX = (FLOAT)m_destRect.x1;
-  VP.TopLeftY = (FLOAT)m_destRect.y1;
+  VP.TopLeftY = (FLOAT)m_destRect.y1;  
   VP.Width = (FLOAT)m_destRect.Width();
   VP.Height = (FLOAT)m_destRect.Height();
   VP.MinDepth = 0.0f;
@@ -218,8 +218,6 @@ void CMPCVRRenderer::CopyToBackBuffer()
 
   // Draw textured quad onto render target
   pContext->Draw(4, 0);
-
-  //pContext->IASetInputLayout(nullptr);
 }
 
 void CMPCVRRenderer::DrawSubtitles()

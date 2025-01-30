@@ -102,6 +102,7 @@ namespace PL
     pl_d3d11 GetPLD3d11() { return m_plD3d11; };
     pl_renderer GetPLRenderer() { return m_plRenderer; };
     pl_swapchain GetPLSwapChain() { return m_plSwapchain; };
+    pl_queue GetQueue() { return m_pQueue; };
 
     // pass metadata
     struct pl_dispatch_info blend_info[MAX_BLEND_FRAMES][MAX_BLEND_PASSES];

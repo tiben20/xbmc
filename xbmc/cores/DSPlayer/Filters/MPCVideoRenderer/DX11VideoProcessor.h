@@ -66,6 +66,8 @@ public:
 	void Reset(bool bForceWindowed) override;
 private:
 	friend class CVideoRendererInputPin;
+	/*Kodi Specific*/
+	D3D11_TEXTURE_SAMPLER m_pFinalTextureSampler;
 
 	// Direct3D 11
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
@@ -209,6 +211,7 @@ public:
 
 	/*libplacebo*/
 	static void render_info_cb(void* priv, const struct pl_render_info* info);
+
 	HRESULT CopySampleToLibplacebo(IMediaSample* pSample);
 
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);

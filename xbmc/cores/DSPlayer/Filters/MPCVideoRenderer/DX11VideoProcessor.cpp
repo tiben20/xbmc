@@ -228,7 +228,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	MPC_SETTINGS->bVPUseRTXVideoHDR = true;// config.bVPRTXVideoHDR;
 	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
 	
-
+	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;
 	m_iVPSuperRes = true;// config.iVPSuperRes;
 
 	m_nCurrentAdapter = -1;
@@ -1102,7 +1102,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	{
 		// do not use UpdateSubresource for D3D11 VP here
 		// because it can cause green screens and freezes on some configurations
-		if (!MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
+		if (!m_pFinalTextureSampler == D3D11_VP)
 			hr = MemCopyToTexSrcVideo(data, m_srcPitch);
 		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get())
 		{
@@ -1114,20 +1114,20 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 			m_pInputTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(),"CMPCVRRenderer Merged plane", true, 0U);
 	  
 		CMPCVRSettings* mpc = static_cast<CMPCVRSettings*>(g_dsSettings.pRendererSettings);
-		if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_VP && m_D3D11VP.IsReady())
+		if (m_pFinalTextureSampler == D3D11_VP && m_D3D11VP.IsReady())
 		{
 			m_pDeviceContext->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
 			D3D11VPPass(m_pInputTexture.Get(), m_srcRect, m_srcRect, false);
 		}
-		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
+		else if (m_pFinalTextureSampler == D3D11_LIBPLACEBO)
 		{
 			
 			frameIn = CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight, m_srcParams);
 		}
-		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
+		else if (m_pFinalTextureSampler == D3D11_INTERNAL_SHADERS)
 		{
 			//use the shaders to merge the planes
-			ConvertColorPass(m_pInputTexture.Get());
+			hr = ConvertColorPass(m_pInputTexture.Get());
 		}
 	}
 
@@ -1151,7 +1151,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	inParams.tex = m_pInputTexture.Get();
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
 
-	if (MPC_SETTINGS->bD3D11TextureSampler != D3D11_LIBPLACEBO)
+	if (m_pFinalTextureSampler != D3D11_LIBPLACEBO)
 	{
 		frameIn.num_planes = 1;
 		frameIn.planes[0].texture = inTexture;
@@ -1161,7 +1161,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		frameIn.planes[0].component_mapping[2] = 2;
 		frameIn.planes[0].component_mapping[3] = -1;
 		frameIn.planes[0].flipped = false;
-		repr.bits.color_depth = 8;
+		repr.bits.color_depth = 16;
 		frameIn.repr = repr;
 		frameIn.color = csp;
 	}  
@@ -1174,12 +1174,15 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	pl_tex interTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &outputParams);
 	frameOut.num_planes = 1;
 	frameOut.planes[0].texture = interTexture;
-	frameOut.planes[0].components = 3;
+	frameOut.planes[0].components = 4;
 	frameOut.planes[0].component_mapping[0] = PL_CHANNEL_R;
 	frameOut.planes[0].component_mapping[1] = PL_CHANNEL_G;
 	frameOut.planes[0].component_mapping[2] = PL_CHANNEL_B;
-	frameOut.planes[0].component_mapping[3] = -1;
+	frameOut.planes[0].component_mapping[3] = PL_CHANNEL_A;
+
 	frameOut.planes[0].flipped = false;
+
+
 	frameIn.crop.x1 = m_srcWidth;
 	frameIn.crop.y1 = m_srcHeight;
 	frameOut.crop.x1 = m_srcWidth;
@@ -1187,6 +1190,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
 	frameOut.repr.sys = PL_COLOR_SYSTEM_RGB;
+	
 	pl_chroma_location loc = PL_CHROMA_UNKNOWN;
 	//todo fix when not left
 	switch (m_srcExFmt.VideoChromaSubsampling) {
@@ -1227,7 +1231,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	params.num_hooks = 1;*/
 	params.info_priv = pHelper;
 	params.info_callback = render_info_cb;
-
+	
 	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
 
@@ -1302,22 +1306,10 @@ pl_frame CDX11VideoProcessor::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSa
 			if (!res)
 				assert(0);
 			else
-			img.planes[x] = pl_planes[x];
+			img.planes[x] = pl_planes[x]; 
 			img.num_planes = x+1;
 		}
 	}
-
-
-	
-	
-	//offset { 0, 1, 3, 0 }
-	//data[0].row_stride = width/4;
-	 
-	
-	int outmap[4];
-
-	
-	
 	
 	/*pl_gpu gp = CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu;
 	for (int x = 0; x < gp->num_formats; x++)
@@ -1493,10 +1485,14 @@ BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 	const auto& FmtParams = GetFmtConvParams(pmt);
 	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
 	{
-		if (FmtParams.cformat == CF_NV12 || FmtParams.cformat == CF_YV12 || FmtParams.cformat == CF_P010)
+		if (FmtParams.cformat == CF_NV12 || FmtParams.cformat == CF_YV12)
+		{
+			m_pFinalTextureSampler = D3D11_LIBPLACEBO;
 			return TRUE;
-		else
-			return FALSE;
+		}
+		CLog::Log(LOGERROR, "{}libplacebo was selected for texture sample but format not supported yet falling back to internal shaders",__FUNCTION__);
+	  m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;
+
 	}
 
 	if (FmtParams.VP11Format == DXGI_FORMAT_UNKNOWN && FmtParams.DX11Format == DXGI_FORMAT_UNKNOWN) {
@@ -1784,7 +1780,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	m_srcExFmt = SpecifyExtendedFormat(m_decExFmt, FmtParams, m_srcRectWidth, m_srcRectHeight);
 	
 	
-	bool disableD3D11VP = (MPC_SETTINGS->bD3D11TextureSampler != D3D11_VP);
+	bool disableD3D11VP = (m_pFinalTextureSampler != D3D11_VP);
 	
 	if (m_srcExFmt.VideoTransferMatrix == VIDEOTRANSFERMATRIX_YCgCo || m_Dovi.bValid) {
 		disableD3D11VP = true;
@@ -1891,7 +1887,7 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 		}
 	}
 	CMPCVRRenderer::Get()->GetPlHelper()->Init(FmtParams.DX11Format);
-	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
+	if (m_pFinalTextureSampler == D3D11_LIBPLACEBO)
 	{
 		m_srcWidth = origW;
 		m_srcHeight = origH;
@@ -3113,10 +3109,12 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 
 		m_strStatsVProc.assign(L"\nTexture sampler: ");
 		
-		if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_VP)
+		if (m_pFinalTextureSampler == D3D11_VP)
 			m_strStatsVProc.AppendFormat(L"D3D11 VP, from %s to %s", m_D3D11OutputFmt == DXGI_FORMAT_R10G10B10A2_UNORM ? L"YUV420P 10bit" : L"NV12 8 bit",DXGIFormatToString(m_D3D11OutputFmt));
-		else if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_INTERNAL_SHADERS)
+		else if (m_pFinalTextureSampler == D3D11_INTERNAL_SHADERS)
 			m_strStatsVProc.AppendFormat(L"Internal shaders, from %s to %s", m_D3D11OutputFmt == DXGI_FORMAT_R10G10B10A2_UNORM ? L"YUV420P 10bit" : L"NV12 8 bit", DXGIFormatToString(m_SwapChainFmt));
+		else
+			m_strStatsVProc.AppendFormat(L"Libplacebo directly, from %s to %s", m_D3D11OutputFmt == DXGI_FORMAT_R10G10B10A2_UNORM ? L"YUV420P 10bit" : L"NV12 8 bit", DXGIFormatToString(m_SwapChainFmt));
 		//todo add else if for placebo merger when it will be readded
 
 		if (SourceIsHDR() || MPC_SETTINGS->bVPUseRTXVideoHDR) {
