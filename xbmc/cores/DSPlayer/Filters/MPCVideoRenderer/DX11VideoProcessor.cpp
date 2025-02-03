@@ -959,7 +959,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 {
 	HRESULT hr;
 	BYTE* data = nullptr;
-	Com::SComQIPtr<ID3D11Texture2D> pD3D11Texture2D;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> pD3D11Texture2D;
 	Microsoft::WRL::ComPtr<IMediaSampleD3D11> pMSD3D11;
 	UINT ArraySlice = 0;
 	const long size = pSample->GetActualDataLength();
@@ -1091,10 +1091,14 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		// here should be used CopySubresourceRegion instead of CopyResource
 		D3D11_BOX srcBox = { 0, 0, 0, m_srcWidth, m_srcHeight, 1 };
 		if (m_D3D11VP.IsReady()) {
-			m_pDeviceContext->CopySubresourceRegion(m_D3D11VP.GetNextInputTexture(m_SampleFormat), 0, 0, 0, 0, pD3D11Texture2D, ArraySlice, &srcBox);
+			m_pDeviceContext->CopySubresourceRegion(m_D3D11VP.GetNextInputTexture(m_SampleFormat), 0, 0, 0, 0, pD3D11Texture2D.Get(), ArraySlice, &srcBox);
 		}
 		else {
-			m_pDeviceContext->CopySubresourceRegion(m_TexSrcVideo.pTexture.Get(), 0, 0, 0, 0, pD3D11Texture2D, ArraySlice, &srcBox);
+			m_pDeviceContext->CopySubresourceRegion(m_TexSrcVideo.pTexture.Get(), 0, 0, 0, 0, pD3D11Texture2D.Get(), ArraySlice, &srcBox);
+			if (!m_pInputTexture.Get())
+				m_pInputTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), "CMPCVRRenderer Merged plane", true, 0U);
+			hr = ConvertColorPass(m_pInputTexture.Get());
+			//DX::DeviceResources::Get()->GetD3DContext()->CopySubresourceRegion(m_TexSrcVideo.pTexture.Get(), 0, 0, 0, 0, pD3D11Texture2D, ArraySlice, &srcBox);
 		}
 	}
 
@@ -1131,7 +1135,6 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		}
 	}
 
-
 	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
 	{
 		CLog::LogF(LOGERROR, "failed to finish command queue.");
@@ -1145,10 +1148,21 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 
 	outputParams.array_slice = 1;
-	inParams.w = m_pInputTexture.GetWidth();
-	inParams.h = m_pInputTexture.GetHeight();
-	inParams.fmt = m_pInputTexture.GetFormat();
-	inParams.tex = m_pInputTexture.Get();
+	if (m_pInputTexture.Get())
+	{
+		inParams.w = m_pInputTexture.GetWidth();
+		inParams.h = m_pInputTexture.GetHeight();
+		inParams.fmt = m_pInputTexture.GetFormat();
+		inParams.tex = m_pInputTexture.Get();
+	}
+	else
+	{
+		inParams.w = m_TexSrcVideo.desc.Width;
+		inParams.h = m_TexSrcVideo.desc.Height;
+		inParams.fmt = m_TexSrcVideo.desc.Format;
+		
+		inParams.tex = m_TexSrcVideo.pTexture.Get();
+	}
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
 
 	if (m_pFinalTextureSampler != D3D11_LIBPLACEBO)
@@ -1227,9 +1241,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	default:
 		break;
 	}
-	/*params = {};
-	params.hooks = &hook;
-	params.num_hooks = 1;*/
+
 	params.info_priv = pHelper;
 	params.info_callback = render_info_cb;
 	

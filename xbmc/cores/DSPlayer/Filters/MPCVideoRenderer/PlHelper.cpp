@@ -394,6 +394,8 @@ bool CPlHelper::ProcessDoviData(IMediaSample* pSample,
   HRESULT hr = pSample->QueryInterface(IID_PPV_ARGS(&pMediaSideData));
   size_t size = 0;
   MediaSideDataDOVIMetadata* pDOVIMetadata = nullptr;
+  if (FAILED(hr))
+    return false;
   hr = pMediaSideData->GetSideData(IID_MediaSideDataDOVIMetadataV2, (const BYTE**)&pDOVIMetadata, &size);
 
   if (!color || !repr || !doviout)
@@ -543,7 +545,7 @@ pl_hdr_metadata CPlHelper::GetHdrData(IMediaSample* pSample)
 
 pl_rotation CPlHelper::GetPlRotation()
 {
-  return pl_rotation();
+  return pl_rotation(); 
 }
 
 

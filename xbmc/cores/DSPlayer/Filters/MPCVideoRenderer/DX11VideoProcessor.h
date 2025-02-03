@@ -64,6 +64,8 @@ public:
 	bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) const override;
 	void DisplayChange(bool bExternalChange) override {};
 	void Reset(bool bForceWindowed) override;
+
+	ID3D11DeviceContext1* GetD3DContext() const { return m_pDeviceContext.Get(); }
 private:
 	friend class CVideoRendererInputPin;
 	/*Kodi Specific*/

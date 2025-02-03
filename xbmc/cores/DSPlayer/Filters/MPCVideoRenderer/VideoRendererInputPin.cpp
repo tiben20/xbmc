@@ -23,6 +23,7 @@
 #include "VideoRenderer.h"
 #include "VideoRendererInputPin.h"
 #include "CustomAllocator.h"
+#include "windowing/windows/WinSystemWin32DX.h"
 
 //
 // CVideoRendererInputPin
@@ -43,8 +44,8 @@ STDMETHODIMP CVideoRendererInputPin::NonDelegatingQueryInterface(REFIID riid, vo
 {
 	CheckPointer(ppv, E_POINTER);
 
-  if (riid == __uuidof(ID3D11DecoderConfiguration)) {
-		return GetInterface((ID3D11DecoderConfiguration*)this, ppv);
+  if (riid == __uuidof(ID3D11DecoderConfiguration1)) {
+		return GetInterface((ID3D11DecoderConfiguration1*)this, ppv);
 	}
 	else {
 		return __super::NonDelegatingQueryInterface(riid, ppv);
@@ -186,14 +187,23 @@ STDMETHODIMP CVideoRendererInputPin::SetSurfaceType(DXVA2_SurfaceType dwType)
 	return S_OK;
 }
 
-// ID3D11DecoderConfiguration
-STDMETHODIMP CVideoRendererInputPin::ActivateD3D11Decoding(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, HANDLE hMutex, UINT nFlags)
+// ID3D11DecoderConfiguration1
+STDMETHODIMP CVideoRendererInputPin::ActivateD3D11Decoding1(ID3D11Device **pDevice, ID3D11DeviceContext **pContext, UINT nFlags)
 {
 	HRESULT hr = E_FAIL;
 	
 	if (auto pDX11VP = dynamic_cast<CDX11VideoProcessor*>(m_pBaseRenderer->m_VideoProcessor.get())) {
 		hr = S_OK;
-		hr = pDX11VP->SetDevice((ID3D11Device1*)pDevice, true);
+
+	  *pDevice = DX::DeviceResources::Get()->GetD3DDevice();
+		(*pDevice)->AddRef();
+		*pContext = DX::DeviceResources::Get()->GetImmediateContext();
+		(*pContext)->AddRef();
+		//hr = DX::DeviceResources::Get()->GetD3DDevice()->QueryInterface(__uuidof(ID3D11Device),(void**) &pDevice);
+		//hr = pDX11VP->GetD3DContext()->QueryInterface(__uuidof(ID3D11DeviceContext), (void**)&pContext);
+
+
+		hr = pDX11VP->SetDevice(DX::DeviceResources::Get()->GetD3DDevice(), true);
 	}
 
 	
@@ -202,7 +212,7 @@ STDMETHODIMP CVideoRendererInputPin::ActivateD3D11Decoding(ID3D11Device *pDevice
 	return hr;
 }
 
-UINT STDMETHODCALLTYPE CVideoRendererInputPin::GetD3D11AdapterIndex()
+UINT STDMETHODCALLTYPE CVideoRendererInputPin::GetD3D11AdapterIndex1()
 {
 	return m_pBaseRenderer->m_VideoProcessor->GetCurrentAdapter();
 }

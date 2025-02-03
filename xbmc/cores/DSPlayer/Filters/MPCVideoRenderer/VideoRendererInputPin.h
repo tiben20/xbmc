@@ -31,7 +31,7 @@ class CVideoRendererInputPin
 	: public CRendererInputPin
 	, public IMFGetService
 	, public IDirectXVideoMemoryConfiguration
-	, public ID3D11DecoderConfiguration
+	, public ID3D11DecoderConfiguration1
 {
 private:
 	friend class CCustomAllocator;
@@ -70,9 +70,9 @@ public:
 	STDMETHODIMP GetAvailableSurfaceTypeByIndex(DWORD dwTypeIndex, DXVA2_SurfaceType *pdwType);
 	STDMETHODIMP SetSurfaceType(DXVA2_SurfaceType dwType);
 
-	// ID3D11DecoderConfiguration
-	STDMETHODIMP ActivateD3D11Decoding(ID3D11Device *pDevice, ID3D11DeviceContext *pContext, HANDLE hMutex, UINT nFlags);
-	UINT STDMETHODCALLTYPE GetD3D11AdapterIndex();
+	// ID3D11DecoderConfiguration1
+	STDMETHODIMP ActivateD3D11Decoding1(ID3D11Device **pDevice, ID3D11DeviceContext **pContext, UINT nFlags);
+	UINT STDMETHODCALLTYPE GetD3D11AdapterIndex1();
 
 	void SetNewMediaType(const CMediaType& mt);
 	void ClearNewMediaType();
