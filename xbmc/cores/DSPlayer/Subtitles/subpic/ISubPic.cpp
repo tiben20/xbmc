@@ -715,6 +715,7 @@ void CSubPicQueue::AppendQueue(ISubPic* pSubPic)
 DWORD CSubPicQueue::ThreadProc()
 {  
   BOOL bDisableAnim = m_bDisableAnim;
+  HRESULT hr;
   SetThreadPriority(m_hThread, bDisableAnim ? THREAD_PRIORITY_LOWEST : THREAD_PRIORITY_ABOVE_NORMAL/*THREAD_PRIORITY_BELOW_NORMAL*/);
 
   bool bAgain = true;
@@ -732,10 +733,10 @@ DWORD CSubPicQueue::ThreadProc()
     REFERENCE_TIME rtNow = UpdateQueue();
 
     int nMaxSubPic = m_nMaxSubPic;
-
-    Com::SComPtr<ISubPicProvider> pSubPicProvider;
-    if(SUCCEEDED(GetSubPicProvider(&pSubPicProvider)) && pSubPicProvider
-    && SUCCEEDED(pSubPicProvider->Lock()))
+    
+    Microsoft::WRL::ComPtr<ISubPicProvider> pSubPicProvider;
+    hr = GetSubPicProvider(&pSubPicProvider);
+    if(SUCCEEDED(hr) && pSubPicProvider && SUCCEEDED(pSubPicProvider->Lock()))
     {
       for(int pos = pSubPicProvider->GetStartPosition(rtNow, fps); 
         pos && !m_fBreakBuffering && GetQueueCount() < (size_t)nMaxSubPic; 

@@ -129,7 +129,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
-    <IncludePath>H:\KodiDSPlayer2\project\BuildDependencies\mingwlibs\x64\include\;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\..\..\project\BuildDependencies\mingwlibs\x64\include\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</OutDir>
