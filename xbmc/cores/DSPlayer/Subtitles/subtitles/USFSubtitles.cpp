@@ -33,7 +33,7 @@
     pNode->get_nodeValue(&val); \
 
 #define BeginEnumAttribs(pNode, pChild, name, value) \
-  {Com::SmartPtr<IXMLDOMNamedNodeMap> pAttribs; \
+  {Microsoft::WRL::ComPtr<IXMLDOMNamedNodeMap> pAttribs; \
   if(SUCCEEDED(pNode->get_attributes(&pAttribs)) && pAttribs != NULL) \
     { \
     IXMLDOMNodePtr pChild; \

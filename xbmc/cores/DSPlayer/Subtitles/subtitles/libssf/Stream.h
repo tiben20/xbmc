@@ -22,6 +22,7 @@
 #pragma once
 
 #include "Exception.h"
+#include <list>
 
 namespace ssf
 {

@@ -29,6 +29,8 @@
 #include "vd.h"
 #include "text.h"
 #include "utils\StdString.h"
+#include "wrl/client.h"
+
 #ifdef _DEBUG
 #pragma comment( lib, "strmbasd.lib" )
 #else

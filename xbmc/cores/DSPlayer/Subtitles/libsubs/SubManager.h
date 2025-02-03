@@ -64,11 +64,11 @@ private:
   Com::SmartSize m_lastSize;
 
   std::shared_ptr<ISubPicQueue> m_pSubPicQueue;
-  Com::SmartPtr<ISubPicAllocator> m_pAllocator;
+  Microsoft::WRL::ComPtr<ISubPicAllocator> m_pAllocator;
 
-  Com::SmartQIPtr<IAMStreamSelect> m_pSS; //graph filter with subtitles
+  Microsoft::WRL::ComPtr<IAMStreamSelect> m_pSS; //graph filter with subtitles
   Microsoft::WRL::ComPtr<ID3D11Device1> m_d3DDev;
-  Com::SmartPtr<ISubStream> m_pInternalSubStream;
+  Microsoft::WRL::ComPtr<ISubStream> m_pInternalSubStream;
   ISubPicProvider* m_pSubPicProvider; // save when changing d3d device
 
   REFERENCE_TIME m_rtTimePerFrame;

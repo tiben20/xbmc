@@ -142,7 +142,7 @@ HRESULT CTextPassThruOutputPin::DecideBufferSize(IMemAllocator* pAllocator, ALLO
   if(m_pTPTFilter->m_pInput->IsConnected() == FALSE)
     return E_UNEXPECTED;
 
-  Com::SmartPtr<IMemAllocator> pAllocatorIn;
+  Microsoft::WRL::ComPtr<IMemAllocator> pAllocatorIn;
   m_pTPTFilter->m_pInput->GetAllocator(&pAllocatorIn);
   if(!pAllocatorIn) return E_UNEXPECTED;
 
@@ -195,7 +195,7 @@ STDMETHODIMP CTextPassThruFilter::NonDelegatingQueryInterface(REFIID riid, void*
 {
   if(m_pInput && riid == __uuidof(ISubStream))
   {
-    if(Com::SmartPtr<ISubStream> pSubStream = m_pInput->GetSubStream())
+    if(Microsoft::WRL::ComPtr<ISubStream> pSubStream = m_pInput->GetSubStream())
     {
       *ppv = pSubStream.Detach();
       return S_OK;

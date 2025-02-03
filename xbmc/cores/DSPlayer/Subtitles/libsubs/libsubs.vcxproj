@@ -130,6 +130,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>..\..\..\..\..\debug</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>H:\KodiDSPlayer2\project\BuildDependencies\mingwlibs\x64\include\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

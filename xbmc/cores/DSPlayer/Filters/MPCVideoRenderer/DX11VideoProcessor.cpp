@@ -1147,7 +1147,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	}
 
 
-	outputParams.array_slice = 1;
+	
 	if (m_pInputTexture.Get())
 	{
 		inParams.w = m_pInputTexture.GetWidth();
@@ -1185,6 +1185,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	outputParams.h = outputTarget.GetHeight();
 	outputParams.fmt = outputTarget.GetFormat();
 	outputParams.tex = outputTarget.Get();
+	outputParams.array_slice = 1;
 
 	pl_tex interTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &outputParams);
 	frameOut.num_planes = 1;
@@ -1338,46 +1339,6 @@ pl_frame CDX11VideoProcessor::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSa
 		CLog::Log(LOGINFO, "sample_order: {} {} {} {}", fm->sample_order[0], fm->sample_order[1], fm->sample_order[2], fm->sample_order[3]);
 		CLog::Log(LOGINFO, "format end: {}", fm->name);
 	}*/
-
-	if (res && srcParams.pDX11Planes->FmtPlane2 && 0)
-	{
-		img.num_planes = 2;
-		data[1].type = PL_FMT_UNORM;
-		data[1].component_size[0] = srcParams.CDepth;
-		//data[1].component_size[1] = srcParams.CDepth;
-		data[1].component_map[0] = 2;
-		//data[1].component_map[1] = 2;
-		data[1].pixel_stride = 1;
-		data[1].row_stride = width / 2;
-
-		data[1].pixels = pD + width * height;
-		data[1].width = width / srcParams.pDX11Planes->div_chroma_w;
-		data[1].height = height / srcParams.pDX11Planes->div_chroma_h;
-		
-		res = pl_upload_plane(CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu, &pl_planes[1], &pltex[1], &data[1]);
-		img.planes[1] = pl_planes[1];
-		if (res && srcParams.pDX11Planes->FmtPlane3)
-		{
-			img.num_planes = 3;
-			data[2].type = PL_FMT_UNORM;
-			data[2].component_size[0] = srcParams.CDepth;
-			//data[2].component_size[1] = srcParams.CDepth;
-			data[2].component_map[0] = 1;
-			data[2].pixel_stride = 1;
-			data[2].row_stride = width/2;
-
-			data[2].pixels = pD + +width * height + (data[1].width * data[1].height);// ((width / 2) * (height / 2));
-			data[2].width = width / srcParams.pDX11Planes->div_chroma_w;
-			data[2].height = height / srcParams.pDX11Planes->div_chroma_h;
-			res = pl_upload_plane(CMPCVRRenderer::Get()->GetPlHelper()->GetPLD3d11()->gpu, &pl_planes[2], &pltex[2], &data[2]);
-			img.planes[2] = pl_planes[2];
-		}
-	}
-	//todo
-
-
-
-
 
 	img.repr = CMPCVRRenderer::Get()->GetPlHelper()->GetPlColorRepresentation(pFormat);
 	img.color = CMPCVRRenderer::Get()->GetPlHelper()->GetPlColorSpace(pFormat);
