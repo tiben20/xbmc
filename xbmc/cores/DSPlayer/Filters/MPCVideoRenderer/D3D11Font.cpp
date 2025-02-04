@@ -70,15 +70,9 @@ CD3D11Font::~CD3D11Font()
 	InvalidateDeviceObjects();
 }
 
-HRESULT CD3D11Font::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
+HRESULT CD3D11Font::InitDeviceObjects()
 {
 	InvalidateDeviceObjects();
-	if (!pDeviceContext) {
-		return E_POINTER;
-	}
-
-	m_pDeviceContext = pDeviceContext;
-	m_pDeviceContext->AddRef();
 
 
 	LPVOID data;
@@ -156,7 +150,7 @@ HRESULT CD3D11Font::InitDeviceObjects(ID3D11DeviceContext* pDeviceContext)
 	}
 
 	DirectX::XMFLOAT4 colorRGBAf = D3DCOLORtoXMFLOAT4(m_Color);
-	m_pDeviceContext->UpdateSubresource(m_pPixelBuffer, 0, nullptr, &colorRGBAf, 0, 0);
+	DX::DeviceResources::Get()->GetD3DContext()->UpdateSubresource(m_pPixelBuffer, 0, nullptr, &colorRGBAf, 0, 0);
 
 	D3D11_SAMPLER_DESC SampDesc = {};
 	SampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -195,9 +189,6 @@ void CD3D11Font::InvalidateDeviceObjects()
 	SAFE_RELEASE(m_pPixelBuffer);
 	SAFE_RELEASE(m_pVertexBuffer);
 	//SAFE_RELEASE(m_pIndexBuffer);
-
-	SAFE_RELEASE(m_pDeviceContext);
-	//SAFE_RELEASE(m_pDevice);
 }
 
 HRESULT CD3D11Font::CreateFontBitmap(const WCHAR* strFontName, const UINT fontHeight, const UINT fontFlags)
@@ -312,7 +303,7 @@ HRESULT CD3D11Font::GetTextExtent(const WCHAR* strText, SIZE* pSize)
 
 HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize, float sx, float sy, KODI::UTILS::COLOR::Color color, const WCHAR* strText)
 {
-	if (!DX::DeviceResources::Get()->GetD3DDevice() || !m_pDeviceContext) {
+	if (!DX::DeviceResources::Get()->GetD3DDevice()) {
 		return E_ABORT;
 	}
 	ASSERT(pRenderTargetView);
@@ -320,11 +311,12 @@ HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const 
 	HRESULT hr = S_OK;
 	UINT Stride = sizeof(Font11Vertex);
 	UINT Offset = 0;
+	ID3D11DeviceContext* pDeviceContext = DX::DeviceResources::Get()->GetD3DContext();
 
 	if (color != m_Color) {
 		m_Color = color;
 		DirectX::XMFLOAT4 colorRGBAf = D3DCOLORtoXMFLOAT4(m_Color);
-		m_pDeviceContext->UpdateSubresource(m_pPixelBuffer, 0, nullptr, &colorRGBAf, 0, 0);
+		pDeviceContext->UpdateSubresource(m_pPixelBuffer, 0, nullptr, &colorRGBAf, 0, 0);
 	}
 
 	D3D11_VIEWPORT VP;
@@ -334,19 +326,19 @@ HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const 
 	VP.Height   = rtSize.cy;
 	VP.MinDepth = 0.0f;
 	VP.MaxDepth = 1.0f;
-	m_pDeviceContext->RSSetViewports(1, &VP);
+	pDeviceContext->RSSetViewports(1, &VP);
 
-	m_pDeviceContext->PSSetShaderResources(0, 1, &m_pShaderResource);
-	m_pDeviceContext->IASetInputLayout(m_pInputLayout);
-	m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
-	m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
-	m_pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
-	m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_pPixelBuffer);
-	m_pDeviceContext->PSSetSamplers(0, 1, &m_pSamplerState);
-	m_pDeviceContext->OMSetBlendState(m_pBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
-	m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pDeviceContext->PSSetShaderResources(0, 1, &m_pShaderResource);
+	pDeviceContext->IASetInputLayout(m_pInputLayout);
+	pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
+	pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
+	pDeviceContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &Stride, &Offset);
+	pDeviceContext->PSSetConstantBuffers(0, 1, &m_pPixelBuffer);
+	pDeviceContext->PSSetSamplers(0, 1, &m_pSamplerState);
+	pDeviceContext->OMSetBlendState(m_pBlendState, nullptr, D3D11_DEFAULT_SAMPLE_MASK);
+	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
+	pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
 
 	// Adjust for character spacing
 	const float fStartX = (float)(sx * 2) / rtSize.cx - 1;
@@ -355,7 +347,7 @@ HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const 
 	float drawY = (float)(-sy * 2) / rtSize.cy + 1;
 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	hr = pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	if (S_OK == hr) {
 		Font11Vertex* pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
 		UINT nVertices = 0;
@@ -390,10 +382,10 @@ HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const 
 
 				if (nVertices > (MAX_NUM_VERTICES - 6)) {
 					// Unlock, render, and relock the vertex buffer
-					m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
-					m_pDeviceContext->Draw(nVertices, 0);
+					pDeviceContext->Unmap(m_pVertexBuffer, 0);
+					pDeviceContext->Draw(nVertices, 0);
 
-					hr = m_pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+					hr = pDeviceContext->Map(m_pVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 					pVertices = static_cast<Font11Vertex*>(mappedResource.pData);
 					nVertices = 0;
 				}
@@ -401,9 +393,9 @@ HRESULT CD3D11Font::Draw2DText(ID3D11RenderTargetView* pRenderTargetView, const 
 
 			drawX += Width;
 		}
-		m_pDeviceContext->Unmap(m_pVertexBuffer, 0);
+		pDeviceContext->Unmap(m_pVertexBuffer, 0);
 		if (nVertices > 0) {
-			m_pDeviceContext->Draw(nVertices, 0);
+			pDeviceContext->Draw(nVertices, 0);
 		}
 	}
 

@@ -38,8 +38,6 @@ class CD3D11Font
 	
 	KODI::UTILS::COLOR::Color m_Color = KODI::UTILS::COLOR::ConvertIntToRGB(255, 255, 255);
 
-	ID3D11DeviceContext* m_pDeviceContext = nullptr;
-
 	ID3D11InputLayout*        m_pInputLayout    = nullptr;
 	ID3D11VertexShader*       m_pVertexShader   = nullptr;
 	ID3D11PixelShader*        m_pPixelShader    = nullptr;
@@ -60,7 +58,7 @@ public:
 	~CD3D11Font();
 
 	// Initializing and destroying device-dependent objects
-	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
+	HRESULT InitDeviceObjects();
 	void InvalidateDeviceObjects();
 
 	HRESULT CreateFontBitmap(const WCHAR* strFontName, const UINT fontHeight, const UINT fontFlags);

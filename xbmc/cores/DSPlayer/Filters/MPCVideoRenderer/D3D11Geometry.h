@@ -29,7 +29,7 @@ struct POINTVERTEX11 {
 
 // CD3D11Quadrilateral
 
-class CD3D11Quadrilateral
+class CD3D11Quadrilateral : public ID3DResource
 {
 protected:
 
@@ -47,11 +47,14 @@ protected:
 public:
 	~CD3D11Quadrilateral();
 
-	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
+	HRESULT InitDeviceObjects();
 	
 
 	HRESULT Set(const float x1, const float y1, const float x2, const float y2, const float x3, const float y3, const float x4, const float y4, KODI::UTILS::COLOR::Color color);
 	HRESULT Draw(ID3D11RenderTargetView* pRenderTargetView, const SIZE& rtSize);
+
+	void OnDestroyDevice(bool fatal) override;
+	void OnCreateDevice() override;
 };
 
 // CD3D11Rectangle
@@ -78,10 +81,9 @@ public:
 
 // CD3D11Dots
 
-class CD3D11Dots
+class CD3D11Dots : public ID3DResource
 {
 protected:
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_pDeviceContext;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_pVertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_pInputLayout;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_pVertexShader;
@@ -96,16 +98,12 @@ protected:
 		return (num > 0);
 	}
 
-	virtual inline void DrawPrimitive()
-	{
-		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-		m_pDeviceContext->Draw(m_Vertices.size(), 0);
-	}
+	virtual void DrawPrimitive();
 
 public:
 	~CD3D11Dots();
 
-	HRESULT InitDeviceObjects(ID3D11DeviceContext* pDeviceContext);
+	HRESULT InitDeviceObjects();
 	void InvalidateDeviceObjects();
 
 	void ClearPoints(SIZE& newRTSize);
@@ -118,6 +116,9 @@ public:
 
 	HRESULT UpdateVertexBuffer();
 	void Draw();
+
+	void OnDestroyDevice(bool fatal) override;
+	void OnCreateDevice() override;
 };
 
 // CD3D11Lines
@@ -133,11 +134,8 @@ protected:
 		return (num >= 2 && !(num & 1));
 	}
 
-	inline void DrawPrimitive() override
-	{
-		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-		m_pDeviceContext->Draw(m_Vertices.size(), 0);
-	}
+	void DrawPrimitive() override;
+	
 };
 
 // CD3D11Polyline
@@ -150,9 +148,6 @@ protected:
 		return (num >= 2 || m_Vertices.size() && num > 0);
 	}
 
-	inline void DrawPrimitive() override
-	{
-		m_pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
-		m_pDeviceContext->Draw(m_Vertices.size(), 0);
-	}
+	void DrawPrimitive() override;
+
 };

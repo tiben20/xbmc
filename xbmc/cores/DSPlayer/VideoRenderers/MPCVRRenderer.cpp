@@ -377,20 +377,19 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
 void CMPCVRRenderer::SetGraphSize()
 {
   m_screenRect = CRect(0,0, GetScreenRect().x2, GetScreenRect().y2);
-  ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
 
-  HRESULT hr3 = m_Font3D.InitDeviceObjects(pContext);
+  HRESULT hr3 = m_Font3D.InitDeviceObjects();
 
   if (SUCCEEDED(hr3)) {
-    hr3 = m_StatsBackground.InitDeviceObjects(pContext);
-    hr3 = m_Rect3D.InitDeviceObjects(pContext);
-    hr3 = m_Underlay.InitDeviceObjects(pContext);
-    hr3 = m_Lines.InitDeviceObjects(pContext);
-    hr3 = m_SyncLine.InitDeviceObjects(pContext);
+    hr3 = m_StatsBackground.InitDeviceObjects();
+    hr3 = m_Rect3D.InitDeviceObjects();
+    hr3 = m_Underlay.InitDeviceObjects();
+    hr3 = m_Lines.InitDeviceObjects();
+    hr3 = m_SyncLine.InitDeviceObjects();
    
   }
 
-  if (pContext && !m_screenRect.IsEmpty()) {
+  if (!m_screenRect.IsEmpty()) {
     SIZE rtSize{ (LONG)m_screenRect.Width(),(LONG)m_screenRect.Height()};
 
     if (m_iResizeStats == 0) {
