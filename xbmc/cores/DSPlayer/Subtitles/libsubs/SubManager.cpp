@@ -34,9 +34,9 @@ CSubManager::CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings
   m_pAllocator = (new CDX11SubPicAllocator(d3DDev, m_settings.textureSize));
   hr = S_OK;
   if (m_settings.bufferAhead > 0)
-    m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator.Get(), &hr));
+    m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator, &hr));
   else
-    m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator.Get(), &hr));
+    m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator, &hr));
   if (FAILED(hr))
     g_log->Log(_LOGERROR, "CSubManager::CSubManager SubPicQueue creation error: %x",  hr);
 }
@@ -58,9 +58,9 @@ void CSubManager::StartThread(ID3D11Device1* pD3DDevice)
   m_d3DDev = pD3DDevice;
   m_pAllocator->ChangeDevice(pD3DDevice);
   if (m_settings.bufferAhead > 0)
-    m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator.Get(), &hr));
+    m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator, &hr));
   else
-    m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator.Get(), &hr));
+    m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator, &hr));
 
   m_pSubPicQueue->SetSubPicProvider(m_pSubPicProvider);
 }
@@ -123,14 +123,14 @@ void CSubManager::SetSubPicProvider(ISubStream* pSubStream)
 {
   ApplyStyleSubStream(pSubStream);
 
-  m_pSubPicQueue->SetSubPicProvider((ISubPicProvider*)(pSubStream));
+  m_pSubPicQueue->SetSubPicProvider(Com::SComQIPtr<ISubPicProvider>(pSubStream));
 }
 
 void CSubManager::SetTextPassThruSubStream(ISubStream* pSubStreamNew)
 {
   ApplyStyleSubStream(pSubStreamNew);
   m_pInternalSubStream = pSubStreamNew;
-  SetSubPicProvider(m_pInternalSubStream.Get());
+  SetSubPicProvider(m_pInternalSubStream);
 }
 
 void CSubManager::InvalidateSubtitle(DWORD_PTR nSubtitleId, REFERENCE_TIME rtInvalidate)
@@ -165,7 +165,7 @@ void CSubManager::SetTime(REFERENCE_TIME rtNow)
 }
 
 
-/*HRESULT CSubManager::GetTexture(Microsoft::WRL::ComPtr<ID3D11Texture2D>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
+/*HRESULT CSubManager::GetTexture(Com::SComPtr<ID3D11Texture2D>& pTexture, Com::SmartRect& pSrc, Com::SmartRect& pDest, Com::SmartRect& renderRect)
 {
   if (m_iSubtitleSel < 0)
     return E_INVALIDARG;
@@ -189,7 +189,7 @@ void CSubManager::SetTime(REFERENCE_TIME rtNow)
     m_lastSize = renderSize;
   }
 
-  Microsoft::WRL::ComPtr<ISubPic> pSubPic;
+  Com::SComPtr<ISubPic> pSubPic;
   if(m_pSubPicQueue->LookupSubPic(m_rtNow, pSubPic))
   {
     if (SUCCEEDED (pSubPic->GetSourceAndDest(&renderSize, pSrc, pDest)))
@@ -239,39 +239,39 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
       pPin->QueryDirection(&pindir);
       if (pindir != PINDIR_OUTPUT)
         continue;
-      Microsoft::WRL::ComPtr<IPin> pPinTo;
+      Com::SComPtr<IPin> pPinTo;
       pPin->ConnectedTo(&pPinTo);
       if (pPinTo)
       {
         if (!isTextConnection(pPin))
           continue;
         pGB->Disconnect(pPin);
-        pGB->Disconnect(pPinTo.Get());
+        pGB->Disconnect(pPinTo);
       }
       else if (!IsTextPin(pPin))
         continue;
       
-      Microsoft::WRL::ComPtr<IBaseFilter> pTPTF = new CTextPassThruFilter(this);
+      Com::SComQIPtr<IBaseFilter> pTPTF = new CTextPassThruFilter(this);
       CStdStringW name = L"Kodi Subtitles Pass Thru";
-      if(FAILED(pGB->AddFilter(pTPTF.Get(), name)))
+      if(FAILED(pGB->AddFilter(pTPTF, name)))
         continue;
 
-      Microsoft::WRL::ComPtr<ISubStream> pSubStream;
+      Com::SComQIPtr<ISubStream> pSubStream;
       HRESULT hr;
       do
       {
-        if (FAILED(hr = pGB->ConnectDirect(pPin, GetFirstPin(pTPTF.Get(), PINDIR_INPUT), NULL)))
+        if (FAILED(hr = pGB->ConnectDirect(pPin, GetFirstPin(pTPTF, PINDIR_INPUT), NULL)))
         {
           break;
         }
-        Microsoft::WRL::ComPtr<IBaseFilter> pNTR = new CNullTextRenderer(NULL, &hr);
+        Com::SComQIPtr<IBaseFilter> pNTR = new CNullTextRenderer(NULL, &hr);
         name = L"Kodi Null Renderer";
-        if (FAILED(hr) || FAILED(pGB->AddFilter(pNTR.Get(), name)))
+        if (FAILED(hr) || FAILED(pGB->AddFilter(pNTR, name)))
           break;
 
-        if FAILED(hr = pGB->ConnectDirect(GetFirstPin(pTPTF.Get(), PINDIR_OUTPUT), GetFirstPin(pNTR.Get(), PINDIR_INPUT), NULL))
+        if FAILED(hr = pGB->ConnectDirect(GetFirstPin(pTPTF, PINDIR_OUTPUT), GetFirstPin(pNTR, PINDIR_INPUT), NULL))
           break;
-        pTPTF->QueryInterface(__uuidof(pSubStream), (void**)&pSubStream);;
+        pSubStream = pTPTF;
       } while(0);
 
       if (pSubStream)
@@ -281,7 +281,7 @@ HRESULT CSubManager::InsertPassThruFilter(IGraphBuilder* pGB)
       }
       else
       {
-        pGB->RemoveFilter(pTPTF.Get());
+        pGB->RemoveFilter(pTPTF);
       }
     }
     EndEnumPins
@@ -306,7 +306,7 @@ HRESULT CSubManager::LoadExternalSubtitle( const wchar_t* subPath, ISubStream** 
   *pSubPic = NULL;
   try
   {
-    Microsoft::WRL::ComPtr<ISubStream> pSubStream;
+    Com::SComPtr<ISubStream> pSubStream;
 
     if(!pSubStream)
     {
@@ -353,7 +353,7 @@ void CSubManager::SetTimePerFrame( REFERENCE_TIME timePerFrame )
 void CSubManager::Free()
 {
   m_pSubPicQueue.reset();
-  m_pAllocator.Reset();
+  m_pAllocator = NULL;
 }
 
 HRESULT CSubManager::SetSubPicProviderToInternal()
@@ -361,7 +361,7 @@ HRESULT CSubManager::SetSubPicProviderToInternal()
   if (! m_pInternalSubStream)
     return E_FAIL;
   
-  SetSubPicProvider(m_pInternalSubStream.Get());
+  SetSubPicProvider(m_pInternalSubStream);
   return S_OK;
 }
 

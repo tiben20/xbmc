@@ -72,7 +72,7 @@ struct SSubStyle;
 namespace Com {
   class SmartRect;
   class SmartSize;
-  template<class T> class SmartPtr;
+  template<class T> class SComPtr;
 }
 interface ID3D11Device1;
 interface ID3D11DeviceContext1;

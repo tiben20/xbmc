@@ -73,7 +73,7 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
   if(m_mt.majortype == MEDIATYPE_Text)
   {
     if(!(m_pSubStream = DNew CRenderedTextSubtitle(m_pSubLock))) return E_FAIL;
-    CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream.Get();
+    CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
     pRTS->m_name = CStdString(GetPinName(pReceivePin)) + _T(" (embeded)");
     pRTS->m_dstScreenSize = Com::SmartSize(384, 288);
     pRTS->CreateDefaultStyle(DEFAULT_CHARSET);
@@ -102,7 +102,7 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
     || m_mt.subtype == MEDIASUBTYPE_ASS2)
     {
       if(!(m_pSubStream = DNew CRenderedTextSubtitle(m_pSubLock))) return E_FAIL;
-      CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream.Get();
+      CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
       pRTS->m_name = name;
       pRTS->m_lcid = lcid;
       pRTS->m_dstScreenSize = Com::SmartSize(384, 288);
@@ -128,13 +128,13 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
     else if(m_mt.subtype == MEDIASUBTYPE_SSF)
     {
       if(!(m_pSubStream = DNew ssf::CRenderer(m_pSubLock))) return E_FAIL;
-      ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream.Get();
+      ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream;
       pSSF->Open(ssf::MemoryInputStream(m_mt.pbFormat + dwOffset, m_mt.cbFormat - dwOffset, false, false), name);
     }
     else if(m_mt.subtype == MEDIASUBTYPE_VOBSUB)
     {
       if(!(m_pSubStream = DNew CVobSubStream(m_pSubLock))) return E_FAIL;
-      CVobSubStream* pVSS = (CVobSubStream*)(ISubStream*)m_pSubStream.Get();
+      CVobSubStream* pVSS = (CVobSubStream*)(ISubStream*)m_pSubStream;
       pVSS->Open(name, m_mt.pbFormat + dwOffset, m_mt.cbFormat - dwOffset);
     }
     else if (IsHdmvSub(&m_mt))
@@ -144,15 +144,15 @@ HRESULT CSubtitleInputPin::CompleteConnect(IPin* pReceivePin)
     }
   }
 
-  AddSubStream(m_pSubStream.Get());
+  AddSubStream(m_pSubStream);
 
   return __super::CompleteConnect(pReceivePin);
 }
 
 HRESULT CSubtitleInputPin::BreakConnect()
 {
-  RemoveSubStream(m_pSubStream.Get());
-  m_pSubStream.Reset();
+  RemoveSubStream(m_pSubStream);
+  m_pSubStream = NULL;
 
   ASSERT(IsStopped());
 
@@ -163,8 +163,8 @@ STDMETHODIMP CSubtitleInputPin::ReceiveConnection(IPin* pConnector, const AM_MED
 {
   if(m_Connected)
   {
-    RemoveSubStream(m_pSubStream.Get());
-    m_pSubStream.Reset();
+    RemoveSubStream(m_pSubStream);
+    m_pSubStream = NULL;
 
     m_Connected->Release();
     m_Connected = NULL;
@@ -186,14 +186,14 @@ STDMETHODIMP CSubtitleInputPin::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME
     || m_mt.subtype == MEDIASUBTYPE_ASS2))
   {
     CAutoLock cAutoLock(m_pSubLock);
-    CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream.Get();
+    CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
     pRTS->clear();
     pRTS->CreateSegments();
   }
   else if(m_mt.majortype == MEDIATYPE_Subtitle && m_mt.subtype == MEDIASUBTYPE_SSF)
   {
     CAutoLock cAutoLock(m_pSubLock);
-    ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream.Get();
+    ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream;
     // LAME, implement RemoveSubtitles
     DWORD dwOffset = ((SUBTITLEINFO*)m_mt.pbFormat)->dwOffset;
     pSSF->Open(ssf::MemoryInputStream(m_mt.pbFormat + dwOffset, m_mt.cbFormat - dwOffset, false, false), _T(""));
@@ -202,13 +202,13 @@ STDMETHODIMP CSubtitleInputPin::NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME
   else if(m_mt.majortype == MEDIATYPE_Subtitle && (m_mt.subtype == MEDIASUBTYPE_VOBSUB))
   {
     CAutoLock cAutoLock(m_pSubLock);
-    CVobSubStream* pVSS = (CVobSubStream*)(ISubStream*)m_pSubStream.Get();
+    CVobSubStream* pVSS = (CVobSubStream*)(ISubStream*)m_pSubStream;
     pVSS->RemoveAll();
   }
 	else if (IsHdmvSub(&m_mt))
   {
     CAutoLock cAutoLock(m_pSubLock);
-    CRenderedHdmvSubtitle* pHdmvSubtitle = (CRenderedHdmvSubtitle*)(ISubStream*)m_pSubStream.Get();
+    CRenderedHdmvSubtitle* pHdmvSubtitle = (CRenderedHdmvSubtitle*)(ISubStream*)m_pSubStream;
     pHdmvSubtitle->NewSegment (tStart, tStop, dRate);
   }
 
@@ -248,7 +248,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
   if(m_mt.majortype == MEDIATYPE_Text)
   {
     CAutoLock cAutoLock(m_pSubLock);
-    CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream.Get();
+    CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
 
     if(!strncmp((char*)pData, __GAB1__, strlen(__GAB1__)))
     {
@@ -325,7 +325,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
 
     if(m_mt.subtype == MEDIASUBTYPE_UTF8)
     {
-      CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream.Get();
+      CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
 
       CStdStringW str = UTF8To16(CStdStringA((LPCSTR)pData, len)).Trim();
       if(!str.IsEmpty())
@@ -336,7 +336,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     }
     else if(m_mt.subtype == MEDIASUBTYPE_SSA || m_mt.subtype == MEDIASUBTYPE_ASS || m_mt.subtype == MEDIASUBTYPE_ASS2)
     {
-      CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream.Get();
+      CRenderedTextSubtitle* pRTS = (CRenderedTextSubtitle*)(ISubStream*)m_pSubStream;
 
       CStdStringW str = UTF8To16(CStdStringA((LPCSTR)pData, len)).Trim();
       if(!str.IsEmpty())
@@ -371,7 +371,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     }
     else if(m_mt.subtype == MEDIASUBTYPE_SSF)
     {
-      ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream.Get();
+      ssf::CRenderer* pSSF = (ssf::CRenderer*)(ISubStream*)m_pSubStream;
 
       CStdStringW str = UTF8To16(CStdStringA((LPCSTR)pData, len)).Trim();
       if(!str.IsEmpty())
@@ -382,13 +382,13 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
     }
     else if(m_mt.subtype == MEDIASUBTYPE_VOBSUB)
     {
-      CVobSubStream* pVSS = (CVobSubStream*)(ISubStream*)m_pSubStream.Get();
+      CVobSubStream* pVSS = (CVobSubStream*)(ISubStream*)m_pSubStream;
       pVSS->Add(tStart, tStop, pData, len);
     }
     else if (IsHdmvSub(&m_mt))
     {
       CAutoLock cAutoLock(m_pSubLock);
-      CRenderedHdmvSubtitle* pHdmvSubtitle = (CRenderedHdmvSubtitle*)(ISubStream*)m_pSubStream.Get();
+      CRenderedHdmvSubtitle* pHdmvSubtitle = (CRenderedHdmvSubtitle*)(ISubStream*)m_pSubStream;
       pHdmvSubtitle->ParseSample (pSample);
     }
   }
@@ -397,7 +397,7 @@ STDMETHODIMP CSubtitleInputPin::Receive(IMediaSample* pSample)
   {
     //TRACE(_T("InvalidateSubtitle(%I64d, ..)\n"), tStart);
     // IMPORTANT: m_pSubLock must not be locked when calling this
-    InvalidateSubtitle(tStart, m_pSubStream.Get());
+    InvalidateSubtitle(tStart, m_pSubStream);
   }
 
   hr = S_OK;

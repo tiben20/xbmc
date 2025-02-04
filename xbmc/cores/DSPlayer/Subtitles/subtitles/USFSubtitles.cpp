@@ -22,7 +22,7 @@
 #include "StdAfx.h"
 #include "usfsubtitles.h"
 #include <msxml.h>
-#include "..\DSUtil\smartptr.h"
+#include "..\..\SComCli.h"
 
 
 #define DeclareNameAndValue(pNode, name, val) \
@@ -33,7 +33,7 @@
     pNode->get_nodeValue(&val); \
 
 #define BeginEnumAttribs(pNode, pChild, name, value) \
-  {Microsoft::WRL::ComPtr<IXMLDOMNamedNodeMap> pAttribs; \
+  {Com::SComPtr<IXMLDOMNamedNodeMap> pAttribs; \
   if(SUCCEEDED(pNode->get_attributes(&pAttribs)) && pAttribs != NULL) \
     { \
     IXMLDOMNodePtr pChild; \

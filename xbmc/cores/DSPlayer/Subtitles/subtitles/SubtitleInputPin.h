@@ -22,7 +22,6 @@
 #pragma once
 
 #include "..\subpic\ISubPic.h"
-#include "wrl/client.h"
 
 //
 // CSubtitleInputPin
@@ -33,7 +32,7 @@ class CSubtitleInputPin : public CBaseInputPin
   CCritSec m_csReceive;
 
   CCritSec* m_pSubLock;
-  Microsoft::WRL::ComPtr<ISubStream> m_pSubStream;
+  Com::SComPtr<ISubStream> m_pSubStream;
 
 protected:
   virtual void AddSubStream(ISubStream* pSubStream) = 0;
@@ -51,5 +50,5 @@ public:
   STDMETHODIMP NewSegment(REFERENCE_TIME tStart, REFERENCE_TIME tStop, double dRate);
   STDMETHODIMP Receive(IMediaSample* pSample);
 
-  ISubStream* GetSubStream() {return m_pSubStream.Get();}
+  ISubStream* GetSubStream() {return m_pSubStream;}
 };
