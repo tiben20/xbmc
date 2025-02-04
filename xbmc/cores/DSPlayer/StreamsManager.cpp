@@ -497,7 +497,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
       if (m_bHasSubsFilter)
         m_subfilterStreams.push_back(static_cast<CDSStreamDetailSubfilter *>(infos));
       else
-        SubtitleManager->GetSubtitles().push_back(static_cast<CDSStreamDetailSubtitle *>(infos));
+        SubtitleManager->GetSubtitles().push_back(static_cast<CDSStreamDetailSubtitle*>(infos));
       CLog::Log(LOGINFO, "{} Subtitle stream found : {} - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
     else if (group == CStreamDetail::EDITION || group == CStreamDetail::BD_TITLE)

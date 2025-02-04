@@ -115,7 +115,7 @@ public:
   virtual float GetSubTitleDelay() override;
   virtual int  GetSubtitleCount() const override;
   virtual int  GetSubtitle() override;
-  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) override;
+  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) const override;
   virtual void SetSubtitle(int iStream) override;
   virtual bool GetSubtitleVisible() const override;
   virtual void SetSubtitleVisible(bool bVisible) override;
