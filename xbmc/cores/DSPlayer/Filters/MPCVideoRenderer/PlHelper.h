@@ -102,7 +102,6 @@ namespace PL
     pl_d3d11 GetPLD3d11() { return m_plD3d11; };
     pl_renderer GetPLRenderer() { return m_plRenderer; };
     pl_swapchain GetPLSwapChain() { return m_plSwapchain; };
-    pl_queue GetQueue() { return m_pQueue; };
 
     // pass metadata
     struct pl_dispatch_info blend_info[MAX_BLEND_FRAMES][MAX_BLEND_PASSES];
@@ -110,8 +109,6 @@ namespace PL
     int num_frame_passes;
     int num_blend_passes[MAX_BLEND_FRAMES];
   protected:
-    //shader for plane merging
-    pl_dispatch m_plDispatch;
 
     //options
     pl_options m_plOptions;
@@ -126,9 +123,6 @@ namespace PL
     pl_color_space m_plLastColorspace = {};
     // Pending swapchain state shared between waitToRender(), renderFrame(), and cleanupRenderContext()
     pl_swapchain_frame m_SwapchainFrame = {};
-
-    //queue
-    pl_queue m_pQueue;
 
     //caching system TODO
     pl_cache m_pCache;

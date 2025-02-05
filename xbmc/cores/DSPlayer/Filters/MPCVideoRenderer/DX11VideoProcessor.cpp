@@ -26,7 +26,6 @@
 #include <optional>
 #include "Helper.h"
 #include "Times.h"
-#include "resource.h"
 #include "VideoRenderer.h"
 #include "Include/Version.h"
 #include "DX11VideoProcessor.h"
@@ -55,56 +54,6 @@ bool bCreateSwapChain = false;
 
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 #define GetSwapChain DX::DeviceResources::Get()->GetSwapChain()
-
-typedef BOOL(WINAPI* pSetWindowPos)(
-	_In_ HWND hWnd,
-	_In_opt_ HWND hWndInsertAfter,
-	_In_ int X,
-	_In_ int Y,
-	_In_ int cx,
-	_In_ int cy,
-	_In_ UINT uFlags);
-
-pSetWindowPos pOrigSetWindowPosDX11 = nullptr;
-static BOOL WINAPI pNewSetWindowPosDX11(
-	_In_ HWND hWnd,
-	_In_opt_ HWND hWndInsertAfter,
-	_In_ int X,
-	_In_ int Y,
-	_In_ int cx,
-	_In_ int cy,
-	_In_ UINT uFlags)
-{
-	if (g_bPresent) {
-		CLog::Log(LOGINFO,"call SetWindowPos() function during Present()");
-		uFlags |= SWP_ASYNCWINDOWPOS;
-	}
-	return pOrigSetWindowPosDX11(hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
-}
-
-typedef LONG(WINAPI* pSetWindowLongA)(
-	_In_ HWND hWnd,
-	_In_ int nIndex,
-	_In_ LONG dwNewLong);
-
-pSetWindowLongA pOrigSetWindowLongADX11 = nullptr;
-static LONG WINAPI pNewSetWindowLongADX11(
-	_In_ HWND hWnd,
-	_In_ int nIndex,
-	_In_ LONG dwNewLong)
-{
-	if (bCreateSwapChain) {
-		CLog::Log(LOGINFO,"Blocking call SetWindowLongA() function during create fullscreen swap chain");
-		return 0L;
-	}
-	return pOrigSetWindowLongADX11(hWnd, nIndex, dwNewLong);
-}
-
-template <typename T>
-inline bool HookFunc(T** ppSystemFunction, PVOID pHookFunction)
-{
-	return MH_CreateHook(*ppSystemFunction, pHookFunction, reinterpret_cast<LPVOID*>(ppSystemFunction)) == MH_OK;
-}
 
 struct MPCPixFmtDesc
 {
@@ -243,15 +192,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
 	SetDefaultDXVA2ProcAmpValues(m_DXVA2ProcAmpValues);
 
-	/*pOrigSetWindowPosDX11 = SetWindowPos;
-	auto ret = HookFunc(&pOrigSetWindowPosDX11, pNewSetWindowPosDX11);
-	DLogIf(!ret, L"CDX11VideoProcessor::CDX11VideoProcessor() : hook for SetWindowPos() fail");
-
-	pOrigSetWindowLongADX11 = SetWindowLongA;
-	ret = HookFunc(&pOrigSetWindowLongADX11, pNewSetWindowLongADX11);
-	DLogIf(!ret, L"CDX11VideoProcessor::CDX11VideoProcessor() : hook for SetWindowLongA() fail");
-
-	MH_EnableHook(MH_ALL_HOOKS);*/
+	/*MH_EnableHook(MH_ALL_HOOKS); */
 
 	Microsoft::WRL::ComPtr<IDXGIAdapter> pDXGIAdapter;
 	for (UINT adapter = 0; m_pDXGIFactory1->EnumAdapters(adapter, &pDXGIAdapter) != DXGI_ERROR_NOT_FOUND; ++adapter) {
@@ -270,7 +211,6 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 
 		pDXGIAdapter= nullptr;
 	}
-	//CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
 }
 
 static bool ToggleHDR(const DisplayConfig_t& displayConfig, const BOOL bEnableAdvancedColor)
@@ -966,7 +906,6 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 
 	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
-	//const pl_hook* hook = pHelper->SetupShader();
 	pl_frame frameOut{};
 	pl_d3d11_wrap_params outputParams{};
 	pl_d3d11_wrap_params inParams{};
@@ -1160,7 +1099,6 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		inParams.w = m_TexSrcVideo.desc.Width;
 		inParams.h = m_TexSrcVideo.desc.Height;
 		inParams.fmt = m_TexSrcVideo.desc.Format;
-		
 		inParams.tex = m_TexSrcVideo.pTexture.Get();
 	}
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
@@ -1187,6 +1125,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	outputParams.tex = outputTarget.Get();
 	outputParams.array_slice = 1;
 
+	frameIn.repr.bits.color_depth = outputParams.fmt == DXGI_FORMAT_R10G10B10A2_UNORM ? 10 : 8;
 	pl_tex interTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &outputParams);
 	frameOut.num_planes = 1;
 	frameOut.planes[0].texture = interTexture;
@@ -1206,6 +1145,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
 	frameOut.repr.sys = PL_COLOR_SYSTEM_RGB;
+	frameOut.repr.levels = PL_COLOR_LEVELS_FULL;
 	
 	pl_chroma_location loc = PL_CHROMA_UNKNOWN;
 	//todo fix when not left
@@ -1492,104 +1432,6 @@ BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 	return TRUE;
 }
 
-bool CDX11VideoProcessor::HandleHDRToggle()
-{
-	m_bHdrDisplaySwitching = true;
-	bool bRet = false;
-	if (MPC_SETTINGS->bHdrPassthrough && SourceIsHDR()) {
-		MONITORINFOEXW mi = { sizeof(mi) };
-		GetMonitorInfoW(m_lastFullscreenHMonitor ? m_lastFullscreenHMonitor : MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), (MONITORINFO*)&mi);
-		DisplayConfig_t displayConfig = {};
-
-		if (GetDisplayConfig(mi.szDevice, displayConfig)) {
-			const auto& ac = displayConfig.advancedColor;
-
-			if (ac.advancedColorSupported && MPC_SETTINGS->iHdrToggleDisplay) {
-				BOOL bHDREnabled = FALSE;
-				const auto it = m_hdrModeStartState.find(mi.szDevice);
-				if (it != m_hdrModeStartState.cend()) {
-					bHDREnabled = it->second;
-				}
-
-				const bool bNeedToggleOn  = !ac.advancedColorEnabled &&
-											(MPC_SETTINGS->iHdrToggleDisplay == HDRTD_On || MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff
-											 || m_bIsFullscreen && (MPC_SETTINGS->iHdrToggleDisplay == HDRTD_On_Fullscreen || MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff_Fullscreen));
-				const bool bNeedToggleOff = ac.advancedColorEnabled &&
-											!bHDREnabled && !m_bIsFullscreen && MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff_Fullscreen;
-				CLog::LogF(LOGINFO,"HandleHDRToggle() : {}, {}", bNeedToggleOn, bNeedToggleOff);
-				if (bNeedToggleOn) {
-					bRet = ToggleHDR(displayConfig, TRUE);
-					DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR ON failed");
-
-					if (bRet) {
-						CStdStringW deviceName(mi.szDevice);
-						const auto& it = m_hdrModeSavedState.find(deviceName);
-						if (it == m_hdrModeSavedState.cend()) {
-							m_hdrModeSavedState[std::move(deviceName)] = FALSE;
-						}
-					}
-				} else if (bNeedToggleOff) {
-					bRet = ToggleHDR(displayConfig, FALSE);
-					DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
-
-					if (bRet) {
-						CStdStringW deviceName(mi.szDevice);
-						const auto& it = m_hdrModeSavedState.find(deviceName);
-						if (it == m_hdrModeSavedState.cend()) {
-							m_hdrModeSavedState[std::move(deviceName)] = TRUE;
-						}
-					}
-				}
-			}
-		}
-	} else if (MPC_SETTINGS->iHdrToggleDisplay) {
-		MONITORINFOEXW mi = { sizeof(mi) };
-		GetMonitorInfoW(MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), (MONITORINFO*)&mi);
-		DisplayConfig_t displayConfig = {};
-
-		if (GetDisplayConfig(mi.szDevice, displayConfig)) {
-			const auto& ac = displayConfig.advancedColor;
-
-			// check if HDR was already enabled in Windows before starting
-			BOOL bWindowsHDREnabled = FALSE;
-			const auto& it = m_hdrModeStartState.find(mi.szDevice);
-			if (it != m_hdrModeStartState.cend()) {
-				bWindowsHDREnabled = it->second;
-			}
-
-			if (ac.advancedColorSupported && ac.advancedColorEnabled &&
-					(!bWindowsHDREnabled || (MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff || MPC_SETTINGS->iHdrToggleDisplay == HDRTD_OnOff_Fullscreen && m_bIsFullscreen))) {
-				bRet = ToggleHDR(displayConfig, FALSE);
-				DLogIf(!bRet, "CDX11VideoProcessor::HandleHDRToggle() : Toggle HDR OFF failed");
-
-				if (bRet) {
-					CStdStringW deviceName(mi.szDevice);
-					const auto& it = m_hdrModeSavedState.find(deviceName);
-					if (it == m_hdrModeSavedState.cend()) {
-						m_hdrModeSavedState[std::move(deviceName)] = TRUE;
-					}
-				}
-			}
-		}
-	}
-	m_bHdrDisplaySwitching = false;
-
-	if (bRet) {
-		MONITORINFOEXW mi = { sizeof(mi) };
-		GetMonitorInfoW(MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY), (MONITORINFO*)&mi);
-		DisplayConfig_t displayConfig = {};
-
-		if (GetDisplayConfig(mi.szDevice, displayConfig)) {
-			const auto& ac = displayConfig.advancedColor;
-			m_bHdrPassthroughSupport = ac.advancedColorSupported && ac.advancedColorEnabled;
-			m_bHdrDisplayModeEnabled = ac.advancedColorEnabled;
-			m_DisplayBitsPerChannel = displayConfig.bitsPerChannel;
-		}
-	}
-
-	return bRet;
-}
-
 void CDX11VideoProcessor::UpdateStatsInputFmt()
 {
 	m_strStatsInputFmt.assign(L"\nInput format  : ");
@@ -1789,16 +1631,6 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 	m_PSConvColorData.bEnable = false;
 
 	UpdateTexParams(FmtParams.CDepth);
-
-	if (m_bHdrAllowSwitchDisplay && m_srcVideoTransferFunction != m_srcExFmt.VideoTransferFunction) {
-		auto ret = HandleHDRToggle();
-		if (!ret && (MPC_SETTINGS->bHdrPassthrough && m_bHdrPassthroughSupport && SourceIsPQorHLG())) {
-			ret = true;
-		}
-		if (ret) {
-			Init(m_hWnd);
-		}
-	}
 
 	if (Preferred10BitOutput() && m_SwapChainFmt == DXGI_FORMAT_B8G8R8A8_UNORM) {
 		Init(m_hWnd);
@@ -2620,7 +2452,7 @@ void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struc
 		{
 			
 			if (hdr.max_luma >0)
-				str.AppendFormat(L" HDR10: %.2g / %.0f cd/m²", hdr.min_luma,hdr.max_luma);
+				str.AppendFormat(L" HDR10: %.4fg / %f cd/m²", hdr.min_luma,hdr.max_luma);
 
 			if (hdr.max_cll >0)
 				str.AppendFormat(L" MaxCLL: %.0f cd/m²", hdr.max_cll);

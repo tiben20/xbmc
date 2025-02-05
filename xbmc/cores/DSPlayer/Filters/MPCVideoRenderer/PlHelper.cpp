@@ -115,8 +115,7 @@ const wchar_t* PL::PLCspTransfertToString(const pl_color_transfer csp)
 }
 
 CPlHelper::CPlHelper()
-{
-  m_pQueue = nullptr;
+{ 
   m_plOptions = nullptr;
   m_plSwapchain = nullptr;
   m_plLog = nullptr;
@@ -177,15 +176,12 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
   if (!m_plRenderer)
     return false;
 
-  m_pQueue = pl_queue_create(m_plD3d11->gpu);
   return false;
 }
 
 void CPlHelper::Release()
 {
-  
-  if (m_pQueue)
-    pl_queue_destroy(&m_pQueue);
+
   pl_renderer_destroy(&m_plRenderer);
   pl_options_free(&m_plOptions);
   m_plD3d11 = nullptr;
@@ -220,6 +216,11 @@ void CPlHelper::Release()
 
   pl_log_destroy(&m_plLog);
 
+}
+
+const pl_hook* PL::CPlHelper::SetupShader()
+{
+  return nullptr;
 }
 
 

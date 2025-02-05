@@ -196,8 +196,6 @@ private:
 		return m_DisplayBitsPerChannel >= 10 && (m_InternalTexFmt == DXGI_FORMAT_R10G10B10A2_UNORM || m_InternalTexFmt == DXGI_FORMAT_R16G16B16A16_FLOAT);
 	}
 
-	bool HandleHDRToggle();
-
 	/*added for kodi*/
 	std::vector<CD3DPixelShader> m_pPixelShaders;
 

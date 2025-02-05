@@ -41,7 +41,6 @@ set(HEADERS atlredef.h
 			MediaSampleSideData.h
 			Registry.h
 			renbase2.h
-			resource.h
 			PlHelper.h
 			Shaders.h
 			stdafx.h

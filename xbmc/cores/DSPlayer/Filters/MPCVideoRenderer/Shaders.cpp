@@ -21,7 +21,6 @@
 #include "stdafx.h"
 #include <D3Dcompiler.h>
 #include "Helper.h"
-#include "resource.h"
 #include "IVideoRenderer.h"
 #include "Shaders.h"
 #include "DSUtil/DSUtil.h"
