@@ -141,6 +141,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>..\..\..\..\..\project\BuildDependencies\mingwlibs\x64\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <OutDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\Release\</OutDir>
