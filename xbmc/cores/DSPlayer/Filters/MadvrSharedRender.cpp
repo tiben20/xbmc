@@ -30,11 +30,15 @@
 #include "application/ApplicationPlayer.h"
 #include "mvrInterfaces.h"
 #include "settings/SettingsComponent.h"
+#include "../../cores/videosettings.h"
+
 #include "settings/AdvancedSettings.h"
+
 
 CMadvrSharedRender::CMadvrSharedRender()
 {
   g_application.GetComponent<CApplicationPlayer>()->Register(this);
+  m_iOldViewMode = 0;
 }
 
 CMadvrSharedRender::~CMadvrSharedRender()

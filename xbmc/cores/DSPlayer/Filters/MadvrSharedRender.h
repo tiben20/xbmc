@@ -35,4 +35,6 @@ public:
   void EndRender() override;
 
   HRESULT Render(DS_RENDER_LAYER layer);
+protected:
+  int m_iOldViewMode;
 };

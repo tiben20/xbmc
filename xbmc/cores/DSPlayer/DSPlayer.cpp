@@ -1453,6 +1453,11 @@ void CDSPlayer::SetRenderViewMode(int mode, float zoom, float par, float shift, 
   m_processInfo->GetVideoSettingsLocked().SetViewMode(mode, zoom, par, shift, stretch);
   m_renderManager.SetVideoSettings(m_processInfo->GetVideoSettings());
   m_renderManager.SetViewMode(mode);
+  if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  {
+    m_pAllocatorCallback->SetViewMode(mode);
+  }
+
 }
 
 float CDSPlayer::GetRenderAspectRatio() const

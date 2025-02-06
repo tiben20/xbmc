@@ -139,6 +139,7 @@ public:
   STDMETHODIMP GetDIB(BYTE* lpDib, DWORD* size);
   STDMETHODIMP SetPixelShader(LPCSTR pSrcData, LPCSTR pTarget);
 
+
   // IDSRendererAllocatorCallback
   CRect GetActiveVideoRect() override { return m_activeVideoRect; };
   bool IsEnteringExclusive() override { return m_isEnteringExclusive; }
@@ -148,6 +149,7 @@ public:
   void SetPosition(CRect sourceRect, CRect videoRect, CRect viewRect) override;
   bool ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM *wParam, LPARAM *lParam, LRESULT *ret) const override;
   void DisplayChange(bool bExternalChange) override;
+  void SetViewMode(int viewMode) override;
 
 private:
   void ConfigureMadvr();

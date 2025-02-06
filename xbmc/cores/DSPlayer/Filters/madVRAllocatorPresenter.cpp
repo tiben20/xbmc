@@ -258,6 +258,56 @@ void CmadVRAllocatorPresenter::DisplayChange(bool bExternalChange)
   m_pMadvrShared->CreateTextures(DX::DeviceResources::Get()->GetD3DDevice(), m_pD3DDev, (int)m_ScreenSize.cx, (int)m_ScreenSize.cy);
 }
 
+void CmadVRAllocatorPresenter::SetViewMode(int viewMode)
+{
+  CAutoLock cAutoLock(this);
+  /*  ViewModeNormal = 0,
+  ViewModeZoom,
+  ViewModeStretch4x3,
+  ViewModeWideZoom,
+  ViewModeStretch16x9,
+  ViewModeOriginal,
+  ViewModeCustom,
+  ViewModeStretch16x9Nonlin,
+  ViewModeZoom120Width,
+  ViewModeZoom110Width*/
+  // available commands:
+// -------------------
+// disableSeekbar,          bool,      turn madVR's automatic exclusive mode on/off
+// disableExclusiveMode,    bool,      turn madVR's automatic exclusive mode on/off
+// keyPress                 int,       interpret as "BYTE keyPress[4]"; keyPress[0] = key code (e.g. VK_F1); keyPress[1-3] = BOOLEAN "shift/ctrl/menu" state
+// setZoomMode,             LPWSTR,    video target size: "autoDetect|touchInside|touchOutside|stretch|100%|10%|20%|25%|30%|33%|40%|50%|60%|66%|70%|75%|80%|90%|110%|120%|125%|130%|140%|150%|160%|170%|175%|180%|190%|200%|225%|250%|300%|350%|400%|450%|500%|600%|700%|800%"
+// setZoomFactorX,          double,    additional X zoom factor (applied after zoom mode), default/neutral = 1.0
+// setZoomFactorY,          double,    additional Y zoom factor (applied after zoom mode), default/neutral = 1.0
+// setZoomAlignX,           LPWSTR,    video X pos alignment: left|center|right
+// setZoomAlignY,           LPWSTR,    video Y pos alignment: top|center|bottom
+// setZoomOffsetX,          double,    additional X pos offset in percent, default/neutral = 0.0
+// setZoomOffsetY,          double,    additional Y pos offset in percent, default/neutral = 0.0
+// setArOverride,           double,    aspect ratio override (before cropping), default/neutral = 0.0
+// rotate,                  int,       rotates the video by 90, 180 or 270 degrees (0 = no rotation)
+// redraw,                             forces madVR to redraw the current frame (in paused mode)
+// restoreDisplayModeNow,              makes madVR immediately restore the original display mode
+  if (Com::SComQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR.p)
+  {
+    CStdStringW aa;
+    
+    std::wstring madVRModesMap[] = {
+                    L"touchOutside",
+                    L"touchInside",
+                    L"stretch",
+                    L"stretch",
+                    L"touchInside",
+                    L"touchOutside",
+                    L"autoDetect",
+                    L"autoDetect",
+                    L"autoDetect",
+                    L"autoDetect"
+    };
+    pMadVrCmd->SendCommandString("setZoomMode", (LPWSTR)madVRModesMap[viewMode].c_str());
+
+  }
+}
+
 STDMETHODIMP CmadVRAllocatorPresenter::ClearBackground(LPCSTR name, REFERENCE_TIME frameStart, RECT *fullOutputRect, RECT *activeVideoRect)
 {
   CAutoLock cAutoLock(this);
