@@ -207,6 +207,50 @@ enum ViewMode
   ViewModeZoom110Width
 };
 
+enum ViewModeMadvr
+{
+  ViewModeautoDetect = 0,
+  ViewModetouchInside,
+  ViewModetouchOutside,
+  ViewModestretch,
+  ViewMode100,
+  ViewMode10,
+  ViewMode20,
+  ViewMode25,
+  ViewMode30,
+  ViewMode33,
+  ViewMode40,
+  ViewMode50,
+  ViewMode60,
+  ViewMode66,
+  ViewMode70,
+  ViewMode75,
+  ViewMode80,
+  ViewMode90,
+  ViewMode110,
+  ViewMode120,
+  ViewMode125,
+  ViewMode130,
+  ViewMode140,
+  ViewMode150,
+  ViewMode160,
+  ViewMode170,
+  ViewMode175,
+  ViewMode180,
+  ViewMode190,
+  ViewMode200,
+  ViewMode225,
+  ViewMode250,
+  ViewMode300,
+  ViewMode350,
+  ViewMode400,
+  ViewMode450,
+  ViewMode500,
+  ViewMode600,
+  ViewMode700,
+  ViewMode800
+};
+
 class CVideoSettings
 {
 public:
@@ -220,6 +264,8 @@ public:
   EDSSCALINGMETHOD GetDSPlayerScalingMethod() const;
   std::string m_SubtitleExtTrackName;
   bool m_SubtitleCached;
+  void SetMadvr() { m_bUsingMadvr = true; }
+  bool m_bUsingMadvr;
 #endif
   EINTERLACEMETHOD m_InterlaceMethod;
   int m_ScalingMethod;

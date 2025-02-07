@@ -25715,6 +25715,166 @@ msgctxt "#55312"
 msgid "	Dynamic constants"
 msgstr ""
 
+msgctxt "#55313"
+msgid "Auto Detect"
+msgstr ""
+
+msgctxt "#55314"
+msgid "touchInside"
+msgstr ""
+
+msgctxt "#55315"
+msgid "touchOutside"
+msgstr ""
+
+msgctxt "#55316"
+msgid "stretch"
+msgstr ""
+
+msgctxt "#55317"
+msgid "#100%"
+msgstr ""
+
+msgctxt "#55318"
+msgid "#10%"
+msgstr ""
+
+msgctxt "#55319"
+msgid "#20%"
+msgstr ""
+
+msgctxt "#55320"
+msgid "#25%"
+msgstr ""
+
+msgctxt "#55321"
+msgid "#30%"
+msgstr ""
+
+msgctxt "#55322"
+msgid "#33%"
+msgstr ""
+
+msgctxt "#55323"
+msgid "#40%"
+msgstr ""
+
+msgctxt "#55324"
+msgid "#50%"
+msgstr ""
+
+msgctxt "#55325"
+msgid "#60%"
+msgstr ""
+
+msgctxt "#55326"
+msgid "#66%"
+msgstr ""
+
+msgctxt "#55327"
+msgid "#70%"
+msgstr ""
+
+msgctxt "#55328"
+msgid "#17%"
+msgstr ""
+
+msgctxt "#55329"
+msgid "#80%"
+msgstr ""
+
+msgctxt "#55330"
+msgid "#90%"
+msgstr ""
+
+msgctxt "#55331"
+msgid "#110%"
+msgstr ""
+
+msgctxt "#55332"
+msgid "#120%"
+msgstr ""
+
+msgctxt "#55333"
+msgid "#125%"
+msgstr ""
+
+msgctxt "#55334"
+msgid "#130%"
+msgstr ""
+
+msgctxt "#55335"
+msgid "#140%"
+msgstr ""
+
+msgctxt "#55336"
+msgid "#150%"
+msgstr ""
+
+msgctxt "#55337"
+msgid "#160%"
+msgstr ""
+
+msgctxt "#55338"
+msgid "#170%"
+msgstr ""
+
+msgctxt "#55339"
+msgid "#175%"
+msgstr ""
+
+msgctxt "#55340"
+msgid "#180%"
+msgstr ""
+
+msgctxt "#55341"
+msgid "#190%"
+msgstr ""
+
+msgctxt "#55342"
+msgid "#200%"
+msgstr ""
+
+msgctxt "#55343"
+msgid "#225%"
+msgstr ""
+
+msgctxt "#55344"
+msgid "#250%"
+msgstr ""
+
+msgctxt "#55345"
+msgid "#300%"
+msgstr ""
+
+msgctxt "#55346"
+msgid "#350%"
+msgstr ""
+
+msgctxt "#55347"
+msgid "#400%"
+msgstr ""
+
+msgctxt "#55348"
+msgid "#450%"
+msgstr ""
+
+msgctxt "#55349"
+msgid "#500%"
+msgstr ""
+
+msgctxt "#55350"
+msgid "#600%"
+msgstr ""
+
+msgctxt "#55351"
+msgid "#700%"
+msgstr ""
+
+msgctxt "#55352"
+msgid "#800%"
+msgstr ""
+
 msgctxt "#60001"
 msgid "Media rules"
 msgstr ""

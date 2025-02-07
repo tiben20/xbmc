@@ -109,6 +109,7 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
   m_HasVideo = false;
   m_HasAudio = false;
   m_isMadvr = (StringUtils::ToLower(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER)) == "madvr");
+  
   if (m_isMadvr)
   {
     if (InitWindow(m_hWnd))
@@ -138,6 +139,9 @@ CDSPlayer::CDSPlayer(IPlayerCallback& callback)
 
   m_processInfo = CProcessInfo::CreateInstance();
   m_processInfo->SetDataCache(&CServiceBroker::GetDataCacheCore());
+  
+  m_processInfo->SetMadvr(m_isMadvr);
+  
   CServiceBroker::GetWinSystem()->Register(this);
 }
 

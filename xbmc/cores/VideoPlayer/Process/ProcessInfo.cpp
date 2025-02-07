@@ -58,6 +58,12 @@ void CProcessInfo::SetDataCache(CDataCacheCore *cache)
   m_dataCache->SetVideoRender(m_renderVideoLayer);
 }
 
+void CProcessInfo::SetMadvr(bool madvr)
+{
+  std::unique_lock<CCriticalSection> lock(m_settingsSection);
+  m_videoSettings.m_bUsingMadvr = madvr;
+}
+
 //******************************************************************************
 // video codec
 //******************************************************************************

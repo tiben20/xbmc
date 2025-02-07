@@ -16,6 +16,7 @@ CVideoSettings::CVideoSettings()
 {
 #if HAS_DS_PLAYER
   m_SubtitleExtTrackName = "";
+  m_bUsingMadvr = false;
 #endif
   m_InterlaceMethod = VS_INTERLACEMETHOD_AUTO;
   m_ScalingMethod = VS_SCALINGMETHOD_LINEAR;

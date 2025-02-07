@@ -28,14 +28,14 @@ public:
    * @param viewMode The current view mode
    * @return The next view mode
    */
-  static int GetNextQuickCycleViewMode(int viewMode);
+  static int GetNextQuickCycleViewMode(int viewMode, bool madvr = false);
 
   /** Gets the string index for the view mode
    *
    * @param viewMode The current view mode
    * @return The string index
    */
-  static int GetViewModeStringIndex(int viewMode);
+  static int GetViewModeStringIndex(int viewMode, bool madvr = false);
 
   /** Fills the list with all visible view modes
    */

@@ -31,6 +31,8 @@ public:
   virtual ~CProcessInfo() = default;
   void SetDataCache(CDataCacheCore *cache);
 
+  void SetMadvr(bool madvr);
+
   // player video
   void ResetVideoCodecInfo();
   void SetVideoDecoderName(const std::string &name, bool isHw);

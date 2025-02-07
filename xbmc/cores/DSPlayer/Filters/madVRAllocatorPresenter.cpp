@@ -292,17 +292,47 @@ void CmadVRAllocatorPresenter::SetViewMode(int viewMode)
     CStdStringW aa;
     
     std::wstring madVRModesMap[] = {
-                    L"touchOutside",
-                    L"touchInside",
-                    L"stretch",
-                    L"stretch",
+                    L"autoDetect",
                     L"touchInside",
                     L"touchOutside",
-                    L"autoDetect",
-                    L"autoDetect",
-                    L"autoDetect",
-                    L"autoDetect"
-    };
+                    L"stretch",
+                    L"100%",
+                    L"10%",
+                    L"20%",
+                    L"25%",
+                    L"30%",
+                    L"33%",
+                    L"40%",
+                    L"50%",
+                    L"60%",
+                    L"66%",
+                    L"70%",
+                    L"75%",
+                    L"80%",
+                    L"90%",
+                    L"110%",
+                    L"120%",
+                    L"125%",
+                    L"130%",
+                    L"140%",
+                    L"150%",
+                    L"160%",
+                    L"170%",
+                    L"175%",
+                    L"180%",
+                    L"190%",
+                    L"200%",
+                    L"225%",
+                    L"250%",
+                    L"300%",
+                    L"350%",
+                    L"400%",
+                    L"450%",
+                    L"500%",
+                    L"600%",
+                    L"700%",
+                    L"800%"
+};
     pMadVrCmd->SendCommandString("setZoomMode", (LPWSTR)madVRModesMap[viewMode].c_str());
 
   }

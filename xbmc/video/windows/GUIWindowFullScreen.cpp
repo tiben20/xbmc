@@ -141,7 +141,7 @@ bool CGUIWindowFullScreen::OnAction(const CAction &action)
       if (m_dwShowViewModeTimeout.time_since_epoch().count() != 0)
       {
         CVideoSettings vs = appPlayer->GetVideoSettings();
-        vs.m_ViewMode = CViewModeSettings::GetNextQuickCycleViewMode(vs.m_ViewMode);
+        vs.m_ViewMode = CViewModeSettings::GetNextQuickCycleViewMode(vs.m_ViewMode,vs.m_bUsingMadvr);
         appPlayer->SetRenderViewMode(vs.m_ViewMode, vs.m_CustomZoomAmount, vs.m_CustomPixelRatio,
                                      vs.m_CustomVerticalShift, vs.m_CustomNonLinStretch);
       }
@@ -300,7 +300,7 @@ void CGUIWindowFullScreen::FrameMove()
       // get the "View Mode" string
       const std::string& strTitle = g_localizeStrings.Get(629);
       const auto& vs = appPlayer->GetVideoSettings();
-      int sId = CViewModeSettings::GetViewModeStringIndex(vs.m_ViewMode);
+      int sId = CViewModeSettings::GetViewModeStringIndex(vs.m_ViewMode,vs.m_bUsingMadvr);
       const std::string& strMode = g_localizeStrings.Get(sId);
       std::string strInfo = StringUtils::Format("{} : {}", strTitle, strMode);
       CGUIMessage msg(GUI_MSG_LABEL_SET, GetID(), LABEL_ROW1);
