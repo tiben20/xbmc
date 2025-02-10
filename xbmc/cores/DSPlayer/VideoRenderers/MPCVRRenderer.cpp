@@ -198,7 +198,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
   sourcerect.y1 = 0;
   sourcerect.x2 = m_sourceWidth;
   sourcerect.y2 = m_sourceHeight;
-  FillVertexBuffer(m_sourceWidth, m_sourceHeight, sourcerect/*m_sourceRect*/, 0, 0);
+  FillVertexBuffer(m_destRect.Width(), m_destRect.Height(), sourcerect/*m_sourceRect*/, 0, 0);
   // Set resources
   pContext->OMSetRenderTargets(1, DX::DeviceResources::Get()->GetBackBuffer().GetAddressOfRTV(), nullptr);
   pContext->RSSetViewports(1, &VP);
@@ -210,9 +210,6 @@ void CMPCVRRenderer::CopyToBackBuffer()
   pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
 
   pContext->PSSetShaderResources(0, 1, m_IntermediateTarget.GetAddressOfSRV());
-  //Do we need constant buffer and sampler or keep the one already there
-  //pContext->PSSetSamplers(0, 1, &pSampler);
-  //pContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
   pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
   pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &Stride, &Offset);
 
@@ -250,16 +247,12 @@ void CMPCVRRenderer::DrawStats()
 
   //m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
 
-
-  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, m_dwStatsTextColor, m_statsText.c_str());
+  //TODO Add alpha and color config in gui or advanced settings for osd
+  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, COLOR_ARGB(55, 255, 255, 255), m_statsText.c_str());
   static int col = m_StatsRect.right;
   if (--col < m_StatsRect.left) {
     col = m_StatsRect.right;
   }
-
-  //m_Rect3D.Set({ col, m_StatsRect.bottom - 11, col + 5, m_StatsRect.bottom - 1 }, rtSize, D3DCOLOR_XRGB(128, 255, 128));
-  //m_Rect3D.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
-
 }
 
 void CMPCVRRenderer::Reset()

@@ -52,6 +52,8 @@ protected:
 	FmtConvParamsLibplacebo_t m_srcParamsLibplacebo;
 	UINT  m_srcWidth        = 0;
 	UINT  m_srcHeight       = 0;
+	UINT  m_dstTargetWidth  = 0;
+	UINT  m_dstTargetHeight = 0;
 	UINT  m_srcRectWidth    = 0;
 	UINT  m_srcRectHeight   = 0;
 	int   m_srcPitch        = 0;

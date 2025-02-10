@@ -192,8 +192,6 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
 	SetDefaultDXVA2ProcAmpValues(m_DXVA2ProcAmpValues);
 
-	/*MH_EnableHook(MH_ALL_HOOKS); */
-
 	Microsoft::WRL::ComPtr<IDXGIAdapter> pDXGIAdapter;
 	for (UINT adapter = 0; m_pDXGIFactory1->EnumAdapters(adapter, &pDXGIAdapter) != DXGI_ERROR_NOT_FOUND; ++adapter) {
 		Microsoft::WRL::ComPtr<IDXGIOutput> pDXGIOutput;
@@ -1047,9 +1045,13 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		// because it can cause green screens and freezes on some configurations
 		if (!m_pFinalTextureSampler == D3D11_VP)
 			hr = MemCopyToTexSrcVideo(data, m_srcPitch);
-		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get())
+
+		//verify the intermediate target if its the good size if not recreate it
+		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get() || m_dstTargetWidth != m_videoRect.Width() || m_dstTargetHeight != m_videoRect.Height())
 		{
-			CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+			CMPCVRRenderer::Get()->CreateIntermediateTarget(m_videoRect.Width(), m_videoRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+			m_dstTargetWidth = m_videoRect.Width();
+			m_dstTargetHeight = m_videoRect.Height();
 			//call there to be sure we have the correct ouput
 			UpdateStatsStatic();
 		}
@@ -1076,7 +1078,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
 	{
-		CLog::LogF(LOGERROR, "failed to finish command queue.");
+		CLog::LogF(LOGERROR, "{} failed to finish command queue.",__FUNCTION__);
 		return E_FAIL;
 	}
 	else
@@ -1101,6 +1103,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		inParams.fmt = m_TexSrcVideo.desc.Format;
 		inParams.tex = m_TexSrcVideo.pTexture.Get();
 	}
+
+
 	pl_tex inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &inParams);
 
 	if (m_pFinalTextureSampler != D3D11_LIBPLACEBO)
@@ -1140,8 +1144,8 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 	frameIn.crop.x1 = m_srcWidth;
 	frameIn.crop.y1 = m_srcHeight;
-	frameOut.crop.x1 = m_srcWidth;
-	frameOut.crop.y1 = m_srcHeight;
+	frameOut.crop.x1 = m_dstTargetWidth;
+	frameOut.crop.y1 = m_dstTargetHeight;
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
 	frameOut.repr.sys = PL_COLOR_SYSTEM_RGB;

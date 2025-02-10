@@ -25276,7 +25276,7 @@ msgid "D3D11 video processor"
 msgstr ""
 
 msgctxt "#55203"
-msgid "Libplacebo Not working correctly"
+msgid "Libplacebo directly"
 msgstr ""
 
 msgctxt "#55204"
