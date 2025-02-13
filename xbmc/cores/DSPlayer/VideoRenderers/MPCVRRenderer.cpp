@@ -198,7 +198,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
   sourcerect.y1 = 0;
   sourcerect.x2 = m_sourceWidth;
   sourcerect.y2 = m_sourceHeight;
-  FillVertexBuffer(m_destRect.Width(), m_destRect.Height(), sourcerect/*m_sourceRect*/, 0, 0);
+  FillVertexBuffer(m_destRect.Width(), m_destRect.Height(), m_destRect/*m_sourceRect*/, 0, 0);
   // Set resources
   pContext->OMSetRenderTargets(1, DX::DeviceResources::Get()->GetBackBuffer().GetAddressOfRTV(), nullptr);
   pContext->RSSetViewports(1, &VP);
