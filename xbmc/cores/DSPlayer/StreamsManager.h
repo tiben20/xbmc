@@ -198,7 +198,7 @@ public:
 
   int  GetSubtitleCount();
   int  GetSubtitle();
-  void GetSubtitleName(int iStream, std::string &strStreamName);
+  void GetSubtitleName(int iStream, std::string &strStreamName, std::string& strStreamLang);
   bool GetSubtitleVisible();
   void SetSubtitleVisible(bool bVisible);
   bool SetSubtitle(const std::string &sTrackName);
@@ -345,7 +345,7 @@ public:
    * @param[in] iStream Index of the subtitle to get displayname of
    * @param[out] strStreamName Name of the iStream subtitle
    */
-  void GetSubtitleName(int iStream, std::string &strStreamName);
+  void GetSubtitleName(int iStream, std::string &strStreamName, std::string& strStreamLang);
   /** Change the current subtitle
    * @param[in] iStream Index of the subtitle
    * @remarks If the IAMStreamSelect interface wasn't found, the graph must be stopped and restarted in order to change the subtitle

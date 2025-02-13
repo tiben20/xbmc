@@ -490,7 +490,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
         pS.displayname = StringUtils::Format("A: Audio %02d", i + 1);
 
       m_audioStreams.push_back(static_cast<CDSStreamDetailAudio *>(infos));
-      CLog::Log(LOGINFO, "{} Audio stream found : {} - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
+      CLog::Log(LOGINFO, "{} Audio stream found : {} - index: {}", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
     else if (group == CStreamDetail::SUBTITLE)
     {
@@ -498,7 +498,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
         m_subfilterStreams.push_back(static_cast<CDSStreamDetailSubfilter *>(infos));
       else
         SubtitleManager->GetSubtitles().push_back(static_cast<CDSStreamDetailSubtitle*>(infos));
-      CLog::Log(LOGINFO, "{} Subtitle stream found : {} - index: %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
+      CLog::Log(LOGINFO, "{} Subtitle stream found : {} - index: {}", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
     else if (group == CStreamDetail::EDITION || group == CStreamDetail::BD_TITLE)
     {
@@ -508,7 +508,7 @@ void CStreamsManager::LoadIAMStreamSelectStreamsInternal()
         pBDSS->GetTitleInfo(m_editionStreams.size(), NULL, &pEdition->m_rtDuration);
       }
       m_editionStreams.push_back(pEdition);
-      CLog::Log(LOGINFO, "{} Editions stream found : {} - index : %i", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
+      CLog::Log(LOGINFO, "{} Editions stream found : {} - index : {}", __FUNCTION__, pS.displayname.c_str(), pS.IAMStreamSelect_Index);
     }
 
     DeleteMediaType(mediaType);
@@ -718,11 +718,15 @@ int CStreamsManager::GetSubtitleCount()
   return m_subfilterStreams.size();
 }
 
-void CStreamsManager::GetSubtitleName(int iStream, std::string &strStreamName)
+void CStreamsManager::GetSubtitleName(int iStream, std::string &strStreamName, std::string& strStreamLang)
 {
   if (!m_bHasSubsFilter)
   {
-    SubtitleManager->GetSubtitleName(iStream, strStreamName);
+    //if -1 its current stream which mean we get the stream which as the used flag
+    if (iStream == -1)
+      SubtitleManager->GetSubtitleName(CStreamsManager::Get()->GetSubtitle(), strStreamName, strStreamLang);
+    else
+      SubtitleManager->GetSubtitleName(iStream, strStreamName, strStreamLang);
     return;
   }
 
@@ -737,9 +741,11 @@ void CStreamsManager::GetSubtitleName(int iStream, std::string &strStreamName)
     if (i == iStream)
     {
       strStreamName = (*it)->displayname;
+      strStreamLang = (*it)->isolang;
     }
   }
 }
+
 
 bool CStreamsManager::GetSubtitleVisible()
 {
@@ -1393,7 +1399,7 @@ void CStreamsManager::MediaTypeToStreamDetail(AM_MEDIA_TYPE *pMediaType, CDSStre
     infos.m_fAspect = (float)infos.m_iWidth / infos.m_iHeight;
 
     // fourcc infos
-    CLog::Log(LOGINFO, "{} \tVideo stream fourcc : %c%c%c%c", __FUNCTION__, infos.m_iFourcc >> 24 & 0xff, infos.m_iFourcc >> 16 & 0xff, infos.m_iFourcc >> 8 & 0xff, infos.m_iFourcc & 0xff);
+    CLog::Log(LOGINFO, "{} \tVideo stream fourcc : {}{}{}{}", __FUNCTION__, infos.m_iFourcc >> 24 & 0xff, infos.m_iFourcc >> 16 & 0xff, infos.m_iFourcc >> 8 & 0xff, infos.m_iFourcc & 0xff);
 
     // TODO: That's really bad. We determine if we *can* use dxva with the file, and not if
     // dxva will be used. There're also many others parameters that need to be take into
@@ -1625,6 +1631,8 @@ void CSubtitleManager::Initialize()
   // Log manager for the DLL
   m_Log.reset(new ILogImpl());
 
+  
+
   m_dll.CreateD3D11SubtitleManager(DX::DeviceResources().Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
 
   if (!pManager)
@@ -1636,11 +1644,16 @@ void CSubtitleManager::Initialize()
   SSubStyle style; //auto default on constructor
 
   // Build style based on XBMC settings
-  style.colors[0] = color[CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_COLOR)];
-  style.alpha[0] = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.alpha");
+  
+  style.alpha[0] = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.opacity");
   //CHANGED FROM RES_PAL_4x3
   CServiceBroker::GetWinSystem()->GetGfxContext().SetScalingResolution(RES_CUSTOM, true);
-  style.fontSize = 22;// (float)(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_HEIGHT)) * 50.0 / 72.0;
+  style.fontSize = (double)(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.fontsize")) * 50.0 / 96.0;
+
+  //Convert string FFFFFFFF to COLORREF
+  std::string hexColor = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_SUBTITLES_COLOR);
+  std::sscanf(hexColor.c_str(), "%x", &style.colors[0]);
+
 
   int fontStyle = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_SUBTITLES_STYLE);
   switch (fontStyle)
@@ -1671,8 +1684,8 @@ void CSubtitleManager::Initialize()
   style.outlineWidthX = style.outlineWidthY = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("subtitles.outlinewidth");
 
   std::wstring fontName;
-  g_charsetConverter.utf8ToW(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString("subtitles.dsfont"), fontName);
-  if (fontName.length() == 0)
+  g_charsetConverter.utf8ToW(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString("subtitles.fontname"), fontName);
+  if (fontName == L"DEFAULT")
   {
     fontName = L"Arial";
   }
@@ -1779,7 +1792,7 @@ int CSubtitleManager::GetSubtitle()
   return -1;
 }
 
-void CSubtitleManager::GetSubtitleName(int iStream, std::string &strStreamName)
+void CSubtitleManager::GetSubtitleName(int iStream, std::string &strStreamName, std::string& strStreamLang)
 {
   if (m_subtitleStreams.size() == 0)
     return;
@@ -1791,6 +1804,7 @@ void CSubtitleManager::GetSubtitleName(int iStream, std::string &strStreamName)
     if (i == iStream)
     {
       strStreamName = (*it)->displayname;
+      strStreamLang = (*it)->isolang;
     }
   }
 }
@@ -2244,9 +2258,16 @@ void CSubtitleManager::SelectBestSubtitle()
       }
     }
   }
-
+  
   if (select != -1)
     SetSubtitle(select);
+  else
+  {
+    //the connection is already made so test it
+    int selectinternal = GetSubtitle();
+    if (selectinternal > -1)
+      SetSubtitle(selectinternal);
+  }
 
   SetSubtitleVisible(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_SubtitleOn);
 }

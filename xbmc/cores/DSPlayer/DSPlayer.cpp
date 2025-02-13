@@ -519,13 +519,13 @@ void CDSPlayer::GetAudioStreamInfo(int index, AudioStreamInfo& info) const
 void CDSPlayer::GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) const
 {
   std::string strStreamName;
+  std::string strStreamLang;
   if (CStreamsManager::Get())
   {
-    CStreamsManager::Get()->GetSubtitleName(index, strStreamName);
-
-    info.language = strStreamName;
-    info.name = strStreamName;
+    CStreamsManager::Get()->GetSubtitleName(index, info.name, info.language);
+    return;
   }
+  info.name = "Dunno";
 }
 
 bool CDSPlayer::IsPlaying() const
