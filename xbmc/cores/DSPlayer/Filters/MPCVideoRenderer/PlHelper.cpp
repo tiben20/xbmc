@@ -19,24 +19,24 @@ static void pl_log_cb(void*, enum pl_log_level level, const char* msg)
 {
   switch (level) {
   case PL_LOG_FATAL:
-    CLog::Log(LOGFATAL, "libPlacebo {}", msg);
+    CLog::Log(LOGFATAL, "libPlacebo Fatal: {}", msg);
     break;
   case PL_LOG_ERR:
-    CLog::Log(LOGERROR, "libPlacebo {}", msg);
+    CLog::Log(LOGERROR, "libPlacebo Error: {}", msg);
 
     break;
   case PL_LOG_WARN:
-    CLog::Log(LOGWARNING, "libPlacebo {}", msg);
+    CLog::Log(LOGWARNING, "libPlacebo Warning: {}", msg);
     break;
   case PL_LOG_INFO:
-    CLog::Log(LOGINFO, "libPlacebo {}", msg);
+    CLog::Log(LOGINFO, "libPlacebo Info: {}", msg);
     break;
   case PL_LOG_DEBUG:
-    CLog::Log(LOGDEBUG, "libPlacebo {}", msg);
+    CLog::Log(LOGDEBUG, "libPlacebo Debug: {}", msg);
     break;
   case PL_LOG_NONE:
   case PL_LOG_TRACE:
-    CLog::Log(LOGNONE, "libPlacebo {}", msg);
+    CLog::Log(LOGNONE, "libPlacebo Trace: {}", msg);
     break;
   }
 }
@@ -145,7 +145,7 @@ bool CPlHelper::Init(DXGI_FORMAT fmt)
  
     pl_log_params log_param{};
     log_param.log_cb = pl_log_cb;
-    log_param.log_level = PL_LOG_TRACE;
+    log_param.log_level = PL_LOG_WARN;
     m_plLog = pl_log_create(PL_API_VER, &log_param);
   }
   if (m_plD3d11)

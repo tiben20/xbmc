@@ -25268,7 +25268,7 @@ msgid "Libplacebo Settings"
 msgstr ""
 
 msgctxt "#55201"
-msgid "Planer merger"
+msgid "Plane merger"
 msgstr ""
 
 msgctxt "#55202"
@@ -25284,143 +25284,143 @@ msgid "internal shaders"
 msgstr ""
 
 msgctxt "#55205"
-msgid "grain"
+msgid "If passthough impossible convert Hdr to SDR"
 msgstr ""
 
 msgctxt "#55206"
-msgid "Sigmoid center"
+msgid "Sdr display nits"
 msgstr ""
 
 msgctxt "#55207"
-msgid "Sigmoid slope"
+msgid "Passthrough to display"
 msgstr ""
 
 msgctxt "#55208"
-msgid "	Peak detection smoothing coefficient"
+msgid "Prefer Dolby Vision over PQ and HLG"
 msgstr ""
 
 msgctxt "#55209"
-msgid "	Scene change threshold low"
+msgid "Spline 16 2 taps"
 msgstr ""
 
 msgctxt "#55210"
-msgid "	Scene change threshold high"
+msgid "Spline 32 3 taps"
 msgstr ""
 
 msgctxt "#55211"
-msgid "	Minimum detected peak"
+msgid "Spline 64 4 taps"
 msgstr ""
 
 msgctxt "#55212"
-msgid "	Peak detection percentile"
+msgid "Nearest"
 msgstr ""
 
 msgctxt "#55213"
-msgid "	Peak detection black cutoff"
+msgid "Box"
 msgstr ""
 
 msgctxt "#55214"
-msgid "	Allow delayed peak detection"
+msgid "Bilinear"
 msgstr ""
 
 msgctxt "#55215"
-msgid "	Gamut mapping function"
+msgid "Gaussian"
 msgstr ""
 
 msgctxt "#55216"
-msgid "	Gamut mapping perceptual deadzone"
+msgid "Sinc"
 msgstr ""
 
 msgctxt "#55217"
-msgid "	Gamut mapping perceptual strength"
+msgid "Lanczos"
 msgstr ""
 
 msgctxt "#55218"
-msgid "	Gamut mapping colorimetric gamma"
+msgid "Ginseng"
 msgstr ""
 
 msgctxt "#55219"
-msgid "	Gamut mapping softclip knee point"
+msgid "Ewa Jinc"
 msgstr ""
 
 msgctxt "#55220"
-msgid "	Gamut mapping softclip desaturation strength"
+msgid "Ewa Lanczos"
 msgstr ""
 
 msgctxt "#55221"
-msgid "	Gamut 3DLUT size I"
+msgid "Ewa Lanczos Sharp"
 msgstr ""
 
 msgctxt "#55222"
-msgid "	Gamut 3DLUT size C"
+msgid "Ewa Lanczos 4 Sharpest"
 msgstr ""
 
 msgctxt "#55223"
-msgid "	Gamut 3DLUT size h"
+msgid "Junc sinc"
 msgstr ""
 
 msgctxt "#55224"
-msgid "	Gamut 3DLUT tricubic interpolation"
+msgid "Jinc hann"
 msgstr ""
 
 msgctxt "#55225"
-msgid "	Gamut expansion"
+msgid "Bicumic"
 msgstr ""
 
 msgctxt "#55226"
-msgid "	Tone mapping function"
+msgid "Hermite"
 msgstr ""
 
 msgctxt "#55227"
-msgid "	Tone mapping knee point adaptation"
+msgid "Catmull rom"
 msgstr ""
 
 msgctxt "#55228"
-msgid "	Tone mapping knee point minimum"
+msgid "Mitchell"
 msgstr ""
 
 msgctxt "#55229"
-msgid "	Tone mapping knee point maximum"
+msgid "Mitchell clamp"
 msgstr ""
 
 msgctxt "#55230"
-msgid "	Tone mapping knee point default"
+msgid "Robidoux"
 msgstr ""
 
 msgctxt "#55231"
-msgid "	BT.2390 knee point offset"
+msgid "Robidoux Sharp"
 msgstr ""
 
 msgctxt "#55232"
-msgid "	Spline slope tuning strength"
+msgid "Ewa robidoux"
 msgstr ""
 
 msgctxt "#55233"
-msgid "	Spline slope tuning offset"
+msgid "Ewa robidoux sharp"
 msgstr ""
 
 msgctxt "#55234"
-msgid "	Spline slope contrast"
+msgid "Oversample"
 msgstr ""
 
 msgctxt "#55235"
-msgid "	Reinhard contrast"
+msgid "Upscaler"
 msgstr ""
 
 msgctxt "#55236"
-msgid "	Tone mapping linear knee point"
+msgid "Downscaler"
 msgstr ""
 
 msgctxt "#55237"
-msgid "	Tone mapping linear exposure"
+msgid "Plane upscaler"
 msgstr ""
 
 msgctxt "#55238"
-msgid "	Inverse tone mapping"
+msgid "Plane downscaler"
 msgstr ""
 
 msgctxt "#55239"
-msgid "	Source of HDR metadata to use"
+msgid "Frame Mixer"
 msgstr ""
 
 msgctxt "#55240"

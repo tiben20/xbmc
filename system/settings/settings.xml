@@ -56,7 +56,7 @@
               <option label="36035">1</option> <!-- ADJUST_REFRESHRATE_ALWAYS -->
               <option label="36036">2</option> <!-- ADJUST_REFRESHRATE_ON_STARTSTOP -->
               <option label="36050">3</option> <!-- ADJUST_REFRESHRATE_ON_START -->
-			  <option label="55071">4</option> <!-- ADJUST_REFRESHRATE_WITH_DSPLAYER -->
+                                            <option label="55071">4</option> <!-- ADJUST_REFRESHRATE_WITH_DSPLAYER -->
             </options>
           </constraints>
           <control type="list" format="string" />
@@ -913,7 +913,7 @@
         </setting>
       </group>
     </category>
-	<category id="dsplayer" label="55000" help="90025">
+              <category id="dsplayer" label="55000" help="90025">
       <group id="1" label="55000">
         <setting id="dsplayer.defaultvideoplayer" type="boolean" label="55031" help="90000">
           <level>0</level>
@@ -977,22 +977,44 @@
           </dependencies>
           <control type="toggle" />
         </setting>
-		<setting id="dsplayer.vr.texturesampler" parent="dsplayer.videorenderer" type="integer" label="55201">
+                            <setting id="dsplayer.vr.passthroughdisplay" parent="dsplayer.videorenderer" type="boolean" label="55207">
           <level>0</level>
-          <default>0 </default> <!-- Direct3D 9 -->
-          <constraints>
-            <options>
-              <option label="55202">0</option> <!-- d3d11 vp -->
-              <option label="55203">1</option> <!-- libplacebo -->
-              <option label="55204">2</option> <!-- internal shaders -->
-            </options>
-          </constraints>
+          <default>true</default>
           <dependencies>
             <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
           </dependencies>
-          <control type="list" format="string" />
+          <control type="toggle"/>
         </setting>
-		<setting id="dsplayer.vr.displayerstats" parent="dsplayer.videorenderer" type="integer" label="55015">
+                            <setting id="dsplayer.vr.preferdolby" parent="dsplayer.videorenderer" type="boolean" label="55208">
+          <level>0</level>
+          <default>true</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+          </dependencies>
+          <control type="toggle"/>
+        </setting>
+                            <setting id="dsplayer.vr.convertsdr" parent="dsplayer.videorenderer" type="boolean" label="55205">
+          <level>0</level>
+          <default>false</default>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+          </dependencies>
+          <control type="toggle"/>
+        </setting>
+                            <setting id="dsplayer.vr.sdrnits" parent="dsplayer.videorenderer" type="integer" label="55206">
+          <level>0</level>
+          <default>400 </default>
+          <constraints>
+            <minimum>25</minimum>
+            <step>5</step>
+            <maximum>400</maximum>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.vr.convertsdr" operator="is">true</dependency>
+          </dependencies>
+          <control type="slider" format="integer" range="25,400" />
+        </setting>
+                            <setting id="dsplayer.vr.displayerstats" parent="dsplayer.videorenderer" type="integer" label="55015">
           <level>0</level>
           <default>0 </default>
           <constraints>
@@ -1000,7 +1022,7 @@
               <option label="55011">0</option> <!-- none -->
               <option label="55012">1</option> <!-- mpc vr style -->
               <option label="55013">2</option> <!-- scaling stat -->
-			  <option label="55014">3</option> <!--hdr mpv style -->
+                                            <option label="55014">3</option> <!--hdr mpv style -->
             </options>
           </constraints>
           <dependencies>
@@ -1008,19 +1030,214 @@
           </dependencies>
           <control type="list" format="string" />
         </setting>
-		<setting id="dsplayer.libplacebo.shaders" parent="dsplayer.videorenderer" type="integer" label="55200">
+                            <setting id="dsplayer.libplacebo.shaders" parent="dsplayer.videorenderer" type="integer" label="55200">
           <level>0</level>
-          <default>0 </default> <!-- Direct3D 9 -->
+          <default>0 </default>
           <constraints>
             <options>
               <option label="55034">0</option> <!-- default -->
               <option label="55035">1</option> <!-- fast -->
               <option label="55036">2</option> <!-- high quality -->
-			  <option label="55037">3</option> <!-- Custom -->
+                                            <option label="55037">3</option> <!-- Custom -->
             </options>
           </constraints>
           <dependencies>
             <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+        <setting id="dsplayer.libplacebo.upscaler" parent="dsplayer.videorenderer" type="integer" label="55235">
+          <level>0</level>
+          <default>0 </default> 
+          <constraints>
+            <options>
+              <option label="55209">0</option>
+              <option label="55210">1</option>
+              <option label="55211">2</option>
+              <option label="55212">3</option>
+              <option label="55213">4</option>
+              <option label="55214">5</option>
+              <option label="55215">6</option>
+              <option label="55216">7</option>
+              <option label="55217">8</option>
+              <option label="55218">9</option>
+              <option label="55219">10</option>
+              <option label="55220">11</option>
+              <option label="55221">12</option>
+              <option label="55222">13</option>
+              <option label="55223">14</option>
+              <option label="55224">15</option>
+              <option label="55225">16</option>
+              <option label="55226">17</option>
+              <option label="55227">18</option>
+              <option label="55228">19</option>
+              <option label="55229">20</option>
+              <option label="55230">21</option>
+              <option label="55231">22</option>
+              <option label="55232">23</option>
+              <option label="55233">24</option>
+              <option label="55234">25</option>
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+            <dependency type="visible" setting="dsplayer.libplacebo.shaders" operator="is">3</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+		<setting id="dsplayer.libplacebo.downscaler" parent="dsplayer.videorenderer" type="integer" label="55236">
+          <level>0</level>
+          <default>0 </default> 
+          <constraints>
+            <options>
+              <option label="55209">0</option>
+              <option label="55210">1</option>
+              <option label="55211">2</option>
+              <option label="55212">3</option>
+              <option label="55213">4</option>
+              <option label="55214">5</option>
+              <option label="55215">6</option>
+              <option label="55216">7</option>
+              <option label="55217">8</option>
+              <option label="55218">9</option>
+              <option label="55219">10</option>
+              <option label="55220">11</option>
+              <option label="55221">12</option>
+              <option label="55222">13</option>
+              <option label="55223">14</option>
+              <option label="55224">15</option>
+              <option label="55225">16</option>
+              <option label="55226">17</option>
+              <option label="55227">18</option>
+              <option label="55228">19</option>
+              <option label="55229">20</option>
+              <option label="55230">21</option>
+              <option label="55231">22</option>
+              <option label="55232">23</option>
+              <option label="55233">24</option>
+              <option label="55234">25</option>
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+            <dependency type="visible" setting="dsplayer.libplacebo.shaders" operator="is">3</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+<setting id="dsplayer.libplacebo.planeupscaler" parent="dsplayer.videorenderer" type="integer" label="55237">
+          <level>0</level>
+          <default>0 </default> 
+          <constraints>
+            <options>
+              <option label="55209">0</option>
+              <option label="55210">1</option>
+              <option label="55211">2</option>
+              <option label="55212">3</option>
+              <option label="55213">4</option>
+              <option label="55214">5</option>
+              <option label="55215">6</option>
+              <option label="55216">7</option>
+              <option label="55217">8</option>
+              <option label="55218">9</option>
+              <option label="55219">10</option>
+              <option label="55220">11</option>
+              <option label="55221">12</option>
+              <option label="55222">13</option>
+              <option label="55223">14</option>
+              <option label="55224">15</option>
+              <option label="55225">16</option>
+              <option label="55226">17</option>
+              <option label="55227">18</option>
+              <option label="55228">19</option>
+              <option label="55229">20</option>
+              <option label="55230">21</option>
+              <option label="55231">22</option>
+              <option label="55232">23</option>
+              <option label="55233">24</option>
+              <option label="55234">25</option>
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+            <dependency type="visible" setting="dsplayer.libplacebo.shaders" operator="is">3</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+<setting id="dsplayer.libplacebo.planedownscaler" parent="dsplayer.videorenderer" type="integer" label="55238">
+          <level>0</level>
+          <default>0 </default> 
+          <constraints>
+            <options>
+              <option label="55209">0</option>
+              <option label="55210">1</option>
+              <option label="55211">2</option>
+              <option label="55212">3</option>
+              <option label="55213">4</option>
+              <option label="55214">5</option>
+              <option label="55215">6</option>
+              <option label="55216">7</option>
+              <option label="55217">8</option>
+              <option label="55218">9</option>
+              <option label="55219">10</option>
+              <option label="55220">11</option>
+              <option label="55221">12</option>
+              <option label="55222">13</option>
+              <option label="55223">14</option>
+              <option label="55224">15</option>
+              <option label="55225">16</option>
+              <option label="55226">17</option>
+              <option label="55227">18</option>
+              <option label="55228">19</option>
+              <option label="55229">20</option>
+              <option label="55230">21</option>
+              <option label="55231">22</option>
+              <option label="55232">23</option>
+              <option label="55233">24</option>
+              <option label="55234">25</option>
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+            <dependency type="visible" setting="dsplayer.libplacebo.shaders" operator="is">3</dependency>
+          </dependencies>
+          <control type="list" format="string" />
+        </setting>
+<setting id="dsplayer.libplacebo.framemixer" parent="dsplayer.videorenderer" type="integer" label="55239">
+          <level>0</level>
+          <default>0 </default> 
+          <constraints>
+            <options>
+              <option label="55209">0</option>
+              <option label="55210">1</option>
+              <option label="55211">2</option>
+              <option label="55212">3</option>
+              <option label="55213">4</option>
+              <option label="55214">5</option>
+              <option label="55215">6</option>
+              <option label="55216">7</option>
+              <option label="55217">8</option>
+              <option label="55218">9</option>
+              <option label="55219">10</option>
+              <option label="55220">11</option>
+              <option label="55221">12</option>
+              <option label="55222">13</option>
+              <option label="55223">14</option>
+              <option label="55224">15</option>
+              <option label="55225">16</option>
+              <option label="55226">17</option>
+              <option label="55227">18</option>
+              <option label="55228">19</option>
+              <option label="55229">20</option>
+              <option label="55230">21</option>
+              <option label="55231">22</option>
+              <option label="55232">23</option>
+              <option label="55233">24</option>
+              <option label="55234">25</option>
+            </options>
+          </constraints>
+          <dependencies>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">mpcvr</dependency>
+            <dependency type="visible" setting="dsplayer.libplacebo.shaders" operator="is">3</dependency>
           </dependencies>
           <control type="list" format="string" />
         </setting>

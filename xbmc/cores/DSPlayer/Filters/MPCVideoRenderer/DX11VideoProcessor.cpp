@@ -430,8 +430,6 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 	DWORD size;
 	data = shdr.GetData();
 	size = shdr.GetSize();
-	//HRESULT hr = GetDataFromResource(data, size, resid);
-	
 
 	return GetDevice->CreatePixelShader(data, size, nullptr, ppPixelShader);
 }
@@ -454,7 +452,6 @@ void CDX11VideoProcessor::UpdateRenderRect()
 {
 	CLog::Log(LOGINFO, "{}", __FUNCTION__);
 	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
-
 }
 
 
