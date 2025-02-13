@@ -25424,295 +25424,35 @@ msgid "Frame Mixer"
 msgstr ""
 
 msgctxt "#55240"
-msgid "	Tone mapping LUT size"
+msgid "RTX Video HDR"
 msgstr ""
 
 msgctxt "#55241"
-msgid "	HDR contrast recovery strength"
+msgid "Use D3D11VP for resizing (VP SuperRes)"
 msgstr ""
 
 msgctxt "#55242"
-msgid "	HDR contrast recovery smoothness"
+msgid "For SD"
 msgstr ""
 
 msgctxt "#55243"
-msgid "	Force tone mapping LUT"
+msgid "For 720p and down"
 msgstr ""
 
 msgctxt "#55244"
-msgid "	Visualize tone mapping LUTs"
+msgid "For 1080p and down"
 msgstr ""
 
 msgctxt "#55245"
-msgid "	Visualization rect x0"
+msgid "For 1440p and down"
 msgstr ""
 
 msgctxt "#55246"
-msgid "	Visualization rect y0"
+msgid "OSD Transparency"
 msgstr ""
 
 msgctxt "#55247"
-msgid "	Visualization rect x0"
-msgstr ""
-
-msgctxt "#55248"
-msgid "	Visualization rect y0"
-msgstr ""
-
-msgctxt "#55249"
-msgid "	Visualization hue slice"
-msgstr ""
-
-msgctxt "#55250"
-msgid "	Visualization rotation"
-msgstr ""
-
-msgctxt "#55251"
-msgid "	Highlight clipped pixels"
-msgstr ""
-
-msgctxt "#55252"
-msgid "	Tone mapping function parameter"
-msgstr ""
-
-msgctxt "#55253"
-msgid "	Enable dithering"
-msgstr ""
-
-msgctxt "#55254"
-msgid "	Dithering preset"
-msgstr ""
-
-msgctxt "#55255"
-msgid "	Dither method"
-msgstr ""
-
-msgctxt "#55256"
-msgid "	Dither LUT size"
-msgstr ""
-
-msgctxt "#55257"
-msgid "	Temporal dithering"
-msgstr ""
-
-msgctxt "#55258"
-msgid "	Enable cone distortion"
-msgstr ""
-
-msgctxt "#55259"
-msgid "	Cone distortion preset"
-msgstr ""
-
-msgctxt "#55260"
-msgid "	Cone selection"
-msgstr ""
-
-msgctxt "#55261"
-msgid "	Cone distortion gain"
-msgstr ""
-
-msgctxt "#55262"
-msgid "	Source RGB blend mode"
-msgstr ""
-
-msgctxt "#55263"
-msgid "	Source alpha blend mode"
-msgstr ""
-
-msgctxt "#55264"
-msgid "	Target RGB blend mode"
-msgstr ""
-
-msgctxt "#55265"
-msgid "	Target alpha blend mode"
-msgstr ""
-
-msgctxt "#55266"
-msgid "	Deinterlacing algorithm"
-msgstr ""
-
-msgctxt "#55267"
-msgid "	Skip spatial interlacing check"
-msgstr ""
-
-msgctxt "#55268"
-msgid "	Enable distortion"
-msgstr ""
-
-msgctxt "#55269"
-msgid "	Distortion preset"
-msgstr ""
-
-msgctxt "#55270"
-msgid "	Distortion X scale"
-msgstr ""
-
-msgctxt "#55271"
-msgid "	Distortion Y scale"
-msgstr ""
-
-msgctxt "#55272"
-msgid "	Distortion X shear"
-msgstr ""
-
-msgctxt "#55273"
-msgid "	Distortion Y shear"
-msgstr ""
-
-msgctxt "#55274"
-msgid "	Distortion X offset"
-msgstr ""
-
-msgctxt "#55275"
-msgid "	Distortion Y offset"
-msgstr ""
-
-msgctxt "#55276"
-msgid "	Distortion unscaled"
-msgstr ""
-
-msgctxt "#55277"
-msgid "	Constrain distortion"
-msgstr ""
-
-msgctxt "#55278"
-msgid "	Distortion bicubic interpolation"
-msgstr ""
-
-msgctxt "#55279"
-msgid "	Distortion texture address mode"
-msgstr ""
-
-msgctxt "#55280"
-msgid "	Distortion alpha blending mode"
-msgstr ""
-
-msgctxt "#55281"
-msgid "	Error diffusion kernel"
-msgstr ""
-
-msgctxt "#55282"
-msgid "	Color mapping LUT type"
-msgstr ""
-
-msgctxt "#55283"
-msgid "	Background clearing mode"
-msgstr ""
-
-msgctxt "#55284"
-msgid "	Border clearing mode"
-msgstr ""
-
-msgctxt "#55285"
-msgid "	Background color R"
-msgstr ""
-
-msgctxt "#55286"
-msgid "	Background color G"
-msgstr ""
-
-msgctxt "#55287"
-msgid "	Background color B"
-msgstr ""
-
-msgctxt "#55288"
-msgid "	Background color transparency"
-msgstr ""
-
-msgctxt "#55289"
-msgid "	Skip target clearing"
-msgstr ""
-
-msgctxt "#55290"
-msgid "	Corner rounding"
-msgstr ""
-
-msgctxt "#55291"
-msgid "	Blend against tiles"
-msgstr ""
-
-msgctxt "#55292"
-msgid "	Bright tile R"
-msgstr ""
-
-msgctxt "#55293"
-msgid "	Bright tile G"
-msgstr ""
-
-msgctxt "#55294"
-msgid "	Bright tile B"
-msgstr ""
-
-msgctxt "#55295"
-msgid "	Dark tile R"
-msgstr ""
-
-msgctxt "#55296"
-msgid "	Dark tile G"
-msgstr ""
-
-msgctxt "#55297"
-msgid "	Dark tile B"
-msgstr ""
-
-msgctxt "#55298"
-msgid "	Tile size"
-msgstr ""
-
-msgctxt "#55299"
-msgid "	Skip anti-aliasing"
-msgstr ""
-
-msgctxt "#55300"
-msgid "	Scaler LUT entries"
-msgstr ""
-
-msgctxt "#55301"
-msgid "	Polar LUT cutoff"
-msgstr ""
-
-msgctxt "#55302"
-msgid "	Preserve mixing cache"
-msgstr ""
-
-msgctxt "#55303"
-msgid "	Skip caching single frame"
-msgstr ""
-
-msgctxt "#55304"
-msgid "	Disable linear scaling"
-msgstr ""
-
-msgctxt "#55305"
-msgid "	Disable built-in scalers"
-msgstr ""
-
-msgctxt "#55306"
-msgid "	Correct subpixel offsets"
-msgstr ""
-
-msgctxt "#55307"
-msgid "	Ignore ICC profiles"
-msgstr ""
-
-msgctxt "#55308"
-msgid "	Force-enable dithering"
-msgstr ""
-
-msgctxt "#55309"
-msgid "	Disable gamma-correct dithering"
-msgstr ""
-
-msgctxt "#55310"
-msgid "	Disable FBOs"
-msgstr ""
-
-msgctxt "#55311"
-msgid "	Force 8-bit FBOs"
-msgstr ""
-
-msgctxt "#55312"
-msgid "	Dynamic constants"
+msgid "Always use libplacebo even if already resized"
 msgstr ""
 
 msgctxt "#55313"
