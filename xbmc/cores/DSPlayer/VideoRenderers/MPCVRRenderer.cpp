@@ -20,7 +20,8 @@
 #include "guilib/GUIShaderDX.h"
 #include "StreamsManager.h"
 #include "filesystem/Directory.h"
-
+#include "settings/Settings.h"
+#include "settings/SettingsComponent.h"
 
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 
@@ -362,6 +363,7 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
   SetViewMode(m_videoSettings.m_ViewMode);
   //CreateInputTarget(m_sourceWidth, m_sourceHeight);
   CreateIntermediateTarget(width, height, false);
+
   SetGraphSize();
 
   return true;
@@ -372,7 +374,7 @@ void CMPCVRRenderer::SetGraphSize()
   m_screenRect = CRect(0,0, GetScreenRect().x2, GetScreenRect().y2);
 
   HRESULT hr3 = m_Font3D.InitDeviceObjects();
-
+  
   if (SUCCEEDED(hr3)) {
     hr3 = m_StatsBackground.InitDeviceObjects();
     hr3 = m_Rect3D.InitDeviceObjects();
@@ -403,11 +405,12 @@ void CMPCVRRenderer::SetGraphSize()
       m_StatsRect.right = m_StatsRect.left + 61 * charSize.cx + 5 + 3;
       m_StatsRect.bottom = m_StatsRect.top + 18 * charSize.cy + 5 + 3;
     }
-    m_StatsBackground.Set(m_StatsRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
+    
+    m_StatsBackground.Set(m_StatsRect, rtSize, D3DCOLOR_ARGB(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("dsplayer.vr.osdalpha"), 0, 0, 0));
 
     m_Yaxis = m_GraphRect.bottom - 50 * m_Yscale;
 
-    m_Underlay.Set(m_GraphRect, rtSize, D3DCOLOR_ARGB(80, 0, 0, 0));
+    m_Underlay.Set(m_GraphRect, rtSize, D3DCOLOR_ARGB(CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("dsplayer.vr.osdalpha"), 0, 0, 0));
 
     m_Lines.ClearPoints(rtSize);
     POINT points[2];

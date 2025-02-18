@@ -310,6 +310,7 @@ protected:
   float m_InitialAudioDelay;
   float m_InitialSubsDelay;
   int m_lastDelay;
+  int m_iCurrentSubtitleStream;
 
   CDSStreamDetailVideo m_videoStream;
   CCriticalSection m_lock;

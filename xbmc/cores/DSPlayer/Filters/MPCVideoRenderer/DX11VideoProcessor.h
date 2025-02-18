@@ -142,7 +142,6 @@ private:
 	bool m_bDecoderDevice = false;
 	bool m_bIsFullscreen = false;
 	bool m_bHdrPassthroughSupport = false;
-	int m_iVPSuperRes = 0;
 	bool m_bVPUseSuperRes = false; // but it is not exactly
 
 	
@@ -172,7 +171,7 @@ private:
 	void SetCallbackDevice();
 
 	bool m_bDsplayerNotified = false;
-	bool m_bKodiResizeBuffers = false;
+	bool m_bKodiResizeBuffers = true;
 
 public:
 	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr);
@@ -245,11 +244,10 @@ public:
 
 private:
 	void UpdateTexures();
-	void UpdateBitmapShader();
 
 	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 
-	void DrawSubtitles(ID3D11Texture2D* pRenderTarget);
+
 	HRESULT Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 
 	void UpdateStatsPresent();

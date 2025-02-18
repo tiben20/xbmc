@@ -364,6 +364,7 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
     LoadVideoSettings(file);
 
   CFileItem fileItem = file;
+
   m_PlayerOptions = options;
   m_canTempo = true;
 
@@ -372,10 +373,14 @@ bool CDSPlayer::OpenFile(const CFileItem& file, const CPlayerOptions &options)
     fileItem.SetPath(file.GetVideoInfoTag()->m_strFileNameAndPath);
     fileItem.SetProperty("original_listitem_ur", file.GetPath());
   }
-  
+
+  //this fix path with plugin:// in it because they are not always internet stream
+  if (fileItem.GetDynPath().length() > 0)
+    fileItem.SetPath(fileItem.GetDynPath());
+
   if (URIUtils::IsInternetStream(fileItem.GetDynPath()))
   {
-    CURL url(fileItem.GetPath());
+    CURL url = fileItem.GetDynURL();
     url.SetProtocolOptions("");
     fileItem.SetPath(url.Get());
   }
@@ -522,6 +527,7 @@ void CDSPlayer::GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) const
   std::string strStreamLang;
   if (CStreamsManager::Get())
   {
+    
     CStreamsManager::Get()->GetSubtitleName(index, info.name, info.language);
     return;
   }

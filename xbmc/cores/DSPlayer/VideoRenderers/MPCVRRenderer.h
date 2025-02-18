@@ -157,7 +157,6 @@ public:
     unsigned int height,
     bool dynamic = false,
     DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
-
 protected:
 
   

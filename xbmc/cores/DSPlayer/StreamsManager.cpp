@@ -724,7 +724,7 @@ void CStreamsManager::GetSubtitleName(int iStream, std::string &strStreamName, s
   {
     //if -1 its current stream which mean we get the stream which as the used flag
     if (iStream == -1)
-      SubtitleManager->GetSubtitleName(CStreamsManager::Get()->GetSubtitle(), strStreamName, strStreamLang);
+      SubtitleManager->GetSubtitleName(m_iCurrentSubtitleStream, strStreamName, strStreamLang);
     else
       SubtitleManager->GetSubtitleName(iStream, strStreamName, strStreamLang);
     return;
@@ -951,6 +951,7 @@ void CStreamsManager::SetSubtitle(int iStream)
   if (!m_bHasSubsFilter)
   {
     SubtitleManager->SetSubtitle(iStream);
+    m_iCurrentSubtitleStream = iStream;
     return;
   }
 

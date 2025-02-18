@@ -1126,6 +1126,9 @@ bool CGUIWindowVideoNav::ApplyWatchedFilter(CFileItemList &items)
 void CGUIWindowVideoNav::OnInitWindow()
 {
   CGUIWindowVideoBase::OnInitWindow();
+  //TODO CHECK IF THAT WAS IMPORTANT
+  return;
+
 
   // Check if we should select the last played/watched tvshow
   int iIndex = GetSettingSelecTvShow();

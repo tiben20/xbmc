@@ -193,7 +193,7 @@ public:
     iBuffers = 4;
 
     bVPUseRTXVideoHDR = false;
-    bVPUseSuperRes = false;
+    iVPUseSuperRes = 0;
     bUseHDR = true;
     bHdrPassthrough = true;
   }
@@ -201,7 +201,7 @@ public:
 public:
   D3D11_TEXTURE_SAMPLER bD3D11TextureSampler;// which plane merger we use
   bool                  bVPUseRTXVideoHDR;   // if d3d11 vp can use rtx hdr rescaler
-  bool                  bVPUseSuperRes;   // if d3d11 vp can use rtx hdr rescaler
+  int                   iVPUseSuperRes;   // if d3d11 vp can use rtx hdr rescaler
   bool                  bUseHDR;
   bool                  bHdrPassthrough;     //if we passthrough the hdr metadata
   bool                  enableFrameTimeCorrection;//not implemented

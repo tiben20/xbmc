@@ -89,6 +89,7 @@ public:
   
   void SetVideoSettings(const CVideoSettings& settings);
 
+  
 protected:
 
   void PresentSingle(bool clear, DWORD flags, DWORD alpha);

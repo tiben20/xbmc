@@ -171,14 +171,14 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	: CVideoProcessor(pFilter)
 {
 	g_dsSettings.Initialize("mpcvr");
+	std::shared_ptr<CSettings> pSetting = CServiceBroker::GetSettingsComponent()->GetSettings();
 	
-	MPC_SETTINGS->displayStats = (DS_STATS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
-	MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
-	MPC_SETTINGS->bVPUseRTXVideoHDR = true;// config.bVPRTXVideoHDR;
-	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
-	
-	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;
-	m_iVPSuperRes = true;// config.iVPSuperRes;
+	MPC_SETTINGS->displayStats = (DS_STATS)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
+	MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
+	MPC_SETTINGS->bVPUseRTXVideoHDR = pSetting->GetBool("dsplayer.vr.rtxhdr");
+	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
+	MPC_SETTINGS->iVPUseSuperRes = pSetting->GetInt("dsplayer.vr.superres");
+	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;//this is set during the init media type
 
 	m_nCurrentAdapter = -1;
 	CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
@@ -402,8 +402,6 @@ void CDX11VideoProcessor::ReleaseDevice()
 
 	m_pVSimpleInputLayout= nullptr;
 	m_pVS_Simple= nullptr;
-	
-	m_pPS_BitmapToFrame = nullptr;
 
 	m_Alignment.texture.Release();
 	m_Alignment.cformat = {};
@@ -451,6 +449,10 @@ void CDX11VideoProcessor::UpdateTexParams(int cdepth)
 void CDX11VideoProcessor::UpdateRenderRect()
 {
 	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+
+		
+	if (m_videoRect.Width() == 0)
+		assert(0);
 	m_renderRect.IntersectRect(m_videoRect, m_windowRect);
 }
 
@@ -1039,11 +1041,11 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 	{
 		// do not use UpdateSubresource for D3D11 VP here
 		// because it can cause green screens and freezes on some configurations
-		if (!m_pFinalTextureSampler == D3D11_VP)
+		//if (!m_pFinalTextureSampler == D3D11_VP)
 			hr = MemCopyToTexSrcVideo(data, m_srcPitch);
 
 		//verify the intermediate target if its the good size if not recreate it
-		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get() || m_dstTargetWidth != m_videoRect.Width() || m_dstTargetHeight != m_videoRect.Height())
+		if (!CMPCVRRenderer::Get()->GetIntermediateTarget().Get() || m_dstTargetWidth != m_videoRect.Width() && m_dstTargetHeight != m_videoRect.Height() && m_videoRect.Width() != 0)
 		{
 			CMPCVRRenderer::Get()->CreateIntermediateTarget(m_videoRect.Width(), m_videoRect.Height(), false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
 			m_dstTargetWidth = m_videoRect.Width();
@@ -1062,7 +1064,6 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		}
 		else if (m_pFinalTextureSampler == D3D11_LIBPLACEBO)
 		{
-			
 			frameIn = CreateFrame(m_srcExFmt, pSample, m_srcWidth, m_srcHeight, m_srcParams);
 		}
 		else if (m_pFinalTextureSampler == D3D11_INTERNAL_SHADERS)
@@ -1338,8 +1339,6 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 	HRESULT hr2 = m_D3D11VP.InitVideoDevice(pDevice, m_pDeviceContext.Get(), m_VendorId);
 	DLogIf(FAILED(hr2), "CDX11VideoProcessor::SetDevice() : InitVideoDevice failed with error %s", WToA(HR2Str(hr2)));
 
-	EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPS_BitmapToFrame, IDF_PS_11_SIMPLE));
-	
 	LPVOID data;
 	DWORD size;
 	EXECUTE_ASSERT(S_OK == GetDataFromResource(data, size, IDF_VS_11_SIMPLE));
@@ -1397,6 +1396,7 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 {
 	const auto& FmtParams = GetFmtConvParams(pmt);
+	m_pFinalTextureSampler = MPC_SETTINGS->bD3D11TextureSampler;
 	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
 	{
 		if (FmtParams.cformat == CF_NV12 || FmtParams.cformat == CF_YV12)
@@ -1408,7 +1408,7 @@ BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 	  m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;
 
 	}
-
+	
 	if (FmtParams.VP11Format == DXGI_FORMAT_UNKNOWN && FmtParams.DX11Format == DXGI_FORMAT_UNKNOWN) {
 		return FALSE;
 	}
@@ -1454,7 +1454,7 @@ void CDX11VideoProcessor::UpdateStatsInputFmt()
 		{
 
 			//TODO add profile
-			/*int dv_profile = 0;
+			int dv_profile = 0;
 			const auto& hdr = m_Dovi.msd.Header;
 			const bool has_el = hdr.el_spatial_resampling_filter_flag && !hdr.disable_residual_flag;
 
@@ -1471,10 +1471,10 @@ void CDX11VideoProcessor::UpdateStatsInputFmt()
 				}
 			}
 			else {
-				dv_profile = 8;
-			}*/
-
-			m_strStatsInputFmt.append(StringUtils::Format(L" HDR DolbyVision"));
+				//dv_profile = 8;
+			}
+			if (dv_profile > 0)
+				m_strStatsInputFmt.append(StringUtils::Format(L" HDR DolbyVision"));
 		}
 		else
 		{
@@ -1701,7 +1701,6 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 		hr = S_OK;
 	}
 	if (SUCCEEDED(hr)) {
-		UpdateBitmapShader();
 		UpdateTexures();
 		UpdateStatsStatic();
 
@@ -1738,8 +1737,14 @@ HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, co
 		CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitializeD3D11VP() : InitInputTextures() failed with error {}", WToA(HR2Str(hr)).c_str());
 		return hr;
 	}
-
-	auto superRes = (MPC_SETTINGS->bVPScaling && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && SourceIsHDR())) ? m_iVPSuperRes : SUPERRES_Disable;
+	/*
+	0 disabled
+	1 sd
+	2 720p
+	3 1080p
+	4 1440p
+	*/
+	auto superRes = (MPC_SETTINGS->bVPScaling && !(m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && SourceIsHDR())) ? MPC_SETTINGS->iVPUseSuperRes : SUPERRES_Disable;
 	m_bVPUseSuperRes = (m_D3D11VP.SetSuperRes(superRes) == S_OK);
 	
 	auto rtxHDR = MPC_SETTINGS->bVPUseRTXVideoHDR && m_bHdrPassthroughSupport && MPC_SETTINGS->bHdrPassthrough && MPC_SETTINGS->iTexFormat != TEXFMT_8INT && !SourceIsHDR();
@@ -1882,6 +1887,7 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
 	if (m_bKodiResizeBuffers)
 	{
+		
 		//when m_windowRect is modified and in video processor it should be the size of the window
 		//not the cleanest way but we need to resize buffers on wm_size
 		winrt::Windows::Foundation::Size sz;
@@ -1918,6 +1924,11 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 	if (m_pFilter->m_filterState == State_Running) {
 		m_pFilter->StreamTime(rtClock);
 	}
+	CRefTime rtDiff;
+	rtDiff = rtClock-rtStart;
+	//This help during hang time it make the renderer more responsive if there a loading spike
+	if (rtDiff>(rtFrameDur*2))
+		return S_FALSE;
 	//tell the stream where we are for subtitles
 	if (CStreamsManager::Get() && CStreamsManager::Get()->SubtitleManager)
 		CStreamsManager::Get()->SubtitleManager->SetTime(rtStart + m_pFilter->m_rtStartTime);
@@ -1976,36 +1987,6 @@ void CDX11VideoProcessor::UpdateTexures()
 	}
 }
 
-void CDX11VideoProcessor::UpdateBitmapShader()
-{
-	if (m_bHdrDisplayModeEnabled
-			&& (SourceIsPQorHLG() || MPC_SETTINGS->bVPUseRTXVideoHDR)) {
-		std::string resid;
-		float SDR_peak_lum;
-		switch (MPC_SETTINGS->iHdrOsdBrightness) {
-		default:
-			resid = IDF_PS_11_CONVERT_BITMAP_TO_PQ;
-			SDR_peak_lum = 100;
-			break;
-		case 1:
-			resid = IDF_PS_11_CONVERT_BITMAP_TO_PQ1;
-			SDR_peak_lum = 50;
-			break;
-		case 2:
-			resid = IDF_PS_11_CONVERT_BITMAP_TO_PQ2;
-			SDR_peak_lum = 30;
-			break;
-		}
-		m_pPS_BitmapToFrame= nullptr;
-		EXECUTE_ASSERT(S_OK == CreatePShaderFromResource(&m_pPS_BitmapToFrame, resid));
-		m_dwStatsTextColor = TransferPQ(D3DCOLOR_XRGB(255, 255, 255), SDR_peak_lum);
-	}
-	else {
-		
-		m_dwStatsTextColor = D3DCOLOR_XRGB(255, 255, 255);
-	}
-}
-
 HRESULT CDX11VideoProcessor::D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second)
 {
 	HRESULT hr = m_D3D11VP.SetRectangles(srcRect, dstRect);
@@ -2016,38 +1997,6 @@ HRESULT CDX11VideoProcessor::D3D11VPPass(ID3D11Texture2D* pRenderTarget, const C
 	}
 
 	return hr;
-}
-
-void CDX11VideoProcessor::DrawSubtitles(ID3D11Texture2D* pRenderTarget)
-{
-	//draw subs
-	// Subtitle drawing
-
-	if (CStreamsManager::Get()->SubtitleManager)
-	{
-		ID3D11RenderTargetView* pRenderTargetView;
-		HRESULT hr = GetDevice->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
-		D3DSetDebugName(pRenderTargetView, "MPC RenderTarget DrawSubtitles");
-
-		if (SUCCEEDED(hr)) {
-			const Com::SmartRect rSrcPri(Com::SmartPoint(0, 0), m_windowRect.Size());
-			const Com::SmartRect rDstVid(m_videoRect);
-			const auto rtStart = m_pFilter->m_rtStartTime + m_rtStart;
-
-			// Set render target and shaders
-			
-			m_pDeviceContext->OMSetRenderTargets(1, &pRenderTargetView, nullptr);
-			m_pDeviceContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
-			m_pDeviceContext->VSSetShader(m_pVS_Simple.Get(), nullptr, 0);
-			m_pDeviceContext->PSSetShader(m_pPS_BitmapToFrame.Get(), nullptr, 0);
-
-			Com::SmartRect pSrc, pDst;
-			//sending the devicecontext to the subtitlemanager he will draw directly with it
-			CStreamsManager::Get()->SubtitleManager->AlphaBlt(m_pDeviceContext.Get(), pSrc, pDst, m_windowRect);
-
-			pRenderTargetView->Release();
-		}
-	}
 }
 
 HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second)
