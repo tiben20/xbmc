@@ -461,7 +461,7 @@ bool CRenderDSManager::IsVideoLayer()
 void CRenderDSManager::PresentSingle(bool clear, DWORD flags, DWORD alpha)
 {
 
-  m_pRenderer->RenderUpdate(0,0,clear, flags, alpha);
+    m_pRenderer->RenderUpdate(0,0,clear, flags, alpha);
 
 }
 

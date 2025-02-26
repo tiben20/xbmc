@@ -78,6 +78,14 @@ static pl_color_space GetPlaceboColorspace()
 {
 
 }*/
+struct CMPCVRFrame
+{
+  CD3DTexture pTexture;
+  REFERENCE_TIME pStartTime;
+  REFERENCE_TIME pEndTime;
+  REFERENCE_TIME pUploadTime;
+  REFERENCE_TIME pMergingTime;
+};
 
 class CMPCVRRenderer : public CBaseRenderer
 {
@@ -142,7 +150,7 @@ public:
 
   CRenderCapture* GetRenderCapture() { return nullptr; }
 
-  void CopyToBackBuffer();
+  void CopyToBackBuffer(ID3D11Texture2D* intext);
   void DrawSubtitles();
   void DrawStats();
   void SetStats(CStdStringW thetext) { m_statsText = thetext; };
@@ -153,6 +161,8 @@ public:
 
   CD3DTexture GetIntermediateTexture(){ return m_IntermediateTarget; }
  
+  void SetCallback(IMpcVRCallback* callback) { pMpcCallback = callback; };
+
   bool CreateIntermediateTarget(unsigned int width,
     unsigned int height,
     bool dynamic = false,
@@ -216,4 +226,7 @@ private:
   HRESULT FillVertexBuffer(const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip);
   void FillVertices(DS_VERTEX(&Vertices)[4], const UINT srcW, const UINT srcH, const CRect& srcRect, const int iRotation, const bool bFlip);
   HRESULT CreateVertexBuffer();
+
+
+  IMpcVRCallback* pMpcCallback;
 };

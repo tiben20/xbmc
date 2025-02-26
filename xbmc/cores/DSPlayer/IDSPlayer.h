@@ -29,6 +29,7 @@
 #include "settings/lib/SettingsManager.h"
 #include "settings/lib/SettingDefinitions.h"
 #include "Dshow.h"
+#include "d3d11.h"
 
 enum DS_RENDER_LAYER
 {
@@ -70,6 +71,12 @@ enum DIRECTSHOW_RENDERER
   DIRECTSHOW_RENDERER_EVR = 2,
   DIRECTSHOW_RENDERER_MADVR = 3,
   DIRECTSHOW_RENDERER_UNDEF = 4
+};
+
+class IMpcVRCallback
+{
+public:
+  virtual HRESULT PresentNextSample(ID3D11Texture2D** texture) { return S_FALSE; };
 };
 
 class IDSRendererAllocatorCallback

@@ -128,7 +128,7 @@ protected:
 
 	int m_nStereoSubtitlesOffsetInPixels = 4;
 
-	CVideoProcessor(CMpcVideoRenderer* pFilter) : m_pFilter(pFilter){}
+	CVideoProcessor(CMpcVideoRenderer* pFilter) : m_pFilter(pFilter), m_hUploadEvent(nullptr){}
 
 public:
 	virtual ~CVideoProcessor() = default;
@@ -143,7 +143,8 @@ public:
 
 	virtual BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) = 0;
 
-	virtual HRESULT ProcessSample(IMediaSample* pSample) = 0;
+	//Sample queueing
+	HRESULT ProcessSample(IMediaSample* pSample);
 
 	void Start() { m_rtStart = 0; }
 	virtual void Flush() = 0;
@@ -191,6 +192,13 @@ protected:
 
 	CRefTime m_streamTime;
 	void SyncFrameToStreamTime(const REFERENCE_TIME frameStartTime);
+
+
+	// QUEUES AND THEIR CRITICAL SECTIONS
+	std::queue<IMediaSample*>       m_uploadQueue;
+	CCritSec                        m_csUpload;
+	HANDLE m_hUploadEvent;
+
 
 public:
 	// IUnknown

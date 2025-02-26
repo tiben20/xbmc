@@ -26,6 +26,7 @@
 #include <dxgi1_5.h>
 #include <strmif.h>
 #include <map>
+#include <queue>
 #include "IVideoRenderer.h"
 #include "DX11Helper.h" 
 #include "D3D11VP.h"
@@ -44,14 +45,25 @@
 #include "libplacebo/utils/frame_queue.h"
 #include "libplacebo/utils/upload.h"
 #include "libplacebo/colorspace.h"
+#include "../../VideoRenderers/MPCVRRenderer.h"
 
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
 
+//--------------------------------------------------
+// Structures
+//--------------------------------------------------
+struct QueuedFrame {
+	REFERENCE_TIME StartTime;
+	REFERENCE_TIME EndTime;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture;
+};
+
 class CDX11VideoProcessor
 	: public CVideoProcessor,
-	  public IDSRendererAllocatorCallback
+	  public IDSRendererAllocatorCallback,
+		public IMpcVRCallback
 {
 public:
 	// IDSRendererAllocatorCallback
@@ -66,10 +78,31 @@ public:
 	void Reset(bool bForceWindowed) override;
 
 	ID3D11DeviceContext1* GetD3DContext() const { return m_pDeviceContext.Get(); }
+
+	HRESULT PresentNextSample(ID3D11Texture2D** texture);
+
 private:
 	friend class CVideoRendererInputPin;
 	/*Kodi Specific*/
 	D3D11_TEXTURE_SAMPLER m_pFinalTextureSampler;
+
+
+	std::queue<CMPCVRFrame>      m_processingQueue;
+	CCritSec                        m_csProcessing;
+
+	std::queue<CMPCVRFrame>      m_presentationQueue;
+	CCritSec                        m_csPresentation;
+
+	// THREAD HANDLES AND EVENTS
+	HANDLE m_hUploadThread;
+	HANDLE m_hProcessThread;
+	HANDLE m_hPresentationThread;
+
+	HANDLE m_hProcessEvent;
+	HANDLE m_hPresentationEvent;
+	HANDLE m_hStopEvent;
+
+	HANDLE m_hFlushEvent;
 
 	// Direct3D 11
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
@@ -177,6 +210,19 @@ public:
 	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr);
 	~CDX11VideoProcessor() override;
 
+	static DWORD __stdcall UploadThread(LPVOID lpParameter);
+
+	CMPCVRFrame ConvertSampleToTexture(IMediaSample* pSample);
+
+	void UploadLoop();
+
+	static DWORD __stdcall ProcessThread(LPVOID lpParameter);
+
+	void ProcessLoop();
+	void ProcessFrame(CMPCVRFrame pFrame);
+
+	void PresentationLoop();
+
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	bool Initialized();
 
@@ -227,7 +273,6 @@ public:
 
 	BOOL GetAlignmentSize(const CMediaType& mt, SIZE& Size) override;
 
-	HRESULT ProcessSample(IMediaSample* pSample) override;
 
 	void SetVideoRect(const Com::SmartRect& videoRect)      override;
 	HRESULT SetWindowRect(const Com::SmartRect& windowRect) override;

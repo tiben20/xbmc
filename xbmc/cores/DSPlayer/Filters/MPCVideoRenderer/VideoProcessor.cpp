@@ -1,3 +1,4 @@
+
 /*
  * (C) 2020-2024 see Authors.txt
  *
@@ -283,4 +284,23 @@ STDMETHODIMP CVideoProcessor::GetAlphaBitmapParameters(MFVideoAlphaBitmapParams 
 	} else {
 		return MF_E_NOT_INITIALIZED;
 	}
+}
+
+HRESULT CVideoProcessor::ProcessSample(IMediaSample* pSample)
+{
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
+	{
+		CAutoLock lock(&m_csUpload);
+		if (m_uploadQueue.size() == 4)
+			return S_FALSE;
+		pSample->AddRef();
+		m_uploadQueue.push(pSample);
+	}
+	//temp
+
+
+	SetEvent(m_hUploadEvent);
+	return S_OK;
 }

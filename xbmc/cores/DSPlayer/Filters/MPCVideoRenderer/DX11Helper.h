@@ -268,3 +268,4 @@ HRESULT DumpTexture2D(ID3D11DeviceContext* pDeviceContext, ID3D11Texture2D* pTex
 
 DirectX::XMFLOAT4 TransferPQ(DirectX::XMFLOAT4& colorF, const float SDR_peak_lum = 100.0f);
 D3DCOLOR TransferPQ(const D3DCOLOR color, const float SDR_peak_lum = 100.0f);
+

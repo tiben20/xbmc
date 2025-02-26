@@ -28,7 +28,6 @@
 using namespace Microsoft::WRL;
 
 
-
 std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 {
   static std::shared_ptr<CMPCVRRenderer> sVideoRenderer(new CMPCVRRenderer);
@@ -178,12 +177,13 @@ HRESULT CMPCVRRenderer::CreateVertexBuffer()
   return hr;
 }
 
-void CMPCVRRenderer::CopyToBackBuffer()
+void CMPCVRRenderer::CopyToBackBuffer(ID3D11Texture2D* intext)
 {
   if (!m_pVS_Simple.Get())
     Init();
 
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
+  
   const UINT Stride = sizeof(DS_VERTEX);
   const UINT Offset = 0;
 
@@ -199,6 +199,9 @@ void CMPCVRRenderer::CopyToBackBuffer()
   sourcerect.y1 = 0;
   sourcerect.x2 = m_sourceWidth;
   sourcerect.y2 = m_sourceHeight;
+  ID3D11ShaderResourceView* view;
+  CD3D11_SHADER_RESOURCE_VIEW_DESC cSRVDesc(D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R10G10B10A2_UNORM);
+  HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateShaderResourceView(intext, &cSRVDesc, &view);
   FillVertexBuffer(m_destRect.Width(), m_destRect.Height(), m_destRect/*m_sourceRect*/, 0, 0);
   // Set resources
   pContext->OMSetRenderTargets(1, DX::DeviceResources::Get()->GetBackBuffer().GetAddressOfRTV(), nullptr);
@@ -210,7 +213,7 @@ void CMPCVRRenderer::CopyToBackBuffer()
 
   pContext->IASetInputLayout(m_pVSimpleInputLayout.Get());
 
-  pContext->PSSetShaderResources(0, 1, m_IntermediateTarget.GetAddressOfSRV());
+  pContext->PSSetShaderResources(0, 1, &view);
   pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
   pContext->IASetVertexBuffers(0, 1, m_pVertexBuffer.GetAddressOf(), &Stride, &Offset);
 
@@ -319,15 +322,23 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //destRect destination
   //m_sourceWidth
   //m_sourceHeight
+  ID3D11Texture2D* current2d = nullptr;
+  HRESULT hr = pMpcCallback->PresentNextSample(&current2d);
+  if (FAILED(hr) || current2d == nullptr)
+  {
+    CLog::Log(LOGERROR, "{} failed getting next texture", __FUNCTION__);
+    return;
+  }
   D3D11_VIEWPORT oldVP;
   UINT oldIVP = 1;
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;
+
   ID3D11DeviceContext* pContext = DX::DeviceResources::Get()->GetD3DContext();
   pContext->OMGetRenderTargets(1, &oldRT, nullptr);
   pContext->RSGetViewports(&oldIVP, &oldVP);
 
-  CopyToBackBuffer();
-
+  CopyToBackBuffer(current2d);
+  
   DrawSubtitles();
 
   DrawStats();

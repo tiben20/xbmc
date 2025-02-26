@@ -32,8 +32,6 @@
 #include "Include/ID3DVideoMemoryConfiguration.h"
 #include "shaders.h"
 
-
-#include "minhook/include/MinHook.h"
 #include "CPUInfo2.h"
 //kodi
 #include "DSResource.h"
@@ -48,20 +46,14 @@
 #include "Filters/RendererSettings.h"
 #include "PlHelper.h"
 #include "settings/SettingsComponent.h"
+#define DEBUGEXTREME 1
 
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
+#define BUFFERDX11 4
 
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 #define GetSwapChain DX::DeviceResources::Get()->GetSwapChain()
-
-struct MPCPixFmtDesc
-{
-	int codedbytes;     ///< coded byte per pixel in one plane (for packed and multibyte formats)
-	int planes;         ///< number of planes
-	int planeWidth[4];  ///< log2 width factor
-	int planeHeight[4]; ///< log2 height factor
-};
 
 struct VERTEX {
 	DirectX::XMFLOAT3 Pos;
@@ -138,28 +130,7 @@ static HRESULT CreateVertexBuffer(ID3D11Device* pDevice, ID3D11Buffer** ppVertex
 
 	return hr;
 }
-/*static MPCPixFmtDesc lav_pixfmt_desc[] = {
-		{1, 3, {1, 2, 2}, {1, 2, 2}}, ///< LAVPixFmt_YUV420
-		{2, 3, {1, 2, 2}, {1, 2, 2}}, ///< LAVPixFmt_YUV420bX
-		{1, 3, {1, 2, 2}, {1, 1, 1}}, ///< LAVPixFmt_YUV422
-		{2, 3, {1, 2, 2}, {1, 1, 1}}, ///< LAVPixFmt_YUV422bX
-		{1, 3, {1, 1, 1}, {1, 1, 1}}, ///< LAVPixFmt_YUV444
-		{2, 3, {1, 1, 1}, {1, 1, 1}}, ///< LAVPixFmt_YUV444bX
-		{1, 2, {1, 1}, {1, 2}},       ///< LAVPixFmt_NV12
-		{2, 1, {1}, {1}},             ///< LAVPixFmt_YUY2
-		{2, 2, {1, 1}, {1, 2}},       ///< LAVPixFmt_P016
-		{3, 1, {1}, {1}},             ///< LAVPixFmt_RGB24
-		{4, 1, {1}, {1}},             ///< LAVPixFmt_RGB32
-		{4, 1, {1}, {1}},             ///< LAVPixFmt_ARGB32
-		{6, 1, {1}, {1}},             ///< LAVPixFmt_RGB48
-};*/
 
-MPCPixFmtDesc getPixelFormatDesc(DXGI_FORMAT fmt)
-{
-	if (fmt == DXGI_FORMAT_NV12)
-		return MPCPixFmtDesc{ 1, 2, {1, 1}, {1, 2} };
-	return MPCPixFmtDesc{};
-}
 
 //
 // CDX11VideoProcessor
@@ -168,7 +139,14 @@ MPCPixFmtDesc getPixelFormatDesc(DXGI_FORMAT fmt)
 // CDX11VideoProcessor
 
 CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr)
-	: CVideoProcessor(pFilter)
+	: CVideoProcessor(pFilter),
+	m_hUploadThread(nullptr), 
+	m_hProcessThread(nullptr), 
+	m_hPresentationThread(nullptr),
+	m_hProcessEvent(nullptr), 
+	m_hPresentationEvent(nullptr),
+	m_hStopEvent(nullptr),
+	m_hFlushEvent(nullptr)
 {
 	g_dsSettings.Initialize("mpcvr");
 	std::shared_ptr<CSettings> pSetting = CServiceBroker::GetSettingsComponent()->GetSettings();
@@ -209,79 +187,295 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 
 		pDXGIAdapter= nullptr;
 	}
+	// Create a stop event to signal thread termination.
+	m_hStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	// Create events for each stage.
+	m_hUploadEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hProcessEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hPresentationEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hFlushEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	// Start the threads for each queue.
+	m_hUploadThread = CreateThread(NULL, 0, UploadThread, this, 0, NULL);
+	m_hProcessThread = CreateThread(NULL, 0, ProcessThread, this, 0, NULL);
+
+	CMPCVRRenderer::Get()->SetCallback(this);
 }
-
-static bool ToggleHDR(const DisplayConfig_t& displayConfig, const BOOL bEnableAdvancedColor)
-{
-	auto GetCurrentDisplayMode = [](LPCWSTR lpszDeviceName) -> std::optional<DEVMODEW> {
-		DEVMODEW devmode = {};
-		devmode.dmSize = sizeof(DEVMODEW);
-		auto ret = EnumDisplaySettingsW(lpszDeviceName, ENUM_CURRENT_SETTINGS, &devmode);
-		if (ret) {
-			return devmode;
-		}
-
-		return {};
-	};
-
-	auto beforeModeOpt = GetCurrentDisplayMode(displayConfig.displayName);
-
-	DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE setColorState = {};
-	setColorState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
-	setColorState.header.size         = sizeof(setColorState);
-	setColorState.header.adapterId    = displayConfig.modeTarget.adapterId;
-	setColorState.header.id           = displayConfig.modeTarget.id;
-	setColorState.enableAdvancedColor = bEnableAdvancedColor;
-
-	const auto ret = DisplayConfigSetDeviceInfo(&setColorState.header);
-	DLogIf(ERROR_SUCCESS != ret, "ToggleHDR() : DisplayConfigSetDeviceInfo({}) failed with error {}", bEnableAdvancedColor, WToA(HR2Str(HRESULT_FROM_WIN32(ret))));
-
-	if (ret == ERROR_SUCCESS && beforeModeOpt.has_value()) {
-		auto afterModeOpt = GetCurrentDisplayMode(displayConfig.displayName);
-		if (afterModeOpt.has_value()) {
-			auto& beforeMode = *beforeModeOpt;
-			auto& afterMode = *afterModeOpt;
-			if (beforeMode.dmPelsWidth != afterMode.dmPelsWidth || beforeMode.dmPelsHeight != afterMode.dmPelsHeight
-					|| beforeMode.dmBitsPerPel != afterMode.dmBitsPerPel || beforeMode.dmDisplayFrequency != afterMode.dmDisplayFrequency) {
-				CLog::Log(LOGINFO,"ToggleHDR() : Display mode changed from {}x{}@{} to {}x{}@{}, restoring",
-					 beforeMode.dmPelsWidth, beforeMode.dmPelsHeight, beforeMode.dmDisplayFrequency,
-					 afterMode.dmPelsWidth, afterMode.dmPelsHeight, afterMode.dmDisplayFrequency);
-
-				auto ret = ChangeDisplaySettingsExW(displayConfig.displayName, &beforeMode, nullptr, CDS_FULLSCREEN, nullptr);
-				DLogIf(DISP_CHANGE_SUCCESSFUL != ret, "ToggleHDR() : ChangeDisplaySettingsExW() failed with error {}", WToA(HR2Str(HRESULT_FROM_WIN32(ret))));
-			}
-		}
-	}
-
-	return ret == ERROR_SUCCESS;
-}
-
-
 
 CDX11VideoProcessor::~CDX11VideoProcessor()
 {
-	for (const auto& [displayName, state] : m_hdrModeSavedState) {
-		DisplayConfig_t displayConfig = {};
-		if (GetDisplayConfig(displayName.c_str(), displayConfig)) {
-			const auto& ac = displayConfig.advancedColor;
-
-			if (ac.advancedColorSupported && ac.advancedColorEnabled != state) {
-				const auto ret = ToggleHDR(displayConfig, state);
-				DLogIf(!ret, "CDX11VideoProcessor::~CDX11VideoProcessor() : Toggle HDR {} for '{}' failed", state ? "ON" : "OFF", WToA(displayName));
-			}
-		}
-	}
-
+#if DEBUGEXTREME
+	 CLog::Log(LOGINFO,"{}",__FUNCTION__);
+#endif
 	ReleaseDevice();
 
 	m_pDXGIFactory1= nullptr;
+	// Signal termination.
+	if (m_hStopEvent)
+		SetEvent(m_hStopEvent);
 
-	MH_RemoveHook(SetWindowPos);
-	MH_RemoveHook(SetWindowLongA);
+	// Wait for each thread to finish.
+	if (m_hUploadThread) {
+		WaitForSingleObject(m_hUploadThread, INFINITE);
+		CloseHandle(m_hUploadThread);
+	}
+	if (m_hProcessThread) {
+		WaitForSingleObject(m_hProcessThread, INFINITE);
+		CloseHandle(m_hProcessThread);
+	}
+	if (m_hPresentationThread) {
+		WaitForSingleObject(m_hPresentationThread, INFINITE);
+		CloseHandle(m_hPresentationThread);
+	}
+	// Clean up event handles.
+	if (m_hStopEvent)       CloseHandle(m_hStopEvent);
+	if (m_hUploadEvent)       CloseHandle(m_hUploadEvent);
+	if (m_hProcessEvent)      CloseHandle(m_hProcessEvent);
+	if (m_hPresentationEvent) CloseHandle(m_hPresentationEvent);
+
+	// Release any remaining items in the queues.
+	while (!m_uploadQueue.empty()) {
+		m_uploadQueue.front()->Release();
+		m_uploadQueue.pop();
+	}
+	while (!m_processingQueue.empty()) {
+		m_processingQueue.front().pTexture.Release();
+		m_processingQueue.pop();
+	}
+	while (!m_presentationQueue.empty()) {
+		m_presentationQueue.front().pTexture.Release();
+		m_presentationQueue.pop();
+	}
+}
+
+
+// ----------------------
+// UPLOAD STAGE
+// ----------------------
+// This thread takes IMediaSamples from the upload queue,
+// converts each sample into a D3D11 texture, and pushes the texture
+// into the processing queue.
+DWORD WINAPI CDX11VideoProcessor::UploadThread(LPVOID lpParameter)
+{
+	CDX11VideoProcessor* pThis = reinterpret_cast<CDX11VideoProcessor*>(lpParameter);
+	pThis->UploadLoop();
+	return 0;
+}
+
+// ----------------------
+		// HELPER FUNCTIONS
+		// ----------------------
+
+		// Convert an incoming IMediaSample into a D3D11 texture.
+		// This function creates a new dynamic texture and fills it with the sample’s data.
+CMPCVRFrame CDX11VideoProcessor::ConvertSampleToTexture(IMediaSample* pSample)
+{
+	BYTE* data = nullptr;
+	const long size = pSample->GetActualDataLength();
+	REFERENCE_TIME startUpload, endUpload;
+	m_pFilter->m_pClock->GetTime(&startUpload);
+	CMPCVRFrame pFrame;
+	pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	//HRESULT hr = GetDevice->CreateTexture2D(&desc, nullptr, &pFrame.pTexture);
+
+	if (size > 0 && S_OK == pSample->GetPointer(&data))
+	{
+		// do not use UpdateSubresource for D3D11 VP here
+		// because it can cause green screens and freezes on some configurations
+		//if (!m_pFinalTextureSampler == D3D11_VP)
+		//hr = MemCopyToTexSrcVideo(data, m_srcPitch);
+		HRESULT hr = S_FALSE;
+		D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+
+		if (m_TexSrcVideo.pTexture2.Get()) {
+			hr = m_pDeviceContext->Map(pFrame.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			if (SUCCEEDED(hr)) {
+				CopyFrameAsIs(m_srcHeight, (BYTE*)mappedResource.pData, mappedResource.RowPitch, data, m_srcPitch);
+				m_pDeviceContext->Unmap(pFrame.pTexture.Get(), 0);
+
+
+				hr = m_pDeviceContext->Map(m_TexSrcVideo.pTexture2.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+				if (SUCCEEDED(hr)) {
+					const UINT cromaH = m_srcHeight / m_srcParams.pDX11Planes->div_chroma_h;
+					const int cromaPitch = (m_TexSrcVideo.pTexture3) ? m_srcPitch / m_srcParams.pDX11Planes->div_chroma_w : m_srcPitch;
+					data += m_srcPitch * m_srcHeight;
+					CopyFrameAsIs(cromaH, (BYTE*)mappedResource.pData, mappedResource.RowPitch, data, cromaPitch);
+					m_pDeviceContext->Unmap(m_TexSrcVideo.pTexture2.Get(), 0);
+
+					if (m_TexSrcVideo.pTexture3) {
+						hr = m_pDeviceContext->Map(m_TexSrcVideo.pTexture3.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+						if (SUCCEEDED(hr)) {
+							data += cromaPitch * cromaH;
+							CopyFrameAsIs(cromaH, (BYTE*)mappedResource.pData, mappedResource.RowPitch, data, cromaPitch);
+							m_pDeviceContext->Unmap(m_TexSrcVideo.pTexture3.Get(), 0);
+						}
+					}
+				}
+			}
+		}
+		else {
+			hr = DX::DeviceResources::Get()->GetImmediateContext()->Map(m_TexSrcVideo.pTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+			if (SUCCEEDED(hr)) {
+				ASSERT(m_pConvertFn);
+				const BYTE* src = (m_srcPitch < 0) ? data + m_srcPitch * (1 - (int)m_srcLines) : data;
+				m_pConvertFn(m_srcLines, (BYTE*)mappedResource.pData, mappedResource.RowPitch, src, m_srcPitch);
+				DX::DeviceResources::Get()->GetImmediateContext()->Unmap(m_TexSrcVideo.pTexture.Get(), 0);
+			}
+		}
+	}
+	HRESULT hr = ConvertColorPass(pFrame.pTexture.Get());
+	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
+
+	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
+	{
+		CLog::LogF(LOGERROR, "{} failed to finish command queue.", __FUNCTION__);
+	}
+	else
+	{
+		D3DSetDebugName(pCommandList.Get(), "CommandList mpc deferred context");
+		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), 0);
+	}
+	pSample->GetTime(&pFrame.pStartTime, &pFrame.pEndTime);
+	
+	m_pFilter->m_pClock->GetTime(&endUpload);
+	pFrame.pUploadTime = endUpload - startUpload;
+	return pFrame;
+}
+
+void CDX11VideoProcessor::UploadLoop()
+{
+	HANDLE events[] = { m_hStopEvent, m_hFlushEvent ,m_hUploadEvent };
+	while (true) {
+		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, INFINITE);
+		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
+			break;
+		else if (dwWait == WAIT_OBJECT_0 + 1) {
+			//FLUSH
+			CAutoLock lock(&m_csUpload);
+			for (;;)
+			{
+				if (m_uploadQueue.size() == 0)
+					break;
+				m_uploadQueue.front()->Release();
+				m_uploadQueue.pop();
+				
+			}
+		}
+		else if (dwWait == WAIT_OBJECT_0 + 2) {
+			IMediaSample* pSample = nullptr;
+			{
+				CAutoLock lock(&m_csUpload);
+				CAutoLock lock2(&m_csProcessing);
+				if (!m_uploadQueue.empty() && m_processingQueue.size() < 5) {
+					pSample = m_uploadQueue.front();
+					m_uploadQueue.pop();
+				}
+			}
+			if (pSample) {
+				CMPCVRFrame pFrame;
+				pFrame = ConvertSampleToTexture(pSample);
+				pSample->Release();
+				if (pFrame.pTexture.Get()) {
+					{
+						CAutoLock lock(&m_csProcessing);
+						m_processingQueue.push(pFrame);
+					}
+					SetEvent(m_hProcessEvent);
+				}
+			}
+		}
+	}
+	CLog::Log(LOGINFO, "{} Upload Loop end", __FUNCTION__);
+}
+
+// ----------------------
+// PROCESSING STAGE
+// ----------------------
+// This thread takes textures from the processing queue,
+// applies any necessary processing (e.g. OSD compositing),
+// and then pushes the processed texture into the presentation queue.
+DWORD WINAPI CDX11VideoProcessor::ProcessThread(LPVOID lpParameter)
+{
+	CDX11VideoProcessor* pThis = reinterpret_cast<CDX11VideoProcessor*>(lpParameter);
+	pThis->ProcessLoop();
+	return 0;
+}
+
+void CDX11VideoProcessor::ProcessLoop()
+{
+	HANDLE events[] = { m_hStopEvent,m_hFlushEvent , m_hProcessEvent };
+	while (true) {
+		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, INFINITE);
+		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
+			break;
+		else if (dwWait == WAIT_OBJECT_0 + 1) {
+			//FLUSH
+			CAutoLock lock(&m_csProcessing);
+			CAutoLock lock2(&m_csPresentation);
+			for (;;)
+			{
+				if (m_processingQueue.size() == 0)
+					break;
+				m_processingQueue.front().pTexture.Release();
+				m_processingQueue.pop();
+				
+			}
+			for (;;)
+			{
+				if (m_presentationQueue.size() == 0)
+					break;
+				m_presentationQueue.front().pTexture.Release();
+				m_presentationQueue.pop();
+
+			}
+		}
+		else if (dwWait == WAIT_OBJECT_0 + 2) {
+			CMPCVRFrame pTexture;
+			{
+				CAutoLock lock(&m_csProcessing);
+				CAutoLock lock2(&m_csPresentation);
+				if (!m_processingQueue.empty() && m_presentationQueue.size() < 5) {
+					pTexture = m_processingQueue.front();
+					m_processingQueue.pop();
+				}
+			}
+			if (pTexture.pTexture.Get()) {
+				// Process the texture (for example, composite your OSD).
+				ProcessFrame(pTexture);
+				{
+					CAutoLock lock(&m_csPresentation);
+					m_presentationQueue.push(pTexture);
+				}
+				float fps;
+				fps = 10000000.0 / m_rtAvgTimePerFrame;
+				g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
+				if (!m_bDsplayerNotified)
+				{
+					m_bDsplayerNotified = true;
+					CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PLAYBACK_STARTED), false);
+					CLog::Log(LOGINFO, "{} DSPLAYER notify playback started sent", __FUNCTION__);
+				}
+				SetEvent(m_hPresentationEvent);
+			}
+		}
+	}
+	CLog::Log(LOGINFO, "{} Process loop end", __FUNCTION__);
+}
+
+// Process the texture (e.g. blend in an OSD).
+// For this example, the function is a no-op.
+void CDX11VideoProcessor::ProcessFrame(CMPCVRFrame pFrame)
+{
+
+	// Insert your D3D11 processing code here.
+	// For example, you might use a compute shader or render-to-texture pass to composite your OSD.
 }
 
 HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullptr*/)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::Init()");
 	
 	auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
@@ -354,11 +548,17 @@ HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullp
 
 bool CDX11VideoProcessor::Initialized()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	return (GetDevice != nullptr && m_pDeviceContext != nullptr);
 }
 
 void CDX11VideoProcessor::ReleaseVP()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::ReleaseVP()");
 
 	m_pFilter->ResetStreamingTimes2();
@@ -387,6 +587,9 @@ void CDX11VideoProcessor::ReleaseVP()
 
 void CDX11VideoProcessor::ReleaseDevice()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::ReleaseDevice()");
 
 	ReleaseVP();
@@ -416,6 +619,9 @@ void CDX11VideoProcessor::ReleaseDevice()
 
 HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPixelShader, std::string resid)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	if (!GetDevice || !ppPixelShader) {
 		return E_POINTER;
 	}
@@ -434,6 +640,9 @@ HRESULT CDX11VideoProcessor::CreatePShaderFromResource(ID3D11PixelShader** ppPix
 
 void CDX11VideoProcessor::UpdateTexParams(int cdepth)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	switch (MPC_SETTINGS->iTexFormat) {
 	case TEXFMT_AUTOINT:
 		m_InternalTexFmt = (cdepth > 8 || MPC_SETTINGS->bVPUseRTXVideoHDR) ? DXGI_FORMAT_R10G10B10A2_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -448,6 +657,9 @@ void CDX11VideoProcessor::UpdateTexParams(int cdepth)
 
 void CDX11VideoProcessor::UpdateRenderRect()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::Log(LOGINFO, "{}", __FUNCTION__);
 
 		
@@ -460,6 +672,9 @@ void CDX11VideoProcessor::UpdateRenderRect()
 
 HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int srcPitch)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	HRESULT hr = S_FALSE;
 	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
 
@@ -502,6 +717,9 @@ HRESULT CDX11VideoProcessor::MemCopyToTexSrcVideo(const BYTE* srcData, const int
 
 HRESULT CDX11VideoProcessor::SetShaderDoviCurvesPoly()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	ASSERT(m_Dovi.bValid);
 
 	PS_DOVI_POLY_CURVE polyCurves[3] = {};
@@ -567,6 +785,9 @@ HRESULT CDX11VideoProcessor::SetShaderDoviCurvesPoly()
 
 HRESULT CDX11VideoProcessor::SetShaderDoviCurves()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	ASSERT(m_Dovi.bValid);
 
 	PS_DOVI_CURVE cbuffer[3] = {};
@@ -655,6 +876,9 @@ HRESULT CDX11VideoProcessor::SetShaderDoviCurves()
 
 HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_pPSConvertColor = nullptr;
 	m_pPSConvertColorDeint = nullptr;
 	ID3DBlob* pShaderCode = nullptr;
@@ -721,6 +945,9 @@ HRESULT CDX11VideoProcessor::UpdateConvertColorShader()
 
 HRESULT CDX11VideoProcessor::ConvertColorPass(ID3D11Texture2D* pRenderTarget)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
 
 	HRESULT hr = DX::DeviceResources::Get()->GetD3DDevice()->CreateRenderTargetView(pRenderTarget, nullptr, &pRenderTargetView);
@@ -850,6 +1077,9 @@ void CDX11VideoProcessor::SetShaderConvertColorParams()
 
 void CDX11VideoProcessor::SetShaderLuminanceParams()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	//todo add this param
 	int m_iSDRDisplayNits = 125;
 	FLOAT cbuffer[4] = { 10000.0f / m_iSDRDisplayNits, 0, 0, 0 };
@@ -894,6 +1124,9 @@ void CDX11VideoProcessor::render_info_cb(void* priv, const pl_render_info* info)
 
 HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	HRESULT hr;
 	BYTE* data = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> pD3D11Texture2D;
@@ -1068,8 +1301,9 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		}
 		else if (m_pFinalTextureSampler == D3D11_INTERNAL_SHADERS)
 		{
-			//use the shaders to merge the planes
-			hr = ConvertColorPass(m_pInputTexture.Get());
+			
+
+			//hr = ConvertColorPass(frame.Texture.Get());
 		}
 	}
 
@@ -1084,7 +1318,7 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), 0);
 	}
 
-
+	return S_FALSE;
 	
 	if (m_pInputTexture.Get())
 	{
@@ -1204,6 +1438,9 @@ HRESULT CDX11VideoProcessor::CopySampleToLibplacebo(IMediaSample* pSample)
 
 pl_frame CDX11VideoProcessor::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSample* pSample, int width, int height, FmtConvParams_t srcParams)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	pl_frame outFrame{};
 	struct pl_plane_data data[4] = {};
 
@@ -1290,6 +1527,9 @@ pl_frame CDX11VideoProcessor::CreateFrame(DXVA2_ExtendedFormat pFormat, IMediaSa
 
 HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	HRESULT hr = S_OK;
 
 	CLog::LogF(LOGINFO,"CDX11VideoProcessor::SetDevice()");
@@ -1383,6 +1623,9 @@ HRESULT CDX11VideoProcessor::SetDevice(ID3D11Device1 *pDevice, const bool bDecod
 
 HRESULT CDX11VideoProcessor::InitSwapChain()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::LogF(LOGINFO, "{} ", __FUNCTION__);
 
 	const auto bHdrOutput = MPC_SETTINGS->bHdrPassthrough && m_bHdrPassthroughSupport && (SourceIsHDR() || MPC_SETTINGS->bVPUseRTXVideoHDR);
@@ -1395,6 +1638,9 @@ HRESULT CDX11VideoProcessor::InitSwapChain()
 
 BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	const auto& FmtParams = GetFmtConvParams(pmt);
 	m_pFinalTextureSampler = MPC_SETTINGS->bD3D11TextureSampler;
 	if (MPC_SETTINGS->bD3D11TextureSampler == D3D11_LIBPLACEBO)
@@ -1434,6 +1680,9 @@ BOOL CDX11VideoProcessor::VerifyMediaType(const CMediaType* pmt)
 
 void CDX11VideoProcessor::UpdateStatsInputFmt()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_strStatsInputFmt.assign(L"\nInput format  : ");
 
 	if (m_iSrcFromGPU == 11) {
@@ -1512,6 +1761,9 @@ void CDX11VideoProcessor::UpdateStatsInputFmt()
 
 BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitMediaType()");
 
 	if (!VerifyMediaType(pmt)) {
@@ -1714,6 +1966,9 @@ BOOL CDX11VideoProcessor::InitMediaType(const CMediaType* pmt)
 
 HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, const UINT width, const UINT height)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	if (!m_D3D11VP.IsVideoDeviceOk()) {
 		return E_ABORT;
 	}
@@ -1774,6 +2029,9 @@ HRESULT CDX11VideoProcessor::InitializeD3D11VP(const FmtConvParams_t& params, co
 
 HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, const UINT width, const UINT height)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	const auto& srcDXGIFormat = params.DX11Format;
 
 	CLog::LogF(LOGINFO,"CDX11VideoProcessor::InitializeTexVP() started with input surface: {}, {} x {}", WToA(DXGIFormatToString(srcDXGIFormat)).c_str(), width, height);
@@ -1790,12 +2048,16 @@ HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 	m_srcDXGIFormat  = srcDXGIFormat;
 	m_pConvertFn     = GetCopyFunction(params);
 
+	CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+
+
+	
 	// set default ProcAmp ranges
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
 
 	CreateVertexBuffer(GetDevice, &m_PSConvColorData.pVertexBuffer, m_srcWidth, m_srcHeight, m_srcRect, 0, false);
 	UpdateConvertColorShader();
-	CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::InitializeTexVP() completed successfully");
 
 	return S_OK;
@@ -1803,12 +2065,18 @@ HRESULT CDX11VideoProcessor::InitializeTexVP(const FmtConvParams_t& params, cons
 
 void CDX11VideoProcessor::UpdatFrameProperties()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_srcPitch = m_srcWidth * m_srcParams.Packsize;
 	m_srcLines = m_srcHeight * m_srcParams.PitchCoeff / 2;
 }
 
 BOOL CDX11VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	if (VerifyMediaType(&mt)) {
 		const auto& FmtParams = GetFmtConvParams(&mt);
 
@@ -1883,8 +2151,11 @@ BOOL CDX11VideoProcessor::GetAlignmentSize(const CMediaType& mt, SIZE& Size)
 	return FALSE;
 }
 
+#if 0
 HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 {
+
+
 	if (m_bKodiResizeBuffers)
 	{
 		
@@ -1915,10 +2186,9 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 	rtEnd = rtStart + rtFrameDur;
 
 	m_rtStart = rtStart;
-	CRefTime rtClock(rtStart);
-	
 
 	
+
 
 	//temp
 	if (m_pFilter->m_filterState == State_Running) {
@@ -1967,9 +2237,13 @@ HRESULT CDX11VideoProcessor::ProcessSample(IMediaSample* pSample)
 
 	return hr;
 }
+#endif
 
 void CDX11VideoProcessor::UpdateTexures()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	if (!m_srcWidth || !m_srcHeight)
 		return;
 	HRESULT hr = S_OK;
@@ -1989,6 +2263,9 @@ void CDX11VideoProcessor::UpdateTexures()
 
 HRESULT CDX11VideoProcessor::D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	HRESULT hr = m_D3D11VP.SetRectangles(srcRect, dstRect);
 
 	hr = m_D3D11VP.Process(pRenderTarget, m_SampleFormat, second);
@@ -2001,6 +2278,9 @@ HRESULT CDX11VideoProcessor::D3D11VPPass(ID3D11Texture2D* pRenderTarget, const C
 
 HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	HRESULT hr = S_OK;
 	m_bDitherUsed = false;
 	int rotation = m_iRotation;
@@ -2159,6 +2439,9 @@ HRESULT CDX11VideoProcessor::Process(ID3D11Texture2D* pRenderTarget, const Com::
 
 void CDX11VideoProcessor::SetVideoRect(const Com::SmartRect& videoRect)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_videoRect = videoRect;
 	UpdateRenderRect();
 	UpdateTexures();
@@ -2166,6 +2449,9 @@ void CDX11VideoProcessor::SetVideoRect(const Com::SmartRect& videoRect)
 
 HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_windowRect = windowRect;
 	UpdateRenderRect();
 
@@ -2174,6 +2460,9 @@ HRESULT CDX11VideoProcessor::SetWindowRect(const Com::SmartRect& windowRect)
 
 void CDX11VideoProcessor::Reset(bool bForceWindowed)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
 	ReleaseDevice();
 	CMPCVRRenderer::Get()->Reset();
@@ -2183,8 +2472,53 @@ void CDX11VideoProcessor::Reset(bool bForceWindowed)
 	
 }
 
+HRESULT CDX11VideoProcessor::PresentNextSample(ID3D11Texture2D** texture)
+{
+	CAutoLock lock(&m_csPresentation);
+	if (m_presentationQueue.empty())
+		return S_FALSE; // No sample available
+
+	// Check the current time using the reference clock.
+	REFERENCE_TIME rtNow = 0;
+
+	m_pFilter->m_pClock->GetTime(&rtNow);
+
+	// Pop the next sample.
+	
+	CRefTime rtClock;
+	CRefTime rtSampleStart(m_presentationQueue.front().pStartTime);
+	CRefTime rtSampleEnd(m_presentationQueue.front().pEndTime);
+	if (m_pFilter->m_filterState == State_Running) {
+		m_pFilter->StreamTime(rtClock);
+		CLog::Log(LOGINFO, "streamtime : {}ms sample start {}ms end {}ms", rtClock.Millisecs(), rtSampleStart.Millisecs(), rtSampleEnd.Millisecs());
+
+	}
+
+	
+	
+	for (;;)
+	{
+		if (rtClock < m_presentationQueue.front().pEndTime)
+			break;
+		if (m_presentationQueue.size() == 1)
+			break;
+		m_presentationQueue.pop();
+		
+		if (m_presentationQueue.empty())
+			return S_FALSE; // No sample available with good timing
+	}
+	CMPCVRFrame ts = m_presentationQueue.front();
+
+  *texture = ts.pTexture.Get();
+  return S_OK;
+
+}
+
 HRESULT CDX11VideoProcessor::Reset()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CLog::LogF(LOGINFO,"CDX11VideoProcessor::Reset()");
 
 	if (MPC_SETTINGS->bHdrPassthrough && SourceIsPQorHLG()) {
@@ -2218,6 +2552,9 @@ HRESULT CDX11VideoProcessor::Reset()
 
 void CDX11VideoProcessor::SetRotation(int value)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_iRotation = value;
 	if (m_D3D11VP.IsReady()) {
 		m_D3D11VP.SetRotation(static_cast<D3D11_VIDEO_PROCESSOR_ROTATION>(value / 90));
@@ -2226,6 +2563,9 @@ void CDX11VideoProcessor::SetRotation(int value)
 
 void CDX11VideoProcessor::SetStereo3dTransform(int value)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	m_iStereo3dTransform = value;
 
 	if (m_iStereo3dTransform == 1) {
@@ -2240,15 +2580,22 @@ void CDX11VideoProcessor::SetStereo3dTransform(int value)
 
 void CDX11VideoProcessor::Flush()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
+	SetEvent(m_hFlushEvent);
 	if (m_D3D11VP.IsReady()) {
 		m_D3D11VP.ResetFrameOrder();
 	}
 
-	m_rtStart = 0;
+	//m_rtStart = 0;
 }
 
 void CDX11VideoProcessor::UpdateStatsPresent()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	DXGI_SWAP_CHAIN_DESC1 swapchain_desc;
 	if (GetSwapChain && S_OK == GetSwapChain->GetDesc1(&swapchain_desc)) {
 		m_strStatsPresent.assign(L"\nPresentation  : ");
@@ -2276,6 +2623,9 @@ void CDX11VideoProcessor::UpdateStatsPresent()
 
 void CDX11VideoProcessor::UpdateStatsStatic()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	if (m_srcParams.cformat) {
 		m_strStatsHeader.Format(L"MPCVR modified for kodi with libplacebo", _CRT_WIDE(VERSION_STR));
 
@@ -2324,6 +2674,9 @@ void CDX11VideoProcessor::UpdateStatsStatic()
 
 bool ShouldShowHdr(double val)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	if (val > 0 && val < 203)
 		return true;
 	else
@@ -2331,6 +2684,9 @@ bool ShouldShowHdr(double val)
 }
 void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struct pl_color_repr repr)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CStdStringW str;
 	if (MPC_SETTINGS->displayStats == DS_STATS_2)
 	{
@@ -2427,6 +2783,9 @@ void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struc
 
 STDMETHODIMP CDX11VideoProcessor::SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpValues *pValues)
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	CheckPointer(pValues, E_POINTER);
 	if (m_srcParams.cformat == CF_NONE) {
 		return MF_E_TRANSFORM_TYPE_NOT_SET;
@@ -2460,12 +2819,17 @@ STDMETHODIMP CDX11VideoProcessor::SetProcAmpValues(DWORD dwFlags, DXVA2_ProcAmpV
 
 void CDX11VideoProcessor::SetResolution()
 {
-
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	
 }
 
 bool CDX11VideoProcessor::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam, LPARAM* lParam, LRESULT* ret) const
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
 	*ret = m_pFilter->OnReceiveMessage(hWnd, uMsg, (WPARAM)wParam, (LPARAM)lParam);
 	return false;
 }
@@ -2474,6 +2838,10 @@ bool CDX11VideoProcessor::ParentWindowProc(HWND hWnd, UINT uMsg, WPARAM* wParam,
 
 void CDX11VideoProcessor::SetCallbackDevice()
 {
+#if DEBUGEXTREME
+	CLog::Log(LOGINFO, "{}", __FUNCTION__);
+#endif
+
 	CLog::Log(LOGINFO, "{} setting callback", __FUNCTION__);
 	if (!m_bCallbackDeviceIsSet && GetDevice && m_pFilter->m_pSub11CallBack) {
 		m_bCallbackDeviceIsSet = SUCCEEDED(m_pFilter->m_pSub11CallBack->SetDevice11(GetDevice));
