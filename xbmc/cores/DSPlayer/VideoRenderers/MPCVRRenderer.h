@@ -17,6 +17,12 @@
 #include "Filters/MPCVideoRenderer/D3D11Font.h"
 #include "Filters/MPCVideoRenderer/D3D11Geometry.h"
 #include <vector>
+#include <thread>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+#include <atomic>
+#include <memory>
 
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
@@ -35,49 +41,53 @@ struct DS_VERTEX {
 #define COLOR_RGBA(r,g,b,a) COLOR_ARGB(a,r,g,b)
 #define COLOR_XRGB(r,g,b)   COLOR_ARGB(0xff,r,g,b)
 
-/*
-static pl_color_repr GetPlaceboColorRepr(DXVA_VideoPrimaries primaries, DXVA_NominalRange range)
-{
-
-  pl_color_repr ret{};
-  switch (primaries) {
-  case DXVA2_VideoPrimaries_BT709:
-    ret.sys = PL_COLOR_SYSTEM_BT_709;
-    break;
-  case DXVA2_VideoPrimaries_BT470_2_SysM:
-    ret.sys = PL_COLOR_SYSTEM_BT_601;
-    break;
-  case DXVA2_VideoPrimaries_BT470_2_SysBG:
-    ret.sys = PL_COLOR_SYSTEM_BT_601;
-    break;
-  case DXVA2_VideoPrimaries_SMPTE170M:
-    ret.sys = PL_COLOR_SYSTEM_BT_601;
-    break;
-  case DXVA2_VideoPrimaries_SMPTE240M:
-    ret.sys = PL_COLOR_SYSTEM_SMPTE_240M;
-    break;
-    // Values from newer Windows SDK (MediaFoundation)
-  case (DXVA2_VideoPrimaries)9:
-    ret.sys = PL_COLOR_SYSTEM_BT_2020_NC;
-    break;
-
+// Thread-safe queue template
+template <typename T>
+class ThreadSafeQueue {
+private:
+  std::queue<T> queue_;
+  mutable std::mutex mutex_;
+  std::condition_variable condition_;
+public:
+  void push(T value) {
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      queue_.push(std::move(value));
+    }
+    condition_.notify_one();
+  }
+  
+  void pop() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    queue_.pop();
   }
 
-  ret.levels = PL_COLOR_LEVELS_FULL;
-  ret.alpha = PL_ALPHA_INDEPENDENT;
-    // For sake of simplicity, just use the first component's depth as
-    // the authoritative color depth for the whole image. Usually, this
-    // will be overwritten by more specific information when using e.g.
-    // `pl_map_avframe`, but for the sake of e.g. users wishing to map
-    // hwaccel frames manually, this is a good default.
-  ret.bits.color_depth = 8;
-  return ret;
-}
+  bool empty() {
+    return queue_.empty();
+  }
 
-static pl_color_space GetPlaceboColorspace()
-{
+  int size() {
+    return queue_.size();
+  }
 
-}*/
+  T front() {
+    return queue_.front();
+  }
+
+  void wait_and_pop(T& result) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    condition_.wait(lock, [this] { return !queue_.empty(); });
+    result = std::move(queue_.front());
+    queue_.pop();
+  }
+
+  void flush() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    std::queue<T> empty;
+    std::swap(queue_, empty);
+  }
+};
+
 struct CMPCVRFrame
 {
   CD3DTexture pTexture;

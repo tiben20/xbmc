@@ -140,6 +140,7 @@ static HRESULT CreateVertexBuffer(ID3D11Device* pDevice, ID3D11Buffer** ppVertex
 
 CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr)
 	: CVideoProcessor(pFilter),
+	CThread("CDX11VideoProcessor"),
 	m_hUploadThread(nullptr), 
 	m_hProcessThread(nullptr), 
 	m_hPresentationThread(nullptr),
@@ -200,6 +201,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	m_hProcessThread = CreateThread(NULL, 0, ProcessThread, this, 0, NULL);
 
 	CMPCVRRenderer::Get()->SetCallback(this);
+	m_rtStartStream = -1;
 }
 
 CDX11VideoProcessor::~CDX11VideoProcessor()
@@ -233,19 +235,10 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 	if (m_hProcessEvent)      CloseHandle(m_hProcessEvent);
 	if (m_hPresentationEvent) CloseHandle(m_hPresentationEvent);
 
-	// Release any remaining items in the queues.
-	while (!m_uploadQueue.empty()) {
-		m_uploadQueue.front()->Release();
-		m_uploadQueue.pop();
-	}
-	while (!m_processingQueue.empty()) {
-		m_processingQueue.front().pTexture.Release();
-		m_processingQueue.pop();
-	}
-	while (!m_presentationQueue.empty()) {
-		m_presentationQueue.front().pTexture.Release();
-		m_presentationQueue.pop();
-	}
+	m_uploadQueue.flush();
+	m_processingQueue.flush();
+	m_presentationQueue.flush();
+	
 }
 
 
@@ -335,9 +328,17 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToTexture(IMediaSample* pSample)
 		D3DSetDebugName(pCommandList.Get(), "CommandList mpc deferred context");
 		DX::DeviceResources::Get()->GetImmediateContext()->ExecuteCommandList(pCommandList.Get(), 0);
 	}
+	//gettime at start of stream
+	//m_rtStartStream
+	
 	pSample->GetTime(&pFrame.pStartTime, &pFrame.pEndTime);
 	
 	m_pFilter->m_pClock->GetTime(&endUpload);
+
+	if (m_rtStartStream == -1)
+		m_rtStartStream = endUpload;
+	pFrame.pStartTime += m_rtStartStream;
+	pFrame.pEndTime += m_rtStartStream;
 	pFrame.pUploadTime = endUpload - startUpload;
 	return pFrame;
 }
@@ -351,33 +352,23 @@ void CDX11VideoProcessor::UploadLoop()
 			break;
 		else if (dwWait == WAIT_OBJECT_0 + 1) {
 			//FLUSH
-			CAutoLock lock(&m_csUpload);
-			for (;;)
-			{
-				if (m_uploadQueue.size() == 0)
-					break;
-				m_uploadQueue.front()->Release();
-				m_uploadQueue.pop();
-				
-			}
+			m_uploadQueue.flush();
+			
 		}
 		else if (dwWait == WAIT_OBJECT_0 + 2) {
 			IMediaSample* pSample = nullptr;
 			{
-				CAutoLock lock(&m_csUpload);
-				CAutoLock lock2(&m_csProcessing);
-				if (!m_uploadQueue.empty() && m_processingQueue.size() < 5) {
-					pSample = m_uploadQueue.front();
-					m_uploadQueue.pop();
-				}
+				if (m_processingQueue.size()<5)
+					m_uploadQueue.wait_and_pop(pSample);
+
 			}
 			if (pSample) {
 				CMPCVRFrame pFrame;
+				
 				pFrame = ConvertSampleToTexture(pSample);
 				pSample->Release();
 				if (pFrame.pTexture.Get()) {
 					{
-						CAutoLock lock(&m_csProcessing);
 						m_processingQueue.push(pFrame);
 					}
 					SetEvent(m_hProcessEvent);
@@ -410,40 +401,21 @@ void CDX11VideoProcessor::ProcessLoop()
 			break;
 		else if (dwWait == WAIT_OBJECT_0 + 1) {
 			//FLUSH
-			CAutoLock lock(&m_csProcessing);
-			CAutoLock lock2(&m_csPresentation);
-			for (;;)
-			{
-				if (m_processingQueue.size() == 0)
-					break;
-				m_processingQueue.front().pTexture.Release();
-				m_processingQueue.pop();
-				
-			}
-			for (;;)
-			{
-				if (m_presentationQueue.size() == 0)
-					break;
-				m_presentationQueue.front().pTexture.Release();
-				m_presentationQueue.pop();
-
-			}
+			m_processingQueue.flush();
+			m_presentationQueue.flush();
 		}
 		else if (dwWait == WAIT_OBJECT_0 + 2) {
 			CMPCVRFrame pTexture;
 			{
-				CAutoLock lock(&m_csProcessing);
-				CAutoLock lock2(&m_csPresentation);
 				if (!m_processingQueue.empty() && m_presentationQueue.size() < 5) {
-					pTexture = m_processingQueue.front();
-					m_processingQueue.pop();
+					m_processingQueue.wait_and_pop(pTexture);
+
 				}
 			}
 			if (pTexture.pTexture.Get()) {
 				// Process the texture (for example, composite your OSD).
 				ProcessFrame(pTexture);
 				{
-					CAutoLock lock(&m_csPresentation);
 					m_presentationQueue.push(pTexture);
 				}
 				float fps;
@@ -2474,31 +2446,33 @@ void CDX11VideoProcessor::Reset(bool bForceWindowed)
 
 HRESULT CDX11VideoProcessor::PresentNextSample(ID3D11Texture2D** texture)
 {
-	CAutoLock lock(&m_csPresentation);
+	
 	if (m_presentationQueue.empty())
 		return S_FALSE; // No sample available
 
 	// Check the current time using the reference clock.
 	REFERENCE_TIME rtNow = 0;
+	REFERENCE_TIME rtDiff = 0;
 
 	m_pFilter->m_pClock->GetTime(&rtNow);
 
 	// Pop the next sample.
 	
-	CRefTime rtClock;
+	CRefTime rtClock,rtRefDiff;
+	CRefTime rtNowTime(rtNow);
+	CRefTime rtStartTime(m_rtStartStream);
 	CRefTime rtSampleStart(m_presentationQueue.front().pStartTime);
 	CRefTime rtSampleEnd(m_presentationQueue.front().pEndTime);
+	rtDiff = rtNow - m_presentationQueue.front().pStartTime;
+	rtRefDiff = CRefTime(rtDiff);
 	if (m_pFilter->m_filterState == State_Running) {
-		m_pFilter->StreamTime(rtClock);
-		CLog::Log(LOGINFO, "streamtime : {}ms sample start {}ms end {}ms", rtClock.Millisecs(), rtSampleStart.Millisecs(), rtSampleEnd.Millisecs());
+		CLog::Log(LOGINFO, "now : {}ms sample start {}ms end {}ms started at {} diff {}", rtNowTime.Millisecs(), rtSampleStart.Millisecs(), rtSampleEnd.Millisecs(), rtStartTime.Millisecs(), rtRefDiff.Millisecs());
 
 	}
 
-	
-	
 	for (;;)
 	{
-		if (rtClock < m_presentationQueue.front().pEndTime)
+		if (rtNow < m_presentationQueue.front().pEndTime)
 			break;
 		if (m_presentationQueue.size() == 1)
 			break;
@@ -2535,7 +2509,7 @@ HRESULT CDX11VideoProcessor::Reset()
 
 				if (m_pFilter->m_inputMT.IsValid()) {
 					if (MPC_SETTINGS->iSwapEffect == SWAPEFFECT_Discard && !ac.advancedColorEnabled) {
-						m_pFilter->Init(true);
+						//m_pFilter->Init(true);
 					} else {
 						Init(m_hWnd);
 					}
@@ -2588,7 +2562,8 @@ void CDX11VideoProcessor::Flush()
 		m_D3D11VP.ResetFrameOrder();
 	}
 
-	//m_rtStart = 0;
+	m_rtStart = 0;
+	m_rtStartStream = -1;
 }
 
 void CDX11VideoProcessor::UpdateStatsPresent()

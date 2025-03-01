@@ -24,6 +24,7 @@
 #include "DisplayConfig.h"
 #include "FrameStats.h"
 #include "dsutil/Geometry.h"
+#include "VideoRenderers/MPCVRRenderer.h"
 
 enum : int {
 	STEREO3D_AsIs = 0,
@@ -94,6 +95,8 @@ protected:
 	CStdStringW m_strAdapterDescription;
 
 	REFERENCE_TIME m_rtStart = 0;
+	REFERENCE_TIME m_rtStartStream = 0;
+
 	int m_FieldDrawn = 0;
 	bool m_bDoubleFrames = false;
 
@@ -195,8 +198,8 @@ protected:
 
 
 	// QUEUES AND THEIR CRITICAL SECTIONS
-	std::queue<IMediaSample*>       m_uploadQueue;
-	CCritSec                        m_csUpload;
+	ThreadSafeQueue<IMediaSample*> m_uploadQueue;
+
 	HANDLE m_hUploadEvent;
 
 

@@ -79,10 +79,7 @@ class __declspec(uuid("71F080AA-8661-4093-B15E-4F6903E77D0A"))
 	, public IMFGetService
 	, public IBasicVideo2
 	, public IVideoWindow
-	, public ISubRender
-	, public ISubRender11
 	, public CExFilterConfigImpl
-	, public ID3DFullscreenControl
 {
 private:
 	friend class CVideoRendererInputPin;
@@ -109,6 +106,10 @@ private:
 	// VideoProcessor
 	std::unique_ptr<CVideoProcessor> m_VideoProcessor;
 
+
+	//TO keep track of where we started
+	REFERENCE_TIME m_rtReftimeStart;
+
 	CMediaType m_inputMT;
 
 	ISubRenderCallback* m_pSubCallBack = nullptr;
@@ -120,7 +121,7 @@ private:
 
 	Com::SmartSize m_videoSize, m_videoAspectRatio;
 
-	HRESULT Init(const bool bCreateWindow);
+
 
 	std::atomic_bool m_bDisplayModeChanging = false;
 
@@ -226,8 +227,8 @@ public:
 	STDMETHODIMP get_Top(long *pTop) { return E_NOTIMPL; }
 	STDMETHODIMP put_Height(long Height) { return E_NOTIMPL; }
 	STDMETHODIMP get_Height(long *pHeight) { return E_NOTIMPL; }
-	STDMETHODIMP put_Owner(OAHWND Owner);
-	STDMETHODIMP get_Owner(OAHWND *Owner);
+	STDMETHODIMP put_Owner(OAHWND Owner) { return E_NOTIMPL; }
+	STDMETHODIMP get_Owner(OAHWND *Owner) { return E_NOTIMPL; }
 	STDMETHODIMP put_MessageDrain(OAHWND Drain);
 	STDMETHODIMP get_MessageDrain(OAHWND* Drain);
 	STDMETHODIMP get_BorderColor(long *Color) { return E_NOTIMPL; }
@@ -236,7 +237,7 @@ public:
 	STDMETHODIMP put_FullScreenMode(long FullScreenMode) { return E_NOTIMPL; }
 	STDMETHODIMP SetWindowForeground(long Focus) { return E_NOTIMPL; }
 	STDMETHODIMP NotifyOwnerMessage(OAHWND hwnd, long uMsg, LONG_PTR wParam, LONG_PTR lParam) { return E_NOTIMPL; }
-	STDMETHODIMP SetWindowPosition(long Left, long Top, long Width, long Height);
+	STDMETHODIMP SetWindowPosition(long Left, long Top, long Width, long Height) { return E_NOTIMPL; }
 	STDMETHODIMP GetWindowPosition(long *pLeft, long *pTop, long *pWidth, long *pHeight) { return E_NOTIMPL; }
 	STDMETHODIMP GetMinIdealImageSize(long *pWidth, long *pHeight) { return E_NOTIMPL; }
 	STDMETHODIMP GetMaxIdealImageSize(long *pWidth, long *pHeight) { return E_NOTIMPL; }
@@ -244,19 +245,7 @@ public:
 	STDMETHODIMP HideCursor(long HideCursor) { return E_NOTIMPL; }
 	STDMETHODIMP IsCursorHidden(long *CursorHidden) { return E_NOTIMPL; }
 
-	// ISubRender (DX9)
-	STDMETHODIMP SetCallback(ISubRenderCallback* cb) override;
-
-	// ISubRender11 (DX11)
-	STDMETHODIMP SetCallback11(ISubRender11Callback* cb) override;
-
-	// ID3DFullscreenControl
-	STDMETHODIMP SetD3DFullscreen(bool bEnabled);
-	STDMETHODIMP GetD3DFullscreen(bool* pbEnabled);
-
 	LRESULT OnReceiveMessage(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-	void SwitchFullScreen();
 
 	bool m_bIsFullscreen = false;
 	bool m_bIsD3DFullscreen = false;

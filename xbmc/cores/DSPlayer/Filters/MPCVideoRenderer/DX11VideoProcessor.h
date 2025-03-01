@@ -46,24 +46,19 @@
 #include "libplacebo/utils/upload.h"
 #include "libplacebo/colorspace.h"
 #include "../../VideoRenderers/MPCVRRenderer.h"
+#include "threads/Thread.h"
 
 #define TEST_SHADER 0
 
 class CVideoRendererInputPin;
 
-//--------------------------------------------------
-// Structures
-//--------------------------------------------------
-struct QueuedFrame {
-	REFERENCE_TIME StartTime;
-	REFERENCE_TIME EndTime;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture;
-};
+
 
 class CDX11VideoProcessor
 	: public CVideoProcessor,
 	  public IDSRendererAllocatorCallback,
-		public IMpcVRCallback
+		public IMpcVRCallback, 
+	  public CThread
 {
 public:
 	// IDSRendererAllocatorCallback
@@ -87,11 +82,11 @@ private:
 	D3D11_TEXTURE_SAMPLER m_pFinalTextureSampler;
 
 
-	std::queue<CMPCVRFrame>      m_processingQueue;
-	CCritSec                        m_csProcessing;
+	ThreadSafeQueue<CMPCVRFrame>      m_processingQueue;
+	
 
-	std::queue<CMPCVRFrame>      m_presentationQueue;
-	CCritSec                        m_csPresentation;
+	ThreadSafeQueue<CMPCVRFrame>      m_presentationQueue;
+	
 
 	// THREAD HANDLES AND EVENTS
 	HANDLE m_hUploadThread;
@@ -220,8 +215,6 @@ public:
 
 	void ProcessLoop();
 	void ProcessFrame(CMPCVRFrame pFrame);
-
-	void PresentationLoop();
 
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	bool Initialized();

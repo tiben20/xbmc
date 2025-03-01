@@ -196,7 +196,7 @@ CMpcVideoRenderer::~CMpcVideoRenderer()
 
 void CMpcVideoRenderer::NewSegment(REFERENCE_TIME startTime)
 {
-	DLog("CMpcVideoRenderer::NewSegment()");
+	CLog::Log(LOGINFO, "{} {}", __FUNCTION__, CRefTime(startTime).Millisecs());
 
 	m_rtStartTime = startTime;
 }
@@ -520,24 +520,22 @@ STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** 
 		QI(IBasicVideo)
 		QI(IBasicVideo2)
 		QI(IVideoWindow)
-		QI(ISpecifyPropertyPages)
 		QI(IExFilterConfig)
-		(riid == __uuidof(ISubRender11) && m_VideoProcessor ) ? GetInterface((ISubRender11*)this, ppv) :
-		(riid == __uuidof(ID3DFullscreenControl) && m_bEnableFullscreenControl) ? GetInterface((ID3DFullscreenControl*)this, ppv) :
 		__super::NonDelegatingQueryInterface(riid, ppv);
 }
 
 // IMediaFilter
 STDMETHODIMP CMpcVideoRenderer::Run(REFERENCE_TIME rtStart)
 {
-	DLog("CMpcVideoRenderer::Run()");
-
+	CLog::Log(LOGINFO, "{} {}", __FUNCTION__, CRefTime(rtStart).Millisecs());
+	m_rtReftimeStart = rtStart;
 	if (m_State == State_Running) {
 		return NOERROR;
 	}
 
 	CAutoLock cVideoLock(&m_InterfaceLock);
 	m_filterState = State_Running;
+
 
 	return CBaseVideoRenderer2::Run(rtStart);
 }
@@ -804,20 +802,6 @@ STDMETHODIMP CMpcVideoRenderer::GetPreferredAspectRatio(long *plAspectX, long *p
 	return m_VideoProcessor->GetAspectRatio(plAspectX, plAspectY);
 }
 
-void CMpcVideoRenderer::SwitchFullScreen()
-{
-	DLog("CMpcVideoRenderer::SwitchFullScreen() : Switch to fullscreen");
-	m_bIsFullscreen = true;
-
-	if (m_hWnd) {
-		Init(true);
-
-		if (m_hWndParentMain) {
-			PostMessageW(m_hWndParentMain, WM_SWITCH_FULLSCREEN, 1, 0);
-		}
-	}
-}
-
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	CMpcVideoRenderer* pThis = reinterpret_cast <CMpcVideoRenderer*>(GetWindowLongPtrW(hwnd, 0));
@@ -831,106 +815,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	}
 
 	return pThis->OnReceiveMessage(hwnd, uMsg, wParam, lParam);
-}
-
-HRESULT CMpcVideoRenderer::Init(const bool bCreateWindow/* = false*/)
-{
-	CAutoLock cRendererLock(&m_RendererLock);
-
-	HRESULT hr = S_OK;
-
-	auto hwnd = m_hWndParent;
-	while ((GetParent(hwnd)) && (GetParent(hwnd) == GetAncestor(hwnd, GA_PARENT))) {
-		hwnd = GetParent(hwnd);
-	}
-
-	if (hwnd != m_hWndParentMain) {
-		if (m_hWndParentMain) {
-			RemoveParentWndProc(m_hWndParentMain);
-		}
-
-		m_hWndParentMain = hwnd;
-		auto pfnOldProc = (WNDPROC)GetWindowLongPtrW(m_hWndParentMain, GWLP_WNDPROC);
-		SetWindowLongPtrW(m_hWndParentMain, GWLP_WNDPROC, (LONG_PTR)ParentWndProc);
-		SetPropW(m_hWndParentMain, g_pszOldParentWndProc, (HANDLE)pfnOldProc);
-		SetPropW(m_hWndParentMain, g_pszThis, (HANDLE)this);
-	}
-
-	if (bCreateWindow) {
-		if (m_hWndWindow) {
-			::SendMessageW(m_hWndWindow, WM_CLOSE, 0, 0);
-			m_hWndWindow = nullptr;
-		}
-
-		if (!m_bIsD3DFullscreen) {
-			WNDCLASSEXW wc = { sizeof(wc) };
-			if (!GetClassInfoExW(g_hInst, g_szClassName, &wc)) {
-				wc.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-				wc.lpfnWndProc = WndProc;
-				wc.hInstance = g_hInst;
-				wc.lpszClassName = g_szClassName;
-				wc.cbWndExtra = sizeof(CMpcVideoRenderer*); // pointer size
-				if (!RegisterClassExW(&wc)) {
-					hr = HRESULT_FROM_WIN32(GetLastError());
-					DLog("CMpcVideoRenderer::Init() : RegisterClassExW() failed with error {}", WToA(HR2Str(hr)));
-					return hr;
-				}
-			}
-
-			m_hWndWindow = CreateWindowExW(
-				0,
-				g_szClassName,
-				nullptr,
-				WS_VISIBLE | WS_CHILDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
-				CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-				m_hWndParent,
-				nullptr,
-				g_hInst,
-				this
-			);
-
-			if (!m_hWndWindow) {
-				hr = HRESULT_FROM_WIN32(GetLastError());
-				DLog("CMpcVideoRenderer::Init() : CreateWindowExW() failed with error {}", WToA(HR2Str(hr)));
-				return E_FAIL;
-			}
-
-			if (!m_windowRect.IsRectNull()) {
-				SetWindowPos(m_hWndWindow, nullptr, m_windowRect.left, m_windowRect.top, m_windowRect.Width(), m_windowRect.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
-			}
-		}
-	}
-
-	m_hWnd = m_bIsFullscreen ? m_hWndParentMain : m_hWndWindow;
-	if (m_bIsD3DFullscreen) {
-		m_hWnd = m_hWndParent;
-	}
-
-	bool bChangeDevice = false;
-	hr = m_VideoProcessor->Init(m_hWnd, &bChangeDevice);
-
-	if (bChangeDevice) {
-		DoAfterChangingDevice();
-	}
-
-	return hr;
-}
-
-// IVideoWindow
-STDMETHODIMP CMpcVideoRenderer::put_Owner(OAHWND Owner)
-{
-	if (m_hWndParent != (HWND)Owner) {
-		m_hWndParent = (HWND)Owner;
-		return Init(true);
-	}
-	return S_OK;
-}
-
-STDMETHODIMP CMpcVideoRenderer::get_Owner(OAHWND *Owner)
-{
-	CheckPointer(Owner, E_POINTER);
-	*Owner = (OAHWND)m_hWndParent;
-	return S_OK;
 }
 
 STDMETHODIMP CMpcVideoRenderer::put_MessageDrain(OAHWND Drain)
@@ -949,93 +833,6 @@ STDMETHODIMP CMpcVideoRenderer::get_MessageDrain(OAHWND* Drain)
 		return VFW_E_NOT_CONNECTED;
 	}
 	*Drain = (OAHWND)m_hWndDrain;
-	return S_OK;
-}
-
-STDMETHODIMP CMpcVideoRenderer::SetWindowPosition(long Left, long Top, long Width, long Height)
-{
-#if 0
-	const Com::SmartRect windowRect(Left, Top, Left + Width, Top + Height);
-	if (windowRect == m_windowRect) {
-		return S_OK;
-	}
-
-	m_windowRect = windowRect;
-
-	CAutoLock cRendererLock(&m_RendererLock);
-
-	if (!m_bIsD3DFullscreen && (m_Sets.bExclusiveFS || m_bIsFullscreen)) {
-		const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-		MONITORINFO mi = { mi.cbSize = sizeof(mi) };
-		::GetMonitorInfoW(hMon, &mi);
-		const Com::SmartRect rcMonitor(mi.rcMonitor);
-
-		if (!m_bIsFullscreen && m_windowRect.Width() == rcMonitor.Width() && m_windowRect.Height() == rcMonitor.Height()) {
-			SwitchFullScreen();
-		} else if (m_bIsFullscreen && (m_windowRect.Width() != rcMonitor.Width() || m_windowRect.Height() != rcMonitor.Height())) {
-			DLog("CMpcVideoRenderer::SetWindowPosition() : Switch from fullscreen");
-			m_bIsFullscreen = false;
-
-			if (m_hWnd) {
-				Init(m_VideoProcessor->Type() == VP_DX9 ? false : true);
-				Redraw();
-
-				if (m_hWndParentMain) {
-					PostMessageW(m_hWndParentMain, WM_SWITCH_FULLSCREEN, 0, 0);
-				}
-			}
-		}
-	}
-
-	if (m_hWndWindow && !m_bIsFullscreen) {
-		SetWindowPos(m_hWndWindow, nullptr, Left, Top, Width, Height, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW);
-		if (Left < 0) {
-			m_windowRect.OffsetRect(-Left, 0);
-		}
-		if (Top < 0) {
-			m_windowRect.OffsetRect(0, -Top);
-		}
-	}
-
-	m_VideoProcessor->SetWindowRect(m_windowRect);
-
-	m_windowRect = windowRect;
-
-	if (m_bForceRedrawing) {
-		Redraw();
-	}
-#endif
-	return S_OK;
-}
-
-// ISubRender (DX9)
-STDMETHODIMP CMpcVideoRenderer::SetCallback(ISubRenderCallback* cb)
-{
-	m_pSubCallBack = cb;
-
-	return S_OK;
-}
-
-// ISubRender11 (DX11)
-STDMETHODIMP CMpcVideoRenderer::SetCallback11(ISubRender11Callback* cb)
-{
-	m_pSub11CallBack = cb;
-
-	return S_OK;
-}
-
-// ID3DFullscreenControl
-
-STDMETHODIMP CMpcVideoRenderer::SetD3DFullscreen(bool bEnabled)
-{
-	m_bIsFullscreen = m_bIsD3DFullscreen = bEnabled;
-	return S_OK;
-}
-
-STDMETHODIMP CMpcVideoRenderer::GetD3DFullscreen(bool* pbEnabled)
-{
-	CheckPointer(pbEnabled, E_POINTER);
-	*pbEnabled = m_bIsD3DFullscreen;
 	return S_OK;
 }
 

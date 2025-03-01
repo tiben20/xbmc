@@ -292,7 +292,7 @@ HRESULT CVideoProcessor::ProcessSample(IMediaSample* pSample)
 	CLog::Log(LOGINFO, "{}", __FUNCTION__);
 #endif
 	{
-		CAutoLock lock(&m_csUpload);
+
 		if (m_uploadQueue.size() == 4)
 			return S_FALSE;
 		pSample->AddRef();
