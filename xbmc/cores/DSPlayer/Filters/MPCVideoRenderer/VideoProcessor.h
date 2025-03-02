@@ -33,6 +33,159 @@ enum : int {
 
 class CMpcVideoRenderer;
 
+struct CMPCVRFrameBase
+{
+	CD3DTexture pTexture;
+	REFERENCE_TIME pStartTime;
+	REFERENCE_TIME pEndTime;
+	REFERENCE_TIME pUploadTime;
+	REFERENCE_TIME pProcessingTime;
+
+	//MediaSideDataDOVIMetadata pDOVIMetadata;
+	//struct pl_dovi_metadata doviout;
+
+	//pl_hdr_metadata pPlHdr;
+	//MediaSideDataHDR pHdrMetadata;
+
+	struct pl_color_space color;
+	struct pl_color_repr repr;
+
+	//used for scaling if it change we need to flush and recreate
+	CRect pCurrentRect;
+	 
+	//MediaSideDataHDR10Plus pHDR10Plus;
+	//MediaSideDataHDRContentLightLevel pHDRLightLevel;
+};
+
+struct CMPCVRFrame : CMPCVRFrameBase
+{
+	CMPCVRFrame()
+	{
+		color = {};
+		repr = {};
+		pStartTime = 0;
+		pEndTime = 0;
+		pUploadTime = 0;
+		pProcessingTime = 0;
+	}
+};
+// Frame thread-safe queue
+class FrameQueue
+{
+private:
+	std::queue<CMPCVRFrame> pQueue;
+	mutable std::mutex pMutex;
+	std::condition_variable pCondition;
+	int pMaxQueue;
+public:
+	void Resize(int queues)
+	{
+		pMaxQueue = queues;
+		flush();
+		for (int i = 0; i < queues; i++)
+		{
+			CMPCVRFrame frame;
+			pQueue.push(frame);
+		}
+		
+	}
+	void push(CMPCVRFrame value)
+	{
+		{
+			std::lock_guard<std::mutex> lock(pMutex);
+			pQueue.push(std::move(value));
+		}
+		pCondition.notify_one();
+	}
+
+	void pop()
+	{
+		std::lock_guard<std::mutex> lock(pMutex);
+		pQueue.pop();
+	}
+
+	bool empty()
+	{
+		return pQueue.empty();
+	}
+
+	int size()
+	{
+		return pQueue.size();
+	}
+
+	CMPCVRFrame front()
+	{
+		return pQueue.front();
+	}
+
+	void wait_and_pop(CMPCVRFrame& result)
+	{
+		std::unique_lock<std::mutex> lock(pMutex);
+		pCondition.wait(lock, [this] { return !pQueue.empty(); });
+		result = std::move(pQueue.front());
+		pQueue.pop();
+	}
+
+	void flush()
+	{
+		std::lock_guard<std::mutex> lock(pMutex);
+		std::queue<CMPCVRFrame> empty;
+		std::swap(pQueue, empty);
+	}
+};
+
+// Thread-safe queue template
+template <typename T>
+class ThreadSafeQueue
+{
+private:
+	std::queue<T> queue_;
+	mutable std::mutex mutex_;
+	std::condition_variable condition_;
+public:
+	void push(T value) {
+		{
+			std::lock_guard<std::mutex> lock(mutex_);
+			queue_.push(std::move(value));
+		}
+		condition_.notify_one();
+	}
+
+	void pop() {
+		std::lock_guard<std::mutex> lock(mutex_);
+		queue_.pop();
+	}
+
+	bool empty() {
+		return queue_.empty();
+	}
+
+	int size() {
+		return queue_.size();
+	}
+
+	T front() {
+		return queue_.front();
+	}
+
+	void wait_and_pop(T& result) {
+		std::unique_lock<std::mutex> lock(mutex_);
+		condition_.wait(lock, [this] { return !queue_.empty(); });
+		result = std::move(queue_.front());
+		queue_.pop();
+	}
+
+	void flush() {
+		std::lock_guard<std::mutex> lock(mutex_);
+		std::queue<T> empty;
+		std::swap(queue_, empty);
+	}
+};
+
+
+
+
 class CVideoProcessor
 	: public IMFVideoProcessor
 	, public IMFVideoMixerBitmap

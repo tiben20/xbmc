@@ -143,9 +143,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	CThread("CDX11VideoProcessor"),
 	m_hUploadThread(nullptr), 
 	m_hProcessThread(nullptr), 
-	m_hPresentationThread(nullptr),
 	m_hProcessEvent(nullptr), 
-	m_hPresentationEvent(nullptr),
 	m_hStopEvent(nullptr),
 	m_hFlushEvent(nullptr)
 {
@@ -157,6 +155,10 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	MPC_SETTINGS->bVPUseRTXVideoHDR = pSetting->GetBool("dsplayer.vr.rtxhdr");
 	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
 	MPC_SETTINGS->iVPUseSuperRes = pSetting->GetInt("dsplayer.vr.superres");
+	//TODO add buffer size
+	m_pFreePresentationQueue.Resize(5);
+	m_pFreeProcessingQueue.Resize(5);
+
 	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;//this is set during the init media type
 
 	m_nCurrentAdapter = -1;
@@ -193,7 +195,6 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	// Create events for each stage.
 	m_hUploadEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hProcessEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hPresentationEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hFlushEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// Start the threads for each queue.
@@ -202,6 +203,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 
 	CMPCVRRenderer::Get()->SetCallback(this);
 	m_rtStartStream = -1;
+	m_iPresCount = 0;
 }
 
 CDX11VideoProcessor::~CDX11VideoProcessor()
@@ -225,15 +227,12 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 		WaitForSingleObject(m_hProcessThread, INFINITE);
 		CloseHandle(m_hProcessThread);
 	}
-	if (m_hPresentationThread) {
-		WaitForSingleObject(m_hPresentationThread, INFINITE);
-		CloseHandle(m_hPresentationThread);
-	}
+
 	// Clean up event handles.
 	if (m_hStopEvent)       CloseHandle(m_hStopEvent);
 	if (m_hUploadEvent)       CloseHandle(m_hUploadEvent);
 	if (m_hProcessEvent)      CloseHandle(m_hProcessEvent);
-	if (m_hPresentationEvent) CloseHandle(m_hPresentationEvent);
+
 
 	m_uploadQueue.flush();
 	m_processingQueue.flush();
@@ -261,14 +260,19 @@ DWORD WINAPI CDX11VideoProcessor::UploadThread(LPVOID lpParameter)
 
 		// Convert an incoming IMediaSample into a D3D11 texture.
 		// This function creates a new dynamic texture and fills it with the sample’s data.
-CMPCVRFrame CDX11VideoProcessor::ConvertSampleToTexture(IMediaSample* pSample)
+CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 {
 	BYTE* data = nullptr;
 	const long size = pSample->GetActualDataLength();
 	REFERENCE_TIME startUpload, endUpload;
 	m_pFilter->m_pClock->GetTime(&startUpload);
+
 	CMPCVRFrame pFrame;
-	pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	m_pFreeProcessingQueue.wait_and_pop(pFrame);
+	pFrame.color = {};
+	pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), "CMPCVRRenderer Merged plane", true, 0U);
+	//pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	ProcessLibplacebo(pSample, pFrame);
 	//HRESULT hr = GetDevice->CreateTexture2D(&desc, nullptr, &pFrame.pTexture);
 
 	if (size > 0 && S_OK == pSample->GetPointer(&data))
@@ -340,6 +344,7 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToTexture(IMediaSample* pSample)
 	pFrame.pStartTime += m_rtStartStream;
 	pFrame.pEndTime += m_rtStartStream;
 	pFrame.pUploadTime = endUpload - startUpload;
+
 	return pFrame;
 }
 
@@ -364,8 +369,21 @@ void CDX11VideoProcessor::UploadLoop()
 			}
 			if (pSample) {
 				CMPCVRFrame pFrame;
-				
-				pFrame = ConvertSampleToTexture(pSample);
+				//the frame come from m_pFreeProcessingQueue
+				pFrame = ConvertSampleToFrame(pSample);
+				if (m_iPresCount == 10)
+				{
+					CStdStringW sNow;
+					CRefTime rUploadTime(pFrame.pUploadTime);
+					pFrame.pProcessingTime = 5;
+					CRefTime rProcessingTime(pFrame.pProcessingTime);
+					sNow.Format(L"Upload queue: %i ", m_uploadQueue.size());
+					sNow.AppendFormat(L"Upload time : % ld", rUploadTime.Millisecs());
+					CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 3);
+					sNow.Format(L"Processing queue: %i ", m_processingQueue.size());
+					sNow.AppendFormat(L"Processing time : % ld", rProcessingTime.Millisecs());
+					CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 4);
+				}
 				pSample->Release();
 				if (pFrame.pTexture.Get()) {
 					{
@@ -401,22 +419,42 @@ void CDX11VideoProcessor::ProcessLoop()
 			break;
 		else if (dwWait == WAIT_OBJECT_0 + 1) {
 			//FLUSH
-			m_processingQueue.flush();
-			m_presentationQueue.flush();
+			for (;;)
+			{
+				if (m_processingQueue.size() > 0)
+				{
+					m_pFreeProcessingQueue.push(m_processingQueue.front());
+					m_processingQueue.pop();
+				}
+				else
+					break;
+			}
+			for (;;)
+			{
+				if (m_presentationQueue.size() > 0)
+				{
+					m_pFreePresentationQueue.push(m_presentationQueue.front());
+					m_presentationQueue.pop();
+				}
+				else
+					break;
+			}
 		}
 		else if (dwWait == WAIT_OBJECT_0 + 2) {
-			CMPCVRFrame pTexture;
+			CMPCVRFrame pInputFrame,pOutputFrame;
 			{
 				if (!m_processingQueue.empty() && m_presentationQueue.size() < 5) {
-					m_processingQueue.wait_and_pop(pTexture);
-
+					m_processingQueue.wait_and_pop(pInputFrame);
 				}
 			}
-			if (pTexture.pTexture.Get()) {
+			if (pInputFrame.pTexture.Get())
+			{
+				m_pFreePresentationQueue.wait_and_pop(pOutputFrame);
 				// Process the texture (for example, composite your OSD).
-				ProcessFrame(pTexture);
+				ProcessFrame(pInputFrame, pOutputFrame);
 				{
-					m_presentationQueue.push(pTexture);
+					m_presentationQueue.push(pOutputFrame);
+					m_pFreeProcessingQueue.push(pInputFrame);
 				}
 				float fps;
 				fps = 10000000.0 / m_rtAvgTimePerFrame;
@@ -427,7 +465,6 @@ void CDX11VideoProcessor::ProcessLoop()
 					CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PLAYBACK_STARTED), false);
 					CLog::Log(LOGINFO, "{} DSPLAYER notify playback started sent", __FUNCTION__);
 				}
-				SetEvent(m_hPresentationEvent);
 			}
 		}
 	}
@@ -436,11 +473,74 @@ void CDX11VideoProcessor::ProcessLoop()
 
 // Process the texture (e.g. blend in an OSD).
 // For this example, the function is a no-op.
-void CDX11VideoProcessor::ProcessFrame(CMPCVRFrame pFrame)
+void CDX11VideoProcessor::ProcessFrame(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame)
 {
-
 	// Insert your D3D11 processing code here.
 	// For example, you might use a compute shader or render-to-texture pass to composite your OSD.
+	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
+	pl_d3d11_wrap_params frameInParams{};
+	pl_d3d11_wrap_params frameOutParams{};
+	pl_frame frameIn {};
+	pl_frame frameOut {};
+	pl_render_params params;
+	pl_tex inTexture,outTexture;
+	
+	if (!outputFrame.pTexture.Get())
+	{
+		outputFrame.pTexture.Create(3524, 1982, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	}
+	frameInParams.w = inputFrame.pTexture.GetWidth();
+	frameInParams.h = inputFrame.pTexture.GetHeight();
+	frameInParams.fmt = inputFrame.pTexture.GetFormat();
+	frameInParams.tex = inputFrame.pTexture.Get();
+	inTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &frameInParams);
+	frameIn.num_planes = 1;
+	frameIn.planes[0].texture = inTexture;
+	frameIn.planes[0].components = 3;
+	frameIn.planes[0].component_mapping[0] = 0;
+	frameIn.planes[0].component_mapping[1] = 1;
+	frameIn.planes[0].component_mapping[2] = 2;
+	frameIn.planes[0].component_mapping[3] = -1;
+	frameIn.planes[0].flipped = false;
+	frameIn.repr = inputFrame.repr;
+	//If pre merged the output of the shaders is a rgb image
+	frameIn.repr.sys = PL_COLOR_SYSTEM_RGB;
+	frameIn.color = inputFrame.color;
+
+	frameOutParams.w = outputFrame.pTexture.GetWidth();
+	frameOutParams.h = outputFrame.pTexture.GetHeight();
+	frameOutParams.fmt = outputFrame.pTexture.GetFormat();
+	frameOutParams.tex = outputFrame.pTexture.Get();
+	frameOutParams.array_slice = 1;
+	
+	outTexture = pl_d3d11_wrap(pHelper->GetPLD3d11()->gpu, &frameOutParams);
+	frameOut.num_planes = 1;
+	frameOut.planes[0].texture = outTexture;
+	frameOut.planes[0].components = 4;
+	frameOut.planes[0].component_mapping[0] = PL_CHANNEL_R;
+	frameOut.planes[0].component_mapping[1] = PL_CHANNEL_G;
+	frameOut.planes[0].component_mapping[2] = PL_CHANNEL_B;
+	frameOut.planes[0].component_mapping[3] = PL_CHANNEL_A;
+	frameOut.planes[0].flipped = false;
+
+	frameIn.crop.x1 = m_srcWidth;
+	frameIn.crop.y1 = m_srcHeight;
+	frameOut.crop.x1 = 3524;
+	frameOut.crop.y1 = 1982;
+	frameOut.repr = frameIn.repr;
+	frameOut.color = frameIn.color;
+	frameOut.repr.sys = PL_COLOR_SYSTEM_RGB;
+	frameOut.repr.levels = PL_COLOR_LEVELS_FULL;
+	pl_frame_set_chroma_location(&frameOut, PL_CHROMA_LEFT);
+
+	params = pl_render_default_params;
+
+	params.info_priv = pHelper;
+	params.info_callback = render_info_cb;
+
+	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &params);
+	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
+
 }
 
 HRESULT CDX11VideoProcessor::Init(const HWND hwnd, bool* pChangeDevice/* = nullptr*/)
@@ -524,6 +624,92 @@ bool CDX11VideoProcessor::Initialized()
 	CLog::Log(LOGINFO, "{}", __FUNCTION__);
 #endif
 	return (GetDevice != nullptr && m_pDeviceContext != nullptr);
+}
+
+
+void CDX11VideoProcessor::ProcessLibplacebo(IMediaSample* pSample, CMPCVRFrame& frame)
+{
+
+	switch (m_srcExFmt.VideoPrimaries)
+	{
+		//case AVCOL_PRI_RESERVED0:       csp.primaries = PL_COLOR_PRIM_UNKNOWN;
+	case DXVA2_VideoPrimaries_BT709: frame.color.primaries = PL_COLOR_PRIM_BT_709;	break;
+		//case AVCOL_PRI_UNSPECIFIED:     csp.primaries = PL_COLOR_PRIM_UNKNOWN;
+		//case AVCOL_PRI_RESERVED:        csp.primaries = PL_COLOR_PRIM_UNKNOWN;
+	case DXVA2_VideoPrimaries_BT470_2_SysM:	frame.color.primaries = PL_COLOR_PRIM_BT_470M;	break;
+	case DXVA2_VideoPrimaries_BT470_2_SysBG: frame.color.primaries = PL_COLOR_PRIM_BT_601_625;	break;
+	case DXVA2_VideoPrimaries_SMPTE170M: frame.color.primaries = PL_COLOR_PRIM_BT_601_525;	break;
+	case DXVA2_VideoPrimaries_SMPTE240M: frame.color.primaries = PL_COLOR_PRIM_BT_601_525;	break;
+		//case AVCOL_PRI_FILM:            frame.color.primaries = PL_COLOR_PRIM_FILM_C;
+	case MFVideoPrimaries_BT2020: frame.color.primaries = PL_COLOR_PRIM_BT_2020;	break;
+	case MFVideoPrimaries_XYZ: frame.color.primaries = PL_COLOR_PRIM_CIE_1931; break;
+	case MFVideoPrimaries_DCI_P3: frame.color.primaries = PL_COLOR_PRIM_DCI_P3; break;
+		//case AVCOL_PRI_SMPTE432:        csp.primaries = PL_COLOR_PRIM_DISPLAY_P3;
+		//case AVCOL_PRI_JEDEC_P22:       csp.primaries = PL_COLOR_PRIM_EBU_3213;
+		//case AVCOL_PRI_NB:              csp.primaries = PL_COLOR_PRIM_COUNT;
+	default: break;
+	}
+
+	switch (m_srcExFmt.VideoTransferFunction)
+	{
+		//case AVCOL_TRC_RESERVED0:       csp.transfer = PL_COLOR_TRC_UNKNOWN;
+	case DXVA2_VideoTransFunc_709: frame.color.transfer = PL_COLOR_TRC_BT_1886; break;// EOTF != OETF	
+		//case AVCOL_TRC_UNSPECIFIED:     csp.transfer = PL_COLOR_TRC_UNKNOWN;
+		//case AVCOL_TRC_RESERVED:        csp.transfer = PL_COLOR_TRC_UNKNOWN;
+	case DXVA2_VideoTransFunc_22:         frame.color.transfer = PL_COLOR_TRC_GAMMA22; break;
+	case DXVA2_VideoTransFunc_28:         frame.color.transfer = PL_COLOR_TRC_GAMMA28; break;
+	case DXVA2_VideoTransFunc_240M:       frame.color.transfer = PL_COLOR_TRC_BT_1886; break;// EOTF != OETF
+	case DXVA2_VideoTransFunc_10:          frame.color.transfer = PL_COLOR_TRC_LINEAR; break;
+	case MFVideoTransFunc_Log_100:             frame.color.transfer = PL_COLOR_TRC_UNKNOWN; break; // missing
+	case MFVideoTransFunc_Log_316:        frame.color.transfer = PL_COLOR_TRC_UNKNOWN; break; // missing
+		//case AVCOL_TRC_IEC61966_2_4:    frame.color.transfer = PL_COLOR_TRC_BT_1886; // EOTF != OETF
+		//case AVCOL_TRC_BT1361_ECG:      frame.color.transfer = PL_COLOR_TRC_BT_1886; // ETOF != OETF
+		//case AVCOL_TRC_IEC61966_2_1:    frame.color.transfer = PL_COLOR_TRC_SRGB;
+			/*for this one lavfilters use this will need to look into when on hdr
+			case AVCOL_TRC_BT2020_10:
+		case AVCOL_TRC_BT2020_12:	fmt.VideoTransferFunction = (matrix == AVCOL_SPC_BT2020_CL) ? MFVideoTransFunc_2020_const : MFVideoTransFunc_2020; break;*/
+	case MFVideoTransFunc_2020_const:       frame.color.transfer = PL_COLOR_TRC_BT_1886; break; // EOTF != OETF
+	case MFVideoTransFunc_2020:       frame.color.transfer = PL_COLOR_TRC_BT_1886; break; // EOTF != OETF
+	case MFVideoTransFunc_2084:       frame.color.transfer = PL_COLOR_TRC_PQ; break;
+	case MFVideoTransFunc_HLG:    frame.color.transfer = PL_COLOR_TRC_HLG; break;
+	}
+	switch (m_srcExFmt.VideoTransferMatrix)
+	{
+		//case AVCOL_SPC_RGB:                 repr.sys = PL_COLOR_SYSTEM_RGB;
+	case DXVA2_VideoTransferMatrix_BT709:	frame.repr.sys = PL_COLOR_SYSTEM_BT_709; break;
+		//case AVCOL_SPC_UNSPECIFIED:         repr.sys = PL_COLOR_SYSTEM_UNKNOWN;
+		//case AVCOL_SPC_RESERVED:            repr.sys = PL_COLOR_SYSTEM_UNKNOWN;
+	case (DXVA2_VideoTransferMatrix)6: frame.repr.sys = PL_COLOR_SYSTEM_UNKNOWN;	break; // missing
+	case DXVA2_VideoTransferMatrix_BT601:	frame.repr.sys = PL_COLOR_SYSTEM_BT_601;	break;
+	case DXVA2_VideoTransferMatrix_SMPTE240M:	frame.repr.sys = PL_COLOR_SYSTEM_SMPTE_240M;	break;
+	case (DXVA2_VideoTransferMatrix)7: frame.repr.sys = PL_COLOR_SYSTEM_YCGCO;	break;
+	case MFVideoTransferMatrix_BT2020_10:	frame.repr.sys = PL_COLOR_SYSTEM_BT_2020_NC;	break;
+	default: break;
+		//case MFVideoTransferMatrix_BT2020_10:           frame.repr.sys = PL_COLOR_SYSTEM_BT_2020_C;
+		//case AVCOL_SPC_SMPTE2085:           frame.repr.sys = PL_COLOR_SYSTEM_UNKNOWN; // missing
+		//case AVCOL_SPC_CHROMA_DERIVED_NCL:  frame.repr.sys = PL_COLOR_SYSTEM_UNKNOWN; // missing
+		//case AVCOL_SPC_CHROMA_DERIVED_CL:   frame.repr.sys = PL_COLOR_SYSTEM_UNKNOWN; // missing
+			// Note: this colorspace is confused between PQ and HLG, which libav*
+			// requires inferring from other sources, but libplacebo makes explicit.
+			// Default to PQ as it's the more common scenario.
+		//case AVCOL_SPC_ICTCP:               frame.repr.sys = PL_COLOR_SYSTEM_BT_2100_PQ;
+		//case AVCOL_SPC_NB:                  frame.repr.sys = PL_COLOR_SYSTEM_COUNT;
+	}
+
+	switch (m_srcExFmt.NominalRange)
+	{
+	case DXVA2_NominalRange_Unknown: frame.repr.levels = PL_COLOR_LEVELS_UNKNOWN; break;
+	case DXVA2_NominalRange_16_235:	frame.repr.levels = PL_COLOR_LEVELS_LIMITED;	break;
+	case DXVA2_NominalRange_0_255: frame.repr.levels = PL_COLOR_LEVELS_FULL;	break;
+	default: break;
+		//case AVCOL_RANGE_NB:                repr.levels = PL_COLOR_LEVELS_COUNT;
+	}
+	//when we will get a later version it will spawn to PL_ALPHA_NONE
+	//Will need to check according to the dxgi format if we use PL_ALPHA_INDEPENDENT or PL_ALPHA_NONE in the future
+	frame.repr.alpha = PL_ALPHA_UNKNOWN;
+
+	//nv12 is 8 bits per color depth
+	frame.repr.bits.color_depth = m_srcParams.CDepth;
 }
 
 void CDX11VideoProcessor::ReleaseVP()
@@ -2444,7 +2630,7 @@ void CDX11VideoProcessor::Reset(bool bForceWindowed)
 	
 }
 
-HRESULT CDX11VideoProcessor::PresentNextSample(ID3D11Texture2D** texture)
+HRESULT CDX11VideoProcessor::GetPresentationTexture(ID3D11Texture2D** texture)
 {
 	
 	if (m_presentationQueue.empty())
@@ -2469,13 +2655,27 @@ HRESULT CDX11VideoProcessor::PresentNextSample(ID3D11Texture2D** texture)
 		CLog::Log(LOGINFO, "now : {}ms sample start {}ms end {}ms started at {} diff {}", rtNowTime.Millisecs(), rtSampleStart.Millisecs(), rtSampleEnd.Millisecs(), rtStartTime.Millisecs(), rtRefDiff.Millisecs());
 
 	}
-
+	if (m_iPresCount == 10)
+	{
+		CStdStringW sNow;
+		sNow.Format(L"Now: %ld", rtNowTime.Millisecs());
+		CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 0);
+		sNow.Format(L"Diff: %ld", rtRefDiff.Millisecs());
+		CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 1);
+		sNow.Format(L"Presentation queue: %i", m_presentationQueue.size());
+		CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 2);
+		m_iPresCount = 0;
+	}
+	m_iPresCount++;
+	
 	for (;;)
 	{
 		if (rtNow < m_presentationQueue.front().pEndTime)
 			break;
 		if (m_presentationQueue.size() == 1)
 			break;
+
+		m_pFreePresentationQueue.push(m_presentationQueue.front());
 		m_presentationQueue.pop();
 		
 		if (m_presentationQueue.empty())
@@ -2657,6 +2857,7 @@ bool ShouldShowHdr(double val)
 	else
 		return false;
 }
+
 void CDX11VideoProcessor::SendStats(const struct pl_color_space csp, const struct pl_color_repr repr)
 {
 #if DEBUGEXTREME

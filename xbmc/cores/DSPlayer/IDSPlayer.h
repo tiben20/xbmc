@@ -76,7 +76,7 @@ enum DIRECTSHOW_RENDERER
 class IMpcVRCallback
 {
 public:
-  virtual HRESULT PresentNextSample(ID3D11Texture2D** texture) { return S_FALSE; };
+  virtual HRESULT GetPresentationTexture(ID3D11Texture2D** texture) { return S_FALSE; };
 };
 
 class IDSRendererAllocatorCallback

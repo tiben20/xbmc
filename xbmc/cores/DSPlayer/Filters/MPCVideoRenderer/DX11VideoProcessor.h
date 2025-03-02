@@ -50,6 +50,10 @@
 
 #define TEST_SHADER 0
 
+
+
+
+
 class CVideoRendererInputPin;
 
 
@@ -74,7 +78,7 @@ public:
 
 	ID3D11DeviceContext1* GetD3DContext() const { return m_pDeviceContext.Get(); }
 
-	HRESULT PresentNextSample(ID3D11Texture2D** texture);
+	HRESULT GetPresentationTexture(ID3D11Texture2D** texture);
 
 private:
 	friend class CVideoRendererInputPin;
@@ -82,22 +86,22 @@ private:
 	D3D11_TEXTURE_SAMPLER m_pFinalTextureSampler;
 
 
-	ThreadSafeQueue<CMPCVRFrame>      m_processingQueue;
-	
+	FrameQueue      m_processingQueue;
+	FrameQueue      m_pFreeProcessingQueue;
 
-	ThreadSafeQueue<CMPCVRFrame>      m_presentationQueue;
-	
+	FrameQueue      m_presentationQueue;
+	FrameQueue      m_pFreePresentationQueue;
 
 	// THREAD HANDLES AND EVENTS
 	HANDLE m_hUploadThread;
 	HANDLE m_hProcessThread;
-	HANDLE m_hPresentationThread;
 
 	HANDLE m_hProcessEvent;
-	HANDLE m_hPresentationEvent;
 	HANDLE m_hStopEvent;
-
 	HANDLE m_hFlushEvent;
+
+	//count between update of osd
+	int m_iPresCount;
 
 	// Direct3D 11
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
@@ -207,19 +211,20 @@ public:
 
 	static DWORD __stdcall UploadThread(LPVOID lpParameter);
 
-	CMPCVRFrame ConvertSampleToTexture(IMediaSample* pSample);
+	CMPCVRFrame ConvertSampleToFrame(IMediaSample* pSample);
 
 	void UploadLoop();
 
 	static DWORD __stdcall ProcessThread(LPVOID lpParameter);
 
 	void ProcessLoop();
-	void ProcessFrame(CMPCVRFrame pFrame);
+	void ProcessFrame(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame);
 
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	bool Initialized();
 
 private:
+	void ProcessLibplacebo(IMediaSample* pSample, CMPCVRFrame &frame);
 	void ReleaseVP();
 	void ReleaseDevice();
 

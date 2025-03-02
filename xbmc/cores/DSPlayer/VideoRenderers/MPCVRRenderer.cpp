@@ -37,6 +37,7 @@ std::shared_ptr<CMPCVRRenderer> CMPCVRRenderer::Get()
 CMPCVRRenderer::CMPCVRRenderer()
 {
   m_pPlacebo = nullptr;
+  m_statsTimingText.resize(10);
   Init();
 }
 
@@ -189,7 +190,7 @@ void CMPCVRRenderer::CopyToBackBuffer(ID3D11Texture2D* intext)
 
   D3D11_VIEWPORT VP;
   VP.TopLeftX = (FLOAT)m_destRect.x1;
-  VP.TopLeftY = (FLOAT)m_destRect.y1;  
+  VP.TopLeftY = (FLOAT)m_destRect.y1;
   VP.Width = (FLOAT)m_destRect.Width();
   VP.Height = (FLOAT)m_destRect.Height();
   VP.MinDepth = 0.0f;
@@ -244,19 +245,35 @@ void CMPCVRRenderer::DrawSubtitles()
 void CMPCVRRenderer::DrawStats()
 {
   //no text no draw
-  if (m_statsText.length() == 0)
+  //if (m_statsText.length() == 0)
+  //  return;
+  if (m_statsTimingText.size() == 0)
     return;
+  m_statsText = L"";
+  for (std::vector<CStdStringW>::iterator it = m_statsTimingText.begin(); it != m_statsTimingText.end(); it++)
+  {
+    if (it->size() > 0)
+    {
+      m_statsText.append(L"\n");
+      m_statsText.append(it->c_str());
+    }
+  }
 
   SIZE rtSize{ (LONG) m_screenRect.Width(),(LONG) m_screenRect.Height()};
 
   //m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
 
-  //TODO Add alpha and color config in gui or advanced settings for osd
-  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, COLOR_ARGB(55, 255, 255, 255), m_statsText.c_str());
+  //TODO Fix alpha and color config in gui or advanced settings for osd
+  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, COLOR_ARGB(255, 255, 255, 255), m_statsText.c_str());
   static int col = m_StatsRect.right;
   if (--col < m_StatsRect.left) {
     col = m_StatsRect.right;
   }
+}
+
+void CMPCVRRenderer::SetStatsTimings(CStdStringW thetext, int index)
+{
+  m_statsTimingText.at(index) = thetext;
 }
 
 void CMPCVRRenderer::Reset()
@@ -323,7 +340,7 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //m_sourceWidth
   //m_sourceHeight
   ID3D11Texture2D* current2d = nullptr;
-  HRESULT hr = pMpcCallback->PresentNextSample(&current2d);
+  HRESULT hr = pMpcCallback->GetPresentationTexture(&current2d);
   if (FAILED(hr) || current2d == nullptr)
   {
     CLog::Log(LOGERROR, "{} failed getting next texture", __FUNCTION__);

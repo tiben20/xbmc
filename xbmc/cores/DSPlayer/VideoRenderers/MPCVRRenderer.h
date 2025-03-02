@@ -16,6 +16,7 @@
 #include "../Filters/MPCVideoRenderer/PlHelper.h"
 #include "Filters/MPCVideoRenderer/D3D11Font.h"
 #include "Filters/MPCVideoRenderer/D3D11Geometry.h"
+#include "Filters/MPCVideoRenderer/include/IMediaSideData.h"
 #include <vector>
 #include <thread>
 #include <queue>
@@ -26,6 +27,7 @@
 
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
+#include "libplacebo/colorspace.h"
 
 
 #define MPC_SETTINGS static_cast<CMPCVRSettings*>(g_dsSettings.pRendererSettings)
@@ -41,61 +43,6 @@ struct DS_VERTEX {
 #define COLOR_RGBA(r,g,b,a) COLOR_ARGB(a,r,g,b)
 #define COLOR_XRGB(r,g,b)   COLOR_ARGB(0xff,r,g,b)
 
-// Thread-safe queue template
-template <typename T>
-class ThreadSafeQueue {
-private:
-  std::queue<T> queue_;
-  mutable std::mutex mutex_;
-  std::condition_variable condition_;
-public:
-  void push(T value) {
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      queue_.push(std::move(value));
-    }
-    condition_.notify_one();
-  }
-  
-  void pop() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    queue_.pop();
-  }
-
-  bool empty() {
-    return queue_.empty();
-  }
-
-  int size() {
-    return queue_.size();
-  }
-
-  T front() {
-    return queue_.front();
-  }
-
-  void wait_and_pop(T& result) {
-    std::unique_lock<std::mutex> lock(mutex_);
-    condition_.wait(lock, [this] { return !queue_.empty(); });
-    result = std::move(queue_.front());
-    queue_.pop();
-  }
-
-  void flush() {
-    std::lock_guard<std::mutex> lock(mutex_);
-    std::queue<T> empty;
-    std::swap(queue_, empty);
-  }
-};
-
-struct CMPCVRFrame
-{
-  CD3DTexture pTexture;
-  REFERENCE_TIME pStartTime;
-  REFERENCE_TIME pEndTime;
-  REFERENCE_TIME pUploadTime;
-  REFERENCE_TIME pMergingTime;
-};
 
 class CMPCVRRenderer : public CBaseRenderer
 {
@@ -163,6 +110,7 @@ public:
   void CopyToBackBuffer(ID3D11Texture2D* intext);
   void DrawSubtitles();
   void DrawStats();
+  void SetStatsTimings(CStdStringW thetext, int index);
   void SetStats(CStdStringW thetext) { m_statsText = thetext; };
 
   void Reset();
@@ -223,6 +171,7 @@ protected:
   RECT m_GraphRect = {};
   int m_Yaxis = 0;
   CStdStringW m_statsText;
+  std::vector<CStdStringW> m_statsTimingText;
   const POINT m_StatsTextPoint = { 10 + 5, 10 + 5 };
   KODI::UTILS::COLOR::Color m_dwStatsTextColor = COLOR_XRGB(255, 255, 255);
   CRect m_screenRect;
