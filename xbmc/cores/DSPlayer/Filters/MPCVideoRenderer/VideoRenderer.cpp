@@ -97,6 +97,7 @@ static LRESULT CALLBACK ParentWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM
 			pThis->OnDisplayModeChange(true);
 			break;
 		case WM_MOVE:
+			CLog::Log(LOGINFO, "{} WM_MOVE", __FUNCTION__);
 			if (pThis->m_bIsFullscreen) {
 				// I don't know why, but without this, the filter freezes when switching from fullscreen to window in DX9 mode.
 				SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)pfnOldProc);
@@ -205,7 +206,10 @@ HRESULT CMpcVideoRenderer::BeginFlush()
 {
 	DLog("CMpcVideoRenderer::BeginFlush()");
 
+	m_VideoProcessor->FlushSampledQueue();
+	m_VideoProcessor->Flush();
 	m_bFlushing = true;
+	
 	return __super::BeginFlush();
 }
 
@@ -213,7 +217,7 @@ HRESULT CMpcVideoRenderer::EndFlush()
 {
 	DLog("CMpcVideoRenderer::EndFlush()");
 
-	m_VideoProcessor->Flush();
+	
 
 	HRESULT hr = __super::EndFlush();
 

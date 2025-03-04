@@ -244,6 +244,7 @@ void CMPCVRRenderer::DrawSubtitles()
 
 void CMPCVRRenderer::DrawStats()
 {
+  return;
   //no text no draw
   //if (m_statsText.length() == 0)
   //  return;

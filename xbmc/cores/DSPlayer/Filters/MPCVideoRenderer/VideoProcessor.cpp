@@ -304,3 +304,11 @@ HRESULT CVideoProcessor::ProcessSample(IMediaSample* pSample)
 	SetEvent(m_hUploadEvent);
 	return S_OK;
 }
+
+
+void CVideoProcessor::FlushSampledQueue()
+{
+
+	m_uploadQueue.flush();
+	
+}

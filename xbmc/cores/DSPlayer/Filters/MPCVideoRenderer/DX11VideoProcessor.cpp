@@ -270,7 +270,8 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 	CMPCVRFrame pFrame;
 	m_pFreeProcessingQueue.wait_and_pop(pFrame);
 	pFrame.color = {};
-	pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), "CMPCVRRenderer Merged plane", true, 0U);
+	if (!pFrame.pTexture.Get())
+		pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), "CMPCVRRenderer Merged plane", true, 0U);
 	//pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
 	ProcessLibplacebo(pSample, pFrame);
 	//HRESULT hr = GetDevice->CreateTexture2D(&desc, nullptr, &pFrame.pTexture);
@@ -352,13 +353,21 @@ void CDX11VideoProcessor::UploadLoop()
 {
 	HANDLE events[] = { m_hStopEvent, m_hFlushEvent ,m_hUploadEvent };
 	while (true) {
-		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, INFINITE);
+		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, 250);
+		//this fix the move window without having to send an event on stall
+		if (dwWait == WAIT_TIMEOUT)
+		{
+			if (m_uploadQueue.size() > 0)
+			{
+				dwWait = WAIT_OBJECT_0 + 2;
+				CLog::Log(LOGDEBUG, "{} stalled waking up upload thread", __FUNCTION__);
+			}
+		}
 		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
 			break;
 		else if (dwWait == WAIT_OBJECT_0 + 1) {
 			//FLUSH
 			m_uploadQueue.flush();
-			
 		}
 		else if (dwWait == WAIT_OBJECT_0 + 2) {
 			IMediaSample* pSample = nullptr;
@@ -414,7 +423,16 @@ void CDX11VideoProcessor::ProcessLoop()
 {
 	HANDLE events[] = { m_hStopEvent,m_hFlushEvent , m_hProcessEvent };
 	while (true) {
-		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, INFINITE);
+		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, 250);
+		//this fix the move window without having to send an event on stall
+		if (dwWait == WAIT_TIMEOUT)
+		{
+			if (m_processingQueue.size() > 0)
+			{
+				dwWait = WAIT_OBJECT_0 + 2;
+				CLog::Log(LOGDEBUG, "{} stalled waking up process thread", __FUNCTION__);
+			}
+		}
 		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
 			break;
 		else if (dwWait == WAIT_OBJECT_0 + 1) {
@@ -2652,7 +2670,7 @@ HRESULT CDX11VideoProcessor::GetPresentationTexture(ID3D11Texture2D** texture)
 	rtDiff = rtNow - m_presentationQueue.front().pStartTime;
 	rtRefDiff = CRefTime(rtDiff);
 	if (m_pFilter->m_filterState == State_Running) {
-		CLog::Log(LOGINFO, "now : {}ms sample start {}ms end {}ms started at {} diff {}", rtNowTime.Millisecs(), rtSampleStart.Millisecs(), rtSampleEnd.Millisecs(), rtStartTime.Millisecs(), rtRefDiff.Millisecs());
+		//CLog::Log(LOGINFO, "now : {}ms sample start {}ms end {}ms started at {} diff {}", rtNowTime.Millisecs(), rtSampleStart.Millisecs(), rtSampleEnd.Millisecs(), rtStartTime.Millisecs(), rtRefDiff.Millisecs());
 
 	}
 	if (m_iPresCount == 10)
@@ -2757,7 +2775,7 @@ void CDX11VideoProcessor::Flush()
 #if DEBUGEXTREME
 	CLog::Log(LOGINFO, "{}", __FUNCTION__);
 #endif
-	SetEvent(m_hFlushEvent);
+	
 	if (m_D3D11VP.IsReady()) {
 		m_D3D11VP.ResetFrameOrder();
 	}

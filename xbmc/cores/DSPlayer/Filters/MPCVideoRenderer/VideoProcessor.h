@@ -306,6 +306,8 @@ public:
 	virtual void Flush() = 0;
 	virtual HRESULT Reset() = 0;
 
+	void FlushSampledQueue();
+
 	virtual bool IsInit() const { return false; }
 
 	ColorFormat_t GetColorFormat() { return m_srcParams.cformat; }
