@@ -196,6 +196,7 @@ public:
     iVPUseSuperRes = 0;
     bUseHDR = true;
     bHdrPassthrough = true;
+    
   }
 
 public:
@@ -212,7 +213,7 @@ public:
   //to add in gui settings
   int  iResizeStats = 0;
   int  iTexFormat = TEXFMT_AUTOINT;
-  
+
   bool bDeintDouble = true;
   bool bVPScaling = true;
   int  iChromaScaling = CHROMA_Bilinear;
@@ -253,6 +254,7 @@ public:
   HINSTANCE      m_hD3DX9Dll;
   int            m_nDXSdkRelease;
   std::wstring   D3D9RenderDevice;
+
 
   CRendererSettings* pRendererSettings;
   std::unique_ptr<CPixelShaderList> pixelShaderList;

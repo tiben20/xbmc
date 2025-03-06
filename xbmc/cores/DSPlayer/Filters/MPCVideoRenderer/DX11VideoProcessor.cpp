@@ -155,6 +155,8 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	MPC_SETTINGS->bVPUseRTXVideoHDR = pSetting->GetBool("dsplayer.vr.rtxhdr");
 	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
 	MPC_SETTINGS->iVPUseSuperRes = pSetting->GetInt("dsplayer.vr.superres");
+
+	
 	//TODO add buffer size
 	m_pFreePresentationQueue.Resize(5);
 	m_pFreeProcessingQueue.Resize(5);
@@ -273,7 +275,7 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 	if (!pFrame.pTexture.Get())
 		pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), "CMPCVRRenderer Merged plane", true, 0U);
 	//pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
-	ProcessLibplacebo(pSample, pFrame);
+	ProcessFrame(pSample, pFrame);
 	//HRESULT hr = GetDevice->CreateTexture2D(&desc, nullptr, &pFrame.pTexture);
 
 	if (size > 0 && S_OK == pSample->GetPointer(&data))
@@ -321,7 +323,8 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 			}
 		}
 	}
-	HRESULT hr = ConvertColorPass(pFrame.pTexture.Get());
+	m_pDeviceContext->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
+	//HRESULT hr = ConvertColorPass(pFrame.pTexture.Get());
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 
 	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
@@ -389,9 +392,7 @@ void CDX11VideoProcessor::UploadLoop()
 					sNow.Format(L"Upload queue: %i ", m_uploadQueue.size());
 					sNow.AppendFormat(L"Upload time : % ld", rUploadTime.Millisecs());
 					CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 3);
-					sNow.Format(L"Processing queue: %i ", m_processingQueue.size());
-					sNow.AppendFormat(L"Processing time : % ld", rProcessingTime.Millisecs());
-					CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 4);
+					
 				}
 				pSample->Release();
 				if (pFrame.pTexture.Get()) {
@@ -469,11 +470,25 @@ void CDX11VideoProcessor::ProcessLoop()
 			{
 				m_pFreePresentationQueue.wait_and_pop(pOutputFrame);
 				// Process the texture (for example, composite your OSD).
-				ProcessFrame(pInputFrame, pOutputFrame);
+				REFERENCE_TIME startUpload, endUpload;
+				m_pFilter->m_pClock->GetTime(&startUpload);
+				ProcessFrameVP(pInputFrame, pOutputFrame);
 				{
 					m_presentationQueue.push(pOutputFrame);
 					m_pFreeProcessingQueue.push(pInputFrame);
 				}
+				/*ProcessFrameLibplacebo(pInputFrame, pOutputFrame);
+				{
+					m_presentationQueue.push(pOutputFrame);
+					m_pFreeProcessingQueue.push(pInputFrame);
+				}*/
+				m_pFilter->m_pClock->GetTime(&endUpload);
+				CRefTime rProcessingTime = CRefTime(endUpload) - CRefTime(startUpload);
+				CStdStringW sNow;
+				
+				sNow.Format(L"Processing queue: %i ", m_processingQueue.size());
+				sNow.AppendFormat(L"Processing time : % ld", rProcessingTime.Millisecs());
+				CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 4);
 				float fps;
 				fps = 10000000.0 / m_rtAvgTimePerFrame;
 				g_application.GetComponent<CApplicationPlayer>()->Configure(m_srcRectWidth, m_srcRectHeight, m_srcAspectRatioX, m_srcAspectRatioY, fps, 0);
@@ -491,8 +506,12 @@ void CDX11VideoProcessor::ProcessLoop()
 
 // Process the texture (e.g. blend in an OSD).
 // For this example, the function is a no-op.
-void CDX11VideoProcessor::ProcessFrame(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame)
+void CDX11VideoProcessor::ProcessFrameLibplacebo(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame)
 {
+	if (m_D3D11VP.IsReady())
+	{
+		CLog::Log(LOGINFO, "{} vp ready", __FUNCTION__);
+	}
 	// Insert your D3D11 processing code here.
 	// For example, you might use a compute shader or render-to-texture pass to composite your OSD.
 	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
@@ -558,6 +577,23 @@ void CDX11VideoProcessor::ProcessFrame(CMPCVRFrame& inputFrame, CMPCVRFrame& out
 
 	pl_render_image(pHelper->GetPLRenderer(), &frameIn, &frameOut, &params);
 	pl_gpu_finish(pHelper->GetPLD3d11()->gpu);
+
+}
+
+void CDX11VideoProcessor::ProcessFrameVP(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame)
+{
+	if (!outputFrame.pTexture.Get())
+	{
+		outputFrame.pTexture.Create(3524, 1982, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+	}
+	Com::SmartRect dstRect;
+	dstRect.top = 0;
+	dstRect.left = 0;
+	dstRect.bottom = 1982;
+	dstRect.right = 3524;
+	HRESULT hr = D3D11VPPass(outputFrame.pTexture.Get(), m_srcRect, dstRect,false);
+	if (FAILED(hr))
+		CLog::Log(LOGERROR, "{}", __FUNCTION__);
 
 }
 
@@ -645,9 +681,12 @@ bool CDX11VideoProcessor::Initialized()
 }
 
 
-void CDX11VideoProcessor::ProcessLibplacebo(IMediaSample* pSample, CMPCVRFrame& frame)
+void CDX11VideoProcessor::ProcessFrame(IMediaSample* pSample, CMPCVRFrame& frame)
 {
-
+	if (m_D3D11VP.IsReady())
+	{
+		CLog::Log(LOGINFO, "{} vp ready", __FUNCTION__);
+	}
 	switch (m_srcExFmt.VideoPrimaries)
 	{
 		//case AVCOL_PRI_RESERVED0:       csp.primaries = PL_COLOR_PRIM_UNKNOWN;

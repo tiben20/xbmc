@@ -218,13 +218,15 @@ public:
 	static DWORD __stdcall ProcessThread(LPVOID lpParameter);
 
 	void ProcessLoop();
-	void ProcessFrame(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame);
+	void ProcessFrameLibplacebo(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame);
+	void ProcessFrameVP(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame);
+
 
 	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
 	bool Initialized();
 
 private:
-	void ProcessLibplacebo(IMediaSample* pSample, CMPCVRFrame &frame);
+	void ProcessFrame(IMediaSample* pSample, CMPCVRFrame &frame);
 	void ReleaseVP();
 	void ReleaseDevice();
 

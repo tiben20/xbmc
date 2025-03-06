@@ -244,7 +244,7 @@ void CMPCVRRenderer::DrawSubtitles()
 
 void CMPCVRRenderer::DrawStats()
 {
-  return;
+
   //no text no draw
   //if (m_statsText.length() == 0)
   //  return;
@@ -264,8 +264,9 @@ void CMPCVRRenderer::DrawStats()
 
   //m_StatsBackground.Draw(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize);
 
-  //TODO Fix alpha and color config in gui or advanced settings for osd
-  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, COLOR_ARGB(255, 255, 255, 255), m_statsText.c_str());
+  //TODO Color config in gui or advanced settings for osd
+  int stralpha = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("dsplayer.vr.osdalpha") / 100 * 255;
+  m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, COLOR_ARGB(stralpha , 255, 255, 255), m_statsText.c_str());
   static int col = m_StatsRect.right;
   if (--col < m_StatsRect.left) {
     col = m_StatsRect.right;
