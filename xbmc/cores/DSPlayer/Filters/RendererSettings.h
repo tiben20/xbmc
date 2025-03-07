@@ -190,7 +190,9 @@ public:
     bD3D11TextureSampler = D3D11_INTERNAL_SHADERS;// D3D11_INTERNAL_SHADERS;//D3D11_VP
     bUseHDR = false;
     enableFrameTimeCorrection = false;
-    iBuffers = 4;
+    iUploadBuffers = 4;
+    iProcessingBuffers = 4;
+    iPresentationBuffers = 4;
 
     bVPUseRTXVideoHDR = false;
     iVPUseSuperRes = 0;
@@ -206,7 +208,11 @@ public:
   bool                  bUseHDR;
   bool                  bHdrPassthrough;     //if we passthrough the hdr metadata
   bool                  enableFrameTimeCorrection;//not implemented
-  int                   iBuffers;
+  int                   iUploadBuffers;//todo make it work
+  int                   iProcessingBuffers;
+  int                   iPresentationBuffers;
+
+
   //libplacebo options
   LIBPLACEBO_SHADERS m_pPlaceboOptions;
   DS_STATS displayStats;

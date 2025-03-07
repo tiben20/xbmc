@@ -25615,6 +25615,18 @@ msgctxt "#55352"
 msgid "#800%"
 msgstr ""
 
+msgctxt "#55353"
+msgid "Number of upload buffer"
+msgstr ""
+
+msgctxt "#55354"
+msgid "Number of processing buffer"
+msgstr ""
+
+msgctxt "#55355"
+msgid "Number of presentation buffer"
+msgstr ""
+
 msgctxt "#60001"
 msgid "Media rules"
 msgstr ""

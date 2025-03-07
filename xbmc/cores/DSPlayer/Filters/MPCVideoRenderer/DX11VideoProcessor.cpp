@@ -145,8 +145,10 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	m_hProcessThread(nullptr), 
 	m_hProcessEvent(nullptr), 
 	m_hStopEvent(nullptr),
-	m_hFlushEvent(nullptr)
+	m_hFlushEvent(nullptr),
+	m_iPresCount(0)
 {
+	//initialize and set settings comming from settings.xml
 	g_dsSettings.Initialize("mpcvr");
 	std::shared_ptr<CSettings> pSetting = CServiceBroker::GetSettingsComponent()->GetSettings();
 	
@@ -155,11 +157,14 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	MPC_SETTINGS->bVPUseRTXVideoHDR = pSetting->GetBool("dsplayer.vr.rtxhdr");
 	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
 	MPC_SETTINGS->iVPUseSuperRes = pSetting->GetInt("dsplayer.vr.superres");
+	MPC_SETTINGS->iUploadBuffers = pSetting->GetInt("dsplayer.vr.uploadbuffer");//todo make it work
+	MPC_SETTINGS->iProcessingBuffers = pSetting->GetInt("dsplayer.vr.processingbuffer");
+	MPC_SETTINGS->iPresentationBuffers = pSetting->GetInt("dsplayer.vr.presentationbuffer");
 
 	
 	//TODO add buffer size
-	m_pFreePresentationQueue.Resize(5);
-	m_pFreeProcessingQueue.Resize(5);
+	m_pFreePresentationQueue.Resize(MPC_SETTINGS->iProcessingBuffers);
+	m_pFreeProcessingQueue.Resize(MPC_SETTINGS->iPresentationBuffers);
 
 	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;//this is set during the init media type
 
@@ -232,14 +237,17 @@ CDX11VideoProcessor::~CDX11VideoProcessor()
 
 	// Clean up event handles.
 	if (m_hStopEvent)       CloseHandle(m_hStopEvent);
-	if (m_hUploadEvent)       CloseHandle(m_hUploadEvent);
-	if (m_hProcessEvent)      CloseHandle(m_hProcessEvent);
+	if (m_hUploadEvent)     CloseHandle(m_hUploadEvent);
+	if (m_hProcessEvent)    CloseHandle(m_hProcessEvent);
+	if (m_hFlushEvent)      CloseHandle(m_hFlushEvent);
 
-
+	// Cleanup queues left ... should we call the flush before??
 	m_uploadQueue.flush();
 	m_processingQueue.flush();
 	m_presentationQueue.flush();
-	
+	m_pFreeProcessingQueue.flush();
+	m_pFreePresentationQueue.flush();
+
 }
 
 
@@ -271,19 +279,19 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 
 	CMPCVRFrame pFrame;
 	m_pFreeProcessingQueue.wait_and_pop(pFrame);
+	
 	pFrame.color = {};
+	pFrame.repr = {};
+
+	//Create the texture if not already created
 	if (!pFrame.pTexture.Get())
 		pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat(), "CMPCVRRenderer Merged plane", true, 0U);
-	//pFrame.pTexture.Create(m_srcWidth, m_srcHeight, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+
+	//
 	ProcessFrame(pSample, pFrame);
-	//HRESULT hr = GetDevice->CreateTexture2D(&desc, nullptr, &pFrame.pTexture);
 
 	if (size > 0 && S_OK == pSample->GetPointer(&data))
 	{
-		// do not use UpdateSubresource for D3D11 VP here
-		// because it can cause green screens and freezes on some configurations
-		//if (!m_pFinalTextureSampler == D3D11_VP)
-		//hr = MemCopyToTexSrcVideo(data, m_srcPitch);
 		HRESULT hr = S_FALSE;
 		D3D11_MAPPED_SUBRESOURCE mappedResource = {};
 
@@ -292,7 +300,6 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 			if (SUCCEEDED(hr)) {
 				CopyFrameAsIs(m_srcHeight, (BYTE*)mappedResource.pData, mappedResource.RowPitch, data, m_srcPitch);
 				m_pDeviceContext->Unmap(pFrame.pTexture.Get(), 0);
-
 
 				hr = m_pDeviceContext->Map(m_TexSrcVideo.pTexture2.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 				if (SUCCEEDED(hr)) {
@@ -323,8 +330,11 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 			}
 		}
 	}
-	m_pDeviceContext->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
-	//HRESULT hr = ConvertColorPass(pFrame.pTexture.Get());
+	if (m_pFinalTextureSampler == D3D11_VP)
+	{
+		m_pDeviceContext->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
+	}
+
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 
 	if (FAILED(m_pDeviceContext->FinishCommandList(1, &pCommandList)))
@@ -375,7 +385,8 @@ void CDX11VideoProcessor::UploadLoop()
 		else if (dwWait == WAIT_OBJECT_0 + 2) {
 			IMediaSample* pSample = nullptr;
 			{
-				if (m_processingQueue.size()<5)
+				//if the processing queue is not full process a sample
+				if (m_processingQueue.size() < MPC_SETTINGS->iProcessingBuffers)
 					m_uploadQueue.wait_and_pop(pSample);
 
 			}
@@ -462,7 +473,7 @@ void CDX11VideoProcessor::ProcessLoop()
 		else if (dwWait == WAIT_OBJECT_0 + 2) {
 			CMPCVRFrame pInputFrame,pOutputFrame;
 			{
-				if (!m_processingQueue.empty() && m_presentationQueue.size() < 5) {
+				if (!m_processingQueue.empty() && m_presentationQueue.size() < MPC_SETTINGS->iPresentationBuffers) {
 					m_processingQueue.wait_and_pop(pInputFrame);
 				}
 			}
@@ -508,10 +519,6 @@ void CDX11VideoProcessor::ProcessLoop()
 // For this example, the function is a no-op.
 void CDX11VideoProcessor::ProcessFrameLibplacebo(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame)
 {
-	if (m_D3D11VP.IsReady())
-	{
-		CLog::Log(LOGINFO, "{} vp ready", __FUNCTION__);
-	}
 	// Insert your D3D11 processing code here.
 	// For example, you might use a compute shader or render-to-texture pass to composite your OSD.
 	PL::CPlHelper* pHelper = CMPCVRRenderer::Get()->GetPlHelper();
@@ -683,10 +690,6 @@ bool CDX11VideoProcessor::Initialized()
 
 void CDX11VideoProcessor::ProcessFrame(IMediaSample* pSample, CMPCVRFrame& frame)
 {
-	if (m_D3D11VP.IsReady())
-	{
-		CLog::Log(LOGINFO, "{} vp ready", __FUNCTION__);
-	}
 	switch (m_srcExFmt.VideoPrimaries)
 	{
 		//case AVCOL_PRI_RESERVED0:       csp.primaries = PL_COLOR_PRIM_UNKNOWN;
