@@ -79,6 +79,7 @@ public:
 	ID3D11DeviceContext1* GetD3DContext() const { return m_pDeviceContext.Get(); }
 
 	HRESULT GetPresentationTexture(ID3D11Texture2D** texture);
+	void RenderRectChanged(CRect newRect);
 
 private:
 	friend class CVideoRendererInputPin;
@@ -99,6 +100,7 @@ private:
 	HANDLE m_hProcessEvent;
 	HANDLE m_hStopEvent;
 	HANDLE m_hFlushEvent;
+	HANDLE m_hResizeEvent;
 
 	//count between update of osd
 	int m_iPresCount;
@@ -204,6 +206,7 @@ private:
 
 	bool m_bDsplayerNotified = false;
 	bool m_bKodiResizeBuffers = true;
+	Com::SmartRect m_destRect;
 
 public:
 	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr);
@@ -227,6 +230,7 @@ public:
 
 private:
 	void ProcessFrame(IMediaSample* pSample, CMPCVRFrame &frame);
+	void ResizeProcessFrame();
 	void ReleaseVP();
 	void ReleaseDevice();
 

@@ -146,6 +146,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	m_hProcessEvent(nullptr), 
 	m_hStopEvent(nullptr),
 	m_hFlushEvent(nullptr),
+	m_hResizeEvent(nullptr),
 	m_iPresCount(0)
 {
 	//initialize and set settings comming from settings.xml
@@ -203,6 +204,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	m_hUploadEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hProcessEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hFlushEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hResizeEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// Start the threads for each queue.
 	m_hUploadThread = CreateThread(NULL, 0, UploadThread, this, 0, NULL);
@@ -334,6 +336,10 @@ CMPCVRFrame CDX11VideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 	{
 		m_pDeviceContext->CopyResource(m_D3D11VP.GetNextInputTexture(m_SampleFormat), m_TexSrcVideo.pTexture.Get());
 	}
+	else
+	{
+		HRESULT hr = ConvertColorPass(pFrame.pTexture.Get());
+	}
 
 	Microsoft::WRL::ComPtr<ID3D11CommandList> pCommandList;
 
@@ -433,15 +439,15 @@ DWORD WINAPI CDX11VideoProcessor::ProcessThread(LPVOID lpParameter)
 
 void CDX11VideoProcessor::ProcessLoop()
 {
-	HANDLE events[] = { m_hStopEvent,m_hFlushEvent , m_hProcessEvent };
+	HANDLE events[] = { m_hStopEvent,m_hFlushEvent , m_hResizeEvent, m_hProcessEvent };
 	while (true) {
-		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, 250);
+		DWORD dwWait = WaitForMultipleObjects(4, events, FALSE, 250);
 		//this fix the move window without having to send an event on stall
 		if (dwWait == WAIT_TIMEOUT)
 		{
 			if (m_processingQueue.size() > 0)
 			{
-				dwWait = WAIT_OBJECT_0 + 2;
+				dwWait = WAIT_OBJECT_0 + 3;
 				CLog::Log(LOGDEBUG, "{} stalled waking up process thread", __FUNCTION__);
 			}
 		}
@@ -470,7 +476,11 @@ void CDX11VideoProcessor::ProcessLoop()
 					break;
 			}
 		}
-		else if (dwWait == WAIT_OBJECT_0 + 2) {
+		else if (dwWait == WAIT_OBJECT_0 + 2)
+		{
+			ResizeProcessFrame();
+		}
+		else if (dwWait == WAIT_OBJECT_0 + 3) {
 			CMPCVRFrame pInputFrame,pOutputFrame;
 			{
 				if (!m_processingQueue.empty() && m_presentationQueue.size() < MPC_SETTINGS->iPresentationBuffers) {
@@ -483,16 +493,26 @@ void CDX11VideoProcessor::ProcessLoop()
 				// Process the texture (for example, composite your OSD).
 				REFERENCE_TIME startUpload, endUpload;
 				m_pFilter->m_pClock->GetTime(&startUpload);
-				ProcessFrameVP(pInputFrame, pOutputFrame);
+				if (m_pFinalTextureSampler == D3D11_VP)
 				{
-					m_presentationQueue.push(pOutputFrame);
-					m_pFreeProcessingQueue.push(pInputFrame);
+					ProcessFrameVP(pInputFrame, pOutputFrame);
+					{
+						m_presentationQueue.push(pOutputFrame);
+						m_pFreeProcessingQueue.push(pInputFrame);
+					}
 				}
-				/*ProcessFrameLibplacebo(pInputFrame, pOutputFrame);
+				else if (m_pFinalTextureSampler == D3D11_LIBPLACEBO)
 				{
-					m_presentationQueue.push(pOutputFrame);
-					m_pFreeProcessingQueue.push(pInputFrame);
-				}*/
+					ProcessFrameLibplacebo(pInputFrame, pOutputFrame);
+					{
+						m_presentationQueue.push(pOutputFrame);
+						m_pFreeProcessingQueue.push(pInputFrame);
+					}
+				}
+				else
+				{
+					CLog::Log(LOGINFO, "{} DSPLAYER notify playback started sent", __FUNCTION__);
+				}
 				m_pFilter->m_pClock->GetTime(&endUpload);
 				CRefTime rProcessingTime = CRefTime(endUpload) - CRefTime(startUpload);
 				CStdStringW sNow;
@@ -531,8 +551,10 @@ void CDX11VideoProcessor::ProcessFrameLibplacebo(CMPCVRFrame& inputFrame, CMPCVR
 	
 	if (!outputFrame.pTexture.Get())
 	{
-		outputFrame.pTexture.Create(3524, 1982, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+		outputFrame.pTexture.Create(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+
 	}
+
 	frameInParams.w = inputFrame.pTexture.GetWidth();
 	frameInParams.h = inputFrame.pTexture.GetHeight();
 	frameInParams.fmt = inputFrame.pTexture.GetFormat();
@@ -569,8 +591,8 @@ void CDX11VideoProcessor::ProcessFrameLibplacebo(CMPCVRFrame& inputFrame, CMPCVR
 
 	frameIn.crop.x1 = m_srcWidth;
 	frameIn.crop.y1 = m_srcHeight;
-	frameOut.crop.x1 = 3524;
-	frameOut.crop.y1 = 1982;
+	frameOut.crop.x1 = outputFrame.pTexture.GetWidth();
+	frameOut.crop.y1 = outputFrame.pTexture.GetHeight();
 	frameOut.repr = frameIn.repr;
 	frameOut.color = frameIn.color;
 	frameOut.repr.sys = PL_COLOR_SYSTEM_RGB;
@@ -591,14 +613,10 @@ void CDX11VideoProcessor::ProcessFrameVP(CMPCVRFrame& inputFrame, CMPCVRFrame& o
 {
 	if (!outputFrame.pTexture.Get())
 	{
-		outputFrame.pTexture.Create(3524, 1982, D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+		outputFrame.pTexture.Create(DX::DeviceResources::Get()->GetBackBuffer().GetWidth(), DX::DeviceResources::Get()->GetBackBuffer().GetHeight(), D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
 	}
-	Com::SmartRect dstRect;
-	dstRect.top = 0;
-	dstRect.left = 0;
-	dstRect.bottom = 1982;
-	dstRect.right = 3524;
-	HRESULT hr = D3D11VPPass(outputFrame.pTexture.Get(), m_srcRect, dstRect,false);
+
+	HRESULT hr = D3D11VPPass(outputFrame.pTexture.Get(), m_srcRect, outputFrame.pCurrentRect,false);
 	if (FAILED(hr))
 		CLog::Log(LOGERROR, "{}", __FUNCTION__);
 
@@ -770,6 +788,27 @@ void CDX11VideoProcessor::ProcessFrame(IMediaSample* pSample, CMPCVRFrame& frame
 
 	//nv12 is 8 bits per color depth
 	frame.repr.bits.color_depth = m_srcParams.CDepth;
+}
+
+void CDX11VideoProcessor::ResizeProcessFrame()
+{
+	for (;;)
+	{
+		if (m_presentationQueue.size() > 0)
+		{
+			m_pFreePresentationQueue.push(m_presentationQueue.front());
+			m_presentationQueue.pop();
+		}
+		else
+			break;
+	}
+	for (auto& frame : m_pFreePresentationQueue)
+	{
+			frame.pTexture.Release();
+			frame.pTexture.Create(m_destRect.Width(), m_destRect.Height(), D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+			frame.pCurrentRect = m_destRect;
+  };
+
 }
 
 void CDX11VideoProcessor::ReleaseVP()
@@ -2746,6 +2785,12 @@ HRESULT CDX11VideoProcessor::GetPresentationTexture(ID3D11Texture2D** texture)
   *texture = ts.pTexture.Get();
   return S_OK;
 
+}
+
+void CDX11VideoProcessor::RenderRectChanged(CRect newRect)
+{
+	m_destRect = Com::SmartRect(0,0,newRect.Width(),newRect.Height());
+	SetEvent(m_hResizeEvent);
 }
 
 HRESULT CDX11VideoProcessor::Reset()

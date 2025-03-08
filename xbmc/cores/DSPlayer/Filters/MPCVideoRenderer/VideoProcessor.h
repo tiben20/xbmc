@@ -51,7 +51,7 @@ struct CMPCVRFrameBase
 	struct pl_color_repr repr;
 
 	//used for scaling if it change we need to flush and recreate
-	CRect pCurrentRect;
+	Com::SmartRect pCurrentRect;
 	 
 	//MediaSideDataHDR10Plus pHDR10Plus;
 	//MediaSideDataHDRContentLightLevel pHDRLightLevel;
@@ -73,7 +73,7 @@ struct CMPCVRFrame : CMPCVRFrameBase
 class FrameQueue
 {
 private:
-	std::queue<CMPCVRFrame> pQueue;
+	std::list<CMPCVRFrame> pQueue;
 	mutable std::mutex pMutex;
 	std::condition_variable pCondition;
 	int pMaxQueue;
@@ -85,7 +85,7 @@ public:
 		for (int i = 0; i < queues; i++)
 		{
 			CMPCVRFrame frame;
-			pQueue.push(frame);
+			pQueue.emplace_back(frame);
 		}
 		
 	}
@@ -93,7 +93,7 @@ public:
 	{
 		{
 			std::lock_guard<std::mutex> lock(pMutex);
-			pQueue.push(std::move(value));
+			pQueue.push_back(std::move(value));
 		}
 		pCondition.notify_one();
 	}
@@ -101,7 +101,7 @@ public:
 	void pop()
 	{
 		std::lock_guard<std::mutex> lock(pMutex);
-		pQueue.pop();
+		pQueue.pop_front();
 	}
 
 	bool empty()
@@ -114,7 +114,7 @@ public:
 		return pQueue.size();
 	}
 
-	CMPCVRFrame front()
+	CMPCVRFrame& front()
 	{
 		return pQueue.front();
 	}
@@ -124,14 +124,24 @@ public:
 		std::unique_lock<std::mutex> lock(pMutex);
 		pCondition.wait(lock, [this] { return !pQueue.empty(); });
 		result = std::move(pQueue.front());
-		pQueue.pop();
+		pQueue.pop_front();
 	}
 
 	void flush()
 	{
 		std::lock_guard<std::mutex> lock(pMutex);
-		std::queue<CMPCVRFrame> empty;
-		std::swap(pQueue, empty);
+		pQueue.clear();
+	}
+
+	// Iterators for range-based for loops
+	auto begin()
+	{
+		return pQueue.begin();
+	}
+
+	auto end()
+	{
+		return pQueue.end();
 	}
 };
 

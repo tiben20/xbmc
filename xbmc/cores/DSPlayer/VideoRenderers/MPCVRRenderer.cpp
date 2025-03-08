@@ -333,8 +333,9 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   if (clear)
     CServiceBroker::GetWinSystem()->GetGfxContext().Clear(DX::Windowing()->UseLimitedColor() ? 0x101010 : 0);
   DX::Windowing()->SetAlphaBlendEnable(alpha < 255);
-  
+  CRect oldRect = m_destRect;
   ManageRenderArea();
+  
   //m_sourceRect source of the video
   //m_destRect destination rectangle
   //GetScreenRect screen rectangle
@@ -372,6 +373,9 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   pContext->RSSetViewports(1, &oldVP);
 
   DX::Windowing()->SetAlphaBlendEnable(true);
+  //set event to resize the buffers in case the size as changed
+  if (m_destRect != oldRect)
+    pMpcCallback->RenderRectChanged(m_destRect);
 }
 
 bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps)
