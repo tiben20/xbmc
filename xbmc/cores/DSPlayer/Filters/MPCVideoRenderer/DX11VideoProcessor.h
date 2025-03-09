@@ -205,7 +205,6 @@ private:
 	void SetCallbackDevice();
 
 	bool m_bDsplayerNotified = false;
-	bool m_bKodiResizeBuffers = true;
 	Com::SmartRect m_destRect;
 
 public:
@@ -261,8 +260,6 @@ public:
 	/*libplacebo*/
 	static void render_info_cb(void* priv, const struct pl_render_info* info);
 
-	HRESULT CopySampleToLibplacebo(IMediaSample* pSample);
-
 	HRESULT SetDevice(ID3D11Device1 *pDevice, const bool bDecoderDevice);
 	HRESULT InitSwapChain();
 
@@ -295,9 +292,6 @@ private:
 	void UpdateTexures();
 
 	HRESULT D3D11VPPass(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
-
-
-	HRESULT Process(ID3D11Texture2D* pRenderTarget, const Com::SmartRect& srcRect, const Com::SmartRect& dstRect, const bool second);
 
 	void UpdateStatsPresent();
 	void UpdateStatsStatic();
