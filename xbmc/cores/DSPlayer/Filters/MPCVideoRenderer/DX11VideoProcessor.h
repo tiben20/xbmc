@@ -53,7 +53,7 @@
 
 
 
-
+#if 0
 class CVideoRendererInputPin;
 
 
@@ -61,8 +61,7 @@ class CVideoRendererInputPin;
 class CDX11VideoProcessor
 	: public CVideoProcessor,
 	  public IDSRendererAllocatorCallback,
-		public IMpcVRCallback, 
-	  public CThread
+		public IMpcVRCallback
 {
 public:
 	// IDSRendererAllocatorCallback
@@ -208,24 +207,7 @@ private:
 	Com::SmartRect m_destRect;
 
 public:
-	CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr);
-	~CDX11VideoProcessor() override;
 
-	static DWORD __stdcall UploadThread(LPVOID lpParameter);
-
-	CMPCVRFrame ConvertSampleToFrame(IMediaSample* pSample);
-
-	void UploadLoop();
-
-	static DWORD __stdcall ProcessThread(LPVOID lpParameter);
-
-	void ProcessLoop();
-	void ProcessFrameLibplacebo(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame);
-	void ProcessFrameVP(CMPCVRFrame& inputFrame, CMPCVRFrame& outputFrame);
-
-
-	HRESULT Init(const HWND hwnd, bool* pChangeDevice = nullptr) override;
-	bool Initialized();
 
 private:
 	void ProcessFrame(IMediaSample* pSample, CMPCVRFrame &frame);
@@ -305,3 +287,4 @@ public:
 	STDMETHODIMP SetAlphaBitmap(const MFVideoAlphaBitmap* pBmpParms) override { return S_OK; };
 	STDMETHODIMP UpdateAlphaBitmapParameters(const MFVideoAlphaBitmapParams *pBmpParms) override { return S_OK; };
 };
+#endif

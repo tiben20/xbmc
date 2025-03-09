@@ -46,14 +46,13 @@
 #include "Filters/RendererSettings.h"
 #include "PlHelper.h"
 #include "settings/SettingsComponent.h"
-#define DEBUGEXTREME 1
 
+#if 0
 bool g_bPresent = false;
 bool bCreateSwapChain = false;
 #define BUFFERDX11 4
 
-#define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
-#define GetSwapChain DX::DeviceResources::Get()->GetSwapChain()
+
 
 struct VERTEX {
 	DirectX::XMFLOAT3 Pos;
@@ -140,7 +139,6 @@ static HRESULT CreateVertexBuffer(ID3D11Device* pDevice, ID3D11Buffer** ppVertex
 
 CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr)
 	: CVideoProcessor(pFilter),
-	CThread("CDX11VideoProcessor"),
 	m_hUploadThread(nullptr), 
 	m_hProcessThread(nullptr), 
 	m_hProcessEvent(nullptr), 
@@ -149,70 +147,7 @@ CDX11VideoProcessor::CDX11VideoProcessor(CMpcVideoRenderer* pFilter, HRESULT& hr
 	m_hResizeEvent(nullptr),
 	m_iPresCount(0)
 {
-	//initialize and set settings comming from settings.xml
-	g_dsSettings.Initialize("mpcvr");
-	std::shared_ptr<CSettings> pSetting = CServiceBroker::GetSettingsComponent()->GetSettings();
 	
-	MPC_SETTINGS->displayStats = (DS_STATS)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_DISPLAY_STATS);
-	MPC_SETTINGS->m_pPlaceboOptions = (LIBPLACEBO_SHADERS)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_LIBPLACEBO_SHADERS);
-	MPC_SETTINGS->bVPUseRTXVideoHDR = pSetting->GetBool("dsplayer.vr.rtxhdr");
-	MPC_SETTINGS->bD3D11TextureSampler = (D3D11_TEXTURE_SAMPLER)pSetting->GetInt(CSettings::SETTING_DSPLAYER_VR_TEXTURE_SAMPLER);
-	MPC_SETTINGS->iVPUseSuperRes = pSetting->GetInt("dsplayer.vr.superres");
-	MPC_SETTINGS->iUploadBuffers = pSetting->GetInt("dsplayer.vr.uploadbuffer");//todo make it work
-	MPC_SETTINGS->iProcessingBuffers = pSetting->GetInt("dsplayer.vr.processingbuffer");
-	MPC_SETTINGS->iPresentationBuffers = pSetting->GetInt("dsplayer.vr.presentationbuffer");
-
-	
-	//TODO add buffer size
-	m_pFreePresentationQueue.Resize(MPC_SETTINGS->iProcessingBuffers);
-	m_pFreeProcessingQueue.Resize(MPC_SETTINGS->iPresentationBuffers);
-
-	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;//this is set during the init media type
-
-	m_nCurrentAdapter = -1;
-	CServiceBroker::GetAppComponents().GetComponent<CApplicationPlayer>()->Register(this);
-	hr = CreateDXGIFactory1(IID_IDXGIFactory1, (void**)&m_pDXGIFactory1);
-	if (FAILED(hr)) {
-		CLog::LogF(LOGINFO,"CDX11VideoProcessor::CDX11VideoProcessor() : CreateDXGIFactory1() failed with error {}", WToA(HR2Str(hr)).c_str());
-		return;
-	}
-
-	// set default ProcAmp ranges and values
-	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
-	SetDefaultDXVA2ProcAmpValues(m_DXVA2ProcAmpValues);
-
-	Microsoft::WRL::ComPtr<IDXGIAdapter> pDXGIAdapter;
-	for (UINT adapter = 0; m_pDXGIFactory1->EnumAdapters(adapter, &pDXGIAdapter) != DXGI_ERROR_NOT_FOUND; ++adapter) {
-		Microsoft::WRL::ComPtr<IDXGIOutput> pDXGIOutput;
-		for (UINT output = 0; pDXGIAdapter->EnumOutputs(output, &pDXGIOutput) != DXGI_ERROR_NOT_FOUND; ++output) {
-			DXGI_OUTPUT_DESC desc{};
-			if (SUCCEEDED(pDXGIOutput->GetDesc(&desc))) {
-				DisplayConfig_t displayConfig = {};
-				if (GetDisplayConfig(desc.DeviceName, displayConfig)) {
-					m_hdrModeStartState[desc.DeviceName] = displayConfig.advancedColor.advancedColorEnabled;
-				}
-			}
-
-			pDXGIOutput= nullptr;
-		}
-
-		pDXGIAdapter= nullptr;
-	}
-	// Create a stop event to signal thread termination.
-	m_hStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	// Create events for each stage.
-	m_hUploadEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hProcessEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hFlushEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-	m_hResizeEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-
-	// Start the threads for each queue.
-	m_hUploadThread = CreateThread(NULL, 0, UploadThread, this, 0, NULL);
-	m_hProcessThread = CreateThread(NULL, 0, ProcessThread, this, 0, NULL);
-
-	CMPCVRRenderer::Get()->SetCallback(this);
-	m_rtStartStream = -1;
-	m_iPresCount = 0;
 }
 
 CDX11VideoProcessor::~CDX11VideoProcessor()
@@ -2548,3 +2483,5 @@ void CDX11VideoProcessor::SetCallbackDevice()
 		CLog::Log(LOGINFO, "{} setting callback is set", __FUNCTION__);
 	}
 }
+
+#endif

@@ -25,7 +25,7 @@
 #include <thread>
 #include "renbase2.h"
 #include "IVideoRenderer.h"
-#include "DX11VideoProcessor.h"
+#include "VideoProcessor.h"
 #include "Include/ISubRender.h"
 #include "Include/ISubRender11.h"
 #include "Include/ID3DFullscreenControl.h"
@@ -84,7 +84,6 @@ class __declspec(uuid("71F080AA-8661-4093-B15E-4F6903E77D0A"))
 private:
 	friend class CVideoRendererInputPin;
 	friend class CVideoProcessor;
-	friend class CDX11VideoProcessor;
 
 	FILTER_STATE m_filterState = State_Stopped;
 	bool m_bFlushing = false;
@@ -142,8 +141,6 @@ public:
 	HRESULT EndFlush() override;
 
 	void UpdateDisplayInfo();
-	void OnDisplayModeChange(const bool bReset = false);
-	void OnWindowMove();
 
 	DECLARE_IUNKNOWN
 	STDMETHODIMP NonDelegatingQueryInterface(REFIID riid, void** ppv);

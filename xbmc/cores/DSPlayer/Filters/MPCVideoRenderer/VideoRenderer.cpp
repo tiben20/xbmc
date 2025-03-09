@@ -94,7 +94,7 @@ static LRESULT CALLBACK ParentWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM
 			break;
 		case WM_DISPLAYCHANGE:
 			DLog("ParentWndProc() - WM_DISPLAYCHANGE");
-			pThis->OnDisplayModeChange(true);
+		
 			break;
 		case WM_MOVE:
 			CLog::Log(LOGINFO, "{} WM_MOVE", __FUNCTION__);
@@ -103,7 +103,7 @@ static LRESULT CALLBACK ParentWndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM
 				SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)pfnOldProc);
 				SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)ParentWndProc);
 			} else {
-				pThis->OnWindowMove();
+				//pThis->OnWindowMove();
 			}
 			break;
 		case WM_NCACTIVATE:
@@ -156,7 +156,7 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 	HRESULT hr = S_FALSE;
 
 	
-		m_VideoProcessor.reset(new CDX11VideoProcessor(this, hr));
+		m_VideoProcessor.reset(new CVideoProcessor(this));
 		if (SUCCEEDED(hr)) {
 			hr = m_VideoProcessor->Init(g_hWnd);
 		}
@@ -473,47 +473,6 @@ void CMpcVideoRenderer::UpdateDisplayInfo()
 	m_VideoProcessor->SetDisplayInfo(m_DisplayConfig, m_bPrimaryDisplay, m_bIsFullscreen);
 }
 
-void CMpcVideoRenderer::OnDisplayModeChange(const bool bReset/* = false*/)
-{
-	if (m_bDisplayModeChanging) {
-		return;
-	}
-
-	m_bDisplayModeChanging = true;
-
-	if (bReset && !m_VideoProcessor->IsInit()) {
-		m_VideoProcessor->Reset();
-	}
-	auto winSystem = dynamic_cast<CWinSystemWin32*>(CServiceBroker::GetWinSystem());
-	
-	m_hMon = MonitorFromWindow(winSystem->GetHwnd(), MONITOR_DEFAULTTONEAREST);
-	UpdateDisplayInfo();
-
-	m_bDisplayModeChanging = false;
-}
-
-void CMpcVideoRenderer::OnWindowMove()
-{
-	/*
-	const HMONITOR hMon = MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-	if (hMon != m_hMon) {
-		if (m_Sets.bReinitByDisplay) {
-			CAutoLock cRendererLock(&m_RendererLock);
-
-			Init(true);
-		}
-		else if (m_VideoProcessor->Type() == VP_DX11) {
-			CAutoLock cRendererLock(&m_RendererLock);
-
-			m_VideoProcessor->Reset();
-		}
-
-		m_hMon = hMon;
-		UpdateDisplayInfo();
-	}*/
-	
-}
-
 STDMETHODIMP CMpcVideoRenderer::NonDelegatingQueryInterface(REFIID riid, void** ppv)
 {
 	CheckPointer(ppv, E_POINTER);
@@ -671,12 +630,7 @@ STDMETHODIMP CMpcVideoRenderer::QuerySupported(REFGUID PropSet, ULONG Id, ULONG*
 // IMFGetService
 STDMETHODIMP CMpcVideoRenderer::GetService(REFGUID guidService, REFIID riid, LPVOID *ppvObject)
 {
-	if (guidService == MR_VIDEO_ACCELERATION_SERVICE) {
-		if (riid == IID_IDirect3DDeviceManager9 && m_VideoProcessor->GetDeviceManager9()) {
-			return m_VideoProcessor->GetDeviceManager9()->QueryInterface(riid, ppvObject);
-		}
-	}
-	else if (guidService == MR_VIDEO_MIXER_SERVICE) {
+	if (guidService == MR_VIDEO_MIXER_SERVICE) {
 		if (riid == IID_IMFVideoProcessor || riid == IID_IMFVideoMixerBitmap) {
 			return m_VideoProcessor->QueryInterface(riid, ppvObject);
 		}
