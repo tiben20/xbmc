@@ -61,7 +61,6 @@ class CMpcVideoRenderer;
 
 class CVideoProcessor
 	: public IMFVideoProcessor,
-	  public IMFVideoMixerBitmap,
 		public IDSRendererAllocatorCallback,
 		public IMpcVRCallback
 {
@@ -71,10 +70,6 @@ public:
 protected:
 	long m_nRefCount = 1;
 	CMpcVideoRenderer* m_pFilter = nullptr;
-	// Settings
-	
-
-	bool m_bVPScalingUseShaders = false;
 
 	CopyFrameDataFn m_pConvertFn = nullptr;
 	CopyFrameDataFn m_pCopyGpuFn = CopyFrameAsIs;
@@ -84,8 +79,7 @@ protected:
 	FmtConvParamsLibplacebo_t m_srcParamsLibplacebo;
 	UINT  m_srcWidth        = 0;
 	UINT  m_srcHeight       = 0;
-	UINT  m_dstTargetWidth  = 0;
-	UINT  m_dstTargetHeight = 0;
+	
 	UINT  m_srcRectWidth    = 0;
 	UINT  m_srcRectHeight   = 0;
 	int   m_srcPitch        = 0;
@@ -447,12 +441,4 @@ public:
 	STDMETHODIMP SetFilteringValue(DWORD dwProperty, DXVA2_Fixed32 *pValue) { return E_NOTIMPL; }
 	STDMETHODIMP GetBackgroundColor(COLORREF *lpClrBkg);
 	STDMETHODIMP SetBackgroundColor(COLORREF ClrBkg) { return E_NOTIMPL; }
-
-	// IMFVideoMixerBitmap
-	STDMETHODIMP ClearAlphaBitmap() override;
-	STDMETHODIMP GetAlphaBitmapParameters(MFVideoAlphaBitmapParams *pBmpParms) override;
-
-	// IMFVideoMixerBitmap
-	STDMETHODIMP SetAlphaBitmap(const MFVideoAlphaBitmap* pBmpParms) override { return S_OK; };
-	STDMETHODIMP UpdateAlphaBitmapParameters(const MFVideoAlphaBitmapParams* pBmpParms) override { return S_OK; };
 };

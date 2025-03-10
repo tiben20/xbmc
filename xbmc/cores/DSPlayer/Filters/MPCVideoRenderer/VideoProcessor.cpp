@@ -325,6 +325,7 @@ void CVideoProcessor::SyncFrameToStreamTime(const REFERENCE_TIME frameStartTime)
 	}
 }
 
+//not used verify
 bool CVideoProcessor::CheckDoviMetadata(const MediaSideDataDOVIMetadata* pDOVIMetadata, const uint8_t maxReshapeMethon)
 {
 	if (!pDOVIMetadata->Header.disable_residual_flag) {
@@ -359,9 +360,6 @@ STDMETHODIMP CVideoProcessor::QueryInterface(REFIID riid, void **ppv)
 	}
 	else if (riid == IID_IMFVideoProcessor) {
 		*ppv = static_cast<IMFVideoProcessor*>(this);
-	}
-	else if (riid == IID_IMFVideoMixerBitmap) {
-		*ppv = static_cast<IMFVideoMixerBitmap*>(this);
 	}
 	else {
 		*ppv = nullptr;
@@ -427,34 +425,6 @@ STDMETHODIMP CVideoProcessor::GetBackgroundColor(COLORREF *lpClrBkg)
 	CheckPointer(lpClrBkg, E_POINTER);
 	*lpClrBkg = RGB(0, 0, 0);
 	return S_OK;
-}
-
-// IMFVideoMixerBitmap
-
-STDMETHODIMP CVideoProcessor::ClearAlphaBitmap()
-{
-	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
-	m_bAlphaBitmapEnable = false;
-
-	return S_OK;
-}
-
-STDMETHODIMP CVideoProcessor::GetAlphaBitmapParameters(MFVideoAlphaBitmapParams *pBmpParms)
-{
-	CheckPointer(pBmpParms, E_POINTER);
-	CAutoLock cRendererLock(&m_pFilter->m_RendererLock);
-
-	if (m_bAlphaBitmapEnable) {
-		pBmpParms->dwFlags      = MFVideoAlphaBitmap_SrcRect|MFVideoAlphaBitmap_DestRect;
-		pBmpParms->clrSrcKey    = 0; // non used
-		pBmpParms->rcSrc        = m_AlphaBitmapRectSrc;
-		pBmpParms->nrcDest      = m_AlphaBitmapNRectDest;
-		pBmpParms->fAlpha       = 0; // non used
-		pBmpParms->dwFilterMode = D3DTEXF_LINEAR;
-		return S_OK;
-	} else {
-		return MF_E_NOT_INITIALIZED;
-	}
 }
 
 HRESULT CVideoProcessor::ProcessSample(IMediaSample* pSample)
