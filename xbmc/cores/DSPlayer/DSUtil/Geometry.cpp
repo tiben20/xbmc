@@ -99,7 +99,7 @@ SmartRect::SmartRect() throw()
   bottom = 0;
 }
 SmartRect::SmartRect(int l, int t, int r, int b) throw()
-{ left = l; top = t; right = r; bottom = b; }
+{ left = x1 = l; top = y1 = t; right = x2 = r; bottom = y2 = b; }
 SmartRect::SmartRect(const RECT& srcRect) throw()
 { ::CopyRect(this, &srcRect); }
 SmartRect::SmartRect(LPCRECT lpSrcRect) throw()

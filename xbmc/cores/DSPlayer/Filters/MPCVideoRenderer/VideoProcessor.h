@@ -146,9 +146,6 @@ protected:
 	RECT m_StatsRect = { 10, 10, 10 + 5 + 63*8 + 3, 10 + 5 + 18*17 + 3 };
 	const POINT m_StatsTextPoint = { 10 + 5, 10 + 5};
 
-	// Graph of a function
-	CMovingAverage<int> m_Syncs = CMovingAverage<int>(120);
-
 	int m_Xstep  = 4;
 	int m_Yscale = 2;
 	RECT m_GraphRect = {};
@@ -163,24 +160,23 @@ private:
 	/*Kodi Specific*/
 	D3D11_TEXTURE_SAMPLER m_pFinalTextureSampler;
 
-
+	void ResizeProcessFrame();
 	FrameQueue      m_processingQueue;
 	FrameQueue      m_pFreeProcessingQueue;
-
-	FrameQueue      m_presentationQueue;
+	FrameQueue      m_pPresentationQueue;
 	FrameQueue      m_pFreePresentationQueue;
+	DWORD_PTR       m_pCurrentFrame;
 
 	// THREAD HANDLES AND EVENTS
 	HANDLE m_hUploadThread;
 	HANDLE m_hProcessThread;
+	HANDLE m_hPresentThread;
 
 	HANDLE m_hProcessEvent;
+	HANDLE m_hPresentEvent;
 	HANDLE m_hStopEvent;
 	HANDLE m_hFlushEvent;
 	HANDLE m_hResizeEvent;
-
-	//count between update of osd
-	int m_iPresCount;
 
 	// Direct3D 11
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext1> m_pDeviceContext;
@@ -346,6 +342,8 @@ public:
 	static DWORD __stdcall UploadThread(LPVOID lpParameter);
 	void UploadLoop();
 	static DWORD __stdcall ProcessThread(LPVOID lpParameter);
+	void PresentLoop();
+	static DWORD __stdcall PresentThread(LPVOID lpParameter);
 
 	ColorFormat_t GetColorFormat() { return m_srcParams.cformat; }
 
@@ -367,7 +365,6 @@ public:
 
 protected:
 	void ProcessFrame(IMediaSample* pSample, CMPCVRFrame& frame);
-	void ResizeProcessFrame();
 	void ReleaseVP();
 	void ReleaseDevice();
 

@@ -27,8 +27,9 @@
 
 #include <d3d11_4.h>
 #include <dxgi1_5.h>
+#include "Filters/MPCVideoRenderer/DSResource.h"
 #include "libplacebo/colorspace.h"
-
+#include "strmif.h"
 
 #define MPC_SETTINGS static_cast<CMPCVRSettings*>(g_dsSettings.pRendererSettings)
 struct DS_VERTEX {
@@ -52,6 +53,8 @@ public:
   virtual ~CMPCVRRenderer();
   void Init();
 
+  void SetCurrentFrame(CMPCVRFrame frame);
+
   void Release();
 
   void Render(int index, int index2, CD3DTexture& target, const CRect& sourceRect, 
@@ -65,7 +68,7 @@ public:
   void AddVideoPicture(const VideoPicture& picture, int index) override {}
   bool IsPictureHW(const VideoPicture& picture) override { return false; }
   void UnInit() override {}
-  bool Flush(bool saveBuffers) override;
+  bool Flush(bool saveBuffers) override { return false; };
   void SetBufferSize(int numBuffers) override { }
   void ReleaseBuffer(int idx) override { }
   bool NeedBuffer(int idx) override { return false; }
@@ -78,7 +81,6 @@ public:
   bool ConfigChanged(const VideoPicture& picture) override { return false; }
 
   bool Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps);
-  CD3DTexture& GetIntermediateTarget();
 
   // Feature support
   virtual bool SupportsMultiPassRendering() override { return false; }
@@ -116,22 +118,19 @@ public:
   void Reset();
   
   PL::CPlHelper* GetPlHelper() { return m_pPlacebo; };
-
-  CD3DTexture GetIntermediateTexture(){ return m_IntermediateTarget; }
  
   void SetCallback(IMpcVRCallback* callback) { pMpcCallback = callback; };
+  void SetClock(IReferenceClock* pClock) { m_pClock = pClock; };
+  void SetStartTime(REFERENCE_TIME pStart) { m_tStart = pStart; };
 
-  bool CreateIntermediateTarget(unsigned int width,
-    unsigned int height,
-    bool dynamic = false,
-    DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
 protected:
+  std::shared_ptr<CMPCVRFrame> m_pCurrentFrame;
 
-  
-  
+  IReferenceClock* m_pClock;
+  REFERENCE_TIME m_tStart;
 
   virtual void CheckVideoParameters();
-  
+
   bool m_bConfigured = false;
   bool m_bImageProcessed = false;
   UINT m_iRedraw = 0;

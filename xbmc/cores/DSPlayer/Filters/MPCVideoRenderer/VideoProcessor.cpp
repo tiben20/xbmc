@@ -50,7 +50,7 @@
 #include "PlHelper.h"
 #include "settings/SettingsComponent.h"
 
-#define DEBUGEXTREME 0
+
 
 #define GetDevice DX::DeviceResources::Get()->GetD3DDevice()
 #define GetSwapChain DX::DeviceResources::Get()->GetSwapChain()
@@ -136,8 +136,7 @@ static HRESULT CreateVertexBuffer(ID3D11Device* pDevice, ID3D11Buffer** ppVertex
 
 CVideoProcessor::CVideoProcessor(CMpcVideoRenderer* pFilter)
 	: m_pFilter(pFilter),
-	m_hUploadEvent(nullptr),
-	m_iPresCount(0)
+	m_hUploadEvent(nullptr)
 {
 	//initialize and set settings comming from settings.xml
 	g_dsSettings.Initialize("mpcvr");
@@ -152,9 +151,6 @@ CVideoProcessor::CVideoProcessor(CMpcVideoRenderer* pFilter)
 	MPC_SETTINGS->iProcessingBuffers = pSetting->GetInt("dsplayer.vr.processingbuffer");
 	MPC_SETTINGS->iPresentationBuffers = pSetting->GetInt("dsplayer.vr.presentationbuffer");
 
-
-	//TODO add buffer size
-	m_pFreePresentationQueue.Resize(MPC_SETTINGS->iProcessingBuffers);
 	m_pFreeProcessingQueue.Resize(MPC_SETTINGS->iPresentationBuffers);
 
 	m_pFinalTextureSampler = D3D11_INTERNAL_SHADERS;//this is set during the init media type
@@ -195,14 +191,19 @@ CVideoProcessor::CVideoProcessor(CMpcVideoRenderer* pFilter)
 	m_hProcessEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hFlushEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	m_hResizeEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	m_hPresentEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	// Start the threads for each queue.
 	m_hUploadThread = CreateThread(NULL, 0, UploadThread, this, 0, NULL);
 	m_hProcessThread = CreateThread(NULL, 0, ProcessThread, this, 0, NULL);
-
+	m_hPresentThread = CreateThread(NULL, 0, PresentThread, this, 0, NULL);
+	SetThreadPriority(m_hUploadThread, THREAD_PRIORITY_ABOVE_NORMAL);
+	SetThreadPriority(m_hProcessThread, THREAD_PRIORITY_HIGHEST);
 	CMPCVRRenderer::Get()->SetCallback(this);
 	m_rtStartStream = -1;
-	m_iPresCount = 0;
+	int buffersize = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("dsplayer.vr.presentationbuffer");
+	m_pFreePresentationQueue.Resize(buffersize);
+	m_pCurrentFrame = 0;
 }
 
 CVideoProcessor::~CVideoProcessor()
@@ -226,19 +227,22 @@ CVideoProcessor::~CVideoProcessor()
 		WaitForSingleObject(m_hProcessThread, INFINITE);
 		CloseHandle(m_hProcessThread);
 	}
+	if (m_hPresentThread) {
+		WaitForSingleObject(m_hPresentThread, INFINITE);
+		CloseHandle(m_hPresentThread);
+	}
 
 	// Clean up event handles.
 	if (m_hStopEvent)       CloseHandle(m_hStopEvent);
 	if (m_hUploadEvent)     CloseHandle(m_hUploadEvent);
 	if (m_hProcessEvent)    CloseHandle(m_hProcessEvent);
 	if (m_hFlushEvent)      CloseHandle(m_hFlushEvent);
+	if (m_hPresentEvent)      CloseHandle(m_hPresentEvent);
 
 	// Cleanup queues left ... should we call the flush before??
 	m_uploadQueue.flush();
 	m_processingQueue.flush();
-	m_presentationQueue.flush();
 	m_pFreeProcessingQueue.flush();
-	m_pFreePresentationQueue.flush();
 }
 
 HRESULT CVideoProcessor::GetVideoSize(long *pWidth, long *pHeight)
@@ -467,7 +471,7 @@ CMPCVRFrame CVideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 
 	CMPCVRFrame pFrame;
 	m_pFreeProcessingQueue.wait_and_pop(pFrame);
-
+	
 	pFrame.color = {};
 	pFrame.repr = {};
 
@@ -547,8 +551,9 @@ CMPCVRFrame CVideoProcessor::ConvertSampleToFrame(IMediaSample* pSample)
 
 	if (m_rtStartStream == -1)
 		m_rtStartStream = endUpload;
-	pFrame.pStartTime += m_rtStartStream;
-	pFrame.pEndTime += m_rtStartStream;
+	//the frame should be rendered at filter start time + frame start time
+	//pFrame.pStartTime += m_pFilter->m_rtReftimeStart;
+	//pFrame.pEndTime += m_pFilter->m_rtReftimeStart;
 	pFrame.pUploadTime = endUpload - startUpload;
 
 	return pFrame;
@@ -572,50 +577,35 @@ void CVideoProcessor::UploadLoop()
 	HANDLE events[] = { m_hStopEvent, m_hFlushEvent ,m_hUploadEvent };
 	while (true) {
 		DWORD dwWait = WaitForMultipleObjects(3, events, FALSE, 250);
-		//this fix the move window without having to send an event on stall
-		if (dwWait == WAIT_TIMEOUT)
-		{
-			if (m_uploadQueue.size() > 0)
-			{
-				dwWait = WAIT_OBJECT_0 + 2;
-				CLog::Log(LOGDEBUG, "{} stalled waking up upload thread", __FUNCTION__);
-			}
-		}
 		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
 			break;
 		else if (dwWait == WAIT_OBJECT_0 + 1) {
 			//FLUSH
 			m_uploadQueue.flush();
 		}
-		else if (dwWait == WAIT_OBJECT_0 + 2) {
-			IMediaSample* pSample = nullptr;
-			{
-				//if the processing queue is not full process a sample
-				if (m_processingQueue.size() < MPC_SETTINGS->iProcessingBuffers)
-					m_uploadQueue.wait_and_pop(pSample);
+		else
+		{
+			//we dont use the event but in case their is one it stop the wait
+			//if the processing queue is not full process a sample
+			//also we have free processing queue
+			if (m_uploadQueue.has_sample() && m_pFreeProcessingQueue.size() > 0)
+			{ 
+				IMediaSample* pSample = nullptr;
 
-			}
-			if (pSample) {
-				CMPCVRFrame pFrame;
-				//the frame come from m_pFreeProcessingQueue
-				pFrame = ConvertSampleToFrame(pSample);
-				if (m_iPresCount == 10)
-				{
-					CStdStringW sNow;
-					CRefTime rUploadTime(pFrame.pUploadTime);
-					pFrame.pProcessingTime = 5;
-					CRefTime rProcessingTime(pFrame.pProcessingTime);
-					sNow.Format(L"Upload queue: %i ", m_uploadQueue.size());
-					sNow.AppendFormat(L"Upload time : % ld", rUploadTime.Millisecs());
-					CMPCVRRenderer::Get()->SetStatsTimings(sNow.c_str(), 3);
+				m_uploadQueue.wait_and_pop(pSample);
 
-				}
-				pSample->Release();
-				if (pFrame.pTexture.Get()) {
-					{
-						m_processingQueue.push(pFrame);
+				if (pSample) {
+					CMPCVRFrame pFrame;
+					//the frame come from m_pFreeProcessingQueue
+					pFrame = ConvertSampleToFrame(pSample);
+
+					pSample->Release();
+					if (pFrame.pTexture.Get()) {
+						{
+							m_processingQueue.push(pFrame);
+						}
+						SetEvent(m_hProcessEvent);
 					}
-					SetEvent(m_hProcessEvent);
 				}
 			}
 		}
@@ -636,10 +626,69 @@ DWORD WINAPI CVideoProcessor::ProcessThread(LPVOID lpParameter)
 	return 0;
 }
 
+
+
+DWORD __stdcall CVideoProcessor::PresentThread(LPVOID lpParameter)
+{
+	CVideoProcessor* pThis = reinterpret_cast<CVideoProcessor*>(lpParameter);
+	pThis->PresentLoop();
+	return 0;
+}
+
+void CVideoProcessor::PresentLoop()
+{
+	HANDLE events[] = { m_hStopEvent,m_hFlushEvent , m_hResizeEvent, m_hPresentEvent };
+	while (true)
+	{
+		DWORD dwWait = WaitForMultipleObjects(4, events, FALSE, 250);
+		//this fix the move window without having to send an event on stall
+		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
+			break;
+		else if (dwWait == WAIT_OBJECT_0 + 1) //flush
+		{
+			for (;;)
+			{
+				if (m_pPresentationQueue.size() > 0)
+				{
+					m_pFreePresentationQueue.push(m_pPresentationQueue.front());
+					m_pPresentationQueue.pop();
+				}
+				else
+					break;
+			}
+		}
+		else if (dwWait == WAIT_OBJECT_0 + 2) //resize
+		{
+		}
+		else if (dwWait == WAIT_OBJECT_0 + 3) //present
+		{
+			if (m_pCurrentFrame != 0)
+			{
+				auto it = m_pPresentationQueue.begin();
+				while (it != m_pPresentationQueue.end())
+				{
+					if ((*it).m_dwAdvise == m_pCurrentFrame)
+					{
+						m_pFreePresentationQueue.push(*it);
+						m_pPresentationQueue.erase(it);
+						break;
+					}
+					it++;
+				}
+			}
+			m_pPresentationQueue.front().pDrawn = 0;
+			m_pCurrentFrame = m_pPresentationQueue.front().m_dwAdvise;
+			CMPCVRRenderer::Get()->SetCurrentFrame(m_pPresentationQueue.front());
+
+		}
+	}
+}
+
 void CVideoProcessor::ProcessLoop()
 {
 	HANDLE events[] = { m_hStopEvent,m_hFlushEvent , m_hResizeEvent, m_hProcessEvent };
-	while (true) {
+	while (true)
+	{
 		DWORD dwWait = WaitForMultipleObjects(4, events, FALSE, 250);
 		//this fix the move window without having to send an event on stall
 		if (dwWait == WAIT_TIMEOUT)
@@ -647,7 +696,7 @@ void CVideoProcessor::ProcessLoop()
 			if (m_processingQueue.size() > 0)
 			{
 				dwWait = WAIT_OBJECT_0 + 3;
-				CLog::Log(LOGDEBUG, "{} stalled waking up process thread", __FUNCTION__);
+				CLog::Log(LOGINFO, "{} stalled waking up process thread", __FUNCTION__);
 			}
 		}
 		if (dwWait == WAIT_OBJECT_0) // Stop event signaled
@@ -664,31 +713,30 @@ void CVideoProcessor::ProcessLoop()
 				else
 					break;
 			}
-			for (;;)
-			{
-				if (m_presentationQueue.size() > 0)
-				{
-					m_pFreePresentationQueue.push(m_presentationQueue.front());
-					m_presentationQueue.pop();
-				}
-				else
-					break;
-			}
+			CMPCVRRenderer::Get()->Flush(false);
+			
 		}
 		else if (dwWait == WAIT_OBJECT_0 + 2)
 		{
 			ResizeProcessFrame();
 		}
-		else if (dwWait == WAIT_OBJECT_0 + 3) {
+		else if (dwWait == WAIT_OBJECT_0 + 3)
+		{
+			REFERENCE_TIME starttime, endtime;
+			m_pFilter->m_pClock->GetTime(&starttime);
+			
 			CMPCVRFrame pInputFrame, pOutputFrame;
 			{
-				if (!m_processingQueue.empty() && m_presentationQueue.size() < MPC_SETTINGS->iPresentationBuffers) {
+				
+				if (!m_processingQueue.empty() && m_pFreePresentationQueue.size() > 0) {
 					m_processingQueue.wait_and_pop(pInputFrame);
 				}
 			}
 			if (pInputFrame.pTexture.Get())
 			{
 				m_pFreePresentationQueue.wait_and_pop(pOutputFrame);
+				
+				
 				// Process the texture (for example, composite your OSD).
 				REFERENCE_TIME startUpload, endUpload;
 				m_pFilter->m_pClock->GetTime(&startUpload);
@@ -696,7 +744,18 @@ void CVideoProcessor::ProcessLoop()
 				{
 					ProcessFrameVP(pInputFrame, pOutputFrame);
 					{
-						m_presentationQueue.push(pOutputFrame);
+						m_pPresentationQueue.push(pOutputFrame);
+						//advise the clock that we a ready frame
+						//it will call the present thread to make the switch when the frame is due
+						m_pFilter->m_pClock->AdviseTime(
+							(REFERENCE_TIME)m_pFilter->m_tStart,          // Start run time
+							pOutputFrame.pStartTime,                        // Stream time
+							(HEVENT)(HANDLE)m_hPresentEvent,     // Render notification
+							&pOutputFrame.m_dwAdvise);                       // Advise cookie
+						
+						
+						
+						
 						m_pFreeProcessingQueue.push(pInputFrame);
 					}
 				}
@@ -704,7 +763,20 @@ void CVideoProcessor::ProcessLoop()
 				{
 					ProcessFrameLibplacebo(pInputFrame, pOutputFrame);
 					{
-						m_presentationQueue.push(pOutputFrame);
+						
+						pOutputFrame.CopyTimeStamp(pInputFrame);
+						//advise the clock that we a ready frame
+						//it will call the present thread to make the switch when the frame is due
+						m_pFilter->m_pClock->AdviseTime(
+							(REFERENCE_TIME)m_pFilter->m_tStart,          // Start run time
+							pOutputFrame.pStartTime,                        // Stream time
+							(HEVENT)(HANDLE)m_hPresentEvent,     // Render notification
+							&pOutputFrame.m_dwAdvise);                       // Advise cookie
+						m_pFilter->m_pClock->GetTime(&endtime);
+						pOutputFrame.pProcessingTime = endtime - starttime;
+						m_pPresentationQueue.push(pOutputFrame);
+						CMPCVRRenderer::Get()->SetCurrentFrame(pOutputFrame);
+						CMPCVRRenderer::Get()->SetStartTime(m_pFilter->m_tStart);
 						m_pFreeProcessingQueue.push(pInputFrame);
 					}
 				}
@@ -732,6 +804,27 @@ void CVideoProcessor::ProcessLoop()
 		}
 	}
 	CLog::Log(LOGINFO, "{} Process loop end", __FUNCTION__);
+}
+
+void CVideoProcessor::ResizeProcessFrame()
+{
+	for (;;)
+	{
+		if (m_pPresentationQueue.size() > 0)
+		{
+			m_pFreePresentationQueue.push(m_pPresentationQueue.front());
+			m_pPresentationQueue.pop();
+		}
+		else
+			break;
+	}
+	for (auto& frame : m_pFreePresentationQueue)
+	{
+		frame.pTexture.Release();
+		frame.pTexture.Create(m_destRect.Width(), m_destRect.Height(), D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
+		frame.pCurrentRect = Com::SmartRect(m_destRect.x1, m_destRect.y1, m_destRect.x2, m_destRect.y2);
+	};
+
 }
 
 // Process the texture (e.g. blend in an OSD).
@@ -990,26 +1083,7 @@ void CVideoProcessor::ProcessFrame(IMediaSample* pSample, CMPCVRFrame& frame)
 	frame.repr.bits.color_depth = m_srcParams.CDepth;
 }
 
-void CVideoProcessor::ResizeProcessFrame()
-{
-	for (;;)
-	{
-		if (m_presentationQueue.size() > 0)
-		{
-			m_pFreePresentationQueue.push(m_presentationQueue.front());
-			m_presentationQueue.pop();
-		}
-		else
-			break;
-	}
-	for (auto& frame : m_pFreePresentationQueue)
-	{
-		frame.pTexture.Release();
-		frame.pTexture.Create(m_destRect.Width(), m_destRect.Height(), D3D11_USAGE_DEFAULT | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
-		frame.pCurrentRect = m_destRect;
-	};
 
-}
 
 void CVideoProcessor::ReleaseVP()
 {
@@ -2099,10 +2173,6 @@ HRESULT CVideoProcessor::InitializeTexVP(const FmtConvParams_t& params, const UI
 	m_srcDXGIFormat = srcDXGIFormat;
 	m_pConvertFn = GetCopyFunction(params);
 
-	CMPCVRRenderer::Get()->CreateIntermediateTarget(m_srcWidth, m_srcHeight, false, DX::DeviceResources::Get()->GetBackBuffer().GetFormat());
-
-
-
 	// set default ProcAmp ranges
 	SetDefaultDXVA2ProcAmpRanges(m_DXVA2ProcAmpRanges);
 
@@ -2277,7 +2347,7 @@ void CVideoProcessor::Reset(bool bForceWindowed)
 
 HRESULT CVideoProcessor::GetPresentationTexture(ID3D11Texture2D** texture)
 {
-
+#if 0
 	if (m_presentationQueue.empty())
 		return S_FALSE; // No sample available
 
@@ -2329,6 +2399,7 @@ HRESULT CVideoProcessor::GetPresentationTexture(ID3D11Texture2D** texture)
 	CMPCVRFrame ts = m_presentationQueue.front();
 
 	*texture = ts.pTexture.Get();
+#endif
 	return S_OK;
 
 }

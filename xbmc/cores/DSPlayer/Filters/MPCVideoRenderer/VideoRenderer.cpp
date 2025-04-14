@@ -146,8 +146,8 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 		return;
 	}
 
-	DLog("Windows {}", WToA(GetWindowsVersion()));
-	//DLog(GetNameAndVersion().c_str());
+	CLog::Log(LOGINFO,"{} Windows {}",__FUNCTION__, WToA(GetWindowsVersion()));
+
 
 	ASSERT(S_OK == *phr);
 	m_pInputPin = new CVideoRendererInputPin(this, phr, L"In", this);
@@ -200,6 +200,7 @@ void CMpcVideoRenderer::NewSegment(REFERENCE_TIME startTime)
 	CLog::Log(LOGINFO, "{} {}", __FUNCTION__, CRefTime(startTime).Millisecs());
 
 	m_rtStartTime = startTime;
+	m_pClock->GetTime(&m_rtReftimeStart);
 }
 
 HRESULT CMpcVideoRenderer::BeginFlush()
@@ -421,8 +422,8 @@ HRESULT CMpcVideoRenderer::Receive(IMediaSample* pSample)
 	// Having set an advise link with the clock we sit and wait. We may be
 	// awoken by the clock firing or by a state change. The rendering call
 	// will lock the critical section and check we can still render the data
-
-	hr = WaitForRenderTime();
+	//hr = WaitForRenderTime();
+	hr = S_OK;
 	if (FAILED(hr)) {
 		m_bInReceive = FALSE;
 		return NOERROR;
@@ -444,7 +445,6 @@ HRESULT CMpcVideoRenderer::Receive(IMediaSample* pSample)
 
 	CAutoLock cRendererLock(&m_RendererLock);
 
-	// Deal with this sample
 
 	if (m_State == State_Running) {
 		Render(m_pMediaSample);
@@ -492,13 +492,14 @@ STDMETHODIMP CMpcVideoRenderer::Run(REFERENCE_TIME rtStart)
 {
 	CLog::Log(LOGINFO, "{} {}", __FUNCTION__, CRefTime(rtStart).Millisecs());
 	m_rtReftimeStart = rtStart;
+	CMPCVRRenderer::Get()->SetClock(m_pClock);
+
 	if (m_State == State_Running) {
 		return NOERROR;
 	}
 
 	CAutoLock cVideoLock(&m_InterfaceLock);
 	m_filterState = State_Running;
-
 
 	return CBaseVideoRenderer2::Run(rtStart);
 }

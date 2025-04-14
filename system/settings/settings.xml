@@ -1113,7 +1113,7 @@
         </setting>
 		<setting id="dsplayer.vr.osdalpha" parent="dsplayer.videorenderer" type="integer" label="55246">
           <level>0</level>
-          <default>100 </default>
+          <default>100</default>
           <constraints>
             <minimum>10</minimum>
             <step>5</step>

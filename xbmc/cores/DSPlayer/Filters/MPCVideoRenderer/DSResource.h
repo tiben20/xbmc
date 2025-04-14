@@ -129,6 +129,11 @@ struct CMPCVRFrameBase
 	REFERENCE_TIME pUploadTime;
 	REFERENCE_TIME pProcessingTime;
 
+	// advise id from reference clock (0 if no outstanding advise)
+	DWORD_PTR m_dwAdvise;
+
+	int pDrawn;
+
 	//MediaSideDataDOVIMetadata pDOVIMetadata;
 	//struct pl_dovi_metadata doviout;
 
@@ -155,6 +160,17 @@ struct CMPCVRFrame : CMPCVRFrameBase
 		pEndTime = 0;
 		pUploadTime = 0;
 		pProcessingTime = 0;
+		pDrawn = 0;
+		m_dwAdvise = 0;
+	}
+	void CopyTimeStamp(const CMPCVRFrame frame)
+	{
+		color = frame.color;
+		repr = frame.repr;
+		pStartTime = frame.pStartTime;
+		pEndTime = frame.pEndTime;
+		pUploadTime = frame.pUploadTime;
+		pProcessingTime = frame.pProcessingTime;
 	}
 };
 // Frame thread-safe queue
@@ -165,6 +181,7 @@ private:
 	mutable std::mutex pMutex;
 	std::condition_variable pCondition;
 	int pMaxQueue;
+
 public:
 	void Resize(int queues)
 	{
@@ -204,6 +221,7 @@ public:
 
 	CMPCVRFrame& front()
 	{
+		std::lock_guard<std::mutex> lock(pMutex);
 		return pQueue.front();
 	}
 
@@ -221,6 +239,10 @@ public:
 		pQueue.clear();
 	}
 
+	auto erase(const std::list<CMPCVRFrame>::const_iterator _Where)
+	{
+		return pQueue.erase(_Where);
+	}
 	// Iterators for range-based for loops
 	auto begin()
 	{
@@ -267,6 +289,10 @@ public:
 		return queue_.front();
 	}
 
+	bool has_sample() {
+		std::lock_guard<std::mutex> lock(mutex_);
+		return queue_.size() > 0;
+	}
 	void wait_and_pop(T& result) {
 		std::unique_lock<std::mutex> lock(mutex_);
 		condition_.wait(lock, [this] { return !queue_.empty(); });

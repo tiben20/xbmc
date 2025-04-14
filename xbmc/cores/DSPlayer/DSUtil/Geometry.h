@@ -142,7 +142,7 @@ public:
   SmartRect(POINT topLeft, POINT bottomRight) throw();
 
 // Attributes (in addition to RECT members)
-
+  int x1, x2, y1, y2;
   // retrieves the width
   int Width() const throw();
   // returns the height

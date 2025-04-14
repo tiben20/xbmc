@@ -82,6 +82,13 @@ void CMPCVRRenderer::Init()
   GetDevice->CreatePixelShader(data, size, nullptr, &m_pPS_BitmapToFrame);
   if (!m_pPlacebo)
     m_pPlacebo = new PL::CPlHelper();
+
+}
+
+void CMPCVRRenderer::SetCurrentFrame(CMPCVRFrame frame)
+{
+  
+  m_pCurrentFrame = std::make_shared< CMPCVRFrame>(frame);
 }
 
 void CMPCVRRenderer::Release()
@@ -248,6 +255,7 @@ void CMPCVRRenderer::DrawStats()
   //no text no draw
   //if (m_statsText.length() == 0)
   //  return;
+  
   if (m_statsTimingText.size() == 0)
     return;
   m_statsText = L"";
@@ -266,6 +274,8 @@ void CMPCVRRenderer::DrawStats()
 
   //TODO Color config in gui or advanced settings for osd
   int stralpha = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt("dsplayer.vr.osdalpha") / 100 * 255;
+  if (stralpha == 0)
+    stralpha = 255;
   m_Font3D.Draw2DText(DX::DeviceResources::Get()->GetBackBuffer().GetRenderTarget(), rtSize, m_StatsTextPoint.x, m_StatsTextPoint.y, COLOR_ARGB(stralpha , 255, 255, 255), m_statsText.c_str());
   static int col = m_StatsRect.right;
   if (--col < m_StatsRect.left) {
@@ -293,8 +303,6 @@ void CMPCVRRenderer::Render(int index,
 {
   m_iBufferIndex = index;
 
-  CreateIntermediateTarget(m_viewWidth, m_viewHeight, false);
-
   Render(target, sourceRect, destRect, viewRect, flags);
 }
 
@@ -321,12 +329,6 @@ bool CMPCVRRenderer::Configure(const VideoPicture& picture, float fps, unsigned 
   return true;
 }
 
-bool CMPCVRRenderer::Flush(bool saveBuffers)
-{
-  CLog::Log(LOGDEBUG, "{}", __FUNCTION__);
-  return false;
-}
-
 void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
 {
 
@@ -342,13 +344,14 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   //destRect destination
   //m_sourceWidth
   //m_sourceHeight
-  ID3D11Texture2D* current2d = nullptr;
-  HRESULT hr = pMpcCallback->GetPresentationTexture(&current2d);
-  if (FAILED(hr) || current2d == nullptr)
-  {
-    CLog::Log(LOGERROR, "{} failed getting next texture", __FUNCTION__);
-    return;
-  }
+  REFERENCE_TIME curtime;
+  m_pClock->GetTime(&curtime);
+  curtime -= m_tStart;
+
+
+  m_pCurrentFrame.get()->pDrawn += 1;
+  CLog::Log(LOGINFO,"{} frame start time: {} clocktime {}", __FUNCTION__, m_pCurrentFrame.get()->pStartTime, curtime);
+  CLog::Log(LOGINFO, "Upload time: {} Processing time: {} Drawn: {}", m_pCurrentFrame.get()->pUploadTime, m_pCurrentFrame.get()->pProcessingTime, m_pCurrentFrame.get()->pDrawn);
   D3D11_VIEWPORT oldVP;
   UINT oldIVP = 1;
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView> oldRT;
@@ -357,7 +360,7 @@ void CMPCVRRenderer::RenderUpdate(int index, int index2, bool clear, unsigned in
   pContext->OMGetRenderTargets(1, &oldRT, nullptr);
   pContext->RSGetViewports(&oldIVP, &oldVP);
 
-  CopyToBackBuffer(current2d);
+  CopyToBackBuffer(m_pCurrentFrame.get()->pTexture.Get());
   
   DrawSubtitles();
 
@@ -395,8 +398,6 @@ bool CMPCVRRenderer::Configure(unsigned int width, unsigned int height, unsigned
   m_fps = fps;
   CalculateFrameAspectRatio(width, height);
   SetViewMode(m_videoSettings.m_ViewMode);
-  //CreateInputTarget(m_sourceWidth, m_sourceHeight);
-  CreateIntermediateTarget(width, height, false);
 
   SetGraphSize();
 
@@ -458,14 +459,6 @@ void CMPCVRRenderer::SetGraphSize()
   }
 }
 
-CD3DTexture& CMPCVRRenderer::GetIntermediateTarget()
-{
-  if (m_IntermediateTarget.Get() == nullptr)
-  {
-  }
-  return m_IntermediateTarget;
-}
-
 CRect CMPCVRRenderer::GetScreenRect() const
 {
   CRect screenRect(0.f, 0.f,
@@ -508,38 +501,6 @@ void CMPCVRRenderer::SettingOptionsRenderMethodsFiller(const std::shared_ptr<con
 void CMPCVRRenderer::SetVideoSettings(const CVideoSettings& settings)
 {
   CLog::Log(LOGDEBUG, "{}", __FUNCTION__);
-}
-
-
-
-bool CMPCVRRenderer::CreateIntermediateTarget(unsigned width,
-                                             unsigned height,
-                                             bool dynamic,
-                                             DXGI_FORMAT format)
-{
-  
-  // No format specified by renderer
-  if (format == DXGI_FORMAT_UNKNOWN)
-    format = DX::Windowing()->GetBackBuffer().GetFormat();
-
-  // don't create new one if it exists with requested size and format
-  if (m_IntermediateTarget.Get() && m_IntermediateTarget.GetFormat() == format &&
-      m_IntermediateTarget.GetWidth() == width && m_IntermediateTarget.GetHeight() == height)
-    return true;
-
-  if (m_IntermediateTarget.Get())
-    m_IntermediateTarget.Release();
-
-  CLog::LogF(LOGDEBUG, "{} creating intermediate target {}x{} format {}.", __FUNCTION__, width, height,
-             DX::DXGIFormatToString(format));
-
-  if (!m_IntermediateTarget.Create(width,height, 1,
-                                   dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT, format,nullptr,0U,"CMPCVRRenderer Intermediate Target"))
-  {
-    CLog::LogF(LOGERROR, "intermediate target creation failed.");
-    return false;
-  } 
-  return true;
 }
 
 void CMPCVRRenderer::CheckVideoParameters()

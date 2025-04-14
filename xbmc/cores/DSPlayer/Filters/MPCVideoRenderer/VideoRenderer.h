@@ -36,6 +36,8 @@
 #include "rendering/dx/DeviceResources.h"
 #include <combase.h>
 
+#define DEBUGEXTREME 0
+
 const AMOVIESETUP_MEDIATYPE sudPinTypesIn[] = {
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_NV12},
 	{&MEDIATYPE_Video, &MEDIASUBTYPE_P010},
@@ -100,7 +102,7 @@ private:
 	DisplayConfig_t m_DisplayConfig = {};
 
 	int m_Stepping = 0;
-	REFERENCE_TIME m_rtStartTime = 0;
+	
 
 	// VideoProcessor
 	std::unique_ptr<CVideoProcessor> m_VideoProcessor;
@@ -119,10 +121,10 @@ private:
 	bool m_bEnableFullscreenControl = false;
 
 	Com::SmartSize m_videoSize, m_videoAspectRatio;
-
-
-
 	std::atomic_bool m_bDisplayModeChanging = false;
+
+protected:
+	REFERENCE_TIME m_rtStartTime = 0;
 
 public:
 	CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr);

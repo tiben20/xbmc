@@ -76,7 +76,6 @@ enum DIRECTSHOW_RENDERER
 class IMpcVRCallback
 {
 public:
-  virtual HRESULT GetPresentationTexture(ID3D11Texture2D** texture) { return S_FALSE; };
   virtual void RenderRectChanged(CRect newRect) {};
 };
 
