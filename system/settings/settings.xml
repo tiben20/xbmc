@@ -948,7 +948,7 @@
             </options>
           </constraints>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="list" format="string" />
         </setting>
@@ -956,7 +956,7 @@
           <level>0</level>
           <default>true</default>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="toggle" />
         </setting>
@@ -964,7 +964,7 @@
           <level>0</level>
           <default>false</default>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="toggle" />
         </setting>
@@ -972,7 +972,7 @@
           <level>0</level>
           <default>false</default>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
             <dependency type="enable" setting="dsplayer.exclusivemode" operator="is">true</dependency>
           </dependencies>
           <control type="toggle" />
@@ -1309,14 +1309,14 @@
           <default>2</default> <!-- Direct3D 9 -->
           <constraints>
             <options>
-              <option label="55119">-1</option> <!-- madVR decide -->
+              <option label="55119">-1</option> <!-- madvr decide -->
               <option label="55104">0</option> <!-- Direct3D 9 -->
               <option label="55105">1</option> <!-- Direct3D 11 -->
               <option label="55106">2</option> <!-- Direct3D 11 (no vsync) -->
             </options>
           </constraints>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="list" format="string" />
         </setting>
@@ -1325,7 +1325,7 @@
           <default>8</default> <!-- 8 frames -->
           <constraints>
             <options>
-              <option label="55119">-1</option> <!-- madVR decide -->
+              <option label="55119">-1</option> <!-- madvr decide -->
               <option label="55109">1</option> <!-- 1 frame -->
               <option label="55110">2</option> <!-- 2 frames -->
               <option label="55111">3</option> <!-- 3 frames -->
@@ -1339,7 +1339,7 @@
             </options>
           </constraints>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="list" format="string" />
         </setting>
@@ -1348,7 +1348,7 @@
           <default>8</default> <!-- 8 frames -->
           <constraints>
             <options>
-              <option label="55119">-1</option> <!-- madVR decide -->
+              <option label="55119">-1</option> <!-- madvr decide -->
               <option label="55109">1</option> <!-- 1 frame -->
               <option label="55110">2</option> <!-- 2 frames -->
               <option label="55111">3</option> <!-- 3 frames -->
@@ -1362,7 +1362,7 @@
             </options>
           </constraints>
           <dependencies>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="list" format="string" />
         </setting>
@@ -1519,7 +1519,7 @@
           <level>0</level>
           <dependencies>
             <dependency type="visible" setting="dsplayer.filtersmanagement" operator="is">0</dependency>
-            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madVR</dependency>
+            <dependency type="visible" setting="dsplayer.videorenderer" operator="is">madvr</dependency>
           </dependencies>
           <control type="button" format="action" />
         </setting>
