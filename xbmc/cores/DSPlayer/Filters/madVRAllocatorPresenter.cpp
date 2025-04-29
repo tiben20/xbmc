@@ -134,8 +134,11 @@ void CmadVRAllocatorPresenter::SetResolution()
   }
 
   SIZE nativeVideoSize = GetVideoSize(false);
-
-  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot())
+  int minBefore = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_iMinuteNoAdjust;
+  LONG minMillisecBefore = 60000 * minBefore;
+  CRefTime vidDuration = CRefTime(CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoDuration);
+  
+  if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && CServiceBroker::GetWinSystem()->GetGfxContext().IsFullScreenRoot() && vidDuration.Millisecs() > minMillisecBefore)
   {
     RESOLUTION res = CResolutionUtils::ChooseBestResolution(fps, nativeVideoSize.cx, nativeVideoSize.cy, false);
     bool bChanged = SetResolutionInternal(res);

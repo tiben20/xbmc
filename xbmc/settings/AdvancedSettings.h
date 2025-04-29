@@ -404,6 +404,8 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
 #if HAS_DS_PLAYER
     float GetDisplayAuxDelay(float refreshrate);
     std::string GetAuxDeviceName();
+    long long m_videoDuration;
+    int m_iMinuteNoAdjust;
 #endif
 
   private:

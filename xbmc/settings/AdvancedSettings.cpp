@@ -139,6 +139,8 @@ void CAdvancedSettings::Initialize()
   m_audioDefaultPlayer = "paplayer";
   m_audioPlayCountMinimumPercent = 90.0f;
 
+  m_videoDuration = 0;
+  m_iMinuteNoAdjust = 0;
   m_videoSubsDelayRange = 60;
   m_videoSubsDelayStep = 0.1f;
   m_videoAudioDelayRange = 10;
@@ -611,6 +613,8 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
   pElement = pRootElement->FirstChildElement("video");
   if (pElement)
   {
+    
+    XMLUtils::GetInt(pElement, "noadjustoverxminute", m_iMinuteNoAdjust);
     XMLUtils::GetString(pElement, "stereoscopicregex3d", m_stereoscopicregex_3d);
     XMLUtils::GetString(pElement, "stereoscopicregexsbs", m_stereoscopicregex_sbs);
     XMLUtils::GetString(pElement, "stereoscopicregextab", m_stereoscopicregex_tab);

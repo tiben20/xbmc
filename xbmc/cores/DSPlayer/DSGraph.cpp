@@ -132,9 +132,14 @@ HRESULT CDSGraph::SetFile(const CFileItem& file, const CPlayerOptions &options)
   // Be sure we are using TIME_FORMAT_MEDIA_TIME
   hr = m_pMediaSeeking->SetTimeFormat(&TIME_FORMAT_MEDIA_TIME);
   m_VideoInfo.time_format = TIME_FORMAT_MEDIA_TIME;
+  LONGLONG durati;
+  //this is for the dont adjust refresh rate if video under x minute
+  if (SUCCEEDED(m_pMediaSeeking->GetDuration(&durati)))
+    CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_videoDuration = durati;
 
   // if needed set resolution to match fps then set pixelshader & settings for madVR
   const auto& components = CServiceBroker::GetAppComponents();
+  
   components.GetComponent<CApplicationPlayer>()->SetResolution();
   components.GetComponent<CApplicationPlayer>()->SetPixelShader();
   components.GetComponent<CApplicationPlayer>()->RestoreSettings();
