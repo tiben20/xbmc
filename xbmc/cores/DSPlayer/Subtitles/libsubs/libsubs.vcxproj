@@ -120,7 +120,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">libsubs</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\..\..\..\..\release</OutDir>
+    <OutDir>..\..\..\..\..\project\BuildDependencies\x64\dsplayer</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\..\..\..\project\BuildDependencies\mingwlibs\x64\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
