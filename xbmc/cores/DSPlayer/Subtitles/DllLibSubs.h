@@ -29,6 +29,9 @@
   #include "config.h"
 #endif
 
+#include "libsubs/libsubs.h"
+
+#if 0
 #include "DynamicDll.h"
 #include "libsubs/ISubManager.h"
 #include "ILog.h"
@@ -66,5 +69,4 @@ class DllLibSubs : public DllDynamic, DllLibSubsInterface
     RESOLVE_METHOD(DeleteSubtitleManager)
   END_METHOD_RESOLVE()
 };
-
-
+#endif

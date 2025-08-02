@@ -208,7 +208,10 @@ public:
   { 
     return ((Splitter.guid != GUID_NULL) && !(StringFromGUID(Splitter.guid).compare(L"{B9559486-E1BB-45D3-A2A2-9A7AFE49B23F}"))); 
   }
-  void SetD3DDevice(IDirect3DDevice9 * pD3DDevice){ m_pD3DDevice = pD3DDevice; }
+  void SetD3DDevice(IDirect3DDevice9 * pD3DDevice)
+  { 
+    m_pD3DDevice = pD3DDevice;
+  }
   IDirect3DDevice9* GetD3DDevice(){ return m_pD3DDevice; }
   Com::SComQIPtr<SaneAudioRenderer::ISettings> sanear;
   

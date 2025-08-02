@@ -95,7 +95,8 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
   
   CGUIDialogSettingsManualBase::InitializeSettings();
   
-  m_bMadvr = g_application.GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR);//&& CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) > KODIGUI_NEVER;
+  m_bMadvr = g_application.GetComponent<CApplicationPlayer>()->UsingDS(DIRECTSHOW_RENDERER_MADVR);
+  //&& CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) > KODIGUI_NEVER;
   //m_bMadvr = g_application.m_pPlayer->UsingDS(DIRECTSHOW_RENDERER_MADVR) && (CSettings::GetInstance().GetInt(CSettings::SETTING_DSPLAYER_MANAGEMADVRWITHKODI) > KODIGUI_NEVER);
   m_iSectionIdInternal = m_iSectionId;
 

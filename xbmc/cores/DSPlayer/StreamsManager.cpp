@@ -55,6 +55,8 @@
 #include "guilib/GUIComponent.h"
 #include "guilib/StereoscopicsManager.h"
 
+#pragma comment(lib , "libsubs.lib")
+
 CDSStreamDetail::CDSStreamDetail()
   : IAMStreamSelect_Index(0), flags(0), pObj(NULL), pUnk(NULL), lcid(0),
   group(0), displayname(""), connected(false)
@@ -1584,13 +1586,8 @@ void CStreamsManager::FormatStreamName(CStreamDetail& s)
 }
 
 CSubtitleManager::CSubtitleManager(CStreamsManager* pStreamManager) :
-m_dll(), m_pStreamManager(pStreamManager), m_rtSubtitleDelay(0)
+ m_pStreamManager(pStreamManager), m_rtSubtitleDelay(0)
 {
-  if (!m_dll.Load())
-  {
-    CLog::Log(LOGERROR, "{} Failed to load libsubs.dll", __FUNCTION__);
-  }
-
   memset(&m_subtitleMediaType, 0, sizeof(AM_MEDIA_TYPE));
   m_subtitleMediaType.majortype = MEDIATYPE_Subtitle;
 
@@ -1603,7 +1600,6 @@ m_dll(), m_pStreamManager(pStreamManager), m_rtSubtitleDelay(0)
 CSubtitleManager::~CSubtitleManager()
 {
   Unload();
-  m_dll.Unload();
 }
 
 #define FONT_STYLE_NORMAL       0
@@ -1625,16 +1621,17 @@ void CSubtitleManager::Initialize()
     CLog::Log(LOGINFO, "{} disabled libsubs.dl", __FUNCTION__);
     return;
   }
-  if (!m_dll.IsLoaded())
-    return;
 
   CLog::Log(LOGINFO, "{} enabled libsubs.dl", __FUNCTION__);
   // Log manager for the DLL
   m_Log.reset(new ILogImpl());
+  bool rescreate;
+  if (StringUtils::ToLower(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER)) == "madvr")
+    rescreate = CreateD3D9SubtitleManager(CGraphFilters::Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
+  else
+    rescreate = CreateD3D11SubtitleManager(DX::DeviceResources().Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
 
-  
-
-  m_dll.CreateD3D11SubtitleManager(DX::DeviceResources().Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
+    
 
   if (!pManager)
     return;
@@ -2230,9 +2227,12 @@ CDSStreamDetailSubtitleExternal* CSubtitleManager::GetExternalSubtitleStreamDeta
   return reinterpret_cast<CDSStreamDetailSubtitleExternal *>(m_subtitleStreams[iIndex]);
 }
 
-void CSubtitleManager::DeleteSubtitleManager(ISubManager* pManager, DllLibSubs dll)
+void CSubtitleManager::InternalDeleteSubtitleManager(ISubManager* pManager)
 {
-  dll.DeleteSubtitleManager(pManager);
+  
+  if (!DeleteSubtitleManager(pManager))
+  {
+  }
 }
 
 void CSubtitleManager::SelectBestSubtitle()

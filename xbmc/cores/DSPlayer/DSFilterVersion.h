@@ -20,7 +20,6 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
 #include "GraphFilters.h"
 
 #ifndef HAS_DS_PLAYER

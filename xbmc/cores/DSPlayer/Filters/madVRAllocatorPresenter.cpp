@@ -366,6 +366,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::RenderOsd(LPCSTR name, REFERENCE_TIME fra
       CDSPlayer::PostMessage(new CDSMsg(CDSMsg::PLAYER_PLAYBACK_STARTED), false);
       m_videoStarted = true;
     }
+    
     return m_pMadvrShared->Render(RENDER_LAYER_OVER);
   }
   else
@@ -458,6 +459,8 @@ HRESULT CmadVRAllocatorPresenter::Render( REFERENCE_TIME rtStart, REFERENCE_TIME
   if (atpf > 0 && m_pSubPicQueue) {
     m_fps = 10000000.0 / atpf;
     m_pSubPicQueue->SetFPS(m_fps);
+    CStreamsManager::Get()->SubtitleManager->SetTimePerFrame(atpf);
+    CStreamsManager::Get()->SubtitleManager->SetTime(rtStart);
   }
 
   if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())
@@ -504,7 +507,9 @@ HRESULT CmadVRAllocatorPresenter::Render( REFERENCE_TIME rtStart, REFERENCE_TIME
       m_frameCount = -1;
     }
   }
- 
+  //Com::SmartRect m_windowRect(Com::SmartPoint(0, 0), Com::SmartPoint(GetScreenRect().x2, GetScreenRect().y2));
+  //Com::SmartRect pSrc, pDst;
+  //CStreamsManager::Get()->SubtitleManager->AlphaBlt(DX::DeviceResources::Get()->GetD3DContext(), pSrc, pDst, wndRect);
   AlphaBltSubPic(Com::SmartSize(width, height));
   return S_OK;
 }

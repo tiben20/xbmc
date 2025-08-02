@@ -47,6 +47,35 @@ BOOL LoadSubtitles(IDirect3DDevice9* d3DDev, SIZE size, const wchar_t* fn, IGrap
 
 ILog* g_log = NULL;
 
+bool CreateD3D9SubtitleManager(IDirect3DDevice9* pDevice, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
+{
+  logger->Log(_LOGINFO, "Starting CreateD3D11SubtitleManager");
+  if (!logger)
+    return false;
+  if (!pManager)
+    logger->Log(_LOGERROR, "CreateSubtitleManager pManager is null");
+  if (!pDevice)
+    logger->Log(_LOGERROR, "CreateSubtitleManager ID3D11Device is null");
+  if (!pManager || !pDevice)
+    return false;
+
+  *pManager = NULL;
+  g_log = logger;
+
+  HRESULT hr = S_OK;
+
+  *pManager = new CSubManager(pDevice, size, settings, hr);
+  if (FAILED(hr))
+  {
+    delete* pManager;
+    *pManager = NULL;
+    logger->Log(_LOGERROR, "Failed to create subtitles manager (hr: %X)", hr);
+    return false;
+  }
+
+  return true;
+}
+
 bool CreateD3D11SubtitleManager(ID3D11Device1* pDevice, SIZE size, ILog* logger, SSubSettings settings, ISubManager** pManager)
 {
   logger->Log(_LOGINFO, "Starting CreateD3D11SubtitleManager");

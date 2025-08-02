@@ -2,6 +2,7 @@
 #include "SubManager.h"
 #include <d3d9.h>
 #include "..\subpic\ISubPic.h"
+#include "..\subpic\DX9SubPic.h"
 #include "..\subpic\DX11SubPic.h"
 #include <moreuuids.h>
 #include "..\subtitles\VobSubFile.h"
@@ -29,9 +30,10 @@ CSubManager::CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings
   m_settings.forcePowerOfTwoTextures = settings.forcePowerOfTwoTextures;
   m_settings.textureSize = settings.textureSize;*/
   m_settings = settings;
+  m_bUseD3d9 = false;
 
   //g_log->Log(LOGDEBUG, "texture size {}x{}, buffer ahead: {}", m_settings.textureSize.cx, m_settings.textureSize.cy, m_settings.bufferAhead);
-  m_pAllocator = (new CDX11SubPicAllocator(d3DDev, m_settings.textureSize));
+  m_pAllocator = new CDX11SubPicAllocator(d3DDev, m_settings.textureSize);
   hr = S_OK;
   if (m_settings.bufferAhead > 0)
     m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator, &hr));
@@ -39,6 +41,37 @@ CSubManager::CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings
     m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator, &hr));
   if (FAILED(hr))
     g_log->Log(_LOGERROR, "CSubManager::CSubManager SubPicQueue creation error: %x",  hr);
+}
+
+CSubManager::CSubManager(IDirect3DDevice9* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr) :
+  m_d3D9Dev(d3DDev), m_iSubtitleSel(-1), m_rtNow(-1), m_lastSize(size), m_fps(0),
+  m_rtTimePerFrame(0), m_bOverrideStyle(false), m_pSubPicProvider(NULL)
+{
+  if (!m_d3D9Dev)
+  {
+    hr = E_POINTER;
+    return;
+  }
+
+  //memcpy(&m_settings, settings, sizeof(m_settings));
+  /*m_settings.bufferAhead = settings.bufferAhead;
+  m_settings.disableAnimations = settings.disableAnimations;
+  m_settings.forcePowerOfTwoTextures = settings.forcePowerOfTwoTextures;
+  m_settings.textureSize = settings.textureSize;*/
+  m_settings = settings;
+  m_bUseD3d9 = true;
+
+  //g_log->Log(LOGDEBUG, "texture size {}x{}, buffer ahead: {}", m_settings.textureSize.cx, m_settings.textureSize.cy, m_settings.bufferAhead);
+
+  m_pAllocator = new CDX9SubPicAllocator(m_d3D9Dev.Get(), m_settings.textureSize, true);
+
+  hr = S_OK;
+  if (m_settings.bufferAhead > 0)
+    m_pSubPicQueue.reset(new CSubPicQueue(m_settings.bufferAhead, m_settings.disableAnimations, m_pAllocator, &hr));
+  else
+    m_pSubPicQueue.reset(new CSubPicQueueNoThread(m_pAllocator, &hr));
+  if (FAILED(hr))
+    g_log->Log(_LOGERROR, "CSubManager::CSubManager SubPicQueue creation error: %x", hr);
 }
 
 CSubManager::~CSubManager(void)

@@ -384,10 +384,9 @@ public:
 private:
   void DisconnectCurrentSubtitlePins(void);
   IPin *GetFirstSubtitlePin(void);
-  static void DeleteSubtitleManager(ISubManager* pManager, DllLibSubs dll);
+  static void InternalDeleteSubtitleManager(ISubManager* pManager);
 
   std::vector<CDSStreamDetailSubtitle *> m_subtitleStreams;
-  DllLibSubs m_dll;
   std::shared_ptr<ISubManager> m_pManager;
   std::shared_ptr<ILogImpl> m_Log;
   CStreamsManager* m_pStreamManager;

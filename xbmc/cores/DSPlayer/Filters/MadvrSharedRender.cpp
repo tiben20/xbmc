@@ -33,6 +33,8 @@
 #include "../../cores/videosettings.h"
 
 #include "settings/AdvancedSettings.h"
+#include <DSUtil/Geometry.h>
+#include <StreamsManager.h>
 
 
 CMadvrSharedRender::CMadvrSharedRender()
@@ -111,6 +113,11 @@ void CMadvrSharedRender::RenderToTexture(DS_RENDER_LAYER layer)
 
 void CMadvrSharedRender::EndRender()
 {
+  Com::SmartRect pSrc, pDst, wr;
+  wr.right = m_dwWidth;
+  wr.bottom = m_dwHeight;
+  
+  CStreamsManager::Get()->SubtitleManager->AlphaBlt(DX::DeviceResources::Get()->GetD3DContext(), pSrc, pDst, wr);
   // Force to complete the rendering on Kodi device
   DX::DeviceResources::Get()->FinishCommandList();
   ForceComplete();

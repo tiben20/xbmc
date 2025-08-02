@@ -13,6 +13,7 @@ class CSubManager: public ISubManager
 {
 public:
   CSubManager(ID3D11Device1* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr);
+  CSubManager(IDirect3DDevice9* d3DDev, SIZE size, SSubSettings settings, HRESULT& hr);
   ~CSubManager(void);
 
   void SetEnable(bool enable);
@@ -67,9 +68,12 @@ private:
   Com::SComPtr<ISubPicAllocator> m_pAllocator;
 
   Com::SComQIPtr<IAMStreamSelect> m_pSS; //graph filter with subtitles
+  Microsoft::WRL::ComPtr<IDirect3DDevice9> m_d3D9Dev;
   Microsoft::WRL::ComPtr<ID3D11Device1> m_d3DDev;
   Com::SComPtr<ISubStream> m_pInternalSubStream;
   ISubPicProvider* m_pSubPicProvider; // save when changing d3d device
+
+  bool m_bUseD3d9;
 
   REFERENCE_TIME m_rtTimePerFrame;
 
