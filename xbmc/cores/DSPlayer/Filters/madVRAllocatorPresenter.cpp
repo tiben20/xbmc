@@ -386,7 +386,7 @@ STDMETHODIMP CmadVRAllocatorPresenter::SetDeviceOsd(IDirect3DDevice9* pD3DDev)
 
 HRESULT CmadVRAllocatorPresenter::SetDevice(IDirect3DDevice9* pD3DDev)
 {
-  CLog::Log(LOGDEBUG, "{} madVR's device it's ready", __FUNCTION__);
+  CLog::Log(LOGINFO, "{} madVR's device it's ready", __FUNCTION__);
 
   if (!pD3DDev)
   {
@@ -459,8 +459,6 @@ HRESULT CmadVRAllocatorPresenter::Render( REFERENCE_TIME rtStart, REFERENCE_TIME
   if (atpf > 0 && m_pSubPicQueue) {
     m_fps = 10000000.0 / atpf;
     m_pSubPicQueue->SetFPS(m_fps);
-    CStreamsManager::Get()->SubtitleManager->SetTimePerFrame(atpf);
-    CStreamsManager::Get()->SubtitleManager->SetTime(rtStart);
   }
 
   if (!g_application.GetComponent<CApplicationPlayer>()->IsRenderingVideo())

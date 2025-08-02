@@ -546,7 +546,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
   END_PERFORMANCE_COUNTER("Loading splitter filter");
 
   //subtitles not right noew
-#if TODO
+
   START_PERFORMANCE_COUNTER
 
     if (SUCCEEDED(CFilterCoreFactory::GetSubsFilter(pFileItem, filter, CGraphFilters::Get()->IsUsingDXVADecoder())))
@@ -559,7 +559,7 @@ HRESULT CFGLoader::LoadFilterRules(const CFileItem& _pFileItem)
         return E_FAIL;
       END_PERFORMANCE_COUNTER("Loading subs filter");
     }
-#endif
+
     // Init Streams manager, and load streams
     START_PERFORMANCE_COUNTER
       CStreamsManager::Create();

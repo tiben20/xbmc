@@ -1618,7 +1618,7 @@ void CSubtitleManager::Initialize()
   ISubManager *pManager = NULL;
 
   if (CGraphFilters::Get()->Subs.pBF != nullptr) {
-    CLog::Log(LOGINFO, "{} disabled libsubs.dl", __FUNCTION__);
+    CLog::Log(LOGINFO, "{} disabled libsubs xyfilter loaded", __FUNCTION__);
     return;
   }
 
@@ -1744,7 +1744,7 @@ void CSubtitleManager::Unload()
     delete m_subtitleStreams.back();
     m_subtitleStreams.pop_back();
   }
-  //m_pManager.reset();
+  m_pManager.reset();
 }
 
 void CSubtitleManager::SetTimePerFrame(REFERENCE_TIME iTimePerFrame)
