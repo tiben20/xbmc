@@ -1627,7 +1627,10 @@ void CSubtitleManager::Initialize()
   m_Log.reset(new ILogImpl());
   bool rescreate;
   if (StringUtils::ToLower(CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_VIDEORENDERER)) == "madvr")
-    rescreate = CreateD3D9SubtitleManager(CGraphFilters::Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
+  {
+    CLog::Log(LOGERROR, "for madvr use xyfilter");
+    //rescreate = CreateD3D9SubtitleManager(CGraphFilters::Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
+  }
   else
     rescreate = CreateD3D11SubtitleManager(DX::DeviceResources().Get()->GetD3DDevice(), s, m_Log.get(), g_dsSettings.pRendererSettings->subtitlesSettings, &pManager);
 

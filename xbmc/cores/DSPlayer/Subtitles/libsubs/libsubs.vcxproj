@@ -49,7 +49,7 @@
     <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -120,7 +120,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">libsubs</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\..\..\..\..\project\BuildDependencies\x64\dsplayer</OutDir>
+    <OutDir>..\..\..\..\..\project\BuildDependencies\x64\lib</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\..\..\..\project\BuildDependencies\mingwlibs\x64\include\;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
@@ -129,7 +129,7 @@
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\Release\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\..\..\..\msvc\debug</OutDir>
+    <OutDir>..\..\..\..\..\project\BuildDependencies\x64\lib</OutDir>
     <IntDir>..\..\..\..\..\kodi-build\build\$(ProjectName)\$(Configuration)\</IntDir>
     <IncludePath>..\..\..\..\..\project\BuildDependencies\mingwlibs\x64\include\;$(IncludePath)</IncludePath>
   </PropertyGroup>
