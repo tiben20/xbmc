@@ -1812,7 +1812,12 @@ bool CDSPlayer::Configure(unsigned int width, unsigned int height, unsigned int 
 {
   m_fps = fps;
   UpdateProcessInfo();
-  return m_renderManager.Configure(width, height, d_width, d_height, fps, flags);
+  bool configureres = m_renderManager.Configure(width, height, d_width, d_height, fps, flags);
+  if (UsingDS(DIRECTSHOW_RENDERER_MADVR))
+  {
+    m_pAllocatorCallback->SetViewMode(CMediaSettings::GetInstance().GetDefaultVideoSettings().m_ViewMode);
+  }
+  return configureres;
 }
 
 bool CDSPlayer::UsingDS(DIRECTSHOW_RENDERER videoRenderer) const

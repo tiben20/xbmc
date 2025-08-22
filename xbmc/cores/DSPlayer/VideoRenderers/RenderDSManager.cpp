@@ -155,9 +155,8 @@ bool CRenderDSManager::Configure()
   bool result;
   if (m_currentRenderer == DIRECTSHOW_RENDERER_MADVR)
   {
-    
-
     result = reinterpret_cast<CWinDsRenderer*>(m_pRenderer.get())->Configure(m_width, m_height, m_dwidth, m_dheight, m_fps, m_flags, (AVPixelFormat)0, 0, 0);
+    
   }
   else if (m_currentRenderer == DIRECTSHOW_RENDERER_MPCVR)
   {

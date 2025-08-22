@@ -264,16 +264,7 @@ void CmadVRAllocatorPresenter::DisplayChange(bool bExternalChange)
 void CmadVRAllocatorPresenter::SetViewMode(int viewMode)
 {
   CAutoLock cAutoLock(this);
-  /*  ViewModeNormal = 0,
-  ViewModeZoom,
-  ViewModeStretch4x3,
-  ViewModeWideZoom,
-  ViewModeStretch16x9,
-  ViewModeOriginal,
-  ViewModeCustom,
-  ViewModeStretch16x9Nonlin,
-  ViewModeZoom120Width,
-  ViewModeZoom110Width*/
+
   // available commands:
 // -------------------
 // disableSeekbar,          bool,      turn madVR's automatic exclusive mode on/off
@@ -293,11 +284,20 @@ void CmadVRAllocatorPresenter::SetViewMode(int viewMode)
   if (Com::SComQIPtr<IMadVRCommand> pMadVrCmd = m_pDXR.p)
   {
     CStdStringW aa;
-    
+    /*  ViewModeNormal = 0,
+ViewModeZoom,
+ViewModeStretch4x3,
+ViewModeWideZoom,
+ViewModeStretch16x9,
+ViewModeOriginal,
+ViewModeCustom,
+ViewModeStretch16x9Nonlin,
+ViewModeZoom120Width,
+ViewModeZoom110Width*/
     std::wstring madVRModesMap[] = {
-                    L"autoDetect",
                     L"touchInside",
                     L"touchOutside",
+                    L"autoDetect",
                     L"stretch",
                     L"100%",
                     L"10%",
