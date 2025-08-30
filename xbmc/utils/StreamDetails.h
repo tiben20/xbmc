@@ -104,7 +104,10 @@ class CStreamDetailEditon : public CStreamDetail
 public:
   CStreamDetailEditon();
   virtual void Archive(CArchive& ar);
-  virtual void Serialize(CVariant& value);
+
+  virtual void Serialize(CVariant& value) const
+  {
+  }
   std::string m_strName;
 };
 #endif

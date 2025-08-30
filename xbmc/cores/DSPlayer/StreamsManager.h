@@ -147,6 +147,16 @@ public:
   {
 
   };
+  bool IsWorseThan(const CStreamDetail& that) const
+  {
+    //TODO
+    return false;
+  };
+  void Archive(CArchive& ar)
+  {
+    //TODO
+  }
+
 };
 
 /// Informations about an external subtitle
@@ -198,7 +208,7 @@ public:
 
   int  GetSubtitleCount();
   int  GetSubtitle();
-  void GetSubtitleName(int iStream, std::string &strStreamName, std::string& strStreamLang);
+  void GetSubtitleName(int iStream, std::string &strStreamName);
   bool GetSubtitleVisible();
   void SetSubtitleVisible(bool bVisible);
   bool SetSubtitle(const std::string &sTrackName);
@@ -263,10 +273,10 @@ public:
    * @param[in] mt Media type informations
    * @param[out] s A filled SStreamInfos structure
    */
-  static void MediaTypeToStreamDetail(AM_MEDIA_TYPE *mt, CDSStreamDetail& s);
+  static void MediaTypeToStreamDetail(AM_MEDIA_TYPE *mt, CStreamDetail& s);
   static void FormatStreamName(CStreamDetail& s);
   static void FormatStreamNameBySplitter(CStreamDetail& s);
-  static void ExtractCodecDetail(CStreamDetail& s, std::string codecInfos);
+  static void ExtractCodecDetail(CStreamDetail& s, std::string& codecInfos);
   static std::string ISOToLanguage(std::string code);
 
   void LoadDVDStreams();

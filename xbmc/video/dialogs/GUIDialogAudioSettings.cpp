@@ -69,7 +69,7 @@ void CGUIDialogAudioSettings::FrameMove()
     //! @todo (needs special handling): m_settingsManager->SetInt(SETTING_AUDIO_STREAM, g_application.GetAppPlayer().GetAudioStream());
 #if HAS_DS_PLAYER
     if (m_bIsDSPlayer)
-      GetSettingsManager()->SetNumber(SETTING_AUDIO_DELAY, -videoSettings.m_AudioDelay);
+      GetSettingsManager()->SetNumber(SETTING_AUDIO_DELAY, static_cast<double>(-videoSettings.m_AudioDelay));
     else
 #endif
 	  GetSettingsManager()->SetNumber(SETTING_AUDIO_DELAY,
@@ -132,7 +132,11 @@ void CGUIDialogAudioSettings::OnSettingChanged(const std::shared_ptr<const CSett
   {
 #if HAS_DS_PLAYER
     float value = static_cast<float>(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
-    m_bIsDSPlayer ? value = -value : value = value;
+      CVideoSettings vs = appPlayer->GetVideoSettings();
+      if (m_bIsDSPlayer)
+        vs.m_AudioDelay = -value;
+      else
+        vs.m_AudioDelay = value;
 #else
     float value = static_cast<float>(std::static_pointer_cast<const CSettingNumber>(setting)->GetValue());
 #endif
@@ -195,6 +199,7 @@ bool CGUIDialogAudioSettings::Save()
   const auto appPlayer = components.GetComponent<CApplicationPlayer>();
   CMediaSettings::GetInstance().GetDefaultVideoSettings() = appPlayer->GetVideoSettings();
   CMediaSettings::GetInstance().GetDefaultVideoSettings().m_AudioStream = -1;
+  float m_AudioDelay = CMediaSettings::GetInstance().GetDefaultVideoSettings().m_AudioDelay;
   CServiceBroker::GetSettingsComponent()->GetSettings()->Save();
 
   return true;

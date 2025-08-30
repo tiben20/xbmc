@@ -183,6 +183,7 @@ bool CStreamDetailSubtitle::IsWorseThan(const CStreamDetail &that) const
 CStreamDetailEditon::CStreamDetailEditon():CStreamDetail(CStreamDetail::EDITION)
 {
 }
+
 void CStreamDetailEditon::Archive(CArchive& ar)
 {
 #if TODO
@@ -196,10 +197,6 @@ void CStreamDetailEditon::Archive(CArchive& ar)
   {
     ar >> m_strName;
   }
-}
-void CStreamDetailEditon::Serialize(CVariant& value)
-{
-  value["name"] = m_strName;
 }
 #endif
 

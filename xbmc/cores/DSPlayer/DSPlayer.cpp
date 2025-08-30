@@ -211,6 +211,7 @@ void CDSPlayer::SetSubtitleVisible(bool bVisible)
 {
   if (CStreamsManager::Get())
     CStreamsManager::Get()->SetSubtitleVisible(bVisible);
+  m_processInfo->GetVideoSettingsLocked().SetSubtitleVisible(bVisible);
 }
 
 void CDSPlayer::AddSubtitle(const std::string& strSubPath) 
@@ -524,14 +525,14 @@ void CDSPlayer::GetAudioStreamInfo(int index, AudioStreamInfo& info) const
 void CDSPlayer::GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) const
 {
   std::string strStreamName;
-  std::string strStreamLang;
   if (CStreamsManager::Get())
   {
     
-    CStreamsManager::Get()->GetSubtitleName(index, info.name, info.language);
-    return;
+    CStreamsManager::Get()->GetSubtitleName(index, strStreamName);
+    
   }
-  info.name = "Dunno";
+  info.language = strStreamName;
+  info.name = strStreamName;
 }
 
 bool CDSPlayer::IsPlaying() const
@@ -575,7 +576,7 @@ void CDSPlayer::SetAVDelay(float fValue)
 {
   //get displaylatency
   int iDisplayLatency = m_renderManager.GetDisplayLatency() * 1000;
-
+  m_processInfo->GetVideoSettingsLocked().SetAudioDelay(fValue);
   if (CStreamsManager::Get()) CStreamsManager::Get()->SetAVDelay(fValue,iDisplayLatency);
 
   SetAudioCodeDelayInfo();
@@ -599,6 +600,7 @@ float CDSPlayer::GetSubTitleDelay()
 
 void CDSPlayer::SetSubTitleDelay(float fValue)
 {
+  m_processInfo->GetVideoSettingsLocked().SetAudioDelay(fValue);
   if (CStreamsManager::Get())
     CStreamsManager::Get()->SetSubTitleDelay(fValue);
 }
