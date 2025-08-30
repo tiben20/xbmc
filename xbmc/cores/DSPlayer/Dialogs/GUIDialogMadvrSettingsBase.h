@@ -40,7 +40,10 @@ protected:
   virtual void RestoreControlStates();
 
   static void SetSection(int iSectionId, int label = -1 ) { m_iSectionId = iSectionId; m_label = label; }
-  static void MadvrSettingsOptionsString(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data);
+  static void MadvrSettingsOptionsString(const std::shared_ptr<const CSetting>& setting,
+    StringSettingOptions& list,
+    std::string& current,
+    void* data);
   static int m_iSectionId;
   static int m_label;
 

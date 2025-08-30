@@ -161,9 +161,9 @@ public:
   virtual bool IsRenderingVideo() const override;
   virtual bool IsRenderingGuiLayer() override;
   virtual bool IsRenderingVideoLayer() override;
-  virtual bool Supports(EINTERLACEMETHOD method) override;
-  virtual bool Supports(ESCALINGMETHOD method) override;
-  virtual bool Supports(ERENDERFEATURE feature) override;
+  virtual bool Supports(EINTERLACEMETHOD method) const override;
+  virtual bool Supports(ESCALINGMETHOD method) const override;
+  virtual bool Supports(ERENDERFEATURE feature) const override;
 
   // IDSRendererAllocatorCallback
   CRect GetActiveVideoRect() override;

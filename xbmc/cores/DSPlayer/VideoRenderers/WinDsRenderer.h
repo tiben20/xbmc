@@ -62,6 +62,7 @@ public:
   void RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha) override;
   bool RenderCapture(int index, CRenderCapture* capture) override;
   bool Supports(ESCALINGMETHOD method) const override;
+  bool Supports(ERENDERFEATURE feature) const override;
   bool ConfigChanged(const VideoPicture& picture) override;
 
   virtual bool         Configure(unsigned int width, unsigned int height, unsigned int d_width, unsigned int d_height, float fps, unsigned flags, AVPixelFormat format, unsigned extended_format, unsigned int orientation);
@@ -79,8 +80,6 @@ public:
 
   // Feature support
   virtual bool         SupportsMultiPassRendering() { return false; }
-  virtual bool         Supports(ERENDERFEATURE feature);
-  virtual bool         Supports(ESCALINGMETHOD method);
 
   void                 RenderUpdate(bool clear, unsigned int flags = 0, unsigned int alpha = 255);
 

@@ -78,11 +78,11 @@ int CDSFilterVersion::GetIntVersion(const std::string &type)
 void CDSFilterVersion::InitVersion()
 {
   // Internal Filters
-  GetVersionByFilter(CGraphFilters::INTERNAL_LAVSPLITTER, true);
-  GetVersionByFilter(CGraphFilters::INTERNAL_LAVVIDEO);
-  GetVersionByFilter(CGraphFilters::INTERNAL_LAVAUDIO);
-  GetVersionByFilter(CGraphFilters::INTERNAL_XYSUBFILTER);
-  GetVersionByFilter(CGraphFilters::INTERNAL_XYVSFILTER);
+  //GetVersionByFilter(CGraphFilters::INTERNAL_LAVSPLITTER, true);
+  //GetVersionByFilter(CGraphFilters::INTERNAL_LAVVIDEO);
+  //GetVersionByFilter(CGraphFilters::INTERNAL_LAVAUDIO);
+  //GetVersionByFilter(CGraphFilters::INTERNAL_XYSUBFILTER);
+  //GetVersionByFilter(CGraphFilters::INTERNAL_XYVSFILTER);
 
   // madvR
   FilterVersion filterVersion;
@@ -140,7 +140,7 @@ void CDSFilterVersion::GetVersionByPath(const CStdStringW &path, FilterVersion &
           VS_FIXEDFILEINFO *verInfo = (VS_FIXEDFILEINFO *)lpBuffer;
           if (verInfo->dwSignature == 0xfeef04bd)
           {
-            filterVersion.sVersion = StringUtils::Format("v%d.%d.%d.%d",
+            filterVersion.sVersion = StringUtils::Format("v{}.{}.{}.{}",
               (verInfo->dwFileVersionMS >> 16) & 0xffff,
               (verInfo->dwFileVersionMS >> 0) & 0xffff,
               (verInfo->dwFileVersionLS >> 16) & 0xffff,
@@ -170,6 +170,8 @@ std::wstring CDSFilterVersion::GetMadvrFilePath()
     DWORD valType;
     if (RegQueryValueExW(hKey, NULL, 0, &valType, (LPBYTE)buf, &bufSize) == ERROR_SUCCESS && valType == REG_SZ)
     {
+      //g_charsetConverter.wToUTF8(std::wstring(buf, bufSize / sizeof(wchar_t)), sPath);
+      sPath = std::wstring(buf, bufSize / sizeof(wchar_t));
       //g_charsetConverter.wToUTF8(std::wstring(buf, bufSize / sizeof(wchar_t)), sPath);
     }
     RegCloseKey(hKey);

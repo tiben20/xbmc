@@ -329,8 +329,7 @@ void CGUIDialogVideoSettings::OnSettingAction(const std::shared_ptr<const CSetti
       if ((pBF == CGraphFilters::Get()->AudioRenderer.pBF 
         && CGraphFilters::Get()->AudioRenderer.guid != CLSID_ReClock 
         && CGraphFilters::Get()->AudioRenderer.guid != CLSID_SANEAR
-        && CGraphFilters::Get()->AudioRenderer.guid != CLSID_SANEAR_INTERNAL)
-        || pBF == CGraphFilters::Get()->VideoRenderer.pBF)
+        && CGraphFilters::Get()->AudioRenderer.guid != CLSID_SANEAR_INTERNAL))
         continue;
 
       Com::SComQIPtr<ISpecifyPropertyPages> pProp = pBF.p;
@@ -437,7 +436,7 @@ void CGUIDialogVideoSettings::InitializeSettings()
   }
 
 #if HAS_DS_PLAYER
-  const std::shared_ptr<CSettingGroup> groupFilters = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupFilters = AddGroup(category);
   if (groupFilters == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogVideoSettings: unable to setup settings");
@@ -451,7 +450,7 @@ void CGUIDialogVideoSettings::InitializeSettings()
     CLog::Log(LOGERROR, "CGUIDialogVideoSettings: unable to setup settings");
     return;
   }
-  const std::shared_ptr<CSettingGroup> groupVideo = AddGroup(category);
+  std::shared_ptr<CSettingGroup> groupVideo = AddGroup(category);
   if (groupVideo == NULL)
   {
     CLog::Log(LOGERROR, "CGUIDialogVideoSettings: unable to setup settings");

@@ -130,7 +130,8 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
       AddButton(groupMadvrSave, SETTING_VIDEO_SAVE, 70600, SettingLevel::Basic);
     }
   }
-
+  std::shared_ptr<CSettingGroup> groupFilters = AddGroup(m_category);
+  AddButton(groupFilters, "video.dsfilters", 55062, SettingLevel::Basic);
   std::map<int, std::shared_ptr<CSettingGroup>> groups;
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
   g_application.GetComponent<CApplicationPlayer>()->LoadSettings(m_iSectionId);
@@ -165,7 +166,8 @@ void CGUIDialogMadvrSettingsBase::InitializeSettings()
     }
     else if (it.type.find("list_") != std::string::npos)
     {
-#if TODO
+      CLog::Log(LOGERROR, "CGUIDialogMadvrSettings: TODO");
+#if 1
       if (!it.optionsInt.empty())
         setting = AddList(groups[it.group], it.dialogId, it.label, SettingLevel::Basic, madvrSettings.m_db[it.name].asInteger(), it.optionsInt, it.label);
       else
@@ -491,7 +493,11 @@ void CGUIDialogMadvrSettingsBase::SaveMadvrSettings()
   }
 }
 
-void CGUIDialogMadvrSettingsBase::MadvrSettingsOptionsString(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+//void CGUIDialogMadvrSettingsBase::MadvrSettingsOptionsString(const CSetting *setting, std::vector< std::pair<std::string, std::string> > &list, std::string &current, void *data)
+void CGUIDialogMadvrSettingsBase::MadvrSettingsOptionsString(const std::shared_ptr<const CSetting>& setting,
+  StringSettingOptions& list,
+  std::string& current,
+  void* data)
 {
   CMadvrSettings &madvrSettings = CMediaSettings::GetInstance().GetCurrentMadvrSettings();
 
@@ -505,6 +511,6 @@ void CGUIDialogMadvrSettingsBase::MadvrSettingsOptionsString(const CSetting *set
   if (it != madvrSettings.m_gui[m_iSectionId].end())
   {
     for (const auto &option : it->optionsString)
-      list.emplace_back(g_localizeStrings.Get(option.first), option.second);
+      list.emplace_back(option);
   }
 }

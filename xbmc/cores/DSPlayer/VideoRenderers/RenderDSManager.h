@@ -78,8 +78,8 @@ public:
   void Reset();
 
   // Functions called from GUI
-  bool Supports(ERENDERFEATURE feature);
-  bool Supports(ESCALINGMETHOD method);
+  bool Supports(ERENDERFEATURE feature) const;
+  bool Supports(ESCALINGMETHOD method) const;
 
   double GetDisplayLatency() { return m_displayLatency; }
 

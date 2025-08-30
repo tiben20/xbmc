@@ -591,7 +591,7 @@ void CRenderDSManager::ToggleDebug()
   m_debugTimer.SetExpired();
 }
 
-bool CRenderDSManager::Supports(ERENDERFEATURE feature)
+bool CRenderDSManager::Supports(ERENDERFEATURE feature) const
 {
   CSingleExit lock(m_statelock);
   if (m_pRenderer)
@@ -600,7 +600,7 @@ bool CRenderDSManager::Supports(ERENDERFEATURE feature)
     return false;
 }
 
-bool CRenderDSManager::Supports(ESCALINGMETHOD method)
+bool CRenderDSManager::Supports(ESCALINGMETHOD method) const
 {
   CSingleExit lock(m_statelock);
   if (m_pRenderer)

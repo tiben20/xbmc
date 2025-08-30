@@ -685,11 +685,11 @@ HRESULT CFGLoader::LoadConfig(FILTERSMAN_TYPE filterManager)
   // Two steps
   if (filterManager == NOFILTERMAN)
     filterManager = (FILTERSMAN_TYPE)CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_DSPLAYER_FILTERSMANAGEMENT);
-
+  const std::shared_ptr<CProfileManager> profileManager = CServiceBroker::GetSettingsComponent()->GetProfileManager();
   if (filterManager == MEDIARULES)
   {
     // First, filters
-    LoadFilterCoreFactorySettings(CServiceBroker::GetSettingsComponent()->GetProfileManager()->GetUserDataItem("dsplayer/filtersconfig.xml"), FILTERS, true);
+    LoadFilterCoreFactorySettings(profileManager->GetUserDataItem("dsplayer/filtersconfig.xml"), FILTERS, true);
     LoadFilterCoreFactorySettings("special://xbmc/system/players/dsplayer/filtersconfig.xml", FILTERS, false);
 
     // Second, medias rules

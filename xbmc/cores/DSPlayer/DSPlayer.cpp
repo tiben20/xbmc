@@ -1497,7 +1497,7 @@ bool CDSPlayer::IsRenderingVideoLayer()
   return m_renderManager.IsVideoLayer();
 }
 
-bool CDSPlayer::Supports(EINTERLACEMETHOD method)
+bool CDSPlayer::Supports(EINTERLACEMETHOD method) const
 {
   if (method == VS_INTERLACEMETHOD_NONE
     || method == VS_INTERLACEMETHOD_AUTO
@@ -1507,12 +1507,12 @@ bool CDSPlayer::Supports(EINTERLACEMETHOD method)
   return false;
 }
 
-bool CDSPlayer::Supports(ESCALINGMETHOD method)
+bool CDSPlayer::Supports(ESCALINGMETHOD method) const
 {
   return m_renderManager.Supports(method);
 }
 
-bool CDSPlayer::Supports(ERENDERFEATURE feature)
+bool CDSPlayer::Supports(ERENDERFEATURE feature) const
 {
   return m_renderManager.Supports(feature);
 }

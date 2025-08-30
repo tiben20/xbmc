@@ -65,8 +65,15 @@ public:
   const CVideoSettings& GetAtStartVideoSettings() const { return m_atstartVideoSettings; }
   CVideoSettings& GetAtStartVideoSettings() { return m_atstartVideoSettings; }
 
-  const CMadvrSettings& GetCurrentMadvrSettings() const { return m_currentMadvrSettings; }
-  CMadvrSettings& GetCurrentMadvrSettings() { return m_currentMadvrSettings; }
+  const CMadvrSettings& GetCurrentMadvrSettings() const
+  { 
+    return m_currentMadvrSettings; 
+  }
+  CMadvrSettings& GetCurrentMadvrSettings()
+  {
+    m_currentMadvrSettings.LateInit();
+    return m_currentMadvrSettings; 
+  }
 
   const CLavSettings& GetCurrentLavSettings() const { return m_currentLavSettings; }
   CLavSettings& GetCurrentLavSettings() { return m_currentLavSettings; }

@@ -65,8 +65,8 @@ struct MadvrListSettings
   int label = 0;
   MadvrSlider slider;
   int sectionId = 0;
-  std::vector< std::pair<int, int> > optionsInt;
-  std::vector< std::pair<int, std::string> > optionsString;
+  IntegerSettingOptions optionsInt;
+  StringSettingOptions optionsString;
 };
 
 class CMadvrSettings
@@ -80,6 +80,7 @@ public:
   void RestoreAtStartSettings();
   bool SettingsChanged();
   void UpdateSettings();
+  void LateInit();
 
   CVariant m_db;
   
@@ -114,6 +115,8 @@ private:
   CVariant m_dbDefault;
 
   CXBMCTinyXML m_XML;
+
+  bool m_bInitied;
 };
 
 //#endif // !defined(AFX_MADVRSETTINGS_H__562A722A_CD2A_4B4A_8A67_32DE8088A7D3__INCLUDED_)

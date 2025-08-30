@@ -107,11 +107,6 @@ bool CWinDsRenderer::RenderCapture(int index, CRenderCapture* capture)
   return false;
 }
 
-bool CWinDsRenderer::Supports(ESCALINGMETHOD method) const
-{
-  return false;
-}
-
 bool CWinDsRenderer::ConfigChanged(const VideoPicture& picture)
 {
   return false;
@@ -251,7 +246,7 @@ void CWinDsRenderer::Render(DWORD flags)
   
 }
 
-bool CWinDsRenderer::Supports(ESCALINGMETHOD method)
+bool CWinDsRenderer::Supports(ESCALINGMETHOD method) const
 {
   if(method == VS_SCALINGMETHOD_NEAREST
   || method == VS_SCALINGMETHOD_LINEAR)
@@ -260,7 +255,7 @@ bool CWinDsRenderer::Supports(ESCALINGMETHOD method)
   return false;
 }
 
-bool CWinDsRenderer::Supports( ERENDERFEATURE method )
+bool CWinDsRenderer::Supports( ERENDERFEATURE method ) const
 {
   if ( method == RENDERFEATURE_CONTRAST
     || method == RENDERFEATURE_BRIGHTNESS

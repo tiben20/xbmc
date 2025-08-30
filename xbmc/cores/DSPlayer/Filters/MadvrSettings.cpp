@@ -36,6 +36,7 @@
 #include "Application/Application.h"
 #include "utils/DSFileUtils.h"
 #include "settings/SettingsComponent.h"
+#include <guilib/LocalizeStrings.h>
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -53,12 +54,17 @@ CMadvrSettings::CMadvrSettings()
   m_madvrJsonAtStart = "";
   m_iSubSectionId = 0;
   m_bDebug = false;
-#if TODO
-  InitSettings();
-#endif
+  m_bInitied = false;
+  //InitSettings();
+
 
 }
 
+void CMadvrSettings::LateInit()
+{
+  if (!m_bInitied)
+    InitSettings();
+}
 void CMadvrSettings::UpdateSettings()
 {
   m_Resolution = -1;
@@ -73,6 +79,7 @@ void CMadvrSettings::UpdateSettings()
   m_sections.clear();
   m_profiles.clear();
   g_application.LoadLanguage(true);
+  
   InitSettings();
 }
 
@@ -123,6 +130,7 @@ void CMadvrSettings::InitSettings()
   }
 
   m_dbDefault = m_db;
+  m_bInitied = true;
 }
 
 void CMadvrSettings::LoadMadvrXML(const std::string &xmlFile, const std::string &xmlRoot, TiXmlElement* &pNode)
@@ -285,7 +293,7 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
   {
     TiXmlElement *pOption = pSetting->FirstChildElement("option");
     while (pOption)
-    { 
+    {
       int iLabel;
       CVariant value;
       if (!CDSXMLUtils::GetInt(pOption, "label", &iLabel))
@@ -295,9 +303,13 @@ void CMadvrSettings::AddSetting(TiXmlNode *pNode, int iSectionId, int iGroupId)
         CLog::Log(LOGERROR, "{} missing attritube (value) for setting option name={}", __FUNCTION__, setting.name.c_str());
 
       if (value.isInteger())
-        setting.optionsInt.emplace_back(iLabel, value.asInteger());
+      {
+        setting.optionsInt.emplace_back(IntegerSettingOption(g_localizeStrings.Get(iLabel), value.asInteger()));
+      }
       else
-        setting.optionsString.emplace_back(iLabel, value.asString());
+      {
+        setting.optionsString.emplace_back(StringSettingOption(g_localizeStrings.Get(iLabel), value.asString()));
+      }
 
       // add options list
       m_options[setting.name].emplace_back(std::move(value));
