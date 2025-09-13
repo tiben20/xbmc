@@ -1,5 +1,5 @@
 #pragma once
-#if TODO
+
 #include <dshow.h>
 #include <guiddef.h>
 
@@ -26,4 +26,3 @@ namespace SaneAudioRenderer
     };
 
 }
-#endif

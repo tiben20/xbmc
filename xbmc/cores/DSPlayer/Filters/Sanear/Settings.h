@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Interfaces.h"
-
+#include "threads/CriticalSection.h"
+#include "Streams.h"
 namespace SaneAudioRenderer
 {
     class Settings final

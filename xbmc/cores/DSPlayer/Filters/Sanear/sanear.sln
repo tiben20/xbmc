@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sanear", "sanear.vcxproj", "{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646} = {0FD9BF8F-2397-4E23-B41E-E4624F35D646}
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547} = {4C7A1953-CBC4-42D5-A12F-BB512C64B547}
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F} = {7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bs2b", "lib\bs2b\bs2b.vcxproj", "{0FD9BF8F-2397-4E23-B41E-E4624F35D646}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "lib\SoundTouch\SoundTouch.vcxproj", "{4C7A1953-CBC4-42D5-A12F-BB512C64B547}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soxr", "lib\soxr\soxr.vcxproj", "{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Debug|x64.ActiveCfg = Debug|x64
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Debug|x64.Build.0 = Debug|x64
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Debug|x86.ActiveCfg = Debug|Win32
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Debug|x86.Build.0 = Debug|Win32
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Release|x64.ActiveCfg = Release|x64
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Release|x64.Build.0 = Release|x64
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Release|x86.ActiveCfg = Release|Win32
+		{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}.Release|x86.Build.0 = Release|Win32
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Debug|x64.ActiveCfg = Debug|x64
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Debug|x64.Build.0 = Debug|x64
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Debug|x86.ActiveCfg = Debug|Win32
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Debug|x86.Build.0 = Debug|Win32
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Release|x64.ActiveCfg = Release|x64
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Release|x64.Build.0 = Release|x64
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Release|x86.ActiveCfg = Release|Win32
+		{0FD9BF8F-2397-4E23-B41E-E4624F35D646}.Release|x86.Build.0 = Release|Win32
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Debug|x64.ActiveCfg = Debug|x64
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Debug|x64.Build.0 = Debug|x64
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Debug|x86.ActiveCfg = Debug|Win32
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Debug|x86.Build.0 = Debug|Win32
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Release|x64.ActiveCfg = Release|x64
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Release|x64.Build.0 = Release|x64
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Release|x86.ActiveCfg = Release|Win32
+		{4C7A1953-CBC4-42D5-A12F-BB512C64B547}.Release|x86.Build.0 = Release|Win32
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Debug|x64.ActiveCfg = Debug|x64
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Debug|x64.Build.0 = Debug|x64
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Debug|x86.ActiveCfg = Debug|Win32
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Debug|x86.Build.0 = Debug|Win32
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Release|x64.ActiveCfg = Release|x64
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Release|x64.Build.0 = Release|x64
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Release|x86.ActiveCfg = Release|Win32
+		{7CBDE5A1-9CBB-4139-93F5-09D8DBA4427F}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38B001E9-80A1-4CA1-A9C1-744BE609D8DC}
+	EndGlobalSection
+EndGlobal

@@ -84,11 +84,11 @@ CGraphFilters* CGraphFilters::Get()
 
 void CGraphFilters::SetSanearSettings()
 {
-#if TODO
+
   if (!sanear)
     if (FAILED(SaneAudioRenderer::Factory::CreateSettings(&sanear)))
       return;
-#endif
+
 
   std::wstring adeviceW;
   std::string adevice = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_SANEARDEVICES);  

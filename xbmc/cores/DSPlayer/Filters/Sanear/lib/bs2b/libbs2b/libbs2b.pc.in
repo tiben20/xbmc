@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libbs2b
+Description: Bauer stereophonic-to-binaural DSP library
+
+Version: @VERSION@
+URL: http://bs2b.sourceforge.net/
+Libs: -L${libdir} -lbs2b
+Libs.private: -lm
+Cflags: -I${includedir}/bs2b

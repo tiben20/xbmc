@@ -50,7 +50,7 @@
 #include "video/VideoInfoTag.h"
 #include "utils/URIUtils.h"
 #include "utils/DSFileUtils.h"
-//#include "Filters/Sanear/Factory.h"
+#include "Filters/Sanear/Factory.h"
 #include <mmdeviceapi.h>
 #include <Functiondiscoverykeys_devpkey.h>
 #include "ServiceBroker.h"
@@ -60,6 +60,11 @@
 #include "Filters/MPCVideoRenderer/VideoRenderer.h"
 #include "video/VideoFileItemClassify.h"
 #include <filesystem/SpecialProtocol.h>
+#pragma comment(lib, "sanear.lib")
+#pragma comment(lib, "soxr.lib")
+#pragma comment(lib, "SoundTouch.lib")
+#pragma comment(lib, "bs2b.lib")
+#pragma comment(lib, "atls.lib")
 namespace
 {
   std::vector<std::pair<std::string, std::string>> GetDevices()
@@ -356,7 +361,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
 
   //see if there a config first 
   const std::string renderer = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_AUDIORENDERER);
-#if TODO
+
   if (renderer == CGraphFilters::INTERNAL_SANEAR)
   {
     struct SaneAudioRendererFilter : CFGFilter {
@@ -391,7 +396,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
       CLog::Log(LOGERROR, "{} Failed to create the intenral audio renderer (%X)", __FUNCTION__, hr);
     }
   }
-#endif
+  
   //TODO fix if config not there
   if (renderer != CGraphFilters::INTERNAL_SANEAR || FAILED(hr))
   {
@@ -404,7 +409,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
         sAudioRenderName = dev.lpstrName;
         sAudioRenderDisplayName = dev.lpstrDisplayName;
         START_PERFORMANCE_COUNTER
-          //pFGF = new CFGFilterRegistry(GUIDFromString(dev.lpstrGuid));
+          //pFGF = new CFGFilterRegistry(GUIDFromString(L"DF557071-C9FD-433A-9627-81E0D3640ED9"));
           pFGF = new CFGFilterRegistry(dev.lpstrDisplayName);
         hr = pFGF->Create(&CGraphFilters::Get()->AudioRenderer.pBF);
         delete pFGF;
