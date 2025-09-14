@@ -360,7 +360,7 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
   END_PERFORMANCE_COUNTER("Loaded audio renderer list");
 
   //see if there a config first 
-  const std::string renderer = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_AUDIORENDERER);
+  std::string renderer = CServiceBroker::GetSettingsComponent()->GetSettings()->GetString(CSettings::SETTING_DSPLAYER_AUDIORENDERER);
 
   if (renderer == CGraphFilters::INTERNAL_SANEAR)
   {
@@ -398,6 +398,8 @@ HRESULT CFGLoader::InsertAudioRenderer(const std::string& filterName)
   }
   
   //TODO fix if config not there
+  if (renderer == "System Default")
+    renderer = std::string("Default DirectSound Device");
   if (renderer != CGraphFilters::INTERNAL_SANEAR || FAILED(hr))
   {
     //for (std::vector<DSFilterInfo>::const_iterator iter = deviceList.begin(); !renderer.empty() && (iter != deviceList.end()); ++iter)
