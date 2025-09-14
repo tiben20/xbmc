@@ -171,7 +171,6 @@ public:
   virtual float GetCachePercentage() const { return 0.0; };
   virtual int  GetSubtitleCount() const { return 0; };
   virtual void GetVideoStreamInfo(int streamId, SPlayerVideoStreamInfo& info) const { };
-  virtual void GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) { };
   virtual bool IsRenderingVideoLayer() { return false; };
   virtual bool IsRenderingGuiLayer() { return false; };
   virtual bool Supports(EINTERLACEMETHOD method) { return false; };

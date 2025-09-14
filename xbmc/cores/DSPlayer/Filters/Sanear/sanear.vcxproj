@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BB2B61AF-734A-4DAD-9326-07F4F9EA088F}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Choose>
@@ -81,10 +81,12 @@
   </Choose>
   <Import Project="$(SanearPropsPath)" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\atlmfc\include;..\..\BaseClasses;..\..\..\BaseClasses;.\lib\bs2b\libbs2b\src;.\lib\soxr\libsoxr\src;.\lib\SoundTouch\soundtouch\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\BaseClasses;..\..\..\BaseClasses;.\lib\bs2b\libbs2b\src;.\lib\soxr\libsoxr\src;.\lib\SoundTouch\soundtouch\include;$(IncludePath)</IncludePath>
+    <OutDir>.\..\..\..\..\..\project\builddependencies\x64\lib</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\atlmfc\include;..\..\BaseClasses;..\..\..\BaseClasses;.\lib\bs2b\libbs2b\src;.\lib\soxr\libsoxr\src;.\lib\SoundTouch\soundtouch\include;$(IncludePath)</IncludePath>
+    <OutDir>.\..\..\..\..\..\project\builddependencies\x64\lib</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
