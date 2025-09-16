@@ -388,6 +388,12 @@ void CDX11VideoProcessor::ReleaseVP()
 void CDX11VideoProcessor::ReleaseDevice()
 {
 	CLog::Log(LOGINFO,"CDX11VideoProcessor::ReleaseDevice()");
+	//need to reset in case libplacebo changed it
+	if (DX::DeviceResources::Get()->IsHDROutput())
+	{
+		DX::DeviceResources::Get()->SetHdrColorSpace(DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+	}
+
 
 	ReleaseVP();
 	m_D3D11VP.ReleaseVideoDevice();

@@ -198,6 +198,7 @@ int CDSPlayer::GetSubtitle()
 
 void CDSPlayer::SetSubtitle(int iStream)
 {
+  CLog::Log(LOGINFO, "{} settings subtitle #{}",__FUNCTION__, iStream);
    if (CStreamsManager::Get()) 
      CStreamsManager::Get()->SetSubtitle(iStream);
 }
@@ -527,12 +528,9 @@ void CDSPlayer::GetSubtitleStreamInfo(int index, SubtitleStreamInfo& info) const
   std::string strStreamName;
   if (CStreamsManager::Get())
   {
-    
-    CStreamsManager::Get()->GetSubtitleName(index, strStreamName);
-    
+    CStreamsManager::Get()->GetSubtitleInfo(index, info);
   }
-  info.language = strStreamName;
-  info.name = strStreamName;
+
 }
 
 bool CDSPlayer::IsPlaying() const

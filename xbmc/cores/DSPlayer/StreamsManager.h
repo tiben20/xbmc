@@ -208,7 +208,7 @@ public:
 
   int  GetSubtitleCount();
   int  GetSubtitle();
-  void GetSubtitleName(int iStream, std::string &strStreamName);
+  void GetSubtitleInfo(int iStream, SubtitleStreamInfo& strStreamName);
   bool GetSubtitleVisible();
   void SetSubtitleVisible(bool bVisible);
   bool SetSubtitle(const std::string &sTrackName);

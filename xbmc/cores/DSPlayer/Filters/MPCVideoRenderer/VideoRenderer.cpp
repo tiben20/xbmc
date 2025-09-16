@@ -173,7 +173,9 @@ CMpcVideoRenderer::CMpcVideoRenderer(LPUNKNOWN pUnk, HRESULT* phr)
 
 CMpcVideoRenderer::~CMpcVideoRenderer()
 {
+
 	DLog("CMpcVideoRenderer::~CMpcVideoRenderer()");
+
 
 	if (m_hWndWindow) {
 		::SendMessageW(m_hWndWindow, WM_CLOSE, 0, 0);

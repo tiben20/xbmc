@@ -720,13 +720,13 @@ int CStreamsManager::GetSubtitleCount()
   return m_subfilterStreams.size();
 }
 
-void CStreamsManager::GetSubtitleName(int iStream, std::string &strStreamName)
+void CStreamsManager::GetSubtitleInfo(int iStream, SubtitleStreamInfo& strStreamName)
 {
   if (!m_bHasSubsFilter)
   {
     std::string strStreamLang;//useless
     //if -1 its current stream which mean we get the stream which as the used flag
-    SubtitleManager->GetSubtitleName(iStream, strStreamName, strStreamLang);
+    SubtitleManager->GetSubtitleName(iStream, strStreamName.name, strStreamLang);
     return;
   }
 
@@ -740,7 +740,9 @@ void CStreamsManager::GetSubtitleName(int iStream, std::string &strStreamName)
   {
     if (i == iStream)
     {
-      strStreamName = (*it)->displayname;
+      strStreamName.name = (*it)->displayname;
+      strStreamName.language = (*it)->isolang;
+      
     }
   }
 }
@@ -1784,11 +1786,13 @@ void CSubtitleManager::SetSizes(Com::SmartRect window, Com::SmartRect video)
 
 std::vector<CDSStreamDetailSubtitle *>& CSubtitleManager::GetSubtitles()
 {
+  CLog::Log(LOGINFO, "{}: requesting vector subtitles {}", __FUNCTION__, m_subtitleStreams.size());
   return m_subtitleStreams;
 }
 
 int CSubtitleManager::GetSubtitleCount()
 {
+  CLog::Log(LOGINFO, "{}: count {}", __FUNCTION__, m_subtitleStreams.size());
   return m_subtitleStreams.size();
 }
 
@@ -1802,9 +1806,12 @@ int CSubtitleManager::GetSubtitle()
     it != m_subtitleStreams.end(); ++it, i++)
   {
     if ((*it)->flags & AMSTREAMSELECTINFO_ENABLED)
+    {
+      CLog::Log(LOGINFO, "{}: GetSubtitle {}", __FUNCTION__,i);
       return i;
+    }
   }
-
+  CLog::Log(LOGINFO, "{}: no subtitle stream selected returning -1", __FUNCTION__);
   return -1;
 }
 
@@ -1823,10 +1830,12 @@ void CSubtitleManager::GetSubtitleName(int iStream, std::string &strStreamName, 
       strStreamLang = (*it)->isolang;
     }
   }
+  CLog::Log(LOGINFO, "{}: stream name {} isolang {}", __FUNCTION__, strStreamName.c_str(), strStreamLang.c_str());
 }
 
 void CSubtitleManager::SetSubtitle(int iStream)
 {
+  CLog::Log(LOGINFO, "{}: changing subtitle stream to {}", __FUNCTION__, iStream);
   if (CGraphFilters::Get()->IsDVD())
     return; // currently not implemented
 
